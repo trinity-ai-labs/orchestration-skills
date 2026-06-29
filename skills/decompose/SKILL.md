@@ -44,7 +44,21 @@ A breakdown built from the plan text alone is guesswork — it names files that 
 
 ---
 
-## Step 2 — Slice into independent tasks
+## Step 2 — Validate the plan and fill the gaps
+
+Grounding (Step 1) almost always surfaces holes: behavior the plan never specifies, a design fork it leaves open, missing acceptance criteria, scope that's ambiguous about what's in vs. out, a constraint that's implied but never stated. **A breakdown is only as good as the plan under it — slicing a plan with holes just buries the holes inside slice briefs where an implementer hits them mid-build.** So before you slice, validate that the plan is complete enough to slice, and close the gaps.
+
+**Fill what you can yourself — that's the job, not a shortcut.** Most gaps are resolvable from the grounding you already did: the codebase already has a pattern to follow, `AGENTS.md`/config already dictates the convention, the pre-launch/forward-only posture already settles a "do we migrate?" question, or there's a plainly obvious default. When a gap has a sensible answer, **adopt it and write the assumption down explicitly** in the affected slice's brief (`Assumes X (existing pattern in <file>); flag if wrong`) rather than interrupting the user. Filling gaps with grounded, stated assumptions is exactly "do its best to fill in gaps."
+
+**Escalate to the user only the gaps you genuinely can't resolve** — the ones where (a) there's no obvious default, (b) guessing wrong would change the slicing or send an implementer down the wrong path, and (c) the codebase/conventions don't settle it. A product decision ("should deleting an org cascade-delete its projects or soft-archive them?"), a real design fork with no house style, an undefined acceptance bar on something that gates other slices — those are worth a question. Don't ask what you could answer by reading one more file or picking the conventional default.
+
+**When you must ask, ask in plain chat — ONE question at a time.** No option-picker dialogs, no batched wall of questions. State the gap, give your recommendation and why, and ask the single most decision-blocking question. Wait for the answer, fold it in, then ask the next one only if it's still open after that answer (answers often resolve several gaps at once). Order questions by blocking impact — the one that most changes the slice shape first. This keeps the prep conversational and lets the user redirect early instead of reacting to a form.
+
+Only once the plan's decision-blocking gaps are closed (filled-with-assumption or answered) do you move on to slicing. If the user is unavailable and a gap is non-blocking, proceed with the stated assumption and mark it; don't stall the whole decomposition on a minor open question.
+
+---
+
+## Step 3 — Slice into independent tasks
 
 One slice = one worktree = one PR. **Optimize for independence**: the more slices that can run concurrently without touching each other's files, the more the orchestrator parallelizes. Aim for slices that are *cohesive* (one logical change) and *isolated* (own a disjoint set of files).
 
@@ -63,20 +77,21 @@ For **each** slice, produce:
 
 ---
 
-## Step 3 — The parallelization plan (the part that makes orchestrate good)
+## Step 4 — The parallelization plan (the part that makes orchestrate good)
 
 Slices alone aren't enough; the orchestrator needs the **shape of the parallelism**. Lay it out explicitly:
 
 - **Waves.** Group slices into waves by dependency. **Wave 0** is the foundational layer that must land first — a schema change, a shared type/interface, a renamed module, a new core service everything imports. Wave 1+ are the consumers that can each run in parallel *once wave 0 merges*. Most epics have a small wave 0 and a wide wave 1.
 - **Transient-red window.** If a wave-0 slice is a breaking foundational change (NOT-NULL schema swap, required interface field, renamed export), say so explicitly: the branch's gate won't be fully green again until every consumer migrates, and `/orchestrate` runs its transient-red gate semantics for the consumer slices. Flag which slices live in that window so the orchestrator reads the gate correctly instead of chasing a green exit.
 - **Conflict map.** Call out any pair of slices that, despite your best slicing, will touch the same file (e.g. both add a route to the same registry, both add a case to the same exhaustive switch). The orchestrator resolves these **at merge time** (merge one, then merge the other and fix the conflict) — never by rebasing. Naming them up front turns a surprise into a planned merge.
+- **Shared hotspots — hoist the seam in Wave 0, don't just name the conflict.** The conflict map handles *pairs* that brush one file. But when **3+ slices must all extend the same structure** — a control loop's `tick()`, a reducer, an event handler, an exhaustive switch — that isn't a conflict to resolve, it's a **decomposition smell**. Parallel slices fork off *different* bases and each edits that structure against a different version, so the merges drift **semantically**: textually clean (git sees no overlapping lines, reports `MERGEABLE`) but behaviorally wrong — e.g. each slice adds its new case only to the sibling branches that existed *when it forked*, leaving a newer sibling silently missing it. The right move is to make the structure **pluggable as a Wave-0 slice**: land the extensibility seam first — an interface / registry / `Monitor[]` the others *register into* — so each consumer adds a self-contained module instead of editing the shared body. That converts a semantic-merge hazard into genuinely independent slices. When you can't hoist the seam (the abstraction isn't worth it, or it's already shipped inline), do both: (1) emit an explicit **shared invariant** in every touching slice's brief — the rule the structure must keep no matter who edits it (*"every parked-state branch must freeze ALL kill-clocks"*, *"every new event type must be handled in BOTH the reducer and the renderer"*) — and (2) mark the hotspot so `/orchestrate` reviews the *merged region semantically*, not just resolves markers. A green integration gate will NOT save you here — it only catches the drift if a test happens to exercise that exact cross-slice interaction.
 - **Critical path.** One line: the longest dependency chain (wave 0 → its slowest/most-coupled consumer), so the orchestrator knows where to start and what gates the finish.
 
 Be honest about what is genuinely sequential. Inventing parallelism that isn't there (two slices that both need the same not-yet-built foundation) just makes the orchestrator stop-and-replace agents later. **Real independence > optimistic independence.**
 
 ---
 
-## Step 4 — Emit the breakdown
+## Step 5 — Emit the breakdown
 
 ### In-chat path — output format
 
@@ -118,7 +133,7 @@ Then **stop.** Do not start making worktrees or writing code — that's the orch
 
 ## Writing it back to GitHub
 
-For the issue path, decide **comment** vs **umbrella + sub-issues**. Read the issue, ground it (Step 1), slice it (Steps 2–3), then choose:
+For the issue path, decide **comment** vs **umbrella + sub-issues**. Read the issue, ground it (Step 1), validate and fill gaps (Step 2), slice it (Steps 3–4), then choose:
 
 ### Comment (the default)
 When the work is small-to-medium — a handful of slices that are clearly one release effort and don't each need independent tracking/assignment — **post the whole breakdown as a single comment** on the issue. The orchestrator reads the comment and dispatches from it. Keep the issue itself as the unit of work.

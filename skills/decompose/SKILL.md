@@ -20,7 +20,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 You are a **planner, not a builder.** You read, research, and emit a breakdown (in chat, or onto a GitHub issue). You **never** write code, make worktrees, dispatch implementer sub-agents, or merge — that all belongs to `/orchestrate`. Your deliverable is the *plan it executes*.
 
-**The whole point is to maximize safe parallelism.** A good decomposition is one where the orchestrator can cut N worktrees and run N implementers at once because you've already worked out which slices are independent, which must land first, and where two slices would fight over the same file.
+**The whole point is to maximize safe parallelism — but parallelism has a price, so the real goal is the *balance*.** A good decomposition is one where the orchestrator can cut N worktrees and run N implementers at once because you've already worked out which slices are independent, which must land first, and where two slices would fight over the same file. What it is **not** is "as many slices as possible." Every slice pays a fixed overhead — a worktree, an install, a review, and crucially **a full wrap-up gate run** — and when that gate is serialized (e.g. Trinity's `pnpm gate` takes a machine-wide lock and runs ~5–6 min), the gates of parallel slices **queue behind each other** instead of overlapping. Past a point, more slices means more total gate time and a more saturated box, not a faster finish. So aim for the *fewest* slices that still expose the real independence — meaty, cohesive slices over a cloud of fragments. See **Sizing** (Step 3) for the economics.
 
 ## Two input paths
 
@@ -74,6 +74,12 @@ For **each** slice, produce:
 - **Verify** — what "done" looks like: the behavior, the tests to add/touch, the acceptance check.
 
 **Sizing.** A slice should be a meaningful but reviewable PR — not so small that the worktree/PR overhead dominates (fold trivial bits into a sibling), not so large that it owns half the repo (split it, and the split usually reveals a foundational sub-slice). When two candidate slices can't avoid heavy file overlap, either merge them into one slice or sequence them across waves — don't pretend they're parallel.
+
+**The gate-cost economics (size against the gate, not against an idealized infinite machine).** Each slice ends in the project's wrap-up gate (`GATE_CMD` from config). Read that gate's cost before you size: **how long does it run, and is it serialized?** If the gate takes a machine-wide lock (Trinity: `pnpm gate` ≈ 5–6 min, one at a time across all worktrees), then the *gates do not parallelize* — N slices in a wave serialize N gate runs at the end, so a wave of 8 tiny slices can spend ~40+ min just gating work that 4 cohesive slices would have gated in ~20. The lever isn't "minimize slices" or "maximize slices" — it's **make each slice carry enough weight that its share of the gate cost is justified.** Concretely:
+- **Fold sub-PR fragments.** If a candidate slice would gate in a couple of edits (rename, a one-liner, a single test), it does not deserve its own worktree+gate — fold it into the cohesive sibling it's closest to.
+- **Bound wave width to the gate, not to the file-independence.** Two slices being *independent* doesn't mean they should both run if a third cohesive slice could absorb one of them; with a serialized gate, a narrower wave of heavier slices often finishes the whole wave sooner.
+- **When you catch yourself splitting for "cleaner boundaries" alone, stop.** Boundary aesthetics are not worth an extra full gate. Split only when the slice is genuinely too big to review *or* the split removes a real merge collision.
+- If the gate is **cheap or parallelizable** (no lock, fast), this pressure relaxes and you can fan out wider — so always size against the *actual* gate you read in config, not a default assumption.
 
 ---
 
@@ -163,7 +169,7 @@ Warrant the umbrella; don't reflexively shard a 3-slice issue into 3 issues — 
 - **No code.** You never edit source files. If you catch yourself opening a file to change it, stop — that's an implementer's job.
 - **No worktrees.** You never run `setup-worktree.sh`, never use the Agent tool's `isolation: "worktree"` param, never provision anything. Decompose is read-only against the working tree (plus GitHub writes on the issue path).
 - **No dispatch, no merge.** You don't spawn implementer sub-agents to build, and you don't merge PRs. (You *do* spawn read-only `Explore`/research agents in Step 1 — that's grounding, not building.)
-- **Don't over-decompose.** Granularity that creates more coordination cost than it saves is a regression. When unsure, fewer, well-bounded slices beat many fragile ones.
+- **Don't over-decompose.** Granularity that creates more coordination cost than it saves is a regression. When unsure, fewer, well-bounded slices beat many fragile ones. **And remember the gate is a real, often-serialized cost** (see Sizing): a wider fan-out of thin slices can finish *slower* than a narrower set of cohesive ones because their wrap-up gates queue on the same lock. Size against the actual `GATE_CMD`, and never split for boundary-aesthetics alone.
 - **Hand off, then stop.** Your turn ends at the breakdown + the handoff line. The user (or you, in a fresh `/orchestrate` invocation) takes it from there.
 
 **Why this shape:** the orchestrator already *can* slice work on the fly, but it does so mid-flight, without deep grounding, while also juggling worktrees and merges. A dedicated decompose pass front-loads the expensive thinking — real file scopes, the dependency waves, the conflict map — so the orchestrator spends its budget executing a good plan instead of discovering the plan while executing. Better decomposition in → more safe parallelism and fewer wrong-approach restarts out.

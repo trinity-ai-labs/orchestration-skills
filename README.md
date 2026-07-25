@@ -72,7 +72,7 @@ The Trinity config (`config/trinity.sh`) ships in this repo, so `install.sh` alr
 - **INSTALL_CMD** — `pnpm install --frozen-lockfile`
 - **GATE_CMD** — `pnpm check && pnpm test` (this is the green bar before any PR)
 - **DOCS_BRANCH_PREFIX** — `docs/` branches skip env + install (markdown comes up instantly)
-- **BRIEF_CONVENTIONS** — baked into every implementer brief: use the `effect` skill for Effect-TS code; pre-launch **forward-only, no backwards-compat shims**; comments explain the mechanism (no issue/PR/version refs); run `/simplify` then the gate before committing.
+- **BRIEF_CONVENTIONS** — baked into every implementer brief: use the `effect-v3` skill for Effect-TS code; pre-launch **forward-only, no backwards-compat shims**; comments explain the mechanism (no issue/PR/version refs); run `/simplify` then the gate before committing.
 
 **One-time Trinity setup:**
 

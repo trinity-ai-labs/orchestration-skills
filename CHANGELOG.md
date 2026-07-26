@@ -2,6 +2,12 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 1.2.0
+
+- **Polyrepo workspaces.** A containing folder of sibling repos can declare `.agents/workspace.json`, and `setup-workspace.sh <branch> [repo…]` cuts one worktree per member into `~/.worktrees/<workspace>/<leaf>/<repo>` — the workspace's own layout, so cross-repo paths still resolve and both stacks run side by side. Members are selectable by name, by `--exclude`, or by a manifest `"default": false` for the repo a workspace rarely touches with the others.
+- Worktrees for a repo inside a workspace are namespaced under it. Bare polyrepo names — `api`, `client`, `admin` — collide across unrelated projects in a flat `~/.worktrees`.
+- Fixed: `setup-worktree.sh` created its directory from the old flat path, leaving stray empty dirs when the real destination was elsewhere.
+
 ## 1.1.0
 
 - The marketplace now carries a second plugin, [`frameworks`](https://github.com/trinity-ai-labs/framework-skills) — the Effect v3 and SolidJS reference skills, previously two repos behind shell installers.

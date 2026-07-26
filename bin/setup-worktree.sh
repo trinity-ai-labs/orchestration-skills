@@ -56,7 +56,19 @@ fi
 MAIN=$(dirname "$COMMON")
 PROJECT=$(basename "$MAIN")
 SLUG="${BRANCH##*/}"
-WT="$WORKTREE_HOME/$PROJECT/$SLUG"
+
+# A repo inside a workspace (a containing folder of sibling repos, marked by
+# .agents/workspace.json) gets its worktrees under the WORKSPACE's namespace, not
+# its own. Bare repo names in a polyrepo are things like `api` and `client` —
+# generic enough that two unrelated projects collide in a flat ~/.worktrees.
+# setup-workspace.sh sets WORKTREE_DEST directly when it cuts a whole task.
+if [ -n "${WORKTREE_DEST:-}" ]; then
+  WT="$WORKTREE_DEST"
+elif [ -f "$(dirname "$MAIN")/.agents/workspace.json" ]; then
+  WT="$WORKTREE_HOME/$(basename "$(dirname "$MAIN")")/$SLUG/$PROJECT"
+else
+  WT="$WORKTREE_HOME/$PROJECT/$SLUG"
+fi
 
 # Translate the JSON config into shell assignments. JSON has no shell, so this
 # needs a parser: python3 first (present by default on macOS and every mainstream
@@ -108,7 +120,7 @@ if ! git -C "$MAIN" rev-parse --verify --quiet "$BASE" >/dev/null; then
   exit 1
 fi
 
-mkdir -p "$WORKTREE_HOME/$PROJECT"
+mkdir -p "$(dirname "$WT")"
 
 if git -C "$MAIN" worktree list | grep -qF "$WT"; then
   echo "worktree already exists: $WT"

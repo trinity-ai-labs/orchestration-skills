@@ -64,6 +64,38 @@ To onboard a new project, add `<repo>/.agents/worktree.json` declaring the keys 
 
 ---
 
+## Polyrepo workspaces
+
+Some projects are a **containing folder of sibling repos** rather than one repo — an API, its clients, an admin panel, a marketing site, all released together. The folder itself is not a git repo, so every helper that resolves the repo from CWD fails at its root.
+
+A workspace declares itself with `.agents/workspace.json` at that root:
+
+- `integrationBranch` — the branch every member shares (they release together; that's what makes it a workspace).
+- `members` — the repos, as names or `{path, default}`. A member with `"default": false` is skipped unless named — for the one repo the others rarely change with.
+- `crossRepoContracts` — the shared artifacts (generated types, notification payloads, translations) and which repo owns each. This is the polyrepo form of the shared-hotspot problem: the owning side must land first, and the consumer regenerates rather than hand-edits.
+- `briefConventions` — conventions shared by every member, so five repos don't each restate the same branch policy.
+
+**One task gets one worktree per repo, laid out like the workspace:**
+
+```
+setup-workspace.sh <branch> [repo ...]
+setup-workspace.sh <branch> --exclude <repo,repo>
+```
+
+→ `~/.worktrees/<workspace>/<branch-leaf>/<repo>/`, using the **same branch name in every member** so the PRs are visibly one change. Mirroring the layout is the point: relative paths between repos still resolve and both stacks run side by side, which is what a change spanning an API and its client actually needs. Each member is provisioned through `setup-worktree.sh`, so it still gets its own `.agents/worktree.json` treatment.
+
+**Name the repos a task touches.** Every repo you cut is an install you pay for, so the default set is a floor, not a target. `--exclude` is for when a task touches most of the workspace and you want to drop one.
+
+**What changes for you as orchestrator:**
+
+- **Verify HEAD in every member**, not just one. A polyrepo's integration branch is a convention, and one repo lagging is the normal failure.
+- **Order merges by contract.** A slice that changes a contract and its consumer is two PRs with a mandatory order — the owning repo lands first. Nothing enforces this; you do.
+- **Each member gates itself.** There are as many queues as repos, so per-repo green says nothing about the pair. Treat the cross-repo pair the same way you treat a multi-slice epic: independently green is necessary, integrated-green is what ships.
+
+A repo inside a workspace also gets its plain `setup-worktree.sh` worktrees namespaced under the workspace, because bare polyrepo names (`api`, `client`, `admin`) collide across unrelated projects in a flat `~/.worktrees`.
+
+---
+
 ## Worktree creation (both roles depend on this being done right)
 
 **⛔ HARD BAN — the Agent tool's `isolation: "worktree"` parameter (and ANY harness / auto worktree provisioner) is FORBIDDEN. Never use it.** It (a) creates the worktree under `.claude/worktrees/agent-*` (violates invariant 1 below) and (b) repeatedly seeds it at a STALE base — far behind the integration tip (observed ~1000+ commits behind, a previous-minor-version commit) — which has burned us over and over (agents waste cycles re-basing, or stale code silently leaks in). There is exactly ONE way to make a worktree: the helper script below, then **verify HEAD yourself**, THEN dispatch a plain agent (no `isolation`) pointed at that worktree path.

@@ -1,0 +1,24 @@
+{
+  "integrationBranch": "release/0.1.0",
+  "branchPrefixes": [
+    "feature",
+    "hotfix"
+  ],
+  "members": [
+    "api",
+    "client",
+    "admin",
+    {
+      "path": "website",
+      "default": false
+    }
+  ],
+  "crossRepoContracts": [
+    {
+      "what": "Generated TypeScript types",
+      "landFirst": "api",
+      "note": "api owns the schema; consumers regenerate rather than hand-edit"
+    }
+  ],
+  "briefConventions": "Branch only as feature/* or hotfix/*, and target the integration branch in every repo. A change crossing repos uses the SAME branch name in each, and the contract side lands before its consumers."
+}

@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# Install the worktree-orchestrate workflow on this machine.
+# Install the orchestration-skills pipeline on this machine.
 #
-#   ./install.sh
+#   ./install.sh            # symlink (default) — repo IS the live tools, edits propagate instantly
+#   ./install.sh --copy     # copy instead — edit the repo, re-run to sync
 #
 # Symlinks the repo's pieces into the locations Claude Code + the helper expect:
-#   bin/setup-worktree.sh      -> ~/.worktrees/setup-worktree.sh
-#   config/*.sh                -> ~/.worktrees/config/*.sh
-#   skills/orchestrate/        -> ~/.claude/skills/orchestrate/  AND  ~/.agents/skills/orchestrate/
+#   bin/*.sh     -> ~/.worktrees/*.sh
+#   config/*.sh  -> ~/.worktrees/config/*.sh
+#   skills/*     -> ~/.claude/skills/*   (Claude Code)
+#                -> ~/.agents/skills/*   (generic ~/.agents convention)
+#
+# The three skills install as a set, always. They are one pipeline
+# (write-issue -> decompose -> orchestrate) and they reach into each other's
+# ground: decompose and orchestrate both read the per-project config this script
+# drops at ~/.worktrees/config/<project>.sh, and each skill's handoff names the
+# next one by slash-command. A partial install leaves a skill pointing at files
+# that aren't there.
 #
 # Symlinks (not copies) mean `git pull` in this repo updates your live tools.
-# Pass --copy to copy instead (edit the originals in the repo, re-run to sync).
+# The script is idempotent: it wipes whatever is at each destination and
+# re-links, so a stale or half-broken install is cleaned out every time.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
-# Install the skill into every agent skills home: Claude Code and the generic
+# Install the skills into every agent skills home: Claude Code and the generic
 # ~/.agents convention. Add more here and they all stay in sync.
 SKILL_HOMES=(
   "${CLAUDE_SKILLS_HOME:-$HOME/.claude/skills}"
@@ -39,15 +49,14 @@ link() { # link <src> <dest>
   echo "  $dest -> $src"
 }
 
-echo "Installing worktree-orchestrate ($MODE) from $REPO"
+echo "Installing orchestration-skills ($MODE) from $REPO"
 
 # 1. Helper scripts
-link "$REPO/bin/setup-worktree.sh" "$WORKTREE_HOME/setup-worktree.sh"
-chmod +x "$REPO/bin/setup-worktree.sh"
-link "$REPO/bin/remove-worktree.sh" "$WORKTREE_HOME/remove-worktree.sh"
-chmod +x "$REPO/bin/remove-worktree.sh"
-link "$REPO/bin/merge-pr.sh" "$WORKTREE_HOME/merge-pr.sh"
-chmod +x "$REPO/bin/merge-pr.sh"
+for script in "$REPO"/bin/*.sh; do
+  [ -e "$script" ] || continue
+  chmod +x "$script"
+  link "$script" "$WORKTREE_HOME/$(basename "$script")"
+done
 
 # 2. Per-project configs (one symlink per file so you can add your own later)
 mkdir -p "$WORKTREE_HOME/config"
@@ -56,16 +65,18 @@ for cfg in "$REPO"/config/*.sh; do
   link "$cfg" "$WORKTREE_HOME/config/$(basename "$cfg")"
 done
 
-# 3. The orchestrate skill — into every skill home
+# 3. Every skill — into every skill home
 for home in "${SKILL_HOMES[@]}"; do
-  link "$REPO/skills/orchestrate" "$home/orchestrate"
+  for skill in "$REPO"/skills/*/; do
+    link "${skill%/}" "$home/$(basename "$skill")"
+  done
 done
 
 echo
 echo "Done. Sanity check:"
 echo "  ls -la $WORKTREE_HOME/setup-worktree.sh"
 for home in "${SKILL_HOMES[@]}"; do
-  echo "  ls -la $home/orchestrate"
+  echo "  ls -la $home/write-issue $home/decompose $home/orchestrate"
 done
 echo
-echo "Next: open Claude Code in your repo and try  /orchestrate  — see README.md."
+echo "Next: open Claude Code in your repo and try  /write-issue  — see README.md."

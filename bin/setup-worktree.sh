@@ -8,11 +8,13 @@
 # common gitdir, so it always resolves the right project. If cwd isn't inside a
 # git repo, pass REPO=/path/to/repo.
 #
-# What it does, driven by per-project config at $WORKTREE_HOME/config/<project>.sh
-# (WORKTREE_HOME defaults to ~/.worktrees):
+# What it does, driven by the project's own config at <repo>/.agents/worktree.json:
 #   - creates the worktree at  $WORKTREE_HOME/<project>/<branch-leaf>
-#   - symlinks the project's gitignored env files (ENV_FILES)
-#   - runs the project's install command (INSTALL_CMD) inside the worktree
+#     (WORKTREE_HOME defaults to ~/.worktrees — the worktrees themselves stay out
+#     of the repo, since a worktree nested inside its own repo confuses git)
+#   - symlinks the project's gitignored env files (envFiles)
+#   - exports the project's env (env) — e.g. a shared build-cache dir
+#   - runs the project's install command (install) inside the worktree
 #
 # <branch>  full name of the new branch, e.g. feat/toasts-top-right (any prefix:
 #           feat/ fix/ refactor/ chore/ docs/ …). The worktree dir is named after
@@ -23,14 +25,15 @@
 # Every branch gets the same treatment — env symlinks and a real install — so a
 # worktree is always self-contained and can face any check the project has.
 #
-# Per-project config is sourced as bash and may set: ENV_FILES (array),
-# INSTALL_CMD, GATE_CMD, BRIEF_CONVENTIONS. (GATE_CMD / BRIEF_CONVENTIONS aren't
-# used here — they're read by the orchestrator.) No config → a bare worktree
-# (no env symlinks, no install).
+# The config lives in the repo, so it travels with the clone and is reviewed
+# alongside the code it describes. This script reads only `envFiles`, `env`, and
+# `install`; the remaining keys (gate, scopedCheck, enqueue, drain,
+# frameworkSkills, briefConventions) are read by the skills, not here. No config
+# → a bare worktree (no env symlinks, no install).
 set -euo pipefail
 
 WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
-CONFIG_DIR="$WORKTREE_HOME/config"
+CONFIG_REL=".agents/worktree.json"
 
 if [ $# -lt 2 ]; then
   echo "usage: setup-worktree.sh <branch> <base>" >&2
@@ -55,16 +58,46 @@ PROJECT=$(basename "$MAIN")
 SLUG="${BRANCH##*/}"
 WT="$WORKTREE_HOME/$PROJECT/$SLUG"
 
+# Translate the JSON config into shell assignments. JSON has no shell, so this
+# needs a parser: python3 first (present by default on macOS and every mainstream
+# Linux), node as the fallback for images that ship node but not python.
+emit_config() { # emit_config <config-path>
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$1" <<'PY'
+import json, shlex, sys
+cfg = json.load(open(sys.argv[1]))
+print("INSTALL_CMD=%s" % shlex.quote(cfg.get("install") or ""))
+print("ENV_FILES=(%s)" % " ".join(shlex.quote(p) for p in cfg.get("envFiles") or []))
+# Emitted UNQUOTED so a value may use shell expansion — `${VAR:-$HOME/...}` is how
+# a project declares a cache dir that an already-set env var wins over.
+for key, value in (cfg.get("env") or {}).items():
+    print("export %s=%s" % (key, value))
+PY
+  elif command -v node >/dev/null 2>&1; then
+    node -e '
+      const cfg = require(process.argv[1]);
+      const q = (s) => "\x27" + String(s).replace(/\x27/g, "\x27\\\x27\x27") + "\x27";
+      console.log("INSTALL_CMD=" + q(cfg.install || ""));
+      console.log("ENV_FILES=(" + (cfg.envFiles || []).map(q).join(" ") + ")");
+      for (const [k, v] of Object.entries(cfg.env || {})) console.log("export " + k + "=" + v);
+    ' "$1"
+  else
+    echo "need python3 or node to read $1" >&2
+    exit 1
+  fi
+}
+
 # Per-project config (optional). Defaults first so `set -u` is safe if it's absent.
 ENV_FILES=()
 INSTALL_CMD=""
-CONFIG="$CONFIG_DIR/$PROJECT.sh"
+CONFIG="$MAIN/$CONFIG_REL"
 if [ -f "$CONFIG" ]; then
-  # shellcheck disable=SC1090
-  source "$CONFIG"
+  # Same trust level as INSTALL_CMD below, which is eval'd too: by the time you
+  # are cutting a worktree you already run this repo's install and test commands.
+  eval "$(emit_config "$CONFIG")"
 else
   echo "note: no config at $CONFIG — creating a bare worktree (no env symlinks, no install)." >&2
-  echo "  add $CONFIG to declare ENV_FILES / INSTALL_CMD for '$PROJECT'." >&2
+  echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
 fi
 
 # Fail early with a fetch hint if base isn't a known local ref (a freshly-cut

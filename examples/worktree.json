@@ -1,0 +1,23 @@
+{
+  "envFiles": ["app/.env.local", "worker/.dev.vars"],
+  "install": "pnpm install --frozen-lockfile",
+  "gate": "pnpm gate",
+  "scopedCheck": "pnpm check",
+  "enqueue": "pnpm gate:enqueue",
+  "drain": "pnpm gate:drain",
+  "format": "pnpm format",
+  "env": {
+    "TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/my-project-turbo}"
+  },
+  "frameworkSkills": [
+    {
+      "skill": "solid",
+      "when": "SolidJS UI — solid-js components/signals/stores, @solidjs/router, Kobalte"
+    },
+    {
+      "skill": "effect-v3",
+      "when": "Effect-TS services, layers, HTTP routes, typed errors"
+    }
+  ],
+  "briefConventions": "Match surrounding style. Pre-launch, forward-only — no backwards-compat shims. Comments explain the mechanism, not the history. Run /simplify over the full diff before committing when the slice is substantial. Never rebase, never self-merge."
+}

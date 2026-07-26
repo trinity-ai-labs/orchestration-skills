@@ -12,9 +12,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint every shell script
-        # config/*.sh are sourced fragments, not executables — they carry their own
-        # `# shellcheck shell=bash` directive so they lint without a shebang.
-        run: shellcheck -S warning install.sh bin/*.sh config/*.sh
+        run: shellcheck -S warning bin/*.sh
+
+  manifests:
+    name: plugin + marketplace manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The manifests parse and carry what Claude Code needs
+        # `claude plugin validate --strict` is the authoritative check and the one
+        # the community-marketplace review runs, but it needs the CLI installed and
+        # is not reproducible on a bare runner. This covers the failure modes that
+        # actually break a published plugin: unparseable JSON, a missing name, a
+        # marketplace entry pointing at a plugin that isn't here, and the `author`
+        # field whose absence makes --strict fail at submission time.
+        run: |
+          python3 - <<'PY'
+          import json, sys, pathlib
+          fail = []
+          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text())
+          market = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text())
+          for field in ("name", "description", "author", "version", "license"):
+              if not plugin.get(field):
+                  fail.append(f"plugin.json: missing '{field}'")
+          if not market.get("name") or not market.get("owner") or not market.get("plugins"):
+              fail.append("marketplace.json: needs name, owner and plugins")
+          names = {p.get("name") for p in market.get("plugins", [])}
+          if plugin["name"] not in names:
+              fail.append(f"marketplace.json lists {names}, but plugin.json is '{plugin['name']}'")
+          for entry in market.get("plugins", []):
+              src = entry.get("source")
+              if isinstance(src, str) and src.startswith(".") and not pathlib.Path(src).is_dir():
+                  fail.append(f"marketplace.json: source '{src}' does not exist")
+          for problem in fail:
+              print(f"::error::{problem}")
+          sys.exit(1 if fail else 0)
+          PY
 
   skills:
     name: skills are well-formed
@@ -43,31 +76,36 @@ jobs:
           done
           exit $fail
 
-  install:
-    name: install.sh is idempotent
+  config-example:
+    name: example config parses
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install twice into a scratch home, then verify every link resolves
-        # Running twice is the real test: the second pass must replace the first
-        # install's symlinks, not nest new ones inside them.
+      - name: The shipped example is a config the reader can actually consume
+        # setup-worktree.sh reads envFiles/env/install out of a project's
+        # .agents/worktree.json; if the example drifts from that shape, every repo
+        # copied from it gets a bare worktree with no env and no node_modules.
         run: |
           set -euo pipefail
-          export WORKTREE_HOME="$RUNNER_TEMP/worktrees"
-          export CLAUDE_SKILLS_HOME="$RUNNER_TEMP/claude/skills"
-          export AGENTS_SKILLS_HOME="$RUNNER_TEMP/agents/skills"
-          ./install.sh
-          ./install.sh
-          for skill in skills/*/; do
-            slug="$(basename "$skill")"
-            for home in "$CLAUDE_SKILLS_HOME" "$AGENTS_SKILLS_HOME"; do
-              [ -f "$home/$slug/SKILL.md" ] || { echo "::error::$home/$slug did not install"; exit 1; }
-            done
-          done
-          for script in bin/*.sh; do
-            [ -x "$WORKTREE_HOME/$(basename "$script")" ] || { echo "::error::$script did not install executable"; exit 1; }
-          done
-          for cfg in config/*.sh; do
-            [ -f "$WORKTREE_HOME/config/$(basename "$cfg")" ] || { echo "::error::$cfg did not install"; exit 1; }
-          done
-          echo "install.sh is idempotent and complete"
+          python3 - <<'PY'
+          import json, sys
+          cfg = json.load(open("examples/worktree.json"))
+          missing = [k for k in ("envFiles", "install", "gate", "scopedCheck") if k not in cfg]
+          if missing:
+              print(f"::error::examples/worktree.json missing {missing}")
+              sys.exit(1)
+          assert isinstance(cfg["envFiles"], list), "envFiles must be a list"
+          assert isinstance(cfg.get("env", {}), dict), "env must be an object"
+          PY
+          # And prove the real reader agrees, not just a schema guess: define the
+          # script's own emit_config in this shell, then eval what it emits — the
+          # same two steps setup-worktree.sh performs. Via a temp file rather than
+          # `source <(…)`, which silently fails to define the function on bash 3.2
+          # (macOS's system bash, where this check also has to run by hand).
+          fn="$(mktemp)"
+          sed -n '/^emit_config()/,/^}/p' bin/setup-worktree.sh > "$fn"
+          . "$fn"
+          eval "$(emit_config examples/worktree.json)"
+          [ -n "$INSTALL_CMD" ] || { echo "::error::reader produced no install command"; exit 1; }
+          [ "${#ENV_FILES[@]}" -gt 0 ] || { echo "::error::reader produced no env files"; exit 1; }
+          echo "reader parsed the example: install=$INSTALL_CMD, ${#ENV_FILES[@]} env file(s)"

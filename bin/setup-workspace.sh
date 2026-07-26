@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Cut one task's worktrees across a POLYREPO workspace.
 #
-#   setup-workspace.sh <branch> [repo ...]
-#   setup-workspace.sh <branch> --exclude <repo,repo>
+#   setup-workspace.sh [--dry-run] <branch> [repo ...]
+#   setup-workspace.sh [--dry-run] <branch> --exclude <repo,repo>
 #
 # A workspace is a containing folder of sibling repos — not itself a repo —
 # marked by `.agents/workspace.json` at its root. Run this from anywhere inside
@@ -38,7 +38,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { echo "setup-workspace: error: $*" >&2; exit 1; }
 
-[ $# -ge 1 ] || die "usage: setup-workspace.sh <branch> [repo ...]"
+DRY_RUN=0
+if [ "${1:-}" = "--dry-run" ]; then DRY_RUN=1; shift; fi
+
+[ $# -ge 1 ] || die "usage: setup-workspace.sh [--dry-run] <branch> [repo ...]"
 BRANCH="$1"; shift
 SLUG="${BRANCH##*/}"
 
@@ -110,12 +113,43 @@ if [ "${#EXCLUDE[@]}" -gt 0 ]; then
 fi
 [ "${#REPOS[@]}" -gt 0 ] || die "every member was excluded — nothing to do"
 
+# Contract closure. A repo that OWNS a cross-repo contract cannot be changed
+# alone: its consumers hold generated copies of what it produces, so a task that
+# touches the owner without them can neither update nor verify the other side,
+# and the drift only surfaces after both have merged. Pull the consumers in.
+while IFS=$'\t' read -r owner consumers; do
+  [ -n "$owner" ] || continue
+  contains "$owner" "${REPOS[@]}" || continue
+  for c in $consumers; do
+    contains "$c" "${REPOS[@]}" && continue
+    if contains "$c" ${EXCLUDE[@]+"${EXCLUDE[@]}"}; then
+      die "'$c' consumes a contract owned by '$owner', which this task includes — it cannot be excluded.
+  Either drop '$owner' from the task, or keep '$c' in it."
+    fi
+    REPOS+=("$c")
+    echo "including:  $c (consumes a contract owned by $owner)"
+  done
+done < <(python3 - "$MANIFEST" <<'PY'
+import json, sys
+for c in json.load(open(sys.argv[1])).get("crossRepoContracts", []):
+    owner = c.get("owner", "")
+    if owner:
+        print(owner + "\t" + " ".join(c.get("consumers", [])))
+PY
+)
+
 echo "workspace: $WORKSPACE_NAME ($ROOT)"
 echo "branch:    $BRANCH  off  $BASE"
 echo "repos:     ${REPOS[*]}"
 echo
 
 TASK_DIR="$WORKTREE_HOME/$WORKSPACE_NAME/$SLUG"
+
+if [ "$DRY_RUN" = "1" ]; then
+  echo "would create: $TASK_DIR/{$(IFS=,; echo "${REPOS[*]}")}"
+  exit 0
+fi
+
 mkdir -p "$TASK_DIR"
 
 for repo in "${REPOS[@]}"; do

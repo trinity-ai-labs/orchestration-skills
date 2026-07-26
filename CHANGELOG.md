@@ -2,6 +2,11 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 1.3.0
+
+- **Contract closure.** A cross-repo contract now declares its `owner` and `consumers`, and a task that includes the owner automatically includes them. A repo whose generated types live in three other repos cannot be changed alone — excluding a consumer while the owner is in the task is refused outright rather than producing a task that can neither update nor verify the other side.
+- `--dry-run` prints the resolved member set without cutting anything, so an orchestrator can see a task's real surface — including repos pulled in by closure — before paying for the installs.
+
 ## 1.2.0
 
 - **Polyrepo workspaces.** A containing folder of sibling repos can declare `.agents/workspace.json`, and `setup-workspace.sh <branch> [repo…]` cuts one worktree per member into `~/.worktrees/<workspace>/<leaf>/<repo>` — the workspace's own layout, so cross-repo paths still resolve and both stacks run side by side. Members are selectable by name, by `--exclude`, or by a manifest `"default": false` for the repo a workspace rarely touches with the others.

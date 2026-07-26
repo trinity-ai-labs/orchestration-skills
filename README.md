@@ -27,20 +27,24 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 
 ## Install
 
-**Clone it into your skills directory** — no marketplace, no install step:
-
-```bash
-git clone https://github.com/trinity-ai-labs/orchestration-skills ~/.claude/skills/pipeline
-```
-
-Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads as a plugin on the next session. Update with `git pull`. The directory name is the namespace, so keep it `pipeline` unless you want to retype every cross-reference.
-
-**Or install it as a marketplace plugin**, if you'd rather have versioning and auto-update:
+**Install from the marketplace** (the supported path — versioned, auto-updating):
 
 ```
 /plugin marketplace add trinity-ai-labs/orchestration-skills
 /plugin install pipeline@trinity-ai-labs
 ```
+
+Then turn on auto-update: `/plugin` → **Marketplaces** → select `trinity-ai-labs` → **Enable auto-update**. It is **off by default for third-party marketplaces**, so without this you never receive anything. Equivalently, set `"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry in `~/.claude/settings.json`.
+
+⚠️ **Auto-update delivers a new `version`, not a new commit.** Because `plugin.json` declares `version`, an install is pinned to that string — pushing to `main` without bumping it ships nothing to anyone. CI fails the build if shipped content changes without a bump, so this can't happen silently. See [CHANGELOG.md](CHANGELOG.md).
+
+**For developing the plugin itself**, clone it into your skills directory instead — edits then apply live, with no release step:
+
+```bash
+git clone https://github.com/trinity-ai-labs/orchestration-skills ~/.claude/skills/pipeline
+```
+
+Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads as a plugin on the next session. The directory name is the namespace.
 
 **Or load it for one session**, which is the way to test a change:
 

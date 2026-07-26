@@ -49,6 +49,34 @@ jobs:
           sys.exit(1 if fail else 0)
           PY
 
+  version-bump:
+    name: plugin content changed ⇒ version bumped
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: A shipped change must move the version
+        # plugin.json sets `version`, so an installed plugin is PINNED to that
+        # string — pushing new commits under an unchanged version ships nothing
+        # while looking like it worked. This is the guard for that silent failure.
+        run: |
+          set -euo pipefail
+          base="${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || 'HEAD^' }}"
+          git rev-parse --verify "$base" >/dev/null 2>&1 || { echo "no base commit to compare (first commit) — skipping"; exit 0; }
+          shipped='^(skills/|bin/|examples/|\.claude-plugin/|README\.md|LICENSE)'
+          changed="$(git diff --name-only "$base" HEAD | grep -E "$shipped" || true)"
+          if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
+          was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"
+          now="$(python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json")).get("version",""))')"
+          echo "shipped content changed:"; echo "$changed" | sed 's/^/  /'
+          echo "version: $was -> $now"
+          if [ "$was" = "$now" ]; then
+            echo "::error::Plugin content changed but version is still $now. Bump .claude-plugin/plugin.json and add a CHANGELOG.md entry, or installs will never see this."
+            exit 1
+          fi
+          grep -qF "## $now" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $now' entry"; exit 1; }
+          echo "version bumped and changelogged"
+
   skills:
     name: skills are well-formed
     runs-on: ubuntu-latest

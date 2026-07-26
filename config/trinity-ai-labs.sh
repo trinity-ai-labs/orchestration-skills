@@ -1,3 +1,6 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2034  # every key here is read by the script that sources this file
+
 # Per-project worktree config for trinity-ai-labs.
 # Sourced as bash by ~/.worktrees/setup-worktree.sh, and read by the orchestrator
 # (the /orchestrate skill) for the gate/check/queue commands + BRIEF_CONVENTIONS.

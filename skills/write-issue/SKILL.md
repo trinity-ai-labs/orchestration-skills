@@ -12,6 +12,7 @@ description: >-
   skill is project-agnostic — it reads each repo's own AGENTS.md / conventions rather than hardcoding one
   project. For large multi-area work you write an umbrella + one sub-issue per slice; otherwise a single
   issue. Ends with the handoff to /decompose.
+argument-hint: "[the idea or plan to write up — omit to write up the plan already in chat]"
 ---
 
 # write-issue — author the issue that feeds the pipeline

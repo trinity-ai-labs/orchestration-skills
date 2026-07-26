@@ -38,7 +38,6 @@
 set -euo pipefail
 
 WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
-CONFIG_DIR="$WORKTREE_HOME/config"
 
 die() { echo "remove-worktree: error: $*" >&2; exit 1; }
 

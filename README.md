@@ -174,11 +174,23 @@ Drop a `~/.worktrees/config/<project>.sh` (named after the repo's directory) dec
 
 ---
 
+## Adding a skill
+
+`install.sh` globs `skills/*/`, so a new skill needs no installer edit — drop the directory in, re-run `./install.sh`, and it lands in both skill homes. CI enforces the two things that make a skill actually load:
+
+- **`skills/<slug>/SKILL.md` exists**, with frontmatter carrying `name`, `description`, and `argument-hint`.
+- **`name` matches the directory name.** Claude Code registers the slash-command from the directory; a mismatched `name` silently registers it under the wrong word.
+
+Keep the pipeline's shape: each skill states what it does **and** what it hands off to, so the boundaries stay legible when all three are read together.
+
+---
+
 ## Layout of this repo
 
 ```
 .
 ├── install.sh                       # symlink (or --copy) every piece into place
+├── .github/workflows/ci.yml         # shellcheck · skill frontmatter · install idempotency
 ├── bin/
 │   ├── setup-worktree.sh            # the generic worktree helper
 │   ├── merge-pr.sh                  # atomic merge + local-branch sync
@@ -193,3 +205,9 @@ Drop a `~/.worktrees/config/<project>.sh` (named after the repo's directory) dec
 ```
 
 To change the workflow: edit the file here, commit, push. Everyone who installed via symlink picks it up on `git pull`.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

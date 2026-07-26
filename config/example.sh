@@ -1,3 +1,6 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2034  # every key here is read by the script that sources this file
+
 # Per-project worktree config — TEMPLATE.
 #
 # Copy this to  ~/.worktrees/config/<project>.sh  where <project> is the repo's

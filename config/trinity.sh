@@ -1,3 +1,6 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2034  # every key here is read by the script that sources this file
+
 # Per-project worktree config for a checkout named `trinity` (the repo's default
 # clone dir — `gh repo clone trinity-ai-labs/trinity` → ./trinity).
 #

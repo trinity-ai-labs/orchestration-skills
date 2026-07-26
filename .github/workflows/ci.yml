@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint every shell script
+        # config/*.sh are sourced fragments, not executables — they carry their own
+        # `# shellcheck shell=bash` directive so they lint without a shebang.
+        run: shellcheck -S warning install.sh bin/*.sh config/*.sh
+
+  skills:
+    name: skills are well-formed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every skill has the frontmatter Claude Code needs
+        # A skill missing `name` or `description` silently fails to load, and a
+        # mismatched `name` registers the slash-command under the wrong word.
+        run: |
+          set -euo pipefail
+          fail=0
+          for dir in skills/*/; do
+            slug="$(basename "$dir")"
+            file="$dir/SKILL.md"
+            if [ ! -f "$file" ]; then
+              echo "::error::$dir has no SKILL.md"; fail=1; continue
+            fi
+            # Frontmatter is the block between the first two `---` lines.
+            fm="$(awk '/^---$/{n++; next} n==1' "$file")"
+            for key in name description argument-hint; do
+              grep -qE "^$key:" <<<"$fm" || { echo "::error::$slug: missing '$key' in frontmatter"; fail=1; }
+            done
+            declared="$(grep -E '^name:' <<<"$fm" | head -1 | sed 's/^name:[[:space:]]*//')"
+            [ "$declared" = "$slug" ] || { echo "::error::$slug: frontmatter name is '$declared', must match the directory"; fail=1; }
+          done
+          exit $fail
+
+  install:
+    name: install.sh is idempotent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install twice into a scratch home, then verify every link resolves
+        # Running twice is the real test: the second pass must replace the first
+        # install's symlinks, not nest new ones inside them.
+        run: |
+          set -euo pipefail
+          export WORKTREE_HOME="$RUNNER_TEMP/worktrees"
+          export CLAUDE_SKILLS_HOME="$RUNNER_TEMP/claude/skills"
+          export AGENTS_SKILLS_HOME="$RUNNER_TEMP/agents/skills"
+          ./install.sh
+          ./install.sh
+          for skill in skills/*/; do
+            slug="$(basename "$skill")"
+            for home in "$CLAUDE_SKILLS_HOME" "$AGENTS_SKILLS_HOME"; do
+              [ -f "$home/$slug/SKILL.md" ] || { echo "::error::$home/$slug did not install"; exit 1; }
+            done
+          done
+          for script in bin/*.sh; do
+            [ -x "$WORKTREE_HOME/$(basename "$script")" ] || { echo "::error::$script did not install executable"; exit 1; }
+          done
+          for cfg in config/*.sh; do
+            [ -f "$WORKTREE_HOME/config/$(basename "$cfg")" ] || { echo "::error::$cfg did not install"; exit 1; }
+          done
+          echo "install.sh is idempotent and complete"

@@ -13,6 +13,16 @@
       "category": "development",
       "description": "write-issue → decompose → orchestrate: turn an idea into a grounded issue, slice it into parallel waves, ship it through isolated git worktrees.",
       "homepage": "https://github.com/trinity-ai-labs/orchestration-skills"
+    },
+    {
+      "name": "frameworks",
+      "source": {
+        "source": "github",
+        "repo": "trinity-ai-labs/framework-skills"
+      },
+      "category": "development",
+      "description": "Deep, source-verified reference skills for Effect v3 and SolidJS. Claude invokes them automatically when writing, reading, or debugging code in either.",
+      "homepage": "https://github.com/trinity-ai-labs/framework-skills"
     }
   ]
 }

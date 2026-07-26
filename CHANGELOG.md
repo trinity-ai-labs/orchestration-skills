@@ -2,6 +2,11 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 1.1.0
+
+- The marketplace now carries a second plugin, [`frameworks`](https://github.com/trinity-ai-labs/framework-skills) — the Effect v3 and SolidJS reference skills, previously two repos behind shell installers.
+- `orchestrate` and `decompose` name those skills by their namespaced ids (`frameworks:effect-v3`, `frameworks:solid`), since plugin skills are always namespaced and the bare names no longer resolve.
+
 ## 1.0.1
 
 - Marketplace install documented as the primary path; the skills-directory clone demoted to a development convenience.

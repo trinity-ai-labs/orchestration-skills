@@ -85,9 +85,9 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | `envFiles` | script | Gitignored files symlinked from the main checkout into each worktree |
 | `install` | script | Run inside a new worktree — worktrees never share `node_modules` |
 | `env` | script | Exported before the install; most usefully a shared build-cache dir |
-| `gate` | skills | The heavy build+test gate. The *runner* runs this, never an implementer |
+| `gate` | skills | The authoritative check before merge. With a queue, the *runner* runs it, never an implementer. May equal `scopedCheck` when the repo has only one tier |
 | `scopedCheck` | skills | The cheap bar an implementer's commits are held to |
-| `enqueue` / `drain` | skills | How a PR joins the gate queue, and how an orchestrator drains it |
+| `enqueue` / `drain` | skills | How a PR joins the gate queue, and how an orchestrator drains it. **Omit both** if the project has no queue — the implementer then gates in-line |
 | `format` | skills | The auto-formatter in *write* mode, run right before committing |
 | `frameworkSkills` | skills | `{skill, when}` pairs — the skill each area opens with |
 | `briefConventions` | skills | Conventions baked into every dispatched implementer brief |

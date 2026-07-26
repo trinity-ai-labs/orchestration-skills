@@ -24,6 +24,22 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 ---
 
+## Step 0 — Decide how much of this the repo actually needs
+
+Most repos are not Trinity-shaped. Adopting machinery a project doesn't need is a cost, not a safety net — decide the tier first and say which you picked.
+
+| Tier | Looks like | Config |
+|---|---|---|
+| **No flow at all** | A tiny tooling or docs repo where you edit `main` and push. This plugin's own repo is explicitly one | No `worktree.json` needed. Say so and stop |
+| **Worktrees + a check** | Isolation is useful, but the check runs in seconds | `gate` == `scopedCheck`; no `enqueue`/`drain`. Often no `install` and no `envFiles` either |
+| **Worktrees + gate + queue** | The gate takes minutes, saturates the box, and several tasks run in parallel | The full set |
+
+**`gate` and `scopedCheck` being the same command is a normal, correct answer.** It means the repo has one authoritative check and no separate heavy tier. Don't invent a heavier gate to fill the key — a fabricated `gate` is a command that either doesn't exist or tests nothing.
+
+**A repo with no queue is normal too.** Omit `enqueue` and `drain`, and the implementer runs the check itself and opens an ordinary (non-draft) PR — `/pipeline:orchestrate` reads their absence as "this project gates in-line".
+
+Keys you have no honest value for are **left out**, never guessed. A markdown repo has no `install` and no `envFiles`; writing `"install": "npm install"` into it produces a worktree setup that fails every time.
+
 ## Step 1 — Ground the repo. Never guess a command.
 
 Every value you write must come from something you read. Guessing produces a config that looks right and gates nothing.

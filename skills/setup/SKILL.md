@@ -40,6 +40,28 @@ Most repos are not Trinity-shaped. Adopting machinery a project doesn't need is 
 
 Keys you have no honest value for are **left out**, never guessed. A markdown repo has no `install` and no `envFiles`; writing `"install": "npm install"` into it produces a worktree setup that fails every time.
 
+## Onboarding a polyrepo workspace
+
+If the target is a **containing folder of sibling repos** rather than a repo — no `.git` at the root, several child directories that each have one — you are setting up a workspace. Write `.agents/workspace.json` at that root, plus a `.agents/worktree.json` inside each member.
+
+**The workspace manifest is a derived artifact, not source.** The containing folder is a local convention: its name, and which members are cloned, differ per machine. So it is normal and correct that the manifest is untracked and gets **regenerated** by running this skill at the root on each new machine — the same way nobody syncs `node_modules`. Don't invent a meta-repo to hold it.
+
+That only holds if regeneration is faithful, which puts the weight on where each field comes from:
+
+| Field | Derive it from |
+|---|---|
+| `members` | The child directories that contain a `.git` |
+| `integrationBranch` | The branch the members are actually on — they share one because they release together |
+| `branchPrefixes` | The workspace's own `CLAUDE.md`/`AGENTS.md` branch policy |
+| `crossRepoContracts` | **The workspace's own docs.** A "cross-project sync" section that says which repo generates an artifact and which repos hold copies is the contract, stated by the people who built it |
+| `briefConventions` | The conventions in those same docs that every member shares |
+
+**Never infer a contract from resemblance.** Noticing that three repos contain an identical `generated.d.ts` and concluding one owns it is a guess. When a guess is wrong, contract closure — the rule that stops a task changing a contract owner without the repos that consume it — silently stops protecting anything, and the drift surfaces only after both sides have merged. If the docs don't state the ownership, say so and leave `crossRepoContracts` empty rather than filling it speculatively. An absent contract degrades to "no closure", which is honest; a wrong one is a safety property that looks present and isn't.
+
+**Ask about the preferences, don't derive them.** Whether a member is `"default": false` — skipped unless named — is a judgement about how the team works, not a fact about the repos. Default to including everything and say which member looks like a candidate (a marketing site beside an app), rather than deciding for them.
+
+Then verify by cutting a real task: `setup-workspace.sh --dry-run <branch>` shows the resolved member set, including anything closure pulls in. If a contract is declared, confirm that naming the owner alone pulls its consumers in — that is the check that the manifest actually does its job.
+
 ## Step 1 — Ground the repo. Never guess a command.
 
 Every value you write must come from something you read. Guessing produces a config that looks right and gates nothing.
@@ -91,7 +113,9 @@ A config that parses is not a config that works. Prove each layer:
 
 ## Step 5 — Land it as a reviewable change
 
-Commit the config (and the queue scripts) to the project and open a PR the way that repo normally does. Two exceptions where committing straight to the integration branch is correct, and say so in the message:
+Commit the config (and the queue scripts) to the project and open a PR the way that repo normally does. In a workspace this applies to each member's `.agents/worktree.json`; the workspace manifest itself has no repo to land in, which is expected — it is regenerated, not shared. Say that plainly rather than leaving someone wondering why one file went uncommitted.
+
+Two exceptions where committing straight to the integration branch is correct, and say so in the message:
 
 - The repo can't cut a worktree until this file exists — the flow can't bootstrap itself.
 - The repo is a tooling repo whose own convention is direct-on-main.

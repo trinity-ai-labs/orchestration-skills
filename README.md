@@ -6,10 +6,11 @@ The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a gr
 idea / plan  ──/pipeline:write-issue──▶  grounded issue  ──/pipeline:decompose──▶  slices + waves  ──/pipeline:orchestrate──▶  worktrees · PRs · merges
 ```
 
-Three skills in one plugin, because they're one pipeline: each skill's handoff names the next by slash-command, and `decompose` + `orchestrate` both read the same per-project config.
+Four skills in one plugin — `setup` onboards a repo once, then the three-leg pipeline runs on it: each skill's handoff names the next by slash-command, and `decompose` + `orchestrate` both read the same per-project config.
 
 | Skill | Does | Never does |
 |---|---|---|
+| [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if it wants one | Guess a command; write features |
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code and files it as a forward-facing issue (or umbrella + subs) | Slice into waves; write code |
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | Turns that plan into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Make worktrees; dispatch; merge |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | — (it's the executor) |
@@ -47,7 +48,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its three skills, and three executables.
+Verify with `/plugin list` — you should see `pipeline`, its four skills, and three executables.
 
 ### Prerequisites
 
@@ -119,6 +120,7 @@ When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's 
 ## Daily usage
 
 ```
+/pipeline:setup                                           # → once per repo: writes .agents/worktree.json
 /pipeline:write-issue add per-workspace model overrides   # → files issue #1042, hands off
 /pipeline:decompose #1042                                 # → posts slices + waves onto the issue
 /pipeline:orchestrate work issue #1042                    # → worktrees, PRs, merges
@@ -153,7 +155,9 @@ Both args are required — no default base, since integration branches roll over
 
 ## Onboarding a new project
 
-Add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing. A repo with no config still cuts a worktree — but a bare one, with no env and no install, so don't dispatch into it.
+Run **`/pipeline:setup`** in that repo. It grounds the commands in the repo's real lockfile, scripts, and CI, writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that repo* if the project wants one — the plugin carries the knowledge, the project owns the code, so each queue can evolve independently. It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down.
+
+To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing. A repo with no config still cuts a worktree — but a bare one, with no env and no install, so don't dispatch into it.
 
 ---
 
@@ -193,6 +197,9 @@ claude plugin validate . --strict
 │   └── remove-worktree.sh
 ├── examples/worktree.json       # a complete per-project config
 └── skills/
+    ├── setup/
+    │   ├── SKILL.md
+    │   └── references/gate-queue.md
     ├── write-issue/SKILL.md
     ├── decompose/SKILL.md
     └── orchestrate/SKILL.md

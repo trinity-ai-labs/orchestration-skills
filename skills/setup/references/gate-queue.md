@@ -45,6 +45,8 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 
 **6. A drain pass exits.** It is not a daemon. It drains what is queued and returns, so an orchestrator re-invokes it each tick and can bound it with `--max <n>`. A long-lived daemon reintroduces the process state this design exists to avoid.
 
+**7. The report is a state transition too — a ticket is not done until its verdict is delivered.** The other six invariants make the queue survive a process dying. This one makes it survive the network: record the verdict on the ticket *before* attempting to report it, so a failed post is a reconciliation problem rather than an amnesia one. See *Reporting* below for what that costs and what it buys.
+
 ## The worktree is frozen while its ticket is in flight
 
 The runner gates *inside the ticket's worktree*. Anything that mutates that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, then reports against whatever HEAD is current when it finishes.
@@ -57,7 +59,22 @@ So: don't edit, and don't remove, a worktree whose ticket is in `queue/` or `pro
 
 On green, flip the PR ready. On red, comment the failing tail and **leave it draft**. Draft-ness is the durable signal that a PR has not passed — which is why an implementer opening a PR without `--draft` is a real bug: it produces a non-draft PR that was never gated.
 
-Then move the ticket to `done/` either way. A red ticket is orchestrator feedback, not lost work: the PR stays draft with the failure visible, a fix agent re-pushes, and it re-enqueues.
+A red ticket is orchestrator feedback, not lost work: the PR stays draft with the failure visible, a fix agent re-pushes, and it re-enqueues.
+
+**Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** Everything above this section is about surviving process death and filesystem races; the report is the one step that depends on a machine you do not control. If the verdict lives only in the reporting call, a network blip destroys it — the gate ran, the result is gone, and recovering it means gating again.
+
+It also collapses states that must stay distinguishable. "Ticket in `done/`, no comment" is produced by a failed post, by a gate that was skipped because its worktree had vanished, and by an exception mid-pass. Those need different responses, and a ticket that records only that it was processed can answer none of them. Worse, the green case is silent in both directions: `pr ready` fails too, so a PR that passed sits in draft looking exactly like one that never ran.
+
+So the ticket carries the outcome, the exit code, the failing tail, the SHA that was gated, and whether the report was delivered. `done/` becomes a ledger rather than a record that something happened, and delivery becomes a retryable step instead of the only copy.
+
+**Reconcile at the head of every pass.** Before claiming anything, scan `done/` for verdicts never delivered and post them. This costs nothing when there is nothing held, and it never re-runs a gate — the verdict is already known.
+
+Two rules keep the retry honest:
+
+- **Refuse a verdict whose PR has moved off the gated SHA.** The result describes a tree the PR no longer carries, and posting it is the same false-report as gating a mutated worktree — a green flipping a PR ready on code no gate saw. Abandon it and say so; the slice needs re-enqueueing, not a stale verdict.
+- **Cap the retries.** A PR deleted out from under the queue, or a permanently rejected token, must not make every future pass re-attempt a doomed post. After the cap, leave it flagged for a human.
+
+A green counts as delivered only when the ready-flip **and** the comment both succeed. A PR left in draft reads as ungated whatever the comment says.
 
 ## What varies per project
 

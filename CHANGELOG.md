@@ -2,6 +2,10 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 1.5.1
+
+- **This repo is no longer the marketplace.** It was both a plugin and the storefront selling the other two, so installing `frameworks` or `market` meant adding *this* repo as a marketplace first — routing unrelated traffic through `pipeline`'s repo and making the three plugin repos non-comparable. The catalogue moved to [`trinity-ai-labs/claude-plugins`](https://github.com/trinity-ai-labs/claude-plugins), which ships no plugin of its own. The marketplace *name* is unchanged, so `pipeline@trinity-ai-labs` still resolves — only the `marketplace add` line moves.
+
 ## 1.5.0
 
 - **A gate verdict is recorded before it is reported.** The queue's invariants covered process death and filesystem races but not the one step that depends on a machine you do not control — the report. A failed post destroyed the verdict outright, since the ticket moved to `done/` unchanged and the result existed nowhere but GitHub. The ticket now carries the outcome, exit code, failing tail, the SHA that was gated, and whether delivery succeeded, so `done/` is a ledger rather than a record that something happened.

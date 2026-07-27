@@ -20,6 +20,7 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 | Command | What it does |
 |---|---|
 | `setup-worktree.sh` | Creates a worktree, symlinks the project's env files, exports its env, installs deps |
+| `setup-workspace.sh` | The polyrepo form: one worktree per member repo, same branch name in each |
 | `merge-pr.sh` | Atomic close-out: tear down the worktree, real merge commit, fast-forward the local integration branch |
 | `remove-worktree.sh` | Safely tear down a worktree, killing processes rooted in it first |
 
@@ -52,7 +53,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its four skills, and three executables.
+Verify with `/plugin list` — you should see `pipeline`, its four skills, and four executables.
 
 ### Prerequisites
 
@@ -87,7 +88,7 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | Key | Read by | Meaning |
 |---|---|---|
 | `envFiles` | script | Gitignored files symlinked from the main checkout into each worktree |
-| `install` | script | Run inside a new worktree — worktrees never share `node_modules` |
+| `install` | script | Run inside a new worktree — worktrees never share `node_modules`. Omit it, and `envFiles`, for a zero-dependency repo: a guessed install command fails every worktree setup |
 | `env` | script | Exported before the install; most usefully a shared build-cache dir |
 | `gate` | skills | The authoritative check before merge. With a queue, the *runner* runs it, never an implementer. May equal `scopedCheck` when the repo has only one tier |
 | `scopedCheck` | skills | The cheap bar an implementer's commits are held to |
@@ -163,7 +164,9 @@ Both args are required — no default base, since integration branches roll over
 
 Run **`/pipeline:setup`** in that repo. It grounds the commands in the repo's real lockfile, scripts, and CI, writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that repo* if the project wants one — the plugin carries the knowledge, the project owns the code, so each queue can evolve independently. It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down.
 
-To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing. A repo with no config still cuts a worktree — but a bare one, with no env and no install, so don't dispatch into it.
+To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing.
+
+A repo with no config still cuts a worktree — but a **bare** one, with no env symlinks and no install. Where the project has an install step that worktree is unusable: it has no `node_modules`, so every check inside it fails for reasons that read as code bugs, and the run burns before anyone reads the stderr warning. Don't dispatch into it. For a **zero-dependency** repo a bare worktree is the only kind there is and it works fine — this repo is one, and its own config landed through a normal PR — but you still want the config, because without it the gate and the conventions are things an orchestrator has to guess, and a guessed gate passes while testing nothing.
 
 ---
 
@@ -179,9 +182,15 @@ To do it by hand instead: add `.agents/worktree.json` to that repo, declaring th
 
 ## Adding a skill
 
-Drop `skills/<slug>/SKILL.md` in and it loads — no manifest edit needed. CI enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name.
+Drop `skills/<slug>/SKILL.md` in and it loads — no manifest edit needed. The repo's gate enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name.
 
-Before publishing, run the authoritative validator — the same one the community-marketplace review runs:
+Run it before you push — it is the same command CI runs, so there is no second copy to drift:
+
+```bash
+sh scripts/check.sh
+```
+
+Before publishing, also run the authoritative validator — the same one the community-marketplace review runs:
 
 ```bash
 claude plugin validate . --strict
@@ -193,13 +202,16 @@ claude plugin validate . --strict
 
 ```
 .
+├── .agents/worktree.json        # this repo's OWN pipeline config — contributor-only
 ├── .claude-plugin/
 │   └── plugin.json              # the plugin manifest — `name` sets the namespace
-├── .github/workflows/ci.yml     # shellcheck · manifests · skill frontmatter · config reader
-├── bin/                         # on PATH while the plugin is enabled
+├── .github/workflows/ci.yml     # runs scripts/check.sh, plus the version-bump guard
+├── bin/                         # SHIPPED — on PATH while the plugin is enabled
 │   ├── setup-worktree.sh
+│   ├── setup-workspace.sh
 │   ├── merge-pr.sh
 │   └── remove-worktree.sh
+├── scripts/check.sh             # the repo gate — contributor-only, never shipped
 ├── examples/worktree.json       # a complete per-project config
 └── skills/
     ├── setup/

@@ -16,14 +16,20 @@ Wire them up as `gate:enqueue`, `gate:drain`, and (wrapping the gate itself) `ga
 
 ## Queue layout
 
-Under the OS temp dir, per-user, shared across every worktree of the project:
+Under the user's home, per-user, shared across every worktree of the project:
 
 ```
-<tmp>/<project>-gate-queue/
-  queue/       <timestamp>-<pid>.json      awaiting a runner
-  processing/  <name>.json.<runnerPid>     claimed, gate in flight
-  done/        <name>.json                 resolved (green or red)
+~/.gate-queue/<project>/
+  queue/       <timestamp>-<pid>.json       awaiting a runner
+  processing/  <name>.json.<runnerPid>      claimed, gate in flight
+  done/        <name>.json.<runnerPid>      resolved (green or red)
 ```
+
+**The root is durable storage, not scratch.** A resolved ticket holds a verdict that exists nowhere else until its comment lands on the PR (invariant 7), so the ledger is the only copy of every result the report has not yet delivered. Put it anywhere the system is licensed to reap — a scratch or temp area swept on the OS's own schedule — and the one artifact the design added to survive a failed post is handed to a reaper that has no idea anyone is still waiting to read it. A home-relative root sits alongside the `~/.worktrees/<project>/` convention the rest of the flow uses, and nothing sweeps it.
+
+**`done/` keeps the claim suffix.** Settling a ticket is a rename out of `processing/`, and the claim suffix rides along — a resolved ticket is `<name>.json.<runnerPid>`, not `<name>.json`. Stripping it buys nothing, since the ticket's own contents say which runner resolved it and what the verdict was; a reader who codes to a bare `<name>.json` writes a normalization step that has no job. Read the ledger by parsing the JSON, never by pattern-matching the filename.
+
+**The slot is the one piece that may live in the OS temp dir.** It is a mutex, not data: it holds no verdict, its holder-PID is liveness-checked so an abandoned one gets stolen rather than trusted, and it is held only for the minutes a gate actually runs — far inside the untouched-for-days threshold a reaper works on. Losing it to a sweep costs the next runner one `mkdir`. Moving it under the home dir for symmetry with the queue is a change with no correctness content: the rule above is about where verdicts live, not where locks live.
 
 Ticket: `{ branch, worktreePath, prNumber, prUrl, mode }`. `mode` selects which gate runs — `default` for the full suite, or a lighter one (e.g. `docs`) for a prose-only slice.
 
@@ -46,6 +52,10 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 **6. A drain pass exits.** It is not a daemon. It drains what is queued and returns, so an orchestrator re-invokes it each tick and can bound it with `--max <n>`. A long-lived daemon reintroduces the process state this design exists to avoid.
 
 **7. The report is a state transition too — a ticket is not done until its verdict is delivered.** The other six invariants make the queue survive a process dying. This one makes it survive the network: record the verdict on the ticket *before* attempting to report it, so a failed post is a reconciliation problem rather than an amnesia one. See *Reporting* below for what that costs and what it buys.
+
+**8. Prune a ticket only when its verdict was delivered.** Invariant 7 turns `done/` into a ledger, and an unbounded ledger grows for the life of the project — but the bound is delivery, not age. A ticket flagged for a human — retries exhausted, or the head moved off the gated SHA (see *Reporting*) — still holds a verdict nobody has seen, and age is not evidence anyone looked at it; on a flagged ticket age is usually evidence that nobody has. `reported` alone is not the test either, and getting this backwards is the trap: an abandoned ticket keeps `reported: false` forever, so a prune that trusts age plus "not reported" deletes exactly the records that were escalated — the ones whose on-disk copy is the only copy — while sparing the delivered ones whose contents are already sitting on the PR. The predicate is `delivered && older than the retention window`; anything flagged stays where it is until a human resolves it, however old it gets.
+
+Put the prune on the reconcile walk. That pass already reads every ticket in `done/` before claiming, so it has the delivery flags in hand and the sweep costs nothing beyond the unlink. Take the clock as an injectable dependency — a retention rule whose only clock is the wall clock can be tested only by waiting, so in practice it ships untested.
 
 ## The worktree is frozen while its ticket is in flight
 
@@ -71,6 +81,8 @@ It also collapses states that must stay distinguishable. "Ticket in `done/`, no 
 
 So the ticket carries the outcome, the exit code, the failing tail, the SHA that was gated, and whether the report was delivered. `done/` becomes a ledger rather than a record that something happened, and delivery becomes a retryable step instead of the only copy.
 
+**The failing tail belongs to a red verdict — compute it and store it only there.** A green comment is a single line that quotes nothing, so a tail captured on green is output that no comment will ever contain and no reader will ever open. It is also the largest field on the ticket, and greens are the common case, so a tail persisted on green is what makes the ledger big — the retention rule above then spends its whole budget on bytes that were never readable. Watch the implementation trap: if the routine that computes the tail also cleans up the task-runner's own run-summary scratch files, that cleanup has to be lifted out so it still runs when the tail is skipped. Otherwise every passing gate leaves its summaries behind, and the space saved on tails is spent on scratch instead.
+
 **Reconcile at the head of every pass.** Before claiming anything, scan `done/` for verdicts never delivered and post them. This costs nothing when there is nothing held, and it never re-runs a gate — the verdict is already known.
 
 Two rules keep the retry honest:
@@ -87,6 +99,8 @@ Only these. Everything above is generic:
 - the gate command, and any lighter mode's command
 - the package manager used to invoke them
 - how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
-- the queue directory name
+- the queue directory's *name*, and the retention window the prune applies
 
-Keep them read from `.agents/worktree.json` rather than hardcoded, so the project's own config stays the single source of truth.
+The queue root's **placement** is not on that list. It is home-relative and durable everywhere, because the ledger holds verdicts that exist nowhere else — that is a correctness requirement, not a preference a project gets to express.
+
+Keep the varying pieces read from `.agents/worktree.json` rather than hardcoded, so the project's own config stays the single source of truth.

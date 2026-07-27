@@ -6,45 +6,32 @@ on:
   pull_request:
 
 jobs:
-  shellcheck:
-    name: shellcheck
+  # One runner, one checkout, one command. Every portable check lives in
+  # scripts/check.sh — the same command a contributor runs before pushing
+  # (.agents/worktree.json declares it as both gate and scopedCheck). CI runs
+  # the contributor's own check rather than a second, drifting copy: two copies
+  # drift, and the one that stops firing looks identical to the one that passed.
+  #
+  # The script reports EVERY failure and then exits 1, so a red PR still tells
+  # you everything that is wrong — the property the old `if: always()` job split
+  # gave for free, now held by the script itself rather than by the CI layout.
+  check:
+    name: the repo gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Lint every shell script
-        run: shellcheck -S warning bin/*.sh
+      - name: shellcheck · plugin manifest · skill frontmatter · example config
+        run: sh scripts/check.sh
 
-  manifests:
-    name: plugin manifest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: The manifest parses and carries what Claude Code needs
-        # `claude plugin validate --strict` is the authoritative check and the one
-        # the community-marketplace review runs, but it needs the CLI installed and
-        # is not reproducible on a bare runner. This covers the failure modes that
-        # actually break a published plugin: unparseable JSON, a missing name, and
-        # the `author` field whose absence makes --strict fail at submission time.
-        #
-        # The catalogue that lists this plugin lives in trinity-ai-labs/claude-plugins
-        # and is validated there — this repo ships a plugin, not a marketplace.
-        run: |
-          python3 - <<'PY'
-          import json, sys, pathlib
-          fail = []
-          plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text())
-          for field in ("name", "description", "author", "version", "license"):
-              if not plugin.get(field):
-                  fail.append(f"plugin.json: missing '{field}'")
-          for problem in fail:
-              print(f"::error::{problem}")
-          sys.exit(1 if fail else 0)
-          PY
-
+  # Deliberately NOT in scripts/check.sh. This job diffs against the PR base and
+  # reads the manifest as it was at that commit, so it is only meaningful inside
+  # CI — a local copy would either not work (no base to compare against) or lie
+  # about what a merge would ship. Every other check ported out; this one stays.
   version-bump:
     name: plugin content changed ⇒ version bumped
     runs-on: ubuntu-latest
     steps:
+      # The one job that needs history.
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: A shipped change must move the version
@@ -75,82 +62,3 @@ jobs:
           fi
           grep -qF "## $now" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $now' entry"; exit 1; }
           echo "version bumped and changelogged"
-
-  skills:
-    name: skills are well-formed
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Every skill has the frontmatter Claude Code needs
-        # A skill missing `name` or `description` silently fails to load, and a
-        # mismatched `name` registers the slash-command under the wrong word.
-        run: |
-          set -euo pipefail
-          fail=0
-          for dir in skills/*/; do
-            slug="$(basename "$dir")"
-            file="$dir/SKILL.md"
-            if [ ! -f "$file" ]; then
-              echo "::error::$dir has no SKILL.md"; fail=1; continue
-            fi
-            # Frontmatter is the block between the first two `---` lines.
-            fm="$(awk '/^---$/{n++; next} n==1' "$file")"
-            for key in name description argument-hint; do
-              grep -qE "^$key:" <<<"$fm" || { echo "::error::$slug: missing '$key' in frontmatter"; fail=1; }
-            done
-            declared="$(grep -E '^name:' <<<"$fm" | head -1 | sed 's/^name:[[:space:]]*//')"
-            [ "$declared" = "$slug" ] || { echo "::error::$slug: frontmatter name is '$declared', must match the directory"; fail=1; }
-          done
-          exit $fail
-      - name: No skill prescribes gh api -f with an @file value
-        # `-f`/`--raw-field` sends its value verbatim; only `-F`/`--field` expands a
-        # leading `@` into the file's contents. A skill documenting `gh api … -f body=@file`
-        # teaches the agent to publish the literal path instead of the issue body — and `gh`
-        # exits 0 with a comment URL, so neither the agent nor anything downstream notices.
-        # Only a human opening the issue sees it.
-        #
-        # Anchored on `gh api` so that prose QUOTING the wrong flag to warn against it stays
-        # legal — the warning bullets in write-issue and decompose have to name `-f body=@file`
-        # to be about it, and a guard that cannot tell a prescription from a warning would
-        # force the next author to delete the warning to get green.
-        run: |
-          set -euo pipefail
-          if grep -rnE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' skills/*/SKILL.md; then
-            echo "::error::a skill prescribes gh api -f with an @file value; use -F, which reads the file"
-            exit 1
-          fi
-          echo "no skill prescribes -f with an @file value"
-
-  config-example:
-    name: example config parses
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: The shipped example is a config the reader can actually consume
-        # setup-worktree.sh reads envFiles/env/install out of a project's
-        # .agents/worktree.json; if the example drifts from that shape, every repo
-        # copied from it gets a bare worktree with no env and no node_modules.
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json, sys
-          cfg = json.load(open("examples/worktree.json"))
-          missing = [k for k in ("envFiles", "install", "gate", "scopedCheck") if k not in cfg]
-          if missing:
-              print(f"::error::examples/worktree.json missing {missing}")
-              sys.exit(1)
-          assert isinstance(cfg["envFiles"], list), "envFiles must be a list"
-          assert isinstance(cfg.get("env", {}), dict), "env must be an object"
-          PY
-          # And prove the real reader agrees, not just a schema guess: define the
-          # script's own emit_config in this shell, then eval what it emits — the
-          # same two steps setup-worktree.sh performs. Via a temp file rather than
-          # `source <(…)`, which silently fails to define the function on bash 3.2
-          # (macOS's system bash, where this check also has to run by hand).
-          fn="$(mktemp)"
-          sed -n '/^emit_config()/,/^}/p' bin/setup-worktree.sh > "$fn"
-          . "$fn"
-          eval "$(emit_config examples/worktree.json)"
-          [ -n "$INSTALL_CMD" ] || { echo "::error::reader produced no install command"; exit 1; }
-          [ "${#ENV_FILES[@]}" -gt 0 ] || { echo "::error::reader produced no env files"; exit 1; }
-          echo "reader parsed the example: install=$INSTALL_CMD, ${#ENV_FILES[@]} env file(s)"

@@ -20,6 +20,7 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 | Command | What it does |
 |---|---|
 | `setup-worktree.sh` | Creates a worktree, symlinks the project's env files, exports its env, installs deps |
+| `setup-workspace.sh` | The polyrepo form: one worktree per member repo, same branch name in each |
 | `merge-pr.sh` | Atomic close-out: tear down the worktree, real merge commit, fast-forward the local integration branch |
 | `remove-worktree.sh` | Safely tear down a worktree, killing processes rooted in it first |
 
@@ -52,7 +53,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its four skills, and three executables.
+Verify with `/plugin list` — you should see `pipeline`, its four skills, and four executables.
 
 ### Prerequisites
 
@@ -207,6 +208,7 @@ claude plugin validate . --strict
 ├── .github/workflows/ci.yml     # runs scripts/check.sh, plus the version-bump guard
 ├── bin/                         # SHIPPED — on PATH while the plugin is enabled
 │   ├── setup-worktree.sh
+│   ├── setup-workspace.sh
 │   ├── merge-pr.sh
 │   └── remove-worktree.sh
 ├── scripts/check.sh             # the repo gate — contributor-only, never shipped

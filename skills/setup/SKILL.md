@@ -20,7 +20,7 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 ## Why an unconfigured repo is worse than an obviously-broken one
 
-`setup-worktree.sh` does not fail when config is missing. It prints a note **to stderr** and cuts a bare worktree — no env symlinks, no `node_modules`. An implementer dispatched into that worktree then fails its checks for reasons that look like code bugs, and burns a run before anyone notices the real cause. Treat "no config" as a hard stop, not a warning.
+`setup-worktree.sh` does not fail when config is missing. It prints a note **to stderr** and cuts a bare worktree — no env symlinks, no `node_modules`. **Where the project has an install step**, an implementer dispatched into that worktree then fails its checks for reasons that look like code bugs, and burns a run before anyone notices the real cause. A zero-dependency project escapes that particular failure — a bare worktree is the only kind it has — but not the rest of it: with no config, the gate command, the conventions, and the framework skills are all things the orchestrator has to guess, and a guessed gate is one that passes while testing nothing. Treat "no config" as a hard stop, not a warning.
 
 ---
 
@@ -30,8 +30,8 @@ Most repos are not Trinity-shaped. Adopting machinery a project doesn't need is 
 
 | Tier | Looks like | Config |
 |---|---|---|
-| **No flow at all** | A tiny tooling or docs repo where you edit `main` and push. This plugin's own repo is explicitly one | No `worktree.json` needed. Say so and stop |
-| **Worktrees + a check** | Isolation is useful, but the check runs in seconds | `gate` == `scopedCheck`; no `enqueue`/`drain`. Often no `install` and no `envFiles` either |
+| **No flow at all** | A scratch or single-author repo with nothing to isolate and no check to run — you edit `main` and push | No `worktree.json` needed. Say so and stop |
+| **Worktrees + a check** | Isolation is useful, but the check runs in seconds. This plugin's own repo is one | `gate` == `scopedCheck`; no `enqueue`/`drain`. Often no `install` and no `envFiles` either |
 | **Worktrees + gate + queue** | The gate takes minutes, saturates the box, and several tasks run in parallel | The full set |
 
 **`gate` and `scopedCheck` being the same command is a normal, correct answer.** It means the repo has one authoritative check and no separate heavy tier. Don't invent a heavier gate to fill the key — a fabricated `gate` is a command that either doesn't exist or tests nothing.
@@ -117,7 +117,9 @@ Commit the config (and the queue scripts) to the project and open a PR the way t
 
 One exception where committing straight to the integration branch is correct, and say so in the message:
 
-- The repo can't cut a worktree until this file exists — the flow can't bootstrap itself.
+- **The project has an install step.** A repo with no config still cuts a worktree — `setup-worktree.sh` warns on stderr and makes a **bare** one — but bare means no `node_modules`, so every check inside it fails for reasons that read as code bugs rather than as a missing config, and the run burns before anyone reads the stderr note. Writing the config *from* such a worktree is what this exception prevents.
+
+A **zero-dependency** project is not covered by it. A bare worktree there is fully functional — nothing to install, nothing to symlink — so the config lands through a normal PR like any other change. This plugin's own repo is the worked example: it had no `.agents/worktree.json`, `setup-worktree.sh` cut it a working worktree anyway, and the config reached `main` as a reviewed PR. Claiming the flow can never bootstrap itself would have made that PR look like a rule violation.
 
 ## What setup does NOT do (hard boundaries)
 

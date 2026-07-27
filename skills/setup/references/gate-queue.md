@@ -51,19 +51,23 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 
 The runner gates *inside the ticket's worktree*. Anything that mutates that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, then reports against whatever HEAD is current when it finishes.
 
-This has actually happened: a fix agent committed at 22:34:37 and a ~2m20s gate posted `✓ passed` at 22:34:38, flipping the PR **ready** — green, against code no gate had ever seen. Since `draft=false` is the signal the workflow reads as "gated", trusting it would have merged untested code.
+This has actually happened: a fix agent committed at 22:34:37 and a ~2m20s gate posted `✓ passed` at 22:34:38 — green, against code no gate had ever seen. The comment is the evidence an orchestrator reads before merging, so a green comment describing a tree that no longer exists is enough to get untested code merged.
 
 So: don't edit, and don't remove, a worktree whose ticket is in `queue/` or `processing/`. Wait for it to resolve. Document this where the project's contributors will see it.
 
 ## Reporting
 
-On green, flip the PR ready. On red, comment the failing tail and **leave it draft**. Draft-ness is the durable signal that a PR has not passed — which is why an implementer opening a PR without `--draft` is a real bug: it produces a non-draft PR that was never gated.
+**The verdict is a PR comment, in both directions, and the PR stays draft either way.** Green posts a passing comment; red posts the failing tail. The comment is the only channel — the queue never touches the PR's draft flag, in either direction.
 
-A red ticket is orchestrator feedback, not lost work: the PR stays draft with the failure visible, a fix agent re-pushes, and it re-enqueues.
+That is what makes the reading rule a single sentence: **a PR is gated iff it carries a gate comment.** Draft-ness carries a different meaning entirely — nobody has approved this yet — and the only thing that clears it is the orchestrator marking the PR ready as it merges, having read the diff. Keeping the two on separate channels is the point: a machine can attest that the suite passed, and only a reader can attest that the change is right.
+
+An implementer opening a PR without `--draft` is therefore a real bug with a mechanical consequence: the PR arrives already carrying the flag that means "reviewed and merging", without a gate comment and without anyone having read it.
+
+A red ticket is orchestrator feedback, not lost work: the failure is visible on the PR, a fix agent re-pushes, and it re-enqueues.
 
 **Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** Everything above this section is about surviving process death and filesystem races; the report is the one step that depends on a machine you do not control. If the verdict lives only in the reporting call, a network blip destroys it — the gate ran, the result is gone, and recovering it means gating again.
 
-It also collapses states that must stay distinguishable. "Ticket in `done/`, no comment" is produced by a failed post, by a gate that was skipped because its worktree had vanished, and by an exception mid-pass. Those need different responses, and a ticket that records only that it was processed can answer none of them. Worse, the green case is silent in both directions: `pr ready` fails too, so a PR that passed sits in draft looking exactly like one that never ran.
+It also collapses states that must stay distinguishable. "Ticket in `done/`, no comment" is produced by a failed post, by a gate that was skipped because its worktree had vanished, and by an exception mid-pass. Those need different responses, and a ticket that records only that it was processed can answer none of them. And because the comment is the sole channel, a green whose post failed is byte-for-byte indistinguishable *on GitHub* from a gate that never ran — the ticket is the only place that difference survives.
 
 So the ticket carries the outcome, the exit code, the failing tail, the SHA that was gated, and whether the report was delivered. `done/` becomes a ledger rather than a record that something happened, and delivery becomes a retryable step instead of the only copy.
 
@@ -71,10 +75,10 @@ So the ticket carries the outcome, the exit code, the failing tail, the SHA that
 
 Two rules keep the retry honest:
 
-- **Refuse a verdict whose PR has moved off the gated SHA.** The result describes a tree the PR no longer carries, and posting it is the same false-report as gating a mutated worktree — a green flipping a PR ready on code no gate saw. Abandon it and say so; the slice needs re-enqueueing, not a stale verdict.
+- **Refuse a verdict whose PR has moved off the gated SHA.** The result describes a tree the PR no longer carries, and posting it is the same false-report as gating a mutated worktree — a green comment vouching for code no gate saw. Abandon it and say so; the slice needs re-enqueueing, not a stale verdict.
 - **Cap the retries.** A PR deleted out from under the queue, or a permanently rejected token, must not make every future pass re-attempt a doomed post. After the cap, leave it flagged for a human.
 
-A green counts as delivered only when the ready-flip **and** the comment both succeed. A PR left in draft reads as ungated whatever the comment says.
+A verdict counts as delivered exactly when its comment lands on the PR. There is no second channel to fall back on, which is why the ticket holds the verdict and the reconcile keeps retrying until the comment is there.
 
 ## What varies per project
 
@@ -82,7 +86,7 @@ Only these. Everything above is generic:
 
 - the gate command, and any lighter mode's command
 - the package manager used to invoke them
-- how the PR is flipped (`gh` for GitHub; something else elsewhere)
+- how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
 - the queue directory name
 
 Keep them read from `.agents/worktree.json` rather than hardcoded, so the project's own config stays the single source of truth.

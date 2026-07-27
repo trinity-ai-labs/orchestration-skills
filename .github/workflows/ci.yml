@@ -15,35 +15,27 @@ jobs:
         run: shellcheck -S warning bin/*.sh
 
   manifests:
-    name: plugin + marketplace manifests
+    name: plugin manifest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: The manifests parse and carry what Claude Code needs
+      - name: The manifest parses and carries what Claude Code needs
         # `claude plugin validate --strict` is the authoritative check and the one
         # the community-marketplace review runs, but it needs the CLI installed and
         # is not reproducible on a bare runner. This covers the failure modes that
-        # actually break a published plugin: unparseable JSON, a missing name, a
-        # marketplace entry pointing at a plugin that isn't here, and the `author`
-        # field whose absence makes --strict fail at submission time.
+        # actually break a published plugin: unparseable JSON, a missing name, and
+        # the `author` field whose absence makes --strict fail at submission time.
+        #
+        # The catalogue that lists this plugin lives in trinity-ai-labs/claude-plugins
+        # and is validated there — this repo ships a plugin, not a marketplace.
         run: |
           python3 - <<'PY'
           import json, sys, pathlib
           fail = []
           plugin = json.loads(pathlib.Path(".claude-plugin/plugin.json").read_text())
-          market = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text())
           for field in ("name", "description", "author", "version", "license"):
               if not plugin.get(field):
                   fail.append(f"plugin.json: missing '{field}'")
-          if not market.get("name") or not market.get("owner") or not market.get("plugins"):
-              fail.append("marketplace.json: needs name, owner and plugins")
-          names = {p.get("name") for p in market.get("plugins", [])}
-          if plugin["name"] not in names:
-              fail.append(f"marketplace.json lists {names}, but plugin.json is '{plugin['name']}'")
-          for entry in market.get("plugins", []):
-              src = entry.get("source")
-              if isinstance(src, str) and src.startswith(".") and not pathlib.Path(src).is_dir():
-                  fail.append(f"marketplace.json: source '{src}' does not exist")
           for problem in fail:
               print(f"::error::{problem}")
           sys.exit(1 if fail else 0)
@@ -69,13 +61,8 @@ jobs:
           # job exists to catch. A denylist fails closed, so anything new counts until
           # someone deliberately exempts it.
           #
-          # marketplace.json is exempt because it is the catalogue, not this plugin.
-          # An entry for a plugin hosted in another repo changes nothing a `pipeline`
-          # install receives, and it reaches users on marketplace refresh rather than
-          # through this plugin's pinned version. Requiring a bump for it would force a
-          # release whose changelog has to claim pipeline changed when it did not.
-          # Everything else under .claude-plugin/ — plugin.json above all — still counts.
-          exempt='^(\.github/|CHANGELOG\.md|\.gitignore|\.claude-plugin/marketplace\.json$)'
+          # Everything under .claude-plugin/ — plugin.json above all — counts as shipped.
+          exempt='^(\.github/|CHANGELOG\.md|\.gitignore)'
           changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"

@@ -30,7 +30,7 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 **Install from the marketplace** (the supported path — versioned, auto-updating):
 
 ```
-/plugin marketplace add trinity-ai-labs/orchestration-skills
+/plugin marketplace add trinity-ai-labs/claude-plugins
 /plugin install pipeline@trinity-ai-labs
 ```
 
@@ -192,8 +192,7 @@ claude plugin validate . --strict
 ```
 .
 ├── .claude-plugin/
-│   ├── plugin.json              # the plugin manifest — `name` sets the namespace
-│   └── marketplace.json         # so the repo is also a one-plugin marketplace
+│   └── plugin.json              # the plugin manifest — `name` sets the namespace
 ├── .github/workflows/ci.yml     # shellcheck · manifests · skill frontmatter · config reader
 ├── bin/                         # on PATH while the plugin is enabled
 │   ├── setup-worktree.sh

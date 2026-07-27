@@ -23,6 +23,16 @@
       "category": "development",
       "description": "Deep, source-verified reference skills for Effect v3 and SolidJS. Claude invokes them automatically when writing, reading, or debugging code in either.",
       "homepage": "https://github.com/trinity-ai-labs/framework-skills"
+    },
+    {
+      "name": "market",
+      "source": {
+        "source": "github",
+        "repo": "trinity-ai-labs/market-skills"
+      },
+      "category": "development",
+      "description": "Take a product to market: evidence-first market analysis (sizing, competitors, segments, pricing, timing) and the business plan built on it (monetization, GTM, projections, milestones, risks). Ships vault-lint.sh, the claim-ledger lint the plan gates on.",
+      "homepage": "https://github.com/trinity-ai-labs/market-skills"
     }
   ]
 }

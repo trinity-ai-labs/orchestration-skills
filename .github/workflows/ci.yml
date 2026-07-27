@@ -63,8 +63,20 @@ jobs:
           set -euo pipefail
           base="${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || 'HEAD^' }}"
           git rev-parse --verify "$base" >/dev/null 2>&1 || { echo "no base commit to compare (first commit) — skipping"; exit 0; }
-          shipped='^(skills/|bin/|examples/|\.claude-plugin/|README\.md|LICENSE)'
-          changed="$(git diff --name-only "$base" HEAD | grep -E "$shipped" || true)"
+          # Listing what is NOT shipped, rather than what is. An allowlist of shipped
+          # paths fails OPEN: add a commands/ or agents/ directory tomorrow and its
+          # changes ship under an unchanged version, silently — the exact failure this
+          # job exists to catch. A denylist fails closed, so anything new counts until
+          # someone deliberately exempts it.
+          #
+          # marketplace.json is exempt because it is the catalogue, not this plugin.
+          # An entry for a plugin hosted in another repo changes nothing a `pipeline`
+          # install receives, and it reaches users on marketplace refresh rather than
+          # through this plugin's pinned version. Requiring a bump for it would force a
+          # release whose changelog has to claim pipeline changed when it did not.
+          # Everything else under .claude-plugin/ — plugin.json above all — still counts.
+          exempt='^(\.github/|CHANGELOG\.md|\.gitignore|\.claude-plugin/marketplace\.json$)'
+          changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"
           now="$(python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json")).get("version",""))')"

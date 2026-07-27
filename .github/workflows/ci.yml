@@ -49,7 +49,20 @@ jobs:
           # someone deliberately exempts it.
           #
           # Everything under .claude-plugin/ — plugin.json above all — counts as shipped.
-          exempt='^(\.github/|CHANGELOG\.md|\.gitignore)'
+          #
+          # Why each entry earns its place on the list — in every case because
+          # Claude Code never loads it and it never reaches a user's install, so
+          # demanding a bump for it would fail a PR that ships nothing:
+          #   .github/      CI config; runs on a runner, never on a user's machine.
+          #   .agents/      this repo's OWN worktree.json — contributor tooling read
+          #                 by an orchestrator working here, never by an installed
+          #                 plugin. market-skills exempts it for the same reason.
+          #   scripts/      the contributor gate. Unlike bin/, which Claude Code puts
+          #                 on a user's PATH, nothing under scripts/ is shipped or
+          #                 invocable by a user.
+          #   CHANGELOG.md  describes a bump; requiring one to describe one is circular.
+          #   .gitignore    changes nothing about an install.
+          exempt='^(\.github/|\.agents/|scripts/|CHANGELOG\.md|\.gitignore)'
           changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"

@@ -36,7 +36,7 @@ Most repos are not Trinity-shaped. Adopting machinery a project doesn't need is 
 
 **`gate` and `scopedCheck` being the same command is a normal, correct answer.** It means the repo has one authoritative check and no separate heavy tier. Don't invent a heavier gate to fill the key — a fabricated `gate` is a command that either doesn't exist or tests nothing.
 
-**A repo with no queue is normal too.** Omit `enqueue` and `drain`, and the implementer runs the check itself and opens an ordinary (non-draft) PR — `/pipeline:orchestrate` reads their absence as "this project gates in-line".
+**A repo with no queue is normal too.** Omit `enqueue` and `drain`, and the implementer runs the check itself and comments the result on its own draft PR — `/pipeline:orchestrate` reads their absence as "this project gates in-line". The PR is still a draft at hand-back; only who runs the gate changes.
 
 Keys you have no honest value for are **left out**, never guessed. A markdown repo has no `install` and no `envFiles`; writing `"install": "npm install"` into it produces a worktree setup that fails every time.
 
@@ -97,7 +97,7 @@ See `examples/worktree.json` in this plugin for a complete file.
 
 The queue exists so implementers never run the heavy gate: they push, open a draft PR, enqueue a durable ticket, and hand back, while orchestrators drain the queue one gate at a time. It buys three things — no gate lock for a wide fan-out to serialize on, no thundering herd of concurrent builds, and no way for a dying agent to strand committed work.
 
-**Not every project needs it.** A repo whose gate takes seconds, or that no one fans out across, is better off with no queue at all: omit `enqueue`/`drain`, and the implementer runs the gate itself before opening a non-draft PR. Say which you chose and why. Adding a queue to a repo that doesn't need one is pure ceremony.
+**Not every project needs it.** A repo whose gate takes seconds, or that no one fans out across, is better off with no queue at all: omit `enqueue`/`drain`, and the implementer runs the gate itself and comments the result on its own draft PR. Say which you chose and why. Adding a queue to a repo that doesn't need one is pure ceremony.
 
 If it does want one, scaffold the three scripts into the project and add their `package.json` entries. **Read `references/gate-queue.md` before writing a line of it** — the correctness of the whole thing rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) that are easy to get subtly wrong and whose failure mode is a green gate against code no gate ever saw.
 
@@ -108,7 +108,7 @@ A config that parses is not a config that works. Prove each layer:
 1. **The reader agrees.** `setup-worktree.sh <branch> <base>` in the repo, then confirm the env files are symlinked and deps are installed in the new worktree — not that the command exited 0.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip.
 3. **The gate command exists.** Run the *scoped* check for real. Don't run the full gate just to prove it resolves — `<pm> run <script> --help` or the script listing is enough.
-4. **The queue round-trips**, if you scaffolded one: enqueue a ticket, drain it, confirm the ticket reached `done/` and the PR flipped. A queue that enqueues but never drains is worse than none — work vanishes into a directory nobody reads.
+4. **The queue round-trips**, if you scaffolded one: enqueue a ticket, drain it, confirm the ticket reached `done/` and the PR carries the gate's verdict comment. A queue that enqueues but never drains is worse than none — work vanishes into a directory nobody reads.
 5. **Tear down** the verification worktree with `remove-worktree.sh`.
 
 ## Step 5 — Land it as a reviewable change

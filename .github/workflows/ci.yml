@@ -102,6 +102,24 @@ jobs:
             [ "$declared" = "$slug" ] || { echo "::error::$slug: frontmatter name is '$declared', must match the directory"; fail=1; }
           done
           exit $fail
+      - name: No skill prescribes gh api -f with an @file value
+        # `-f`/`--raw-field` sends its value verbatim; only `-F`/`--field` expands a
+        # leading `@` into the file's contents. A skill documenting `gh api … -f body=@file`
+        # teaches the agent to publish the literal path instead of the issue body — and `gh`
+        # exits 0 with a comment URL, so neither the agent nor anything downstream notices.
+        # Only a human opening the issue sees it.
+        #
+        # Anchored on `gh api` so that prose QUOTING the wrong flag to warn against it stays
+        # legal — the warning bullets in write-issue and decompose have to name `-f body=@file`
+        # to be about it, and a guard that cannot tell a prescription from a warning would
+        # force the next author to delete the warning to get green.
+        run: |
+          set -euo pipefail
+          if grep -rnE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' skills/*/SKILL.md; then
+            echo "::error::a skill prescribes gh api -f with an @file value; use -F, which reads the file"
+            exit 1
+          fi
+          echo "no skill prescribes -f with an @file value"
 
   config-example:
     name: example config parses

@@ -2,6 +2,10 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 1.8.1
+
+- **The `orchestration-skills`-repo exemption from worktree/PR ceremony is withdrawn — this repo, `market-skills`, and `framework-skills` are all PR-only now, docs and CHANGELOG included.** The exemption let an editor push straight to `main` on the reasoning that this is "tooling"; but a plugin install is pinned to `.claude-plugin/plugin.json`'s `version` exactly like the other two repos, so a change here reaches users exactly the way theirs do — there was never a real difference to justify the special case. And a repo whose product is prose has no gate that can tell whether a rule is *correct*; the diff is the only review artifact there is, so a direct push spent that record to save a worktree. The rule now lives as its own hard-rules bullet instead of a clause in the `setup-worktree.sh` parenthetical, where an agent skimming for worktree mechanics was never going to look for a repo-wide policy.
+
 ## 1.8.0
 
 - **Docs are now a slice's responsibility, stated in three places because the miss is silent.** Nothing in a gate fails when a doc stops being true: the slice goes green, the PR merges, and the miss surfaces later as a user acting on something that changed underneath them. That silence is the whole problem — an implementer that never considered the docs and one that considered them and found nothing produce identical output, so there was no way to tell them apart at review. `decompose` now names the docs each slice falsifies in its `Owns` list, `orchestrate` carries the docs rule as a fifth paste-verbatim brief item, and the implementer's hand-back reports a per-doc verdict rather than a bare "docs reviewed".

@@ -113,7 +113,7 @@ You **never code directly in the main checkout.** The main checkout holds the **
 When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's in**:
 
 - **Orchestrator** — you asked it to *coordinate* work, *work a GitHub issue*, or *execute a plan*. It does **not** write code. It decomposes, makes + verifies a worktree per task, dispatches implementer sub-agents in parallel, reviews each PR by reading the diff, drains the gate queue, and merges.
-- **Implementer** — you told it to *build / fix / implement* a specific thing (or it was dispatched as a sub-agent). It codes in its worktree, greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**.
+- **Implementer** — you told it to *build / fix / implement* a specific thing (or it was dispatched as a sub-agent). It codes in its worktree, updates the docs its change falsifies, greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a verdict per doc it checked.
 
 ### Why this shape
 - **Front-loaded planning** → `write-issue` and `decompose` do the expensive grounding *before* any worktree exists, so the orchestrator isn't slicing work mid-flight while juggling PRs and merges.
@@ -134,7 +134,7 @@ When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's 
 
 Each leg ends with an explicit handoff line and **stops** — you decide whether to run the next.
 
-**As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
+**As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings the docs it falsifies along with it, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
 
 **By hand:**
 

@@ -158,10 +158,11 @@ When the work is **large and multi-area** — many slices, several waves, slices
 Warrant the umbrella; don't reflexively shard a 3-slice issue into 3 issues — that's tracking overhead with no payoff. Rule of thumb: **umbrella when slices span multiple waves AND multiple areas AND each is a PR someone would want to track on its own.**
 
 ### GitHub write mechanics (important)
-- **Use `gh api` (REST), not `gh issue create`/`gh issue edit` for the writes** — the high-level `gh issue` write commands go through GraphQL and hit rate limits in batches; the REST endpoints don't. Read with `gh issue view` is fine. For writes:
-  - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -f body=@<file>` (write the body to a temp file and reference it — avoids quoting hell with long markdown).
-  - New sub-issue: `gh api repos/{owner}/{repo}/issues -f title=… -f body=@<file>` then capture the returned number.
-  - Edit umbrella body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -f body=@<file>`.
+- **Use `gh api` (REST), not `gh issue create`/`gh issue edit` for the writes** — the high-level `gh issue` write commands go through GraphQL and hit rate limits in batches; the REST endpoints don't. Read with `gh issue view` is fine.
+- **Write the body to a file and reference it with `-F` (not `-f`).** `-f` is `--raw-field`, which sends its value verbatim: `-f body=@file` stores the literal string `@file` as the comment. Only `-F` expands a leading `@` into the file's contents. This fails in the worst direction — the command exits 0 and prints a comment URL, so the run reports success and the damage is visible only to a human opening the issue. **Verify after** — refetch the body and confirm it's the markdown, not `@path`. For writes:
+  - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"` (a temp file also spares you quoting hell with long markdown).
+  - New sub-issue: `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>"` then capture the returned number. The title stays `-f` — it's a genuine literal, and only the `@file` value needs `-F`.
+  - Edit umbrella body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`.
 - **Cross-reference, don't auto-close.** Sub-issues reference the umbrella (`#<umbrella>`); the orchestrator closes each as its PR merges (PRs merge into the integration branch, not `main`, so GitHub won't auto-close).
 - End your turn by telling the user what you wrote (umbrella # + sub-issue #s, or the comment link) and the same **Ready to orchestrate** handoff.
 

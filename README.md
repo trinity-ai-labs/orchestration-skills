@@ -108,6 +108,8 @@ See [`examples/worktree.json`](examples/worktree.json) for a complete file.
 
 You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`). Every task gets its own worktree under `~/.worktrees/<project>/<branch-leaf>`, branched off the integration branch. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
 
+**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: an orchestrator read this diff and is merging it. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge. A green gate says the suite passed; it cannot say the agent solved the right problem.
+
 When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's in**:
 
 - **Orchestrator** — you asked it to *coordinate* work, *work a GitHub issue*, or *execute a plan*. It does **not** write code. It decomposes, makes + verifies a worktree per task, dispatches implementer sub-agents in parallel, reviews each PR by reading the diff, drains the gate queue, and merges.
@@ -170,7 +172,7 @@ To do it by hand instead: add `.agents/worktree.json` to that repo, declaring th
 - **Never** use the Agent tool's `isolation: "worktree"` param or any auto worktree provisioner — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
 - **Never squash-merge, never rebase.** Always real merge commits.
 - **Branch from the integration branch, not `main`.** PRs target the integration branch.
-- **Implementers never run the full gate and never merge their own PRs** — they enqueue; a runner gates; the orchestrator reviews the diff and merges.
+- **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** — they enqueue; a runner gates and comments the verdict; the orchestrator reviews the diff, marks it ready, and merges.
 - **After merge:** sync the local integration branch *first*, then delete the merged branch, remove the worktree, and close the issue yourself (`gh issue close` — GitHub won't auto-close, since PRs merge into the integration branch, not `main`).
 
 ---

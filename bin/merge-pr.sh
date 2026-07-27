@@ -12,8 +12,9 @@
 #      that's still checked out in a worktree, so `gh pr merge --delete-branch`
 #      would error on the local-branch step if the worktree still existed. Done
 #      via remove-worktree.sh, which kills processes rooted in the tree first.
-#   3. `gh pr merge --merge --delete-branch` — a real merge commit (never squash),
-#      deleting both the local and remote branch.
+#   3. Mark the PR ready — the orchestrator's review approval — and immediately
+#      `gh pr merge --merge --delete-branch` it: a real merge commit (never
+#      squash), deleting both the local and remote branch.
 #   4. Sync the MAIN checkout's local integration branch to the just-merged tip.
 #
 # Step 4 is the whole reason this helper exists. `gh pr merge` advances the branch
@@ -100,6 +101,17 @@ fi
 if [ "$STATE" = "MERGED" ]; then
   echo "merge-pr: PR #$PR already merged — skipping merge, finishing the local sync."
 else
+  # `draft -> ready` is the orchestrator's review approval — the one thing in the
+  # flow that says a human-in-the-loop read this diff, as opposed to a gate saying
+  # the suite passed (the gate reports by PR comment and never touches this flag).
+  # It sits here, one line above the merge, so `ready` can never be a stale badge:
+  # the step-1 teardown above kills processes rooted in the worktree and can take
+  # real time, and a flip before it would leave a window where the PR reads as
+  # approved but is not merged. Inside the not-yet-MERGED branch it is also
+  # idempotent on re-run, and `gh pr ready` on an already-ready PR is a no-op, so
+  # nothing needs to read `isDraft` first.
+  echo "merge-pr: marking PR #$PR ready (review approval) ..."
+  ( cd "$MAIN" && gh pr ready "$PR" )
   echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
   ( cd "$MAIN" && gh pr merge "$PR" --merge --delete-branch )
 fi

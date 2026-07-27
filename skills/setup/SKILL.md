@@ -115,10 +115,9 @@ A config that parses is not a config that works. Prove each layer:
 
 Commit the config (and the queue scripts) to the project and open a PR the way that repo normally does. In a workspace this applies to each member's `.agents/worktree.json`; the workspace manifest itself has no repo to land in, which is expected — it is regenerated, not shared. Say that plainly rather than leaving someone wondering why one file went uncommitted.
 
-Two exceptions where committing straight to the integration branch is correct, and say so in the message:
+One exception where committing straight to the integration branch is correct, and say so in the message:
 
 - The repo can't cut a worktree until this file exists — the flow can't bootstrap itself.
-- The repo is a tooling repo whose own convention is direct-on-main.
 
 ## What setup does NOT do (hard boundaries)
 

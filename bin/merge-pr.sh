@@ -34,6 +34,7 @@
 set -euo pipefail
 
 WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { echo "merge-pr: error: $*" >&2; exit 1; }
 
@@ -72,14 +73,26 @@ echo "merge-pr: PR #$PR  state=$STATE  base=$INTEGRATION  head=$HEAD_BRANCH  mai
 # it. Verify PR #$PR actually belongs to this working set before touching anything.
 LEAF="${HEAD_BRANCH##*/}"
 PROJECT=$(basename "$MAIN")
+# A workspace member's worktree lives at $WORKTREE_HOME/<workspace>/<slug>/<project>
+# (setup-worktree.sh:68), not the bare $WORKTREE_HOME/<project>/<slug> layout used
+# outside a workspace — so the existence check below must accept either, or it
+# misfires "wrong repo" for every workspace member even when its worktree is
+# exactly where setup-worktree.sh put it.
+WORKSPACE_ROOT="$(dirname "$MAIN")"
+WORKSPACE_WT=""
+if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
+  WORKSPACE_WT="$WORKTREE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
+fi
 if [ "$STATE" = "MERGED" ]; then
   # Idempotent-rerun case: finishing a half-done close-out implies SOME local
-  # residue — the worktree or the local head branch. Neither existing means
-  # there is nothing to close out here: almost certainly the wrong repo.
+  # residue — a worktree in either layout, or the local head branch. Neither
+  # existing means there is nothing to close out here: almost certainly the
+  # wrong repo.
   if [ ! -d "$WORKTREE_HOME/$PROJECT/$LEAF" ] \
+     && { [ -z "$WORKSPACE_WT" ] || [ ! -d "$WORKSPACE_WT" ]; } \
      && ! git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH" \
      && [ "${MERGE_PR_FORCE:-}" != "1" ]; then
-    die "PR #$PR is already MERGED and neither a worktree ($WORKTREE_HOME/$PROJECT/$LEAF) nor a local branch '$HEAD_BRANCH' exists in $MAIN — nothing to close out here. WRONG REPO? cd into the intended repo and re-run (or MERGE_PR_FORCE=1 to run teardown+sync here anyway)."
+    die "PR #$PR is already MERGED and neither a worktree ($WORKTREE_HOME/$PROJECT/$LEAF${WORKSPACE_WT:+ or $WORKSPACE_WT}) nor a local branch '$HEAD_BRANCH' exists in $MAIN — nothing to close out here. WRONG REPO? cd into the intended repo and re-run (or MERGE_PR_FORCE=1 to run teardown+sync here anyway)."
   fi
 else
   git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH" \
@@ -94,7 +107,7 @@ fi
 # path from the branch leaf against this same repo.
 if [ -n "$HEAD_BRANCH" ]; then
   echo "merge-pr: tearing down worktree for $HEAD_BRANCH ..."
-  REPO="$MAIN" "$WORKTREE_HOME/remove-worktree.sh" "$HEAD_BRANCH"
+  REPO="$MAIN" "$HERE/remove-worktree.sh" "$HEAD_BRANCH"
 fi
 
 # --- 2. Merge (unless already merged) ------------------------------------------

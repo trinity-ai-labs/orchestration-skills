@@ -1,0 +1,31 @@
+# AGENTS.md
+
+Conventions for anyone — human or agent — working in this repo. `.agents/worktree.json`'s `briefConventions` points here rather than restating any of this, per the `setup` skill's own rule: a convention that lives in `AGENTS.md` gets pointed at, not copied, because a copy is a second place that can drift out of sync with the original and nobody notices which one is stale.
+
+## Conventions
+
+- This repo is PUBLIC — anything committed is readable by anyone, so never commit a client or engagement name, a real home path from a private machine, or any identifier belonging to a subject; worked examples in the skills stay generic.
+- Every rule added to a skill must name the failure it prevents — a rule with no failure mode behind it is ceremony, and the next editor has no way to tell whether deleting it is safe.
+- The shipped/contributor split is a directory: everything under `bin/` (`setup-worktree.sh`, `merge-pr.sh`, `remove-worktree.sh`, `setup-workspace.sh`) SHIPS, because Claude Code puts an enabled plugin's `bin/` on the Bash tool's PATH — so skills invoke those helpers bare, never by path, and a bug there is a runtime failure discovered on a user's machine at the moment of use. They are bash, and shellcheck reads the dialect from each shebang, so the shebang is the contract and changing it changes what the gate enforces.
+- Everything under `scripts/` is contributor-only — never loaded, never on a user's PATH — and `scripts/check.sh` is POSIX `/bin/sh` with no bashisms so it holds to the standard it enforces on `bin/`.
+- The repo is ZERO-dependency by design: no `package.json`, no lockfile, no install step, no env files. That is why a worktree here is fully functional bare, and why adding a dependency would make the gate unrunnable for anyone who has not first installed one.
+- `gate` and `scopedCheck` are the same command and there is no queue — run `sh scripts/check.sh` green yourself, then open a DRAFT PR into the integration branch: the draft PR is your hand-back, and only the reviewer flips it ready before merging, because GitHub refuses to merge a draft and that is the interlock against merging an unread diff.
+- Assume your change ships and needs the version in `.claude-plugin/plugin.json` moved forward plus a matching `## <version>` heading in `CHANGELOG.md` — an install is pinned to that string, so merging a skill change under an unchanged version ships nothing while looking like it worked. Only `.github/`, `.agents/`, `scripts/`, `CHANGELOG.md` and `.gitignore` are exempt (the exempt regex in `.github/workflows/ci.yml` is authoritative — change both together).
+- All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push spends it to save a worktree.
+- Never rebase, never self-merge. Merge commits, not squash.
+
+## The frozen helper contract
+
+The helper CLI contract — arguments, env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`, `MERGE_PR_FORCE`), the `READY: <path>` stdout line, and exit codes — is exactly as it is on `main` today, and stays frozen: no one may add, rename, or repurpose any of them without stopping and re-agreeing first.
+
+The failure this prevents: this repo ships the same behavior twice, once as bash (`bin/*.sh`) and once as PowerShell (`bin/*.ps1`), built and maintained against a shared contract neither implementation owns alone. If one side changes what an argument, env var, the `READY:` line, or an exit code *means* without the other side knowing, the two stop agreeing on the same input, and nothing catches it — the parity check that exists (or will exist) between them only compares surface shape (does the sibling exist, do the usage lines and env-var names match, is it ASCII), not semantics, so a silently repurposed flag ships as a clean green check on both sides while the two shells behave differently for the same command. A contract change that's actually needed is still fine — it just has to be a conversation both implementations sign off on, not a unilateral edit discovered later as a behavioral mismatch.
+
+## The `bin/` parity rule
+
+Every `bin/<name>.sh` must have a `bin/<name>.ps1` sibling with the same usage line and the same set of consumed env vars, and neither sibling may ever be added alone.
+
+The failure this prevents: `bin/` ships on a user's PATH inside whichever shell Claude Code hands them for that platform — the Bash tool (WSL, or Git Bash on native Windows) or the PowerShell tool (native Windows with no Git for Windows installed, where bash does not exist at all). A helper that exists in only one language works for part of the userbase and is simply unavailable to the rest, with no error until a user on the missing shell tries to run it and finds nothing on PATH.
+
+`.ps1` files are ASCII-only, no exceptions. PowerShell 5.1 misreads UTF-8 without a byte-order mark, and these helpers' comments lean on em-dashes throughout — a single stray em-dash surviving into a `.ps1` file is a non-ASCII byte that corrupts under 5.1, and the failure surfaces as a parse error nowhere near the character that actually caused it, which makes it expensive to trace back.
+
+This rule is meant to be enforced mechanically, not carried by review discipline — prose alone does not stop two hand-maintained copies of the same logic from drifting apart, it only makes the drift someone's fault after the fact. A check that fails closed (missing sibling, non-ASCII byte, or a usage/env-var mismatch) belongs in `scripts/check.sh`.

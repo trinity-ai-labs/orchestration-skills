@@ -10,8 +10,9 @@
 #
 # What it does, driven by the project's own config at <repo>/.agents/worktree.json:
 #   - creates the worktree at  $WORKTREE_HOME/<project>/<branch-leaf>
-#     (WORKTREE_HOME defaults to ~/.worktrees — the worktrees themselves stay out
-#     of the repo, since a worktree nested inside its own repo confuses git)
+#     (WORKTREE_HOME defaults to ~/.worktrees, or %LOCALAPPDATA%/wt on Windows —
+#     the worktrees themselves stay out of the repo, since a worktree nested
+#     inside its own repo confuses git)
 #   - symlinks the project's gitignored env files (envFiles)
 #   - exports the project's env (env) — e.g. a shared build-cache dir
 #   - runs the project's install command (install) inside the worktree
@@ -32,7 +33,45 @@
 # → a bare worktree (no env symlinks, no install).
 set -euo pipefail
 
-WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
+# --- Windows/MSYS path helpers -----------------------------------------------
+# Under Git Bash on Windows `git` prints Windows-form paths (C:/Users/…) while
+# anything derived from $HOME is MSYS-form (/c/Users/…). The filesystem accepts
+# both, so a mismatch is never an error — only string comparison can see one,
+# which makes every resulting failure silent. So every value that is later
+# compared, grepped, or prefix-matched goes through norm_path at the point of
+# production. Off Windows there is no cygpath and this is the identity function.
+#
+# Duplicated verbatim in each bin/*.sh rather than sourced: bin/ ships on a
+# user's PATH under the parity rule that pairs every bin/<name>.sh with a
+# bin/<name>.ps1, so a shared file would become a fifth helper owing a
+# PowerShell sibling that has nothing to do — PowerShell has no MSYS form to
+# convert — and sourcing would make each script resolve a sibling path at
+# runtime, the exact bug class merge-pr.sh already shipped once.
+norm_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -u "$1"; else printf '%s\n' "$1"; fi
+}
+
+is_windows() {
+  case "$(uname -s 2>/dev/null)" in
+  MINGW* | MSYS* | CYGWIN*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
+# ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
+# past MAX_PATH's 260 characters as a matter of routine, and the install then fails
+# naming some deeply nested file rather than the length that actually broke it. An
+# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+worktree_home_default() {
+  if is_windows && [ -n "${LOCALAPPDATA:-}" ]; then
+    printf '%s/wt\n' "$(norm_path "$LOCALAPPDATA")"
+  else
+    printf '%s/.worktrees\n' "$HOME"
+  fi
+}
+
+WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 CONFIG_REL=".agents/worktree.json"
 
 if [ $# -lt 2 ]; then
@@ -53,9 +92,21 @@ if ! COMMON=$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir 2
   echo "  run from inside the target repo, or set REPO=/path/to/repo" >&2
   exit 1
 fi
+COMMON=$(norm_path "$COMMON")
 MAIN=$(dirname "$COMMON")
 PROJECT=$(basename "$MAIN")
 SLUG="${BRANCH##*/}"
+
+# Windows' 260-character MAX_PATH is a per-API limit, not a filesystem one, and
+# git opts out of it with core.longpaths. Without it a deep node_modules tree
+# fails mid-install on a filename, which reads as a broken package rather than as
+# a path-length ceiling — so say it up front, where it is still cheap to fix.
+if is_windows && [ "$(git -C "$MAIN" config --get core.longpaths 2>/dev/null || true)" != "true" ]; then
+  echo "warning: git core.longpaths is not enabled — deep dependency trees can fail" >&2
+  echo "  to open files whose full path exceeds 260 characters, with an error that" >&2
+  echo "  names the file rather than the length. Enable it once, globally:" >&2
+  echo "    git config --global core.longpaths true" >&2
+fi
 
 # A repo inside a workspace (a containing folder of sibling repos, marked by
 # .agents/workspace.json) gets its worktrees under the WORKSPACE's namespace, not
@@ -69,6 +120,9 @@ elif [ -f "$(dirname "$MAIN")/.agents/workspace.json" ]; then
 else
   WT="$WORKTREE_HOME/$PROJECT/$SLUG"
 fi
+# WORKTREE_HOME and WORKTREE_DEST are caller-supplied and may arrive in either
+# form, so normalize the assembled path once, here, rather than at each use.
+WT="$(norm_path "$WT")"
 
 # Translate the JSON config into shell assignments. JSON has no shell, so this
 # needs a parser: python3 first (present by default on macOS and every mainstream

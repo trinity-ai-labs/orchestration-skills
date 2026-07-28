@@ -37,7 +37,57 @@
 #     The lsof + argv scan (pkill) combination covers the common cases.
 set -euo pipefail
 
-WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
+# --- Windows/MSYS path helpers -----------------------------------------------
+# Under Git Bash on Windows `git` prints Windows-form paths (C:/Users/…) while
+# anything derived from $HOME is MSYS-form (/c/Users/…). The filesystem accepts
+# both, so a mismatch is never an error — only string comparison can see one,
+# which makes every resulting failure silent. So every value that is later
+# compared, grepped, or prefix-matched goes through norm_path at the point of
+# production. Off Windows there is no cygpath and this is the identity function.
+#
+# Duplicated verbatim in each bin/*.sh rather than sourced: bin/ ships on a
+# user's PATH under the parity rule that pairs every bin/<name>.sh with a
+# bin/<name>.ps1, so a shared file would become a fifth helper owing a
+# PowerShell sibling that has nothing to do — PowerShell has no MSYS form to
+# convert — and sourcing would make each script resolve a sibling path at
+# runtime, the exact bug class merge-pr.sh already shipped once.
+norm_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -u "$1"; else printf '%s\n' "$1"; fi
+}
+
+is_windows() {
+  case "$(uname -s 2>/dev/null)" in
+  MINGW* | MSYS* | CYGWIN*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
+# ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
+# past MAX_PATH's 260 characters as a matter of routine, and the install then fails
+# naming some deeply nested file rather than the length that actually broke it. An
+# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+worktree_home_default() {
+  if is_windows && [ -n "${LOCALAPPDATA:-}" ]; then
+    printf '%s/wt\n' "$(norm_path "$LOCALAPPDATA")"
+  else
+    printf '%s/.worktrees\n' "$HOME"
+  fi
+}
+
+# "Absolute" has two spellings under Git Bash. A Windows-form path (C:/… or C:\…)
+# does not start with a slash, so a `== /*` test files it as a BRANCH LEAF and the
+# script then resolves $WORKTREE_HOME/<project>/C:/… — a path that never exists,
+# so the run reports "already removed" and exits 0 having removed nothing.
+is_abs_path() { # is_abs_path <string>
+  case "$1" in
+  /*) return 0 ;;
+  [A-Za-z]:[\\/]*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 
 die() { echo "remove-worktree: error: $*" >&2; exit 1; }
 
@@ -55,13 +105,14 @@ REPO="${REPO:-$PWD}"
 # --- Resolve the worktree path -------------------------------------------------
 # If the input looks like an absolute path, trust it directly; otherwise treat
 # it as a branch leaf and resolve it via the repo the caller is standing in.
-if [[ "$INPUT" == /* ]]; then
+if is_abs_path "$INPUT"; then
   WT="$INPUT"
 else
   # Resolve the MAIN working tree — same logic as setup-worktree.sh.
   if ! COMMON=$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
     die "not inside a git repo: $REPO\n  run from inside the target repo, or set REPO=/path/to/repo"
   fi
+  COMMON=$(norm_path "$COMMON")
   MAIN=$(dirname "$COMMON")
   PROJECT=$(basename "$MAIN")
   # setup-worktree.sh names the dir after the segment past the LAST slash
@@ -71,7 +122,11 @@ else
   WT="$WORKTREE_HOME/$PROJECT/$LEAF"
 fi
 
-# Normalise to absolute (strip trailing slashes etc.)
+# Normalise the ASSEMBLED path, whichever branch produced it — both are
+# caller-influenced (an absolute $INPUT, or a $WORKTREE_HOME that may have been
+# exported in Windows form), and WT_PREFIX below is prefix-matched against
+# process output, so a stray form here silently matches nothing.
+WT="$(norm_path "$WT")"
 WT="${WT%/}"
 
 echo "remove-worktree: target path: $WT"
@@ -82,9 +137,9 @@ if [ ! -d "$WT" ]; then
   echo "  running git worktree prune to clean stale refs..."
   # Still need to know which repo to prune. If we resolved from REPO above,
   # COMMON/MAIN are already set; otherwise derive from the nearest repo.
-  if [[ "$INPUT" == /* ]]; then
+  if is_abs_path "$INPUT"; then
     if COMMON=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-      MAIN=$(dirname "$COMMON")
+      MAIN=$(dirname "$(norm_path "$COMMON")")
     else
       echo "remove-worktree: cannot find repo for $WT — skipping prune" >&2
       exit 0
@@ -98,14 +153,14 @@ fi
 # --- Derive MAIN if we took the absolute-path branch ---------------------------
 # We need MAIN for git worktree remove. The worktree itself is a git repo
 # (its .git is a gitfile pointing back), so we can find COMMON from it.
-if [[ "$INPUT" == /* ]]; then
+if is_abs_path "$INPUT"; then
   if ! COMMON=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
     # Worktree exists but git can't see it (already unregistered?). Force-rm and exit.
     echo "remove-worktree: worktree dir exists but is not a git repo; removing directory only."
     rm -rf "$WT"
     exit 0
   fi
-  MAIN=$(dirname "$COMMON")
+  MAIN=$(dirname "$(norm_path "$COMMON")")
 fi
 
 # --- Kill processes rooted in the worktree FIRST --------------------------------

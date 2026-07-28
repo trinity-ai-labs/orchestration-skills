@@ -10,7 +10,9 @@
 #
 # It creates one worktree per named repo, laid out the same way the workspace is:
 #
-#   ~/.worktrees/<workspace>/<branch-leaf>/<repo>/
+#   $WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>/
+#
+# ($WORKTREE_HOME defaults to ~/.worktrees, or %LOCALAPPDATA%/wt on Windows.)
 #
 # Mirroring the layout is the point. A cross-repo task gets a single directory
 # that looks exactly like the workspace, so relative paths between repos still
@@ -33,7 +35,45 @@
 # .agents/worktree.json treatment: env symlinks, exported env, install.
 set -euo pipefail
 
-WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
+# --- Windows/MSYS path helpers -----------------------------------------------
+# Under Git Bash on Windows `git` prints Windows-form paths (C:/Users/…) while
+# anything derived from $HOME is MSYS-form (/c/Users/…). The filesystem accepts
+# both, so a mismatch is never an error — only string comparison can see one,
+# which makes every resulting failure silent. So every value that is later
+# compared, grepped, or prefix-matched goes through norm_path at the point of
+# production. Off Windows there is no cygpath and this is the identity function.
+#
+# Duplicated verbatim in each bin/*.sh rather than sourced: bin/ ships on a
+# user's PATH under the parity rule that pairs every bin/<name>.sh with a
+# bin/<name>.ps1, so a shared file would become a fifth helper owing a
+# PowerShell sibling that has nothing to do — PowerShell has no MSYS form to
+# convert — and sourcing would make each script resolve a sibling path at
+# runtime, the exact bug class merge-pr.sh already shipped once.
+norm_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -u "$1"; else printf '%s\n' "$1"; fi
+}
+
+is_windows() {
+  case "$(uname -s 2>/dev/null)" in
+  MINGW* | MSYS* | CYGWIN*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
+# ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
+# past MAX_PATH's 260 characters as a matter of routine, and the install then fails
+# naming some deeply nested file rather than the length that actually broke it. An
+# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+worktree_home_default() {
+  if is_windows && [ -n "${LOCALAPPDATA:-}" ]; then
+    printf '%s/wt\n' "$(norm_path "$LOCALAPPDATA")"
+  else
+    printf '%s/.worktrees\n' "$HOME"
+  fi
+}
+
+WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { echo "setup-workspace: error: $*" >&2; exit 1; }

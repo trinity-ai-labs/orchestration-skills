@@ -104,8 +104,59 @@ ROOT="$DIR"
 WORKSPACE_NAME="$(basename "$ROOT")"
 MANIFEST="$ROOT/.agents/workspace.json"
 
+# Pick a JSON interpreter ONCE, by RUNNING each candidate rather than trusting
+# `command -v`: on Windows `command -v python3` succeeds against the Microsoft
+# Store's python3.exe App Execution Alias — a stub that opens the Store and
+# prints nothing — so a command-v-only probe selects an "interpreter" that
+# returns an empty manifest, and this script then reports a workspace with no
+# members rather than a missing tool. node is in the list because a node-only
+# machine used to fail here outright, while setup-worktree.sh, reading the same
+# kind of file for the same flow, was perfectly happy with node.
+JSON_CMD=()
+pick_json_runner() {
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      JSON_CMD=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      JSON_CMD=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      JSON_CMD=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then return 0; fi
+    JSON_CMD=()
+  done
+  die "need a WORKING node or python on PATH to read $MANIFEST"
+}
+pick_json_runner
+
 read_manifest() { # read_manifest <members|defaults|KEY>  → one value per line
-  python3 - "$MANIFEST" "$1" <<'PY'
+  if [ "${JSON_CMD[0]}" = "node" ]; then
+    "${JSON_CMD[@]}" -e '
+      const fs = require("fs");
+      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      const key = process.argv[2];
+      if (key === "members" || key === "defaults") {
+        for (const m of cfg.members || []) {
+          const path = typeof m === "string" ? m : (m.path || "");
+          const onByDefault = typeof m === "string" ? true : (m.default === undefined ? true : !!m.default);
+          if (key === "members" || onByDefault) console.log(path);
+        }
+      } else {
+        const v = cfg[key];
+        console.log(typeof v === "string" ? v : "");
+      }
+    ' "$MANIFEST" "$1"
+  else
+    "${JSON_CMD[@]}" - "$MANIFEST" "$1" <<'PY'
 import json, sys
 cfg = json.load(open(sys.argv[1]))
 key = sys.argv[2]
@@ -119,6 +170,27 @@ else:
     v = cfg.get(key, "")
     print(v if isinstance(v, str) else "")
 PY
+  fi
+}
+
+read_contracts() { # → one "<owner><TAB><consumer> <consumer>…" line per contract
+  if [ "${JSON_CMD[0]}" = "node" ]; then
+    "${JSON_CMD[@]}" -e '
+      const fs = require("fs");
+      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      for (const c of cfg.crossRepoContracts || []) {
+        if (c.owner) console.log(c.owner + "\t" + (c.consumers || []).join(" "));
+      }
+    ' "$MANIFEST"
+  else
+    "${JSON_CMD[@]}" - "$MANIFEST" <<'PY'
+import json, sys
+for c in json.load(open(sys.argv[1])).get("crossRepoContracts", []):
+    owner = c.get("owner", "")
+    if owner:
+        print(owner + "\t" + " ".join(c.get("consumers", [])))
+PY
+  fi
 }
 
 contains() { # contains <needle> <haystack...>
@@ -177,14 +249,7 @@ while IFS=$'\t' read -r owner consumers; do
     REPOS+=("$c")
     echo "including:  $c (consumes a contract owned by $owner)"
   done
-done < <(python3 - "$MANIFEST" <<'PY'
-import json, sys
-for c in json.load(open(sys.argv[1])).get("crossRepoContracts", []):
-    owner = c.get("owner", "")
-    if owner:
-        print(owner + "\t" + " ".join(c.get("consumers", [])))
-PY
-)
+done < <(read_contracts)
 
 echo "workspace: $WORKSPACE_NAME ($ROOT)"
 echo "branch:    $BRANCH  off  $BASE"

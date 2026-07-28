@@ -125,11 +125,54 @@ fi
 WT="$(norm_path "$WT")"
 
 # Translate the JSON config into shell assignments. JSON has no shell, so this
-# needs a parser: python3 first (present by default on macOS and every mainstream
-# Linux), node as the fallback for images that ship node but not python.
+# needs a parser. Everything it needs lives inside this one function on purpose:
+# scripts/check.sh extracts it by name and runs it standalone to prove the
+# shipped example config is one the REAL reader can consume, and a call out to a
+# helper defined elsewhere in this file would break that extraction.
 emit_config() { # emit_config <config-path>
-  if command -v python3 >/dev/null 2>&1; then
-    python3 - "$1" <<'PY'
+  # Pick an interpreter by RUNNING each candidate, never by `command -v` alone.
+  # On Windows `command -v python3` succeeds against the Microsoft Store's
+  # python3.exe App Execution Alias — a stub that opens the Store and prints
+  # nothing — so a command-v-only probe selects an "interpreter" whose empty
+  # output the caller then eval's, yielding a bare worktree with no error at all.
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  if [ "${#runner[@]}" -eq 0 ]; then
+    echo "need a WORKING node or python on PATH to read $1" >&2
+    exit 1
+  fi
+  if [ "${runner[0]}" = "node" ]; then
+    # Read + parse rather than require(): require() resolves a bare relative path
+    # as a module name, so it fails on exactly the paths a caller passes by hand.
+    node -e '
+      const fs = require("fs");
+      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      const q = (s) => "\x27" + String(s).replace(/\x27/g, "\x27\\\x27\x27") + "\x27";
+      console.log("INSTALL_CMD=" + q(cfg.install || ""));
+      console.log("ENV_FILES=(" + (cfg.envFiles || []).map(q).join(" ") + ")");
+      for (const [k, v] of Object.entries(cfg.env || {})) console.log("export " + k + "=" + v);
+    ' "$1"
+  else
+    "${runner[@]}" - "$1" <<'PY'
 import json, shlex, sys
 cfg = json.load(open(sys.argv[1]))
 print("INSTALL_CMD=%s" % shlex.quote(cfg.get("install") or ""))
@@ -139,17 +182,6 @@ print("ENV_FILES=(%s)" % " ".join(shlex.quote(p) for p in cfg.get("envFiles") or
 for key, value in (cfg.get("env") or {}).items():
     print("export %s=%s" % (key, value))
 PY
-  elif command -v node >/dev/null 2>&1; then
-    node -e '
-      const cfg = require(process.argv[1]);
-      const q = (s) => "\x27" + String(s).replace(/\x27/g, "\x27\\\x27\x27") + "\x27";
-      console.log("INSTALL_CMD=" + q(cfg.install || ""));
-      console.log("ENV_FILES=(" + (cfg.envFiles || []).map(q).join(" ") + ")");
-      for (const [k, v] of Object.entries(cfg.env || {})) console.log("export " + k + "=" + v);
-    ' "$1"
-  else
-    echo "need python3 or node to read $1" >&2
-    exit 1
   fi
 }
 
@@ -158,9 +190,16 @@ ENV_FILES=()
 INSTALL_CMD=""
 CONFIG="$MAIN/$CONFIG_REL"
 if [ -f "$CONFIG" ]; then
+  # Captured before eval'ing so a reader that failed is a hard stop: eval'ing the
+  # substitution inline would discard its exit status and silently proceed with
+  # an empty config, which looks exactly like a repo that declared nothing.
   # Same trust level as INSTALL_CMD below, which is eval'd too: by the time you
   # are cutting a worktree you already run this repo's install and test commands.
-  eval "$(emit_config "$CONFIG")"
+  if ! CONFIG_SH="$(emit_config "$CONFIG")"; then
+    echo "could not read $CONFIG" >&2
+    exit 1
+  fi
+  eval "$CONFIG_SH"
 else
   echo "note: no config at $CONFIG — creating a bare worktree (no env symlinks, no install)." >&2
   echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2

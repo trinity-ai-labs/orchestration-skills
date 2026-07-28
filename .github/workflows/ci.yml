@@ -6,22 +6,43 @@ on:
   pull_request:
 
 jobs:
-  # One runner, one checkout, one command. Every portable check lives in
-  # scripts/check.sh — the same command a contributor runs before pushing
-  # (.agents/worktree.json declares it as both gate and scopedCheck). CI runs
-  # the contributor's own check rather than a second, drifting copy: two copies
-  # drift, and the one that stops firing looks identical to the one that passed.
+  # One runner, one checkout, one gate script, plus one assertion on its output.
+  # Every portable check lives in scripts/check.sh — the same command a
+  # contributor runs before pushing (.agents/worktree.json declares it as both
+  # gate and scopedCheck). CI runs the contributor's own check rather than a
+  # second, drifting copy: two copies drift, and the one that stops firing looks
+  # identical to the one that passed.
   #
   # The script reports EVERY failure and then exits 1, so a red PR still tells
   # you everything that is wrong — the property the old `if: always()` job split
   # gave for free, now held by the script itself rather than by the CI layout.
+  #
+  # ubuntu-latest ships both pwsh and PSScriptAnalyzer preinstalled, so this is
+  # also the one runner where scripts/check.sh's PSScriptAnalyzer step genuinely
+  # lints bin/*.ps1 instead of reporting SKIPPED — no install step needed, which
+  # means the assertion below cannot be defeated by a transient PSGallery
+  # failure the way an explicit install step could.
   check:
-    name: the repo gate
+    name: the repo gate (PSScriptAnalyzer must lint here, not SKIP)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: shellcheck · plugin manifest · skill frontmatter · example config
-        run: sh scripts/check.sh
+      - name: shellcheck · plugin manifest · skill frontmatter · example config · PSScriptAnalyzer
+        run: |
+          set -euo pipefail
+          out="$(sh scripts/check.sh)"
+          printf '%s\n' "$out"
+          # A SKIP is the right answer on a contributor's machine and does not fail
+          # the gate — but this is the one runner that is supposed to run the
+          # analyzer, so a SKIP here means pwsh or the module went missing from this
+          # runner image and the repo's only .ps1 lint silently never ran, while the
+          # job still went green. Assert it did not.
+          case "$out" in
+            *"SKIP  psscriptanalyzer"*)
+              echo "::error::PSScriptAnalyzer skipped on the one runner meant to run it — the repo's only .ps1 lint never ran"
+              exit 1
+              ;;
+          esac
 
   # bin/ ships a PowerShell port of every helper precisely because part of the
   # userbase runs Claude Code on native Windows with no bash at all. Until this job
@@ -35,40 +56,22 @@ jobs:
   # rather than replacing it — Git Bash (Claude Code's Bash tool when Git for
   # Windows is installed) and Windows PowerShell (the PowerShell tool, which is all
   # a native install without Git for Windows has).
+  #
+  # This job does NOT run scripts/check.sh. windows-latest has no shellcheck, and
+  # the script's own required-tool check refuses to print green when a tool it
+  # needs is missing rather than silently skipping shellcheck the way it can skip
+  # the optional PSScriptAnalyzer — a check that cannot run must not report ok.
+  # Installing shellcheck here just to re-run a contributor gate the check job
+  # already runs would add runtime and prove nothing this job doesn't already
+  # prove. Static analysis, PSScriptAnalyzer included, lives entirely in the check
+  # job now (ubuntu-latest ships pwsh and the analyzer preinstalled, so it lints
+  # there for free). This job's sole purpose is the one thing no other runner can
+  # do: actually execute the helpers on Windows, in both shells.
   windows:
-    name: the helpers actually run on Windows
+    name: the helpers actually run on Windows, in both shells
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: install PSScriptAnalyzer
-        shell: pwsh
-        run: |
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction SilentlyContinue
-          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
-
-      # windows-latest ships Git Bash, so the contributor gate runs here unchanged.
-      # This is also the ONLY place its PSScriptAnalyzer step actually lints rather
-      # than reporting SKIPPED: pwsh and the module are both present here and are
-      # deliberately absent from the gate's required-tool list, because a
-      # zero-dependency repo cannot make its gate depend on an install.
-      - name: the repo gate, under Git Bash (PSScriptAnalyzer must lint here)
-        shell: bash
-        run: |
-          set -euo pipefail
-          out="$(sh scripts/check.sh)"
-          printf '%s\n' "$out"
-          # A SKIP is the right answer on a contributor's machine and does not fail
-          # the gate — but this is the one runner that is supposed to run the
-          # analyzer, so a SKIP here means the install step above silently no-opped
-          # (a transient PSGallery failure, say) and the repo's only .ps1 lint never
-          # ran, while the job still went green. Assert it did not.
-          case "$out" in
-            *"SKIP  psscriptanalyzer"*)
-              echo "::error::PSScriptAnalyzer skipped on the one runner meant to run it — the module install did not take"
-              exit 1
-              ;;
-          esac
 
       # `powershell`, not `pwsh`: Windows PowerShell 5.1 is what ships in-box and is
       # therefore the compatibility target these ports are written against. It is

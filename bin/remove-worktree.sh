@@ -14,6 +14,8 @@
 #      was detached or backgrounded by the implementer agent survives as an
 #      orphan, keeping the lock long after the branch is gone and starving the
 #      next agent waiting in the queue. Killing first releases the lock cleanly.
+#      On Windows it is even more load-bearing: the OS locks open files, so a
+#      surviving process makes the removal in step 2 fail outright.
 #
 #   2. Runs `git worktree remove <path> --force` + `git worktree prune` to
 #      unregister the worktree from git.
@@ -27,11 +29,19 @@
 #     where possible (node's process.on('exit') release path).
 #   - Idempotent: if the path doesn't exist or no processes match, no-ops cleanly.
 #   - Exits non-zero with a descriptive message on real failure.
+#   - Keeps the two PID namespaces STRICTLY separate. A Windows PID and an MSYS
+#     PID are unrelated numbers from unrelated counters, so passing one to the
+#     other's killer targets whatever unrelated process happens to hold that
+#     number. POSIX PIDs go only to `kill`; Windows PIDs go only to `taskkill`.
 #
 # Caveats:
-#   - Uses lsof to enumerate processes with open fds/cwd under the worktree.
-#     lsof is available by default on macOS. On Linux, /proc/<pid>/fd + /proc/<pid>/cwd
-#     could substitute; this script is macOS-first (matching the project's platform).
+#   - On macOS/Linux, lsof enumerates processes with open fds/cwd under the
+#     worktree. On Linux, /proc/<pid>/fd + /proc/<pid>/cwd could substitute.
+#   - Under Git Bash on Windows neither lsof nor pgrep exists, so the scan uses
+#     Win32_Process command lines via powershell.exe instead. There is no cheap
+#     open-handle equivalent of `lsof +D` there (it needs Sysinternals
+#     handle.exe), so that half is reported as SKIPPED rather than left to read
+#     as "nothing found" — see the notice the script prints.
 #   - Process detection is best-effort: a process that closed all fds pointing
 #     into the worktree before removal would not be detected by lsof alone.
 #     The lsof + argv scan (pkill) combination covers the common cases.
@@ -172,14 +182,25 @@ WT_PREFIX="${WT}/"  # trailing slash anchor for substring matches
 
 echo "remove-worktree: scanning for processes using $WT ..."
 
-# Collect PIDs via two complementary methods:
+# Collect PIDs via complementary methods. The two namespaces are kept in SEPARATE
+# arrays and never merged — see the safety invariant at the top of this file:
+#   PIDS      POSIX/MSYS PIDs, from lsof and pgrep. Only these reach `kill`.
+#   WIN_PROCS "<windows-pid><TAB><command line>", from Win32_Process. Only these
+#             reach `taskkill`.
+#
 #   A) lsof: processes with open file descriptors or cwd pointing into the tree.
 #   B) pgrep on the argv: catches processes that cd'd in and closed their fds
 #      (e.g. a shell that eval'd a command and closed the script fd).
-# Both methods are filtered to PIDs whose path starts with the exact WT_PREFIX
+#   C) Win32_Process command lines: the Git-Bash-on-Windows stand-in for (B),
+#      because neither lsof nor pgrep exists there. Both (A) and (B) are
+#      `command -v`-guarded, so without (C) the scan on Windows finds exactly
+#      zero processes, reports "no running processes found", and the removal
+#      then fails on files the OS still has locked.
+# Methods A/B are filtered to PIDs whose path starts with the exact WT_PREFIX
 # (or equals WT for cwd). We deduplicate the union.
 
 PIDS=()
+WIN_PROCS=()
 
 # Method A: lsof (macOS). -w suppresses warnings, +D recurses the directory.
 # Filter to paths that start with WT (exact dir) or WT_PREFIX (inside the dir).
@@ -212,6 +233,84 @@ if command -v pgrep >/dev/null 2>&1; then
   )
 fi
 
+# Method C: Win32_Process, via whichever PowerShell is present.
+#
+# The needle is passed through the ENVIRONMENT rather than interpolated into the
+# script text: it is a filesystem path, so quoting it into a PowerShell literal
+# is a quoting problem with a real failure mode, and any `/`-leading argument on
+# the command line risks MSYS' automatic path mangling on the way across.
+# Both separator spellings are matched because a command line may carry either.
+win_scan_procs() {
+  local ps_exe='' cand wt_win needle_bs needle_fs self_winpid=0
+  for cand in powershell.exe pwsh.exe pwsh; do
+    if command -v "$cand" >/dev/null 2>&1; then
+      ps_exe="$cand"
+      break
+    fi
+  done
+  [ -n "$ps_exe" ] || return 0
+  command -v cygpath >/dev/null 2>&1 || return 0
+
+  wt_win="$(cygpath -w "$WT" 2>/dev/null)" || return 0
+  [ -n "$wt_win" ] || return 0
+  needle_bs="$(printf '%s\\' "$wt_win" | tr '/' '\\' | tr '[:upper:]' '[:lower:]')"
+  needle_fs="$(printf '%s/' "$wt_win" | tr '\\' '/' | tr '[:upper:]' '[:lower:]')"
+
+  # Our own Windows PID, so the ancestor walk below can exclude this shell and
+  # everything that launched it. `taskkill /T` kills a whole process TREE, so a
+  # self-match — which happens the moment the caller passes an absolute path,
+  # since that path is then in this script's own argv — would take down the
+  # terminal, the agent session, or CI along with the worktree.
+  if [ -r "/proc/$$/winpid" ]; then
+    self_winpid="$(tr -d '[:space:]' <"/proc/$$/winpid")"
+  fi
+
+  MSYS_NO_PATHCONV=1 \
+    WT_NEEDLE_BS="$needle_bs" \
+    WT_NEEDLE_FS="$needle_fs" \
+    WT_SELF_WINPID="$self_winpid" \
+    "$ps_exe" -NoProfile -NonInteractive -Command '
+      $ErrorActionPreference = "Stop"
+      $a = $env:WT_NEEDLE_BS
+      $b = $env:WT_NEEDLE_FS
+      $procs = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)
+      $byId = @{}
+      foreach ($p in $procs) { $byId[[int]$p.ProcessId] = $p }
+      $skip = New-Object "System.Collections.Generic.HashSet[int]"
+      $cur = [int]$env:WT_SELF_WINPID
+      while ($cur -ne 0 -and $byId.ContainsKey($cur) -and -not $skip.Contains($cur)) {
+        [void]$skip.Add($cur)
+        $cur = [int]$byId[$cur].ParentProcessId
+      }
+      foreach ($p in $procs) {
+        if ($skip.Contains([int]$p.ProcessId)) { continue }
+        if (-not $p.CommandLine) { continue }
+        $c = $p.CommandLine.ToLower()
+        if ($c.Contains($a) -or $c.Contains($b)) {
+          "{0}`t{1}" -f $p.ProcessId, $p.CommandLine
+        }
+      }
+    ' 2>/dev/null | tr -d '\r' || true
+}
+
+if is_windows; then
+  while IFS= read -r line; do
+    [ -n "$line" ] && WIN_PROCS+=("$line")
+  done < <(win_scan_procs)
+
+  # Say what did NOT run. `lsof +D` has no cheap Windows equivalent — enumerating
+  # open handles needs Sysinternals handle.exe, which this script will not assume
+  # is installed — so only the command-line scan above ran. Without saying so, a
+  # process holding a file open without the path in its argv produces the same
+  # silent "no processes found" as a genuinely idle worktree, and the difference
+  # only surfaces as `git worktree remove` failing on a locked file.
+  echo "remove-worktree: NOTE (Windows): open-handle enumeration is SKIPPED." >&2
+  echo "  There is no built-in equivalent of 'lsof +D' (it needs Sysinternals" >&2
+  echo "  handle.exe), so only the command-line scan ran. A process holding a file" >&2
+  echo "  open inside the worktree without the path in its argv will not be found" >&2
+  echo "  here — if the removal below fails on a locked file, that is why." >&2
+fi
+
 # Deduplicate and exclude self (this script's own PID)
 SELF=$$
 UNIQUE_PIDS=()
@@ -224,9 +323,11 @@ if [ "${#PIDS[@]}" -gt 0 ]; then
   done < <(printf '%s\n' "${PIDS[@]}" | grep -vx "$SELF" | sort -un)
 fi
 
-if [ "${#UNIQUE_PIDS[@]}" -eq 0 ]; then
+if [ "${#UNIQUE_PIDS[@]}" -eq 0 ] && [ "${#WIN_PROCS[@]}" -eq 0 ]; then
   echo "remove-worktree: no running processes found in $WT"
-else
+fi
+
+if [ "${#UNIQUE_PIDS[@]}" -gt 0 ]; then
   echo "remove-worktree: found ${#UNIQUE_PIDS[@]} process(es) to terminate:"
   for pid in "${UNIQUE_PIDS[@]}"; do
     # Print PID + command for transparency
@@ -263,6 +364,31 @@ else
     sleep 1
   else
     echo "remove-worktree: all processes exited cleanly after SIGTERM."
+  fi
+fi
+
+if [ "${#WIN_PROCS[@]}" -gt 0 ]; then
+  echo "remove-worktree: found ${#WIN_PROCS[@]} Windows process(es) to terminate:"
+  for entry in "${WIN_PROCS[@]}"; do
+    echo "  [win pid ${entry%%$'\t'*}]  ${entry#*$'\t'}"
+  done
+  # No SIGTERM analogue here, so no two-stage escalation: Windows' only graceful
+  # signal is WM_CLOSE, which a console process such as a test runner does not
+  # handle at all, and every second spent waiting for it is a second the file
+  # stays locked. /T takes the whole process tree, because a package-manager
+  # script's children are what actually hold the file handles.
+  #
+  # MSYS_NO_PATHCONV=1 because Git Bash rewrites any argument that starts with a
+  # slash into a Windows path — without it, `/PID` arrives as
+  # `C:/Program Files/Git/PID` and taskkill rejects the whole invocation.
+  if ! command -v taskkill >/dev/null 2>&1; then
+    echo "remove-worktree: taskkill not found on PATH — cannot terminate the Windows" >&2
+    echo "  processes listed above; the removal below will likely fail on locked files." >&2
+  else
+    for entry in "${WIN_PROCS[@]}"; do
+      MSYS_NO_PATHCONV=1 taskkill /PID "${entry%%$'\t'*}" /T /F >/dev/null 2>&1 || true
+    done
+    sleep 1
   fi
 fi
 

@@ -111,13 +111,21 @@ See [`examples/worktree.json`](examples/worktree.json) for a complete file.
 
 **Why it lives in the repo.** It travels with the clone, works under any checkout directory name, and is reviewed in the same PR as the change that alters it. Keying it to a directory name instead — the old design — meant a repo cloned to a different folder silently got no config, and the helper would cut a bare worktree with no env and no `node_modules` while only warning on stderr.
 
-⚠️ **A shared cache var must also live in `~/.zshenv`, not `~/.zshrc`.** The config's `env` covers the install step, but the gate runner, the drain, and dispatched agents all run in **non-interactive** shells, which read `~/.zshenv` only.
+⚠️ **A shared cache var has to be set somewhere non-interactive shells read.** The config's `env` covers the install step, but the gate runner, the drain, and dispatched agents run in **non-interactive** shells — so a var set only where an interactive shell reads it reaches your terminal and nothing else, and the cache silently never applies to a gated PR.
+
+| Shell | Set it in | NOT in |
+|---|---|---|
+| zsh (macOS default) | `~/.zshenv` | `~/.zshrc` — interactive only |
+| bash | `~/.bashrc` **and** point `BASH_ENV` at it, since that is the only file a non-interactive bash reads | `~/.bash_profile` — login shells only |
+| PowerShell / Windows | a **persisted user environment variable**: `setx VAR value` once, or System Properties → Environment Variables | `$PROFILE` — interactive only, so it is the exact same trap as `~/.zshrc`, and there is no Windows file that behaves like `~/.zshenv` |
+
+A persisted Windows environment variable is inherited by every process started afterwards regardless of shell, so it also covers Git Bash — which is why it, and not a dotfile, is the Windows answer.
 
 ---
 
 ## The mental model
 
-You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`). Every task gets its own worktree under `~/.worktrees/<project>/<branch-leaf>`, branched off the integration branch. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
+You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`). Every task gets its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>`, branched off the integration branch. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
 
 **Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: an orchestrator read this diff and is merging it. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge. A green gate says the suite passed; it cannot say the agent solved the right problem.
 
@@ -153,17 +161,23 @@ Each leg ends with an explicit handoff line and **stops** — you decide whether
 setup-worktree.sh fix/toast-position release/0.4.0
 ```
 
-`bin/` is on `PATH` inside Claude Code's Bash tool, but not in your own terminal. To call the helpers from a plain shell, add them once — in `~/.zshenv`, not `~/.zshrc`, so non-interactive shells (the gate runner, the drain, dispatched agents) see it too:
+`bin/` is on `PATH` inside Claude Code's Bash tool, but not in your own terminal. To call the helpers from a plain shell, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive), per the table above:
 
 ```bash
+# zsh — in ~/.zshenv, not ~/.zshrc
 export PATH="$HOME/.claude/skills/pipeline/bin:$PATH"
+```
+
+```powershell
+# Windows — persist it once; $PROFILE would only cover your interactive session
+setx PATH "$env:USERPROFILE\.claude\skills\pipeline\bin;$env:PATH"
 ```
 
 Both args are required — no default base, since integration branches roll over and a hardcoded default goes stale.
 
 > **Always verify HEAD before dispatching an agent into a worktree:**
 > ```bash
-> git -C ~/.worktrees/trinity/toast-position rev-parse HEAD
+> git -C ~/.worktrees/trinity/toast-position rev-parse HEAD   # %LOCALAPPDATA%\wt\trinity\… on Windows
 > git rev-parse origin/release/0.4.0     # must match
 > ```
 > The helper doesn't verify this — a mismatch means the base is stale.

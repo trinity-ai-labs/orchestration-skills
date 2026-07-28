@@ -10,7 +10,9 @@
 #
 # It creates one worktree per named repo, laid out the same way the workspace is:
 #
-#   ~/.worktrees/<workspace>/<branch-leaf>/<repo>/
+#   $WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>/
+#
+# ($WORKTREE_HOME defaults to ~/.worktrees, or %LOCALAPPDATA%/wt on Windows.)
 #
 # Mirroring the layout is the point. A cross-repo task gets a single directory
 # that looks exactly like the workspace, so relative paths between repos still
@@ -33,7 +35,45 @@
 # .agents/worktree.json treatment: env symlinks, exported env, install.
 set -euo pipefail
 
-WORKTREE_HOME="${WORKTREE_HOME:-$HOME/.worktrees}"
+# --- Windows/MSYS path helpers -----------------------------------------------
+# Under Git Bash on Windows `git` prints Windows-form paths (C:/Users/…) while
+# anything derived from $HOME is MSYS-form (/c/Users/…). The filesystem accepts
+# both, so a mismatch is never an error — only string comparison can see one,
+# which makes every resulting failure silent. So every value that is later
+# compared, grepped, or prefix-matched goes through norm_path at the point of
+# production. Off Windows there is no cygpath and this is the identity function.
+#
+# Duplicated verbatim in each bin/*.sh rather than sourced: bin/ ships on a
+# user's PATH under the parity rule that pairs every bin/<name>.sh with a
+# bin/<name>.ps1, so a shared file would become a fifth helper owing a
+# PowerShell sibling that has nothing to do — PowerShell has no MSYS form to
+# convert — and sourcing would make each script resolve a sibling path at
+# runtime, the exact bug class merge-pr.sh already shipped once.
+norm_path() {
+  if command -v cygpath >/dev/null 2>&1; then cygpath -u "$1"; else printf '%s\n' "$1"; fi
+}
+
+is_windows() {
+  case "$(uname -s 2>/dev/null)" in
+  MINGW* | MSYS* | CYGWIN*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
+# ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
+# past MAX_PATH's 260 characters as a matter of routine, and the install then fails
+# naming some deeply nested file rather than the length that actually broke it. An
+# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+worktree_home_default() {
+  if is_windows && [ -n "${LOCALAPPDATA:-}" ]; then
+    printf '%s/wt\n' "$(norm_path "$LOCALAPPDATA")"
+  else
+    printf '%s/.worktrees\n' "$HOME"
+  fi
+}
+
+WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { echo "setup-workspace: error: $*" >&2; exit 1; }
@@ -47,17 +87,76 @@ SLUG="${BRANCH##*/}"
 
 # Find the workspace root by walking up for the manifest. Starting from a member
 # repo is the common case — you are usually already inside one.
-DIR="${WORKSPACE:-$PWD}"
-while [ "$DIR" != "/" ] && [ ! -f "$DIR/.agents/workspace.json" ]; do
-  DIR="$(dirname "$DIR")"
+#
+# The loop terminates on `dirname` reaching a fixed point, NOT on the string "/".
+# A Windows-form start (C:/Users/…) bottoms out at "C:/", which is never equal to
+# "/", so the old condition spun forever — an outright hang with no output, the
+# worst failure shape in the whole set. Every root is its own parent, so this
+# terminates from any starting form.
+DIR="$(norm_path "${WORKSPACE:-$PWD}")"
+while [ ! -f "$DIR/.agents/workspace.json" ]; do
+  PARENT="$(dirname "$DIR")"
+  [ "$PARENT" != "$DIR" ] || break
+  DIR="$PARENT"
 done
 [ -f "$DIR/.agents/workspace.json" ] || die "no .agents/workspace.json above $PWD — not inside a workspace"
 ROOT="$DIR"
 WORKSPACE_NAME="$(basename "$ROOT")"
 MANIFEST="$ROOT/.agents/workspace.json"
 
+# Pick a JSON interpreter ONCE, by RUNNING each candidate rather than trusting
+# `command -v`: on Windows `command -v python3` succeeds against the Microsoft
+# Store's python3.exe App Execution Alias — a stub that opens the Store and
+# prints nothing — so a command-v-only probe selects an "interpreter" that
+# returns an empty manifest, and this script then reports a workspace with no
+# members rather than a missing tool. node is in the list because a node-only
+# machine used to fail here outright, while setup-worktree.sh, reading the same
+# kind of file for the same flow, was perfectly happy with node.
+JSON_CMD=()
+pick_json_runner() {
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      JSON_CMD=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      JSON_CMD=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      JSON_CMD=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then return 0; fi
+    JSON_CMD=()
+  done
+  die "need a WORKING node or python on PATH to read $MANIFEST"
+}
+pick_json_runner
+
 read_manifest() { # read_manifest <members|defaults|KEY>  → one value per line
-  python3 - "$MANIFEST" "$1" <<'PY'
+  if [ "${JSON_CMD[0]}" = "node" ]; then
+    "${JSON_CMD[@]}" -e '
+      const fs = require("fs");
+      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      const key = process.argv[2];
+      if (key === "members" || key === "defaults") {
+        for (const m of cfg.members || []) {
+          const path = typeof m === "string" ? m : (m.path || "");
+          const onByDefault = typeof m === "string" ? true : (m.default === undefined ? true : !!m.default);
+          if (key === "members" || onByDefault) console.log(path);
+        }
+      } else {
+        const v = cfg[key];
+        console.log(typeof v === "string" ? v : "");
+      }
+    ' "$MANIFEST" "$1"
+  else
+    "${JSON_CMD[@]}" - "$MANIFEST" "$1" <<'PY'
 import json, sys
 cfg = json.load(open(sys.argv[1]))
 key = sys.argv[2]
@@ -71,6 +170,27 @@ else:
     v = cfg.get(key, "")
     print(v if isinstance(v, str) else "")
 PY
+  fi
+}
+
+read_contracts() { # → one "<owner><TAB><consumer> <consumer>…" line per contract
+  if [ "${JSON_CMD[0]}" = "node" ]; then
+    "${JSON_CMD[@]}" -e '
+      const fs = require("fs");
+      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      for (const c of cfg.crossRepoContracts || []) {
+        if (c.owner) console.log(c.owner + "\t" + (c.consumers || []).join(" "));
+      }
+    ' "$MANIFEST"
+  else
+    "${JSON_CMD[@]}" - "$MANIFEST" <<'PY'
+import json, sys
+for c in json.load(open(sys.argv[1])).get("crossRepoContracts", []):
+    owner = c.get("owner", "")
+    if owner:
+        print(owner + "\t" + " ".join(c.get("consumers", [])))
+PY
+  fi
 }
 
 contains() { # contains <needle> <haystack...>
@@ -129,14 +249,7 @@ while IFS=$'\t' read -r owner consumers; do
     REPOS+=("$c")
     echo "including:  $c (consumes a contract owned by $owner)"
   done
-done < <(python3 - "$MANIFEST" <<'PY'
-import json, sys
-for c in json.load(open(sys.argv[1])).get("crossRepoContracts", []):
-    owner = c.get("owner", "")
-    if owner:
-        print(owner + "\t" + " ".join(c.get("consumers", [])))
-PY
-)
+done < <(read_contracts)
 
 echo "workspace: $WORKSPACE_NAME ($ROOT)"
 echo "branch:    $BRANCH  off  $BASE"

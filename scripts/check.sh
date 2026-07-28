@@ -290,12 +290,12 @@ analyzer_run='if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) { exi
 if [ -z "$ps1_files" ]; then
 	fail "psscriptanalyzer: no scripts matched bin/*.ps1 — this check scanned nothing"
 elif ! command -v pwsh >/dev/null 2>&1; then
-	skip "psscriptanalyzer: pwsh not on PATH —$ps1_files were NOT linted here; the windows-latest CI job lints them"
+	skip "psscriptanalyzer: pwsh not on PATH —$ps1_files were NOT linted here; the check job on ubuntu-latest lints them (it ships pwsh and PSScriptAnalyzer preinstalled)"
 else
 	analyzer_out="$(pwsh -NoProfile -NonInteractive -Command "$analyzer_run" 2>&1)"
 	analyzer_status=$?
 	if [ "$analyzer_status" -eq 2 ]; then
-		skip "psscriptanalyzer: module not installed —$ps1_files were NOT linted here; the windows-latest CI job installs it"
+		skip "psscriptanalyzer: module not installed —$ps1_files were NOT linted here; the check job on ubuntu-latest ships it preinstalled and lints them there"
 	elif [ "$analyzer_status" -eq 0 ]; then
 		ok "psscriptanalyzer clean:$ps1_files"
 	else

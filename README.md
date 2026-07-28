@@ -76,6 +76,78 @@ The PowerShell tool is rolling out progressively *alongside* the Bash tool rathe
 
 ---
 
+## Troubleshooting
+
+**A git error while installing this plugin is not evidence of an auth or permissions problem.** A `source: github` plugin — this one included — clones over **anonymous HTTPS**, which needs no credentials at all. So when a clone or fetch fails, the cause lives in *your* git config, never in this repo or the marketplace: both clone clean (no illegal Windows filename characters, no case collisions, no reserved DOS names) and every repo involved is public. It is never a permissions problem with the plugin itself.
+
+All three causes below present as the same undifferentiated "git error," and their fixes have nothing in common — match your error text to a cause before changing anything:
+
+| Your error names... | Cause |
+|---|---|
+| `Host key verification failed`, `No ED25519 host key is known for github.com` | An `insteadOf` rewrite silently turned the clone's HTTPS into SSH |
+| `SSL certificate problem: unable to get local issuer certificate` | Corporate TLS interception |
+| `detected dubious ownership in repository` | Git's dubious-ownership check |
+
+### Cause 1: an `insteadOf` rewrite redirects HTTPS to SSH
+
+Confirmed on a real Windows install. The literal error:
+
+```
+Failed to install: Failed to clone repository: Cloning into 'C:\Users\...\.claude\plugins\cache\temp_github_...'...
+No ED25519 host key is known for github.com and you have requested strict checking.
+Host key verification failed.
+fatal: Could not read from remote repository.
+```
+
+Diagnose:
+
+```
+git config --get-regexp 'url\..*\.insteadof'
+```
+
+Any output naming `git@github.com:` is the cause. The mechanism: this clone is anonymous public HTTPS and needs no authentication — but a global `insteadOf` rewrite rewrites every `https://github.com/` URL to `git@github.com:` before git issues the request, unconditionally, for clones and fetches as well as pushes. That turns a request that needed nothing into one that needs both an SSH key and a host key git already trusts, and the plugin installer has neither — so it fails exactly the way an unconfigured SSH push would.
+
+The fix is to make the rewrite **push-only**, which keeps SSH for pushes (presumably why it was set) while clones and fetches go back to plain HTTPS:
+
+```
+git config --global --unset-all url.git@github.com:.insteadOf
+git config --global url."git@github.com:".pushInsteadOf "https://github.com/"
+```
+
+If you want SSH for everything instead, including clones, you need github.com's host key in your `known_hosts` — and you must **verify the fingerprint against GitHub's published list rather than trusting whatever `ssh-keyscan` returns**. Piping a scan straight into `known_hosts` is trust-on-first-use: it accepts an unauthenticated network response as truth, which defeats the exact strict host-key check that just failed. Check the fingerprint against GitHub's ["SSH key fingerprints" documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints) before adding it — we don't reproduce a fingerprint value here, since a stale or wrong one pasted into a README is worse than none: a reader who copies it gets false confidence instead of a real check.
+
+### Cause 2: corporate TLS interception
+
+Presents as:
+
+```
+SSL certificate problem: unable to get local issuer certificate
+```
+
+Your network is intercepting TLS and presenting a certificate signed by a corporate CA that git doesn't trust. Point git at that CA bundle instead of rejecting it:
+
+```
+git config --global http.sslCAInfo /path/to/corporate-ca-bundle.pem
+```
+
+**Never** `git config --global http.sslVerify false`. Disabling verification to get one clone through leaves it disabled for every fetch afterward, silently — the fix for today's clone becomes a standing hole that makes every future fetch on that machine interceptable without warning.
+
+### Cause 3: dubious ownership
+
+Presents as:
+
+```
+fatal: detected dubious ownership in repository at 'C:/...'
+```
+
+Fix:
+
+```
+git config --global --add safe.directory <path>
+```
+
+---
+
 ## Per-project config
 
 Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. `setup-worktree.sh` reads `envFiles`, `env`, and `install`; the skills read the rest.
@@ -216,7 +288,7 @@ sh scripts/check.sh
 
 Alongside shellcheck, the manifest, and the skill frontmatter, it also holds `bin/` to the parity rule: every `<name>.sh` has a `<name>.ps1` sibling and vice versa, the two agree on their usage line and on the environment variables they read, and every `.ps1` is printable ASCII terminated by LF — Windows PowerShell 5.1 decodes a BOM-less file as the system ANSI codepage, so one stray em-dash corrupts it and the parse error lands nowhere near the character that caused it. Those checks need nothing installed, so they always run.
 
-The one step that needs an optional tool is PSScriptAnalyzer, which needs `pwsh`. When `pwsh` or the module is missing it prints **`SKIP`**, never `ok` — a check that could not run must not read as green — and CI's `windows-latest` job is where it actually lints. `pwsh` is deliberately *not* on the gate's required-tool list: this repo is zero-dependency by design, and a gate that needs an install is a gate nobody can run before pushing.
+The one step that needs an optional tool is PSScriptAnalyzer, which needs `pwsh`. When `pwsh` or the module is missing it prints **`SKIP`**, never `ok` — a check that could not run must not read as green — and CI's `check` job (`ubuntu-latest`) is where it actually lints, since that runner ships both `pwsh` and PSScriptAnalyzer preinstalled. `pwsh` is deliberately *not* on the gate's required-tool list: this repo is zero-dependency by design, and a gate that needs an install is a gate nobody can run before pushing.
 
 Before publishing, also run the authoritative validator — the same one the community-marketplace review runs:
 

@@ -161,7 +161,7 @@ Each leg ends with an explicit handoff line and **stops** — you decide whether
 setup-worktree.sh fix/toast-position release/0.4.0
 ```
 
-`bin/` is on `PATH` inside Claude Code's Bash tool, but not in your own terminal. To call the helpers from a plain shell, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive), per the table above:
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the table above — but not in your own terminal, Bash or PowerShell alike. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc

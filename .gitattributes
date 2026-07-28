@@ -1,0 +1,7 @@
+# Git for Windows defaults to core.autocrlf=true, so without this file a Windows
+# clone checks out bin/*.sh with CRLF line endings — and every helper then dies
+# at `#!/usr/bin/env bash\r` with "bad interpreter", before any other Windows
+# problem is even reachable. Pin the shebang'd scripts to LF unconditionally so
+# clone behavior can't depend on the cloning machine's autocrlf setting.
+*.sh text eol=lf
+*.ps1 text eol=lf

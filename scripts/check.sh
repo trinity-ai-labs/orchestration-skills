@@ -295,7 +295,7 @@ else
 	analyzer_out="$(pwsh -NoProfile -NonInteractive -Command "$analyzer_run" 2>&1)"
 	analyzer_status=$?
 	if [ "$analyzer_status" -eq 2 ]; then
-		skip "psscriptanalyzer: module not installed —$ps1_files were NOT linted here; the windows-latest CI job installs it"
+		skip "psscriptanalyzer: module not installed —$ps1_files were NOT linted here; the check job on ubuntu-latest ships it preinstalled and lints them there"
 	elif [ "$analyzer_status" -eq 0 ]; then
 		ok "psscriptanalyzer clean:$ps1_files"
 	else

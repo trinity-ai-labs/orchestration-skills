@@ -87,9 +87,17 @@ SLUG="${BRANCH##*/}"
 
 # Find the workspace root by walking up for the manifest. Starting from a member
 # repo is the common case — you are usually already inside one.
-DIR="${WORKSPACE:-$PWD}"
-while [ "$DIR" != "/" ] && [ ! -f "$DIR/.agents/workspace.json" ]; do
-  DIR="$(dirname "$DIR")"
+#
+# The loop terminates on `dirname` reaching a fixed point, NOT on the string "/".
+# A Windows-form start (C:/Users/…) bottoms out at "C:/", which is never equal to
+# "/", so the old condition spun forever — an outright hang with no output, the
+# worst failure shape in the whole set. Every root is its own parent, so this
+# terminates from any starting form.
+DIR="$(norm_path "${WORKSPACE:-$PWD}")"
+while [ ! -f "$DIR/.agents/workspace.json" ]; do
+  PARENT="$(dirname "$DIR")"
+  [ "$PARENT" != "$DIR" ] || break
+  DIR="$PARENT"
 done
 [ -f "$DIR/.agents/workspace.json" ] || die "no .agents/workspace.json above $PWD — not inside a workspace"
 ROOT="$DIR"

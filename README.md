@@ -78,19 +78,19 @@ The PowerShell tool is rolling out progressively *alongside* the Bash tool rathe
 
 ## Troubleshooting
 
-**A git error while installing this plugin is not evidence of an auth or permissions problem.** A `source: github` plugin — this one included — clones over **anonymous HTTPS**, which needs no credentials at all. So when a clone or fetch fails, the cause lives in *your* git config, never in this repo or the marketplace: both clone clean (no illegal Windows filename characters, no case collisions, no reserved DOS names) and every repo involved is public. It is never a permissions problem with the plugin itself.
+**A git error while installing this plugin is not evidence of an auth or permissions problem.** Every repository behind this plugin is public, clones clean (no illegal Windows filename characters, no case collisions, no reserved DOS names), and needs no credentials — so when a clone or fetch fails, the cause lives in *your* environment or in how a marketplace declared its source, never in a broken or private repo. It is never a permissions problem with the plugin itself.
 
 All three causes below present as the same undifferentiated "git error," and their fixes have nothing in common — match your error text to a cause before changing anything:
 
 | Your error names... | Cause |
 |---|---|
-| `Host key verification failed`, `No ED25519 host key is known for github.com` | An `insteadOf` rewrite silently turned the clone's HTTPS into SSH |
+| `Host key verification failed`, `No ED25519 host key is known for github.com` | The marketplace declared its source with the GitHub `owner/repo` shorthand, which clones over SSH by default |
 | `SSL certificate problem: unable to get local issuer certificate` | Corporate TLS interception |
 | `detected dubious ownership in repository` | Git's dubious-ownership check |
 
-### Cause 1: an `insteadOf` rewrite redirects HTTPS to SSH
+### Cause 1: the GitHub shorthand source clones over SSH by default
 
-Confirmed on a real Windows install. The literal error:
+The literal error:
 
 ```
 Failed to install: Failed to clone repository: Cloning into 'C:\Users\...\.claude\plugins\cache\temp_github_...'...
@@ -99,22 +99,21 @@ Host key verification failed.
 fatal: Could not read from remote repository.
 ```
 
-Diagnose:
+Per Claude Code's own documentation: a marketplace entry that declares its source as `{"source": "github", "repo": "owner/repo"}` — the GitHub `owner/repo` shorthand — clones over **SSH** by default, not HTTPS; set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` to make it clone over HTTPS instead. This marketplace's entries used exactly that shorthand for three fully public repositories that need no credentials at all, so Claude Code silently chose SSH for a request that had no reason to need it. With no `github.com` entry in `known_hosts` — normal for anyone who has never pushed over SSH from that machine — strict host-key checking rejects the clone before it starts.
 
+This reads as a broken plugin rather than as a protocol choice, because nothing about installing a public plugin suggests SSH is involved: the reader never typed `git@github.com`, never touched their own git config, and the failure has the same "clone failed" shape a real permissions problem produces. The actual decision — HTTPS vs. SSH — was made by the marketplace entry's source type, on the reader's behalf, before git ever looked at anything on their machine.
+
+**This is fixed in the marketplace as of now.** `trinity-ai-labs/claude-plugins` declares all three plugins with an explicit `{"source": "url", "url": "https://github.com/....git"}`, which Claude Code takes verbatim and clones over HTTPS — so a current install will not hit this. If you're pinned to an older marketplace entry, or you hit this same error shape installing from a *different* marketplace that still uses the `github` shorthand, set the escape hatch in your Claude Code settings:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_PLUGIN_PREFER_HTTPS": "1"
+  }
+}
 ```
-git config --get-regexp 'url\..*\.insteadof'
-```
 
-Any output naming `git@github.com:` is the cause. The mechanism: this clone is anonymous public HTTPS and needs no authentication — but a global `insteadOf` rewrite rewrites every `https://github.com/` URL to `git@github.com:` before git issues the request, unconditionally, for clones and fetches as well as pushes. That turns a request that needed nothing into one that needs both an SSH key and a host key git already trusts, and the plugin installer has neither — so it fails exactly the way an unconfigured SSH push would.
-
-The fix is to make the rewrite **push-only**, which keeps SSH for pushes (presumably why it was set) while clones and fetches go back to plain HTTPS:
-
-```
-git config --global --unset-all url.git@github.com:.insteadOf
-git config --global url."git@github.com:".pushInsteadOf "https://github.com/"
-```
-
-If you want SSH for everything instead, including clones, you need github.com's host key in your `known_hosts` — and you must **verify the fingerprint against GitHub's published list rather than trusting whatever `ssh-keyscan` returns**. Piping a scan straight into `known_hosts` is trust-on-first-use: it accepts an unauthenticated network response as truth, which defeats the exact strict host-key check that just failed. Check the fingerprint against GitHub's ["SSH key fingerprints" documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints) before adding it — we don't reproduce a fingerprint value here, since a stale or wrong one pasted into a README is worse than none: a reader who copies it gets false confidence instead of a real check.
+> **If you publish a marketplace:** prefer an explicit `{"source": "url", "url": "https://github.com/owner/repo.git"}` over the GitHub `owner/repo` shorthand for public plugins. The shorthand clones over SSH by default, which silently requires an SSH key and a trusted host key your users have no reason to have for a repo that needs neither — turning a working public install into a "broken plugin" report that traces back to the marketplace manifest, not their machine.
 
 ### Cause 2: corporate TLS interception
 

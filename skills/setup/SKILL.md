@@ -105,11 +105,13 @@ If it does want one, scaffold the three scripts into the project and add their `
 
 A config that parses is not a config that works. Prove each layer:
 
-1. **The reader agrees.** `setup-worktree.sh <branch> <base>` in the repo, then confirm the env files are symlinked and deps are installed in the new worktree — not that the command exited 0.
+⚠️ Every helper named below ships as both `<name>.sh` and `<name>.ps1`. Use the extension your shell tool can run: on native Windows with no Git for Windows, Claude Code hands you the **PowerShell tool** and there is no bash at all, so the `.sh` is not a script that fails — it is a command that does not exist, and the error reads as a broken plugin rather than a wrong extension. Both take the same arguments and print the same output, so the verification below is otherwise identical.
+
+1. **The reader agrees.** `setup-worktree.sh <branch> <base>` (or `setup-worktree.ps1`) in the repo, then confirm each declared env file is **present** in the new worktree and deps are installed — not that the command exited 0. Present, not necessarily symlinked: on Windows a real symlink needs Developer Mode or an elevated shell, so the helper falls back to a **copy** and says so on stderr. That is a working setup, not a broken one — the only thing it costs is that a later edit to the main checkout's env file will not propagate, which the helper's own warning spells out.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip.
 3. **The gate command exists.** Run the *scoped* check for real. Don't run the full gate just to prove it resolves — `<pm> run <script> --help` or the script listing is enough.
 4. **The queue round-trips**, if you scaffolded one: enqueue a ticket, drain it, confirm the ticket reached `done/` and the PR carries the gate's verdict comment. A queue that enqueues but never drains is worse than none — work vanishes into a directory nobody reads.
-5. **Tear down** the verification worktree with `remove-worktree.sh`.
+5. **Tear down** the verification worktree with `remove-worktree.sh` (or `remove-worktree.ps1`).
 
 ## Step 5 — Land it as a reviewable change
 

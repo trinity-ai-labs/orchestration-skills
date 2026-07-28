@@ -43,6 +43,29 @@
 #      setup-worktree.sh reads envFiles/env/install out of a project's
 #      .agents/worktree.json; if the example drifts from that shape, every repo
 #      copied from it gets a bare worktree with no env and no node_modules.
+#   6. Every bin/*.ps1 lints under PSScriptAnalyzer. bin/ ships on a user's PATH
+#      inside whichever shell Claude Code hands them, so a defect in a .ps1 is a
+#      runtime failure on a Windows user's machine at the moment of use, exactly
+#      as a bashism in a .sh is. This is the one check here that needs a tool the
+#      repo does not require, so it reports SKIPPED — never ok — when pwsh or the
+#      module is absent: a check that could not run has nothing to say, and green
+#      for it is a claim CI later contradicts.
+#   7. bin/ ships the same helper in BOTH shells, and the two agree: every
+#      bin/<name>.sh has a bin/<name>.ps1 sibling and vice versa, their usage
+#      lines carry the same argument spec, they consume the same CONTRACT
+#      environment variables (the ones a caller passes, which AGENTS.md freezes —
+#      not every variable each side internally touches, since the bash helpers
+#      need MSYS path-translation plumbing that has no PowerShell counterpart),
+#      and every .ps1 is printable ASCII terminated by LF.
+#      Two failures, both silent. A helper that exists in only one language works
+#      for part of the userbase and is simply missing for the rest, with no error
+#      until someone on the other shell finds nothing on PATH. And a non-ASCII
+#      byte in a .ps1 corrupts under Windows PowerShell 5.1, which decodes a
+#      BOM-less file as the system ANSI codepage — surfacing as a parse error
+#      nowhere near the character that caused it. AGENTS.md states both rules;
+#      only this check enforces them, because prose does not stop two
+#      hand-maintained copies of the same logic from drifting apart, it only
+#      makes the drift someone's fault after the fact.
 #
 # Every check that scans a SET of files asserts the set is non-empty before it
 # scans: a check whose pattern stops matching prints the same green as a check
@@ -70,9 +93,22 @@ fail() {
 ok() {
 	printf 'ok    %s\n' "$1"
 }
+# Distinct from ok on purpose. A check that could not run must not print green —
+# so the one step below that needs an optional tool says SKIP and names what was
+# not examined, rather than passing silently and being contradicted by CI.
+skip() {
+	printf 'SKIP  %s\n' "$1"
+}
 
 # A missing tool must not read as green, and it cannot be reported per-check
 # either — a check that never ran has nothing to say. Refuse up front instead.
+#
+# `pwsh` is deliberately NOT on this list. The repo is zero-dependency by design,
+# and a gate that needs an install is a gate nobody can run before pushing — so
+# requiring pwsh to check a Windows helper would cost every contributor on macOS
+# and Linux the ability to run the gate at all. The parity check (7) needs no
+# pwsh and therefore always runs; only PSScriptAnalyzer (6) needs one, and it
+# skips loudly.
 missing=''
 for tool in shellcheck python3 bash; do
 	command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
@@ -235,10 +271,248 @@ PY
 	fi
 fi
 
+# --- 6. bin/*.ps1 lint, or say plainly that they were not linted -------------
+
+ps1_files=''
+for f in bin/*.ps1; do
+	[ -f "$f" ] || continue
+	ps1_files="$ps1_files $f"
+done
+
+# One pwsh launch, three outcomes distinguished by exit code — 2 means the module
+# is absent (a skip, not a verdict), 1 means it found something, 0 means clean.
+# Probing in a separate process first would double a cold pwsh start for no gain.
+# Scans the bin directory rather than an interpolated file list: the glob above
+# has already asserted the set is non-empty, and bin/ holds nothing else the
+# analyzer would read (it only looks at .ps1/.psm1/.psd1).
+analyzer_run='if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) { exit 2 }; $found = @(Invoke-ScriptAnalyzer -Path ./bin -Severity Error,Warning); if ($found.Count -gt 0) { $found | Format-List | Out-String -Width 200; exit 1 }; exit 0'
+
+if [ -z "$ps1_files" ]; then
+	fail "psscriptanalyzer: no scripts matched bin/*.ps1 — this check scanned nothing"
+elif ! command -v pwsh >/dev/null 2>&1; then
+	skip "psscriptanalyzer: pwsh not on PATH —$ps1_files were NOT linted here; the windows-latest CI job lints them"
+else
+	analyzer_out="$(pwsh -NoProfile -NonInteractive -Command "$analyzer_run" 2>&1)"
+	analyzer_status=$?
+	if [ "$analyzer_status" -eq 2 ]; then
+		skip "psscriptanalyzer: module not installed —$ps1_files were NOT linted here; the windows-latest CI job installs it"
+	elif [ "$analyzer_status" -eq 0 ]; then
+		ok "psscriptanalyzer clean:$ps1_files"
+	else
+		printf '%s\n' "$analyzer_out" | sed 's/^/      /' >&2
+		fail "psscriptanalyzer: problems reported above"
+	fi
+fi
+
+# --- 7. bin/ ships the same helper in both shells, and the two agree ---------
+
+# Output goes through a temp file rather than a command substitution. A here-doc
+# nested inside $( ) is still scanned for quotes by the shell, so a stray
+# apostrophe in a Python comment would end the substitution in the wrong place and
+# fail the whole script with a syntax error dozens of lines later — a trap worth
+# one mktemp to avoid, and the same reason the reader check below uses one.
+parity_out="$(mktemp)" || exit 2
+python3 - >"$parity_out" 2>&1 <<'PY'
+import pathlib
+import re
+
+BIN = pathlib.Path("bin")
+
+# The env-var comparison is scoped to the CONTRACT surface: the variables a caller
+# passes in, which AGENTS.md freezes and which both implementations therefore have
+# to agree on. It is deliberately NOT "every environment variable each side
+# happens to touch", because the two shells legitimately need different internal
+# plumbing: the bash helpers set MSYS path-translation variables for their child
+# processes (MSYS_NO_PATHCONV and friends) that have no PowerShell counterpart at
+# all, since PowerShell has no MSYS path form to translate. Demanding identical
+# sets would go red on a correct implementation, and the only way to green it
+# would be to invent a variable nobody reads - which is exactly the guardrail
+# gaming AGENTS.md forbids. Widen this set only by widening the contract.
+CONTRACT_ENV = {
+    "WORKTREE_HOME", "REPO", "WORKSPACE", "WORKTREE_DEST", "MERGE_PR_FORCE",
+}
+
+# A bash script CONSUMES an environment variable by reading it with a fallback:
+# ${NAME:-...} and its :=/:?/:+ siblings.
+SH_CONSUMED = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*):[-=?+]")
+# ... except when the name is only ever assigned a value it did not itself
+# contribute. NAME="${NAME:-default}" is the read-with-fallback idiom and stays;
+# a plain local that happens to be read with a default is not consumed, and
+# neither is a NAME=value prefix that hands a value DOWN to a child process.
+SH_ASSIGNED = re.compile(
+    r"(?m)^\s*(?:export\s+|local\s+|readonly\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$"
+)
+# The PowerShell equivalent is any $env:NAME reference ...
+PS_ENV = re.compile(r"\$env:([A-Za-z_][A-Za-z0-9_]*)")
+# ... minus the ones being ASSIGNED, which the script produces for a child rather
+# than consumes from its caller. Both sides are measured the same way.
+PS_ASSIGNED = re.compile(r"\$env:([A-Za-z_][A-Za-z0-9_]*)\s*=[^=]")
+
+BLOCK_COMMENT = re.compile(r"(?s)<#.*?#>")
+
+
+def code_only(text):
+    """Strip comments before scanning either dialect.
+
+    Both families explain their interface in prose sitting right next to the
+    syntax it describes - the setup-worktree.sh header quotes the literal string
+    ${VAR:-$HOME/...} to document the config format, and every header paraphrases
+    the CLI. Scanning that prose would invent a variable named VAR, and would let
+    a stray "usage:" in a comment shadow the real runtime line, which is the one
+    shape of drift this whole check exists to catch.
+    """
+    text = BLOCK_COMMENT.sub("", text)
+    return "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#"))
+
+
+def usage_spec(code, name, ext):
+    """The argument spec from the script's own runtime `usage:` line.
+
+    Reads CODE, not the raw file, so the header comment cannot stand in for the
+    line a user actually sees when they get the invocation wrong.
+    """
+    needle = "usage: " + name + ext
+    for line in code.splitlines():
+        idx = line.find(needle)
+        if idx < 0:
+            continue
+        rest = line[idx + len(needle):]
+        # Stop at the closing quote the shell or PowerShell wrote, so the trailing
+        # redirection of the bash form is not compared against the PowerShell form.
+        rest = re.split(r"""["']""", rest, maxsplit=1)[0]
+        return " ".join(rest.split())
+    return None
+
+
+def sh_consumed_env(code):
+    names = {m.group(1).upper() for m in SH_CONSUMED.finditer(code)}
+    self_referential = {}
+    for m in SH_ASSIGNED.finditer(code):
+        target, value = m.group(1), m.group(2)
+        key = target.upper()
+        refs_itself = ("$" + target) in value or ("${" + target) in value
+        self_referential[key] = self_referential.get(key, False) or refs_itself
+    names = {n for n in names if n not in self_referential or self_referential[n]}
+    return names & CONTRACT_ENV
+
+
+def ps_consumed_env(code):
+    names = {m.group(1).upper() for m in PS_ENV.finditer(code)}
+    names -= {m.group(1).upper() for m in PS_ASSIGNED.finditer(code)}
+    return names & CONTRACT_ENV
+
+
+problems = []
+
+sh_files = {p.stem: p for p in sorted(BIN.glob("*.sh"))}
+ps_files = {p.stem: p for p in sorted(BIN.glob("*.ps1"))}
+
+if not sh_files:
+    problems.append("no bin/*.sh matched - this check scanned nothing")
+if not ps_files:
+    problems.append("no bin/*.ps1 matched - this check scanned nothing")
+
+for name in sorted(set(sh_files) - set(ps_files)):
+    problems.append(
+        f"bin/{name}.sh has no bin/{name}.ps1 sibling - it is missing from PATH "
+        "in a PowerShell-tool session, with no error until a user runs it"
+    )
+for name in sorted(set(ps_files) - set(sh_files)):
+    problems.append(
+        f"bin/{name}.ps1 has no bin/{name}.sh sibling - it is missing from PATH "
+        "in a Bash-tool session, with no error until a user runs it"
+    )
+
+for name in sorted(set(sh_files) & set(ps_files)):
+    # One read per file: the byte view drives the encoding checks, and the text it
+    # decodes to drives both the usage-line and the env-var extraction.
+    ps_bytes = ps_files[name].read_bytes()
+    ps_code = code_only(ps_bytes.decode("utf-8", errors="replace"))
+    sh_code = code_only(sh_files[name].read_text(encoding="utf-8", errors="replace"))
+
+    # Encoding, checked on the bytes rather than on anything already decoded: a
+    # .ps1 that is not printable ASCII plus LF is the corruption AGENTS.md names.
+    if b"\r" in ps_bytes:
+        line = ps_bytes[: ps_bytes.index(b"\r")].count(b"\n") + 1
+        problems.append(
+            f"bin/{name}.ps1: line {line}: carriage return - .gitattributes pins "
+            "*.ps1 to LF, and a CRLF checkout is how a helper dies before it runs"
+        )
+    # CR is excluded here because the check above already names it precisely; left
+    # in, one CRLF checkout would report the same root cause twice.
+    bad = [
+        (i, b)
+        for i, b in enumerate(ps_bytes)
+        if b not in (0x0A, 0x0D) and not 0x20 <= b <= 0x7E
+    ]
+    if bad:
+        i, b = bad[0]
+        line = ps_bytes[:i].count(b"\n") + 1
+        problems.append(
+            f"bin/{name}.ps1: line {line}: byte 0x{b:02x} is not printable ASCII "
+            f"({len(bad)} such byte(s)) - PowerShell 5.1 reads a BOM-less file as "
+            "the system ANSI codepage and reports the resulting parse error "
+            "nowhere near this character"
+        )
+    if ps_bytes and not ps_bytes.endswith(b"\n"):
+        problems.append(f"bin/{name}.ps1: no trailing newline - the file is not LF-terminated")
+
+    sh_usage = usage_spec(sh_code, name, ".sh")
+    ps_usage = usage_spec(ps_code, name, ".ps1")
+    if sh_usage is None:
+        problems.append(f"bin/{name}.sh prints no runtime usage line naming {name}.sh - nothing to compare against")
+    if ps_usage is None:
+        problems.append(f"bin/{name}.ps1 prints no runtime usage line naming {name}.ps1 - nothing to compare against")
+    if sh_usage is not None and ps_usage is not None and sh_usage != ps_usage:
+        problems.append(
+            f"bin/{name}: usage lines disagree - .sh takes [{sh_usage}], "
+            f".ps1 takes [{ps_usage}]"
+        )
+
+    sh_env = sh_consumed_env(sh_code)
+    ps_env = ps_consumed_env(ps_code)
+    # Two empty sets compare equal, so a pattern that stopped matching would report
+    # perfect agreement. Every helper here reads at least WORKTREE_HOME, so an
+    # empty extraction means the scanner broke, not that the pair is clean.
+    if not sh_env and not ps_env:
+        problems.append(
+            f"bin/{name}: neither sibling appears to consume any contract "
+            "environment variable - the extraction found nothing, so this pair "
+            "was not actually compared"
+        )
+    elif sh_env != ps_env:
+        only_sh = ", ".join(sorted(sh_env - ps_env)) or "-"
+        only_ps = ", ".join(sorted(ps_env - sh_env)) or "-"
+        problems.append(
+            f"bin/{name}: consumed contract env vars disagree - only in .sh: "
+            f"{only_sh}; only in .ps1: {only_ps}"
+        )
+
+for problem in problems:
+    print(problem)
+PY
+parity_status=$?
+
+if [ "$parity_status" -ne 0 ]; then
+	sed 's/^/      /' "$parity_out" >&2
+	fail "parity: the reader crashed — bin/ could not be examined"
+elif [ -s "$parity_out" ]; then
+	while IFS= read -r problem; do
+		printf 'FAIL  parity: %s\n' "$problem" >&2
+	done <"$parity_out"
+	# Counted once here rather than per line: the loop is fed by a redirect, not a
+	# pipe, so an increment inside it would survive — but one FAIL per check keeps
+	# the tally comparable with every other section above.
+	fails=$((fails + 1))
+else
+	ok "parity: every bin/ helper ships as both .sh and .ps1, with matching usage and env vars"
+fi
+rm -f "$parity_out"
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

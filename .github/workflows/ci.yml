@@ -6,22 +6,140 @@ on:
   pull_request:
 
 jobs:
-  # One runner, one checkout, one command. Every portable check lives in
-  # scripts/check.sh — the same command a contributor runs before pushing
-  # (.agents/worktree.json declares it as both gate and scopedCheck). CI runs
-  # the contributor's own check rather than a second, drifting copy: two copies
-  # drift, and the one that stops firing looks identical to the one that passed.
+  # One runner, one checkout, one gate script, plus one assertion on its output.
+  # Every portable check lives in scripts/check.sh — the same command a
+  # contributor runs before pushing (.agents/worktree.json declares it as both
+  # gate and scopedCheck). CI runs the contributor's own check rather than a
+  # second, drifting copy: two copies drift, and the one that stops firing looks
+  # identical to the one that passed.
   #
   # The script reports EVERY failure and then exits 1, so a red PR still tells
   # you everything that is wrong — the property the old `if: always()` job split
   # gave for free, now held by the script itself rather than by the CI layout.
+  #
+  # ubuntu-latest ships both pwsh and PSScriptAnalyzer preinstalled, so this is
+  # also the one runner where scripts/check.sh's PSScriptAnalyzer step genuinely
+  # lints bin/*.ps1 instead of reporting SKIPPED — no install step needed, which
+  # means the assertion below cannot be defeated by a transient PSGallery
+  # failure the way an explicit install step could.
   check:
-    name: the repo gate
+    name: the repo gate (PSScriptAnalyzer must lint here, not SKIP)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: shellcheck · plugin manifest · skill frontmatter · example config
-        run: sh scripts/check.sh
+      - name: shellcheck · plugin manifest · skill frontmatter · example config · PSScriptAnalyzer
+        run: |
+          set -euo pipefail
+          out="$(sh scripts/check.sh)"
+          printf '%s\n' "$out"
+          # A SKIP is the right answer on a contributor's machine and does not fail
+          # the gate — but this is the one runner that is supposed to run the
+          # analyzer, so a SKIP here means pwsh or the module went missing from this
+          # runner image and the repo's only .ps1 lint silently never ran, while the
+          # job still went green. Assert it did not.
+          case "$out" in
+            *"SKIP  psscriptanalyzer"*)
+              echo "::error::PSScriptAnalyzer skipped on the one runner meant to run it — the repo's only .ps1 lint never ran"
+              exit 1
+              ;;
+          esac
+
+  # bin/ ships a PowerShell port of every helper precisely because part of the
+  # userbase runs Claude Code on native Windows with no bash at all. Until this job
+  # existed, every runner here was ubuntu-latest — so that claim was exercised by
+  # nothing, and "works on Windows" meant only that nobody had contradicted it.
+  #
+  # It runs the REAL scenario, not a syntax check: cut a worktree, prove its HEAD
+  # is the base tip and that the READY: line printed, tear it down, prove it is
+  # gone. And it runs that scenario in BOTH shells a Windows user can actually land
+  # in, because the PowerShell tool is rolling out progressively ALONGSIDE Git Bash
+  # rather than replacing it — Git Bash (Claude Code's Bash tool when Git for
+  # Windows is installed) and Windows PowerShell (the PowerShell tool, which is all
+  # a native install without Git for Windows has).
+  #
+  # This job does NOT run scripts/check.sh. windows-latest has no shellcheck, and
+  # the script's own required-tool check refuses to print green when a tool it
+  # needs is missing rather than silently skipping shellcheck the way it can skip
+  # the optional PSScriptAnalyzer — a check that cannot run must not report ok.
+  # Installing shellcheck here just to re-run a contributor gate the check job
+  # already runs would add runtime and prove nothing this job doesn't already
+  # prove. Static analysis, PSScriptAnalyzer included, lives entirely in the check
+  # job now (ubuntu-latest ships pwsh and the analyzer preinstalled, so it lints
+  # there for free). This job's sole purpose is the one thing no other runner can
+  # do: actually execute the helpers on Windows, in both shells.
+  windows:
+    name: the helpers actually run on Windows, in both shells
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `powershell`, not `pwsh`: Windows PowerShell 5.1 is what ships in-box and is
+      # therefore the compatibility target these ports are written against. It is
+      # also the version that misreads a BOM-less UTF-8 file, so it is the one that
+      # would actually fail on a stray non-ASCII byte.
+      - name: PowerShell helpers cut and tear down a real worktree
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+          $sandbox = Join-Path $env:RUNNER_TEMP 'sandbox-ps'
+          $wtHome = Join-Path $env:RUNNER_TEMP 'wt-ps'
+          New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
+          git init -q -b main $sandbox
+          git -C $sandbox config user.email ci@example.com
+          git -C $sandbox config user.name ci
+          Set-Content -Path (Join-Path $sandbox 'README.md') -Value 'seed'
+          git -C $sandbox add -A
+          git -C $sandbox commit -q -m seed
+
+          $env:WORKTREE_HOME = $wtHome
+          $env:REPO = $sandbox
+          $out = & ./bin/setup-worktree.ps1 'test/ci-check' 'main'
+          $out | Write-Output
+          if (-not ($out -match '^READY: ')) { throw 'setup-worktree.ps1 printed no READY: line' }
+
+          $wt = Join-Path (Join-Path $wtHome 'sandbox-ps') 'ci-check'
+          if (-not (Test-Path -LiteralPath $wt)) { throw "no worktree at $wt" }
+          $head = (git -C $wt rev-parse HEAD | Out-String).Trim()
+          $base = (git -C $sandbox rev-parse main | Out-String).Trim()
+          if ($head -ne $base) { throw "worktree HEAD $head is not the base tip $base" }
+          Write-Output "HEAD matches the base tip: $head"
+
+          & ./bin/remove-worktree.ps1 'test/ci-check'
+          if (Test-Path -LiteralPath $wt) { throw "worktree still present after remove-worktree.ps1: $wt" }
+          Write-Output 'torn down'
+
+      - name: bash helpers cut and tear down a real worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          # RUNNER_TEMP is a Windows path (D:\a\_temp); Git Bash needs the MSYS form,
+          # and using it here is the honest test because it is exactly the shape of a
+          # real user's $HOME/.worktrees on this platform.
+          temp="$(cygpath -u "$RUNNER_TEMP")"
+          sandbox="$temp/sandbox-sh"
+          export WORKTREE_HOME="$temp/wt-sh"
+          mkdir -p "$sandbox"
+          git init -q -b main "$sandbox"
+          git -C "$sandbox" config user.email ci@example.com
+          git -C "$sandbox" config user.name ci
+          echo seed > "$sandbox/README.md"
+          git -C "$sandbox" add -A
+          git -C "$sandbox" commit -q -m seed
+
+          out="$(REPO="$sandbox" ./bin/setup-worktree.sh test/ci-check main)"
+          echo "$out"
+          echo "$out" | grep -q '^READY: ' || { echo "setup-worktree.sh printed no READY: line"; exit 1; }
+
+          wt="$WORKTREE_HOME/sandbox-sh/ci-check"
+          [ -d "$wt" ] || { echo "no worktree at $wt"; exit 1; }
+          head="$(git -C "$wt" rev-parse HEAD)"
+          base="$(git -C "$sandbox" rev-parse main)"
+          [ "$head" = "$base" ] || { echo "worktree HEAD $head is not the base tip $base"; exit 1; }
+          echo "HEAD matches the base tip: $head"
+
+          REPO="$sandbox" ./bin/remove-worktree.sh test/ci-check
+          [ ! -d "$wt" ] || { echo "worktree still present after remove-worktree.sh: $wt"; exit 1; }
+          echo "torn down"
 
   # Deliberately NOT in scripts/check.sh. This job diffs against the PR base and
   # reads the manifest as it was at that commit, so it is only meaningful inside

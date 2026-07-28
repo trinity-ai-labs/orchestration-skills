@@ -15,14 +15,14 @@ Four skills in one plugin — `setup` onboards a repo once, then the three-leg p
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | Turns that plan into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Make worktrees; dispatch; merge |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | — (it's the executor) |
 
-The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plugin's `bin/` on the Bash tool's `PATH`, so these are bare commands once the plugin is enabled — nothing to install:
+The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — and `scripts/check.sh` compares the two on every run, so the pair cannot drift apart quietly.
 
 | Command | What it does |
 |---|---|
-| `setup-worktree.sh` | Creates a worktree, symlinks the project's env files, exports its env, installs deps |
-| `setup-workspace.sh` | The polyrepo form: one worktree per member repo, same branch name in each |
-| `merge-pr.sh` | Atomic close-out: tear down the worktree, real merge commit, fast-forward the local integration branch |
-| `remove-worktree.sh` | Safely tear down a worktree, killing processes rooted in it first |
+| `setup-worktree.sh` · `.ps1` | Creates a worktree, symlinks the project's env files, exports its env, installs deps |
+| `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each |
+| `merge-pr.sh` · `.ps1` | Atomic close-out: tear down the worktree, real merge commit, fast-forward the local integration branch |
+| `remove-worktree.sh` · `.ps1` | Safely tear down a worktree, killing processes rooted in it first |
 
 ---
 
@@ -53,15 +53,25 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its four skills, and four executables.
+Verify with `/plugin list` — you should see `pipeline`, its four skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
 
 ### Prerequisites
 
-> **macOS or Linux.** The helpers are portable `bash` and need **python3 or node** on `PATH` to read a project's JSON config. On Windows, run under WSL.
+**Platform support.** Every helper ships in both languages, because Claude Code does not hand every platform the same shell:
+
+| Where Claude Code runs | Shell tool you get | Helpers that run there |
+|---|---|---|
+| macOS or Linux | Bash tool | `bin/*.sh` |
+| Windows + WSL 2 | Bash tool (inside WSL) | `bin/*.sh` |
+| Native Windows **with** Git for Windows | Bash tool, via Git Bash | `bin/*.sh` |
+| Native Windows **without** Git for Windows | **PowerShell tool — there is no bash at all** | `bin/*.ps1` |
+
+The PowerShell tool is rolling out progressively *alongside* the Bash tool rather than replacing it, so a Windows session can land in either one. That is why both copies ship and why neither may be added alone: a helper that exists in only one language is simply missing from `PATH` for everyone on the other shell, with no error until someone tries to run it.
 
 - **git** (worktrees are built in)
 - **[GitHub CLI](https://cli.github.com/)** (`gh`) authenticated: `gh auth login` — used to file issues and open/merge PRs
 - **[Claude Code](https://claude.com/claude-code)** — where the skills run
+- **A JSON interpreter for the `.sh` helpers only** — bash has no JSON parser, so they shell out to the first of `node`, `python3`, `python`, or `py -3` that works. They *run* each candidate rather than trusting `command -v`, because Windows ships a `python3.exe` alias that is a stub launching the Microsoft Store and returning nothing — a probe that only checks for the name on `PATH` picks it and then fails with an empty config. The `.ps1` helpers need none of this: `ConvertFrom-Json` is built into PowerShell, so that path has no interpreter to be missing in the first place.
 - Whatever your project needs to install and test
 
 ---
@@ -151,7 +161,7 @@ Each leg ends with an explicit handoff line and **stops** — you decide whether
 setup-worktree.sh fix/toast-position release/0.4.0
 ```
 
-`bin/` is on `PATH` inside Claude Code's Bash tool, but not in your own terminal. To call the helpers from a plain shell, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive), per the table above:
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the table above — but not in your own terminal, Bash or PowerShell alike. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc
@@ -204,6 +214,10 @@ Run it before you push — it is the same command CI runs, so there is no second
 sh scripts/check.sh
 ```
 
+Alongside shellcheck, the manifest, and the skill frontmatter, it also holds `bin/` to the parity rule: every `<name>.sh` has a `<name>.ps1` sibling and vice versa, the two agree on their usage line and on the environment variables they read, and every `.ps1` is printable ASCII terminated by LF — Windows PowerShell 5.1 decodes a BOM-less file as the system ANSI codepage, so one stray em-dash corrupts it and the parse error lands nowhere near the character that caused it. Those checks need nothing installed, so they always run.
+
+The one step that needs an optional tool is PSScriptAnalyzer, which needs `pwsh`. When `pwsh` or the module is missing it prints **`SKIP`**, never `ok` — a check that could not run must not read as green — and CI's `windows-latest` job is where it actually lints. `pwsh` is deliberately *not* on the gate's required-tool list: this repo is zero-dependency by design, and a gate that needs an install is a gate nobody can run before pushing.
+
 Before publishing, also run the authoritative validator — the same one the community-marketplace review runs:
 
 ```bash
@@ -219,12 +233,18 @@ claude plugin validate . --strict
 ├── .agents/worktree.json        # this repo's OWN pipeline config — contributor-only
 ├── .claude-plugin/
 │   └── plugin.json              # the plugin manifest — `name` sets the namespace
-├── .github/workflows/ci.yml     # runs scripts/check.sh, plus the version-bump guard
+├── .github/workflows/ci.yml     # runs scripts/check.sh on Linux AND Windows, plus the version-bump guard
+├── .gitattributes               # pins bin/* to LF — a CRLF checkout kills every helper at its shebang
+├── AGENTS.md                    # repo conventions, the frozen helper contract, the bin/ parity rule
 ├── bin/                         # SHIPPED — on PATH while the plugin is enabled
-│   ├── setup-worktree.sh
+│   ├── setup-worktree.sh        # .sh for the Bash tool, .ps1 for the PowerShell tool —
+│   ├── setup-worktree.ps1       #   one contract, two languages, kept in step by scripts/check.sh
 │   ├── setup-workspace.sh
+│   ├── setup-workspace.ps1
 │   ├── merge-pr.sh
-│   └── remove-worktree.sh
+│   ├── merge-pr.ps1
+│   ├── remove-worktree.sh
+│   └── remove-worktree.ps1
 ├── scripts/check.sh             # the repo gate — contributor-only, never shipped
 ├── examples/worktree.json       # a complete per-project config
 └── skills/

@@ -244,12 +244,26 @@ fi
 # Symlink the project's gitignored env files (tests/build read these). Guarded
 # for bash 3.2, where expanding an empty array under `set -u` errors.
 if [ "${#ENV_FILES[@]}" -gt 0 ]; then
+  COPIED=()
   for rel in "${ENV_FILES[@]}"; do
     if [ -e "$MAIN/$rel" ]; then
       mkdir -p "$WT/$(dirname "$rel")"
       ln -sf "$MAIN/$rel" "$WT/$rel"
+      # Git Bash COPIES instead of linking unless Windows Developer Mode is on
+      # (an unprivileged process cannot create a symlink otherwise), and `ln`
+      # exits 0 either way. A copy is a point-in-time snapshot, so a later edit
+      # to the main checkout's env file stops reaching the worktree — which
+      # surfaces much later as a test reading a stale value, with nothing
+      # pointing back at setup. Say it here, while the cause is still obvious.
+      [ -L "$WT/$rel" ] || COPIED+=("$rel")
     fi
   done
+  if [ "${#COPIED[@]}" -gt 0 ]; then
+    echo "warning: copied instead of symlinked: ${COPIED[*]}" >&2
+    echo "  these are snapshots — later edits to $MAIN's copies will NOT reach this" >&2
+    echo "  worktree. Enable Windows Developer Mode (Settings > System > For developers)" >&2
+    echo "  so real symlinks can be created, then re-run this script." >&2
+  fi
 fi
 
 # Materialize node_modules / deps (worktrees don't share them; the gate needs them).

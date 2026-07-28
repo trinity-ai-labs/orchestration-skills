@@ -117,7 +117,7 @@ function Get-GitOutput {
     return (($out | Out-String).Trim())
 }
 
-function Test-GitSucceeds {
+function Test-GitSuccess {
     # The probe form: swallows all output and reports only whether git exited 0.
     param([Parameter(Mandatory = $true)] [string[]] $GitArgs)
     & git @GitArgs *> $null
@@ -284,7 +284,7 @@ if (Test-Path -LiteralPath $Config) {
 
 # Fail early with a fetch hint if base isn't a known local ref (a freshly-cut
 # integration branch won't exist locally until you fetch it).
-if (-not (Test-GitSucceeds @('-C', $Main, 'rev-parse', '--verify', '--quiet', $Base))) {
+if (-not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $Base))) {
     Write-Stderr "base branch not found locally: $Base"
     Exit-WithError "  try: git -C `"$Main`" fetch origin   (or pass origin/$Base)"
 }

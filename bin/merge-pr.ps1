@@ -96,7 +96,7 @@ function Get-WorktreeHome {
     return (Join-Path $HOME '.worktrees')
 }
 
-function Test-GitSucceeds {
+function Test-GitSuccess {
     param([Parameter(Mandatory = $true)] [string[]] $GitArgs)
     & git @GitArgs *> $null
     return ($LASTEXITCODE -eq 0)
@@ -215,20 +215,20 @@ if ($State -eq 'MERGED') {
     $plainWt = "$WorktreeHome/$Project/$Leaf"
     $hasPlain = Test-Path -LiteralPath $plainWt
     $hasWorkspace = $WorkspaceWt -and (Test-Path -LiteralPath $WorkspaceWt)
-    $hasBranch = Test-GitSucceeds @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")
+    $hasBranch = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")
     if (-not $hasPlain -and -not $hasWorkspace -and -not $hasBranch -and $env:MERGE_PR_FORCE -ne '1') {
         $where = $plainWt
         if ($WorkspaceWt) { $where = "$plainWt or $WorkspaceWt" }
         Exit-WithError "PR #$Pr is already MERGED and neither a worktree ($where) nor a local branch '$HeadBranch' exists in $Main - nothing to close out here. WRONG REPO? cd into the intended repo and re-run (or MERGE_PR_FORCE=1 to run teardown+sync here anyway)."
     }
 } else {
-    $known = Test-GitSucceeds @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")
+    $known = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")
     if (-not $known) {
-        $known = Test-GitSucceeds @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")
+        $known = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")
     }
     if (-not $known) {
-        if (Test-GitSucceeds @('-C', $Main, 'fetch', '--prune', 'origin')) {
-            $known = Test-GitSucceeds @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")
+        if (Test-GitSuccess @('-C', $Main, 'fetch', '--prune', 'origin')) {
+            $known = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")
         }
     }
     if (-not $known) {
@@ -309,13 +309,13 @@ if (-not $MergeOid) {
 Write-Output "merge-pr: syncing local '$Integration' to the merged tip ..."
 $synced = $false
 foreach ($attempt in 1..6) {
-    Test-GitSucceeds @('-C', $Main, 'fetch', '--prune', 'origin') | Out-Null
-    Test-GitSucceeds @('-C', $Main, 'merge', '--ff-only', "origin/$Integration") | Out-Null
+    Test-GitSuccess @('-C', $Main, 'fetch', '--prune', 'origin') | Out-Null
+    Test-GitSuccess @('-C', $Main, 'merge', '--ff-only', "origin/$Integration") | Out-Null
     $local = Get-GitOutput @('-C', $Main, 'rev-parse', $Integration)
     $remote = Get-GitOutput @('-C', $Main, 'rev-parse', "origin/$Integration")
     $carriesMerge = $true
     if ($MergeOid) {
-        $carriesMerge = Test-GitSucceeds @('-C', $Main, 'merge-base', '--is-ancestor', $MergeOid, $Integration)
+        $carriesMerge = Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $MergeOid, $Integration)
     }
     if ($local -eq $remote -and $carriesMerge) {
         $synced = $true

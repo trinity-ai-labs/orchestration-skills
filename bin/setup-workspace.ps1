@@ -104,7 +104,7 @@ function Get-WorktreeHome {
     return (Join-Path $HOME '.worktrees')
 }
 
-function Test-GitSucceeds {
+function Test-GitSuccess {
     param([Parameter(Mandatory = $true)] [string[]] $GitArgs)
     & git @GitArgs *> $null
     return ($LASTEXITCODE -eq 0)
@@ -265,13 +265,13 @@ if (-not (Test-Path -LiteralPath $TaskDir)) {
 foreach ($repo in $Repos) {
     $src = "$Root/$repo"
     if (-not (Test-Path -LiteralPath $src)) { Exit-WithError "member '$repo' not found at $src" }
-    if (-not (Test-GitSucceeds @('-C', $src, 'rev-parse', '--git-dir'))) {
+    if (-not (Test-GitSuccess @('-C', $src, 'rev-parse', '--git-dir'))) {
         Exit-WithError "member '$repo' is not a git repo"
     }
     # Verify the base exists here before creating anything: in a polyrepo the
     # integration branch is a convention, and one repo lagging behind is exactly
     # the case that would otherwise leave a half-built task directory.
-    if (-not (Test-GitSucceeds @('-C', $src, 'rev-parse', '--verify', '--quiet', $Base))) {
+    if (-not (Test-GitSuccess @('-C', $src, 'rev-parse', '--verify', '--quiet', $Base))) {
         Exit-WithError "member '$repo' has no local '$Base' - run: git -C `"$src`" fetch origin"
     }
 }

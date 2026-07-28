@@ -176,7 +176,27 @@ fi
 
 mkdir -p "$(dirname "$WT")"
 
-if git -C "$MAIN" worktree list | grep -qF "$WT"; then
+# git prints Windows-form paths in `worktree list` while $WT is MSYS-form, so the
+# substring match this used to be never matched on Windows and the idempotency
+# guard failed OPEN: a re-run fell through to `git worktree add`, which then died
+# with "already exists". Comparing NORMALIZED paths for exact equality fixes that
+# and a second, quieter bug the substring match had on every platform — a leaf
+# that is a prefix of another registered worktree matched it.
+worktree_registered() { # worktree_registered <abs-path>
+  local want="$1" line
+  while IFS= read -r line; do
+    case "$line" in
+    "worktree "*) ;;
+    *) continue ;;
+    esac
+    if [ "$(norm_path "${line#worktree }")" = "$want" ]; then
+      return 0
+    fi
+  done < <(git -C "$MAIN" worktree list --porcelain)
+  return 1
+}
+
+if worktree_registered "$WT"; then
   echo "worktree already exists: $WT"
 else
   git -C "$MAIN" worktree add -b "$BRANCH" "$WT" "$BASE"

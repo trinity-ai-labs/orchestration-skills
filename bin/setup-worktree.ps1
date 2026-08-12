@@ -1,7 +1,8 @@
 #!/usr/bin/env pwsh
 # Create an isolated git worktree for a task, in a central per-project home.
 #
-#   setup-worktree.ps1 <branch> <base>
+#   setup-worktree.ps1 <branch> <base>       # fork a NEW branch off <base>
+#   setup-worktree.ps1 --existing <branch>   # attach to a branch that ALREADY exists
 #
 # The PowerShell sibling of setup-worktree.sh, for a native Windows session with
 # no bash at all: no WSL and no Git for Windows, where Claude Code hands the agent
@@ -37,8 +38,24 @@
 # <base>    branch to fork from. REQUIRED, no default - integration branches roll
 #           over often, so a hardcoded default just goes stale.
 #
+# --existing attaches a worktree to a branch that is already there - the recovery
+# move when a branch outlives its tree (a merge that failed after the close-out
+# tore the worktree down, a tree removed by hand). It takes NO base: an existing
+# branch's base is whatever it already forked from, so a second argument would be
+# a value this script has no way to honour. It is a MODE and never an inference -
+# attaching merely because the branch happens to exist would silently reuse a
+# branch a caller meant to fork fresh off <base>, and a branch that already exists
+# is exactly the one that may sit behind the integration tip. The flag is what
+# keeps "fork a new branch" and "attach to this one" two distinguishable requests.
+#
+# Both modes print the same two lines on stdout: "READY: <path>", then "HEAD:
+# <sha>" - the worktree's resulting commit, which the caller compares against the
+# base tip before dispatching an agent. It is a line rather than a claim inside
+# the READY text so that the honest check and the lazy read are the same act.
+#
 # Every branch gets the same treatment - env symlinks and a real install - so a
-# worktree is always self-contained and can face any check the project has.
+# worktree is always self-contained and can face any check the project has, a
+# re-attached tree exactly as much as a fresh one.
 #
 # JSON is parsed with the built-in ConvertFrom-Json. That is a real advantage this
 # side has over the bash sibling: bash has no JSON parser, so setup-worktree.sh has
@@ -216,15 +233,32 @@ function Invoke-ProjectInstall {
     }
 }
 
-if ($args.Count -lt 2) {
-    Write-Stderr "usage: setup-worktree.ps1 <branch> <base>"
+function Write-Usage {
+    Write-Stderr "usage: setup-worktree.ps1 <branch> <base>  |  --existing <branch>"
     Write-Stderr "  e.g. setup-worktree.ps1 feat/toasts-top-right release/0.3.4"
+    Write-Stderr "       setup-worktree.ps1 --existing feat/toasts-top-right"
+    Write-Stderr "  --existing attaches to a branch that already exists and takes NO base -"
+    Write-Stderr "  an existing branch's base is whatever it already forked from."
     Write-Stderr "  run from inside the target repo, or set REPO=/path/to/repo"
     exit 1
 }
 
-$Branch = [string]$args[0]
-$Base = [string]$args[1]
+# The mode is decided by the flag alone, never by what happens to exist in the
+# repo: see the header for why the two intents have to stay distinguishable.
+$Existing = $false
+$Base = ''
+if ($args.Count -ge 1 -and [string]$args[0] -eq '--existing') {
+    $Existing = $true
+    if ($args.Count -ne 2) {
+        Write-Stderr "--existing takes exactly one argument: the branch to attach to."
+        Write-Usage
+    }
+    $Branch = [string]$args[1]
+} else {
+    if ($args.Count -lt 2) { Write-Usage }
+    $Branch = [string]$args[0]
+    $Base = [string]$args[1]
+}
 
 $WorktreeHome = Get-NormalPath (Get-WorktreeHome)
 
@@ -282,11 +316,39 @@ if (Test-Path -LiteralPath $Config) {
     Write-Stderr "  add $ConfigRel to '$Project' to declare envFiles / install."
 }
 
-# Fail early with a fetch hint if base isn't a known local ref (a freshly-cut
-# integration branch won't exist locally until you fetch it).
-if (-not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $Base))) {
-    Write-Stderr "base branch not found locally: $Base"
-    Exit-WithError "  try: git -C `"$Main`" fetch origin   (or pass origin/$Base)"
+# Decide what `git worktree add` is asked for, and fail before creating anything if
+# the ref it needs isn't there. Both modes fail with a fetch hint for the same
+# reason: a ref that only exists on a remote nobody has fetched looks exactly like
+# a ref that was never created.
+$AddArgs = @()
+if ($Existing) {
+    if (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$Branch")) {
+        $AddArgs = @($Wt, $Branch)
+    } elseif (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$Branch")) {
+        # The local branch being gone while origin's remains is the NORMAL shape here,
+        # not an edge: merge-pr deletes the local branch on a successful merge, and a
+        # close-out interrupted partway leaves the same residue. Recreate it tracking
+        # the remote so the attached tree pushes back where the branch already lives.
+        Write-Stderr "note: no local branch '$Branch' - creating one tracking origin/$Branch."
+        $AddArgs = @('--track', '-b', $Branch, $Wt, "origin/$Branch")
+    } else {
+        # Never fall back to creating the branch. --existing means the caller believes
+        # this branch is already there; if it isn't, the belief is wrong, and a branch
+        # invented here would be forked off whatever HEAD happens to be - a stale base
+        # with nothing anywhere to say so.
+        Write-Stderr "branch not found: $Branch (neither refs/heads nor origin/)"
+        Write-Stderr "  --existing attaches to a branch that already exists; it never creates one."
+        Write-Stderr "  try: git -C `"$Main`" fetch origin   (if the branch is only on the remote)"
+        Exit-WithError "  to fork a NEW branch instead: setup-worktree.ps1 $Branch <base>"
+    }
+} else {
+    # Fail early with a fetch hint if base isn't a known local ref (a freshly-cut
+    # integration branch won't exist locally until you fetch it).
+    if (-not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $Base))) {
+        Write-Stderr "base branch not found locally: $Base"
+        Exit-WithError "  try: git -C `"$Main`" fetch origin   (or pass origin/$Base)"
+    }
+    $AddArgs = @('-b', $Branch, $Wt, $Base)
 }
 
 $WtParent = Split-Path -Path $Wt -Parent
@@ -307,7 +369,7 @@ foreach ($line in (Get-GitOutput @('-C', $Main, 'worktree', 'list', '--porcelain
 if ($known -contains $Wt) {
     Write-Output "worktree already exists: $Wt"
 } else {
-    & git -C $Main worktree add -b $Branch $Wt $Base
+    & git -C $Main worktree add @AddArgs
     if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree add failed (exit $LASTEXITCODE)" }
 }
 
@@ -339,4 +401,14 @@ if ($InstallCmd) {
     Invoke-ProjectInstall -Command $InstallCmd -WorkingDirectory $Wt
 }
 
-Write-Output "READY: $Wt (branch $Branch off $Base)"
+if ($Existing) {
+    Write-Output "READY: $Wt (existing branch $Branch)"
+} else {
+    Write-Output "READY: $Wt (branch $Branch off $Base)"
+}
+# The tip the tree actually landed on, on its own line, because the caller's next
+# obligation is to compare it against the base tip before dispatching an agent.
+# Reading it back off the worktree rather than reporting what was asked for is the
+# point: an attached branch, a re-run against an existing tree, and a fresh fork
+# all report the commit that is really checked out.
+Write-Output ("HEAD: " + (Get-GitOutput @('-C', $Wt, 'rev-parse', 'HEAD')))

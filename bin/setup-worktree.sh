@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Create an isolated git worktree for a task, in a central per-project home.
 #
-#   setup-worktree.sh <branch> <base>
+#   setup-worktree.sh <branch> <base>       # fork a NEW branch off <base>
+#   setup-worktree.sh --existing <branch>   # attach to a branch that ALREADY exists
 #
 # Run it from ANYWHERE inside the target repo — the repo root, a subdirectory, a
 # monorepo subpackage, or even a linked worktree. It walks up to the repo's
@@ -23,8 +24,24 @@
 # <base>    branch to fork from. REQUIRED, no default — integration branches roll
 #           over often, so a hardcoded default just goes stale.
 #
+# --existing attaches a worktree to a branch that is already there — the recovery
+# move when a branch outlives its tree (a merge that failed after the close-out
+# tore the worktree down, a tree removed by hand). It takes NO base: an existing
+# branch's base is whatever it already forked from, so a second argument would be
+# a value this script has no way to honour. It is a MODE and never an inference —
+# attaching merely because the branch happens to exist would silently reuse a
+# branch a caller meant to fork fresh off <base>, and a branch that already exists
+# is exactly the one that may sit behind the integration tip. The flag is what
+# keeps "fork a new branch" and "attach to this one" two distinguishable requests.
+#
+# Both modes print the same two lines on stdout: "READY: <path>", then "HEAD:
+# <sha>" — the worktree's resulting commit, which the caller compares against the
+# base tip before dispatching an agent. It is a line rather than a claim inside
+# the READY text so that the honest check and the lazy read are the same act.
+#
 # Every branch gets the same treatment — env symlinks and a real install — so a
-# worktree is always self-contained and can face any check the project has.
+# worktree is always self-contained and can face any check the project has, a
+# re-attached tree exactly as much as a fresh one.
 #
 # The config lives in the repo, so it travels with the clone and is reviewed
 # alongside the code it describes. This script reads only `envFiles`, `env`, and
@@ -74,15 +91,36 @@ worktree_home_default() {
 WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 CONFIG_REL=".agents/worktree.json"
 
-if [ $# -lt 2 ]; then
-  echo "usage: setup-worktree.sh <branch> <base>" >&2
+usage() {
+  echo "usage: setup-worktree.sh <branch> <base>  |  --existing <branch>" >&2
   echo "  e.g. setup-worktree.sh feat/toasts-top-right release/0.3.4" >&2
+  echo "       setup-worktree.sh --existing feat/toasts-top-right" >&2
+  echo "  --existing attaches to a branch that already exists and takes NO base —" >&2
+  echo "  an existing branch's base is whatever it already forked from." >&2
   echo "  run from inside the target repo, or set REPO=/path/to/repo" >&2
   exit 1
-fi
+}
 
-BRANCH="$1"
-BASE="$2"
+# The mode is decided by the flag alone, never by what happens to exist in the
+# repo: see the header for why the two intents have to stay distinguishable.
+EXISTING=0
+BASE=""
+case "${1:-}" in
+--existing)
+  EXISTING=1
+  shift
+  if [ $# -ne 1 ]; then
+    echo "--existing takes exactly one argument: the branch to attach to." >&2
+    usage
+  fi
+  BRANCH="$1"
+  ;;
+*)
+  if [ $# -lt 2 ]; then usage; fi
+  BRANCH="$1"
+  BASE="$2"
+  ;;
+esac
 REPO="${REPO:-$PWD}"
 
 # Resolve the MAIN working tree. The common gitdir's parent is the repo root,
@@ -205,12 +243,41 @@ else
   echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
 fi
 
-# Fail early with a fetch hint if base isn't a known local ref (a freshly-cut
-# integration branch won't exist locally until you fetch it).
-if ! git -C "$MAIN" rev-parse --verify --quiet "$BASE" >/dev/null; then
-  echo "base branch not found locally: $BASE" >&2
-  echo "  try: git -C \"$MAIN\" fetch origin   (or pass origin/$BASE)" >&2
-  exit 1
+# Decide what `git worktree add` is asked for, and fail before creating anything if
+# the ref it needs isn't there. Both modes fail with a fetch hint for the same
+# reason: a ref that only exists on a remote nobody has fetched looks exactly like
+# a ref that was never created.
+ADD_ARGS=()
+if [ "$EXISTING" -eq 1 ]; then
+  if git -C "$MAIN" show-ref --verify --quiet "refs/heads/$BRANCH"; then
+    ADD_ARGS=("$WT" "$BRANCH")
+  elif git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+    # The local branch being gone while origin's remains is the NORMAL shape here,
+    # not an edge: merge-pr deletes the local branch on a successful merge, and a
+    # close-out interrupted partway leaves the same residue. Recreate it tracking
+    # the remote so the attached tree pushes back where the branch already lives.
+    echo "note: no local branch '$BRANCH' — creating one tracking origin/$BRANCH." >&2
+    ADD_ARGS=(--track -b "$BRANCH" "$WT" "origin/$BRANCH")
+  else
+    # Never fall back to creating the branch. --existing means the caller believes
+    # this branch is already there; if it isn't, the belief is wrong, and a branch
+    # invented here would be forked off whatever HEAD happens to be — a stale base
+    # with nothing anywhere to say so.
+    echo "branch not found: $BRANCH (neither refs/heads nor origin/)" >&2
+    echo "  --existing attaches to a branch that already exists; it never creates one." >&2
+    echo "  try: git -C \"$MAIN\" fetch origin   (if the branch is only on the remote)" >&2
+    echo "  to fork a NEW branch instead: setup-worktree.sh $BRANCH <base>" >&2
+    exit 1
+  fi
+else
+  # Fail early with a fetch hint if base isn't a known local ref (a freshly-cut
+  # integration branch won't exist locally until you fetch it).
+  if ! git -C "$MAIN" rev-parse --verify --quiet "$BASE" >/dev/null; then
+    echo "base branch not found locally: $BASE" >&2
+    echo "  try: git -C \"$MAIN\" fetch origin   (or pass origin/$BASE)" >&2
+    exit 1
+  fi
+  ADD_ARGS=(-b "$BRANCH" "$WT" "$BASE")
 fi
 
 mkdir -p "$(dirname "$WT")"
@@ -238,7 +305,7 @@ worktree_registered() { # worktree_registered <abs-path>
 if worktree_registered "$WT"; then
   echo "worktree already exists: $WT"
 else
-  git -C "$MAIN" worktree add -b "$BRANCH" "$WT" "$BASE"
+  git -C "$MAIN" worktree add "${ADD_ARGS[@]}"
 fi
 
 # Symlink the project's gitignored env files (tests/build read these). Guarded
@@ -277,4 +344,14 @@ if [ -n "$INSTALL_CMD" ]; then
   ( cd "$WT" && eval "$INSTALL_CMD" )
 fi
 
-echo "READY: $WT (branch $BRANCH off $BASE)"
+if [ "$EXISTING" -eq 1 ]; then
+  echo "READY: $WT (existing branch $BRANCH)"
+else
+  echo "READY: $WT (branch $BRANCH off $BASE)"
+fi
+# The tip the tree actually landed on, on its own line, because the caller's next
+# obligation is to compare it against the base tip before dispatching an agent.
+# Reading it back off the worktree rather than reporting what was asked for is the
+# point: an attached branch, a re-run against an existing tree, and a fresh fork
+# all report the commit that is really checked out.
+echo "HEAD: $(git -C "$WT" rev-parse HEAD)"

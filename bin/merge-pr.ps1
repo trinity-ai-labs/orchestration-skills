@@ -174,19 +174,23 @@ $prJson = Invoke-InMainCheckout {
 if (-not $prJson) {
     Exit-WithError "could not read PR #$Pr (is the number right? is gh authed?)"
 }
+# $PrView, not $pr: PowerShell variable names are case-INSENSITIVE, so a $pr here
+# would BE $Pr, the PR number read from the arguments - silently replacing it with
+# this object, after which every later `gh pr ready` / `gh pr merge` / message
+# receives the object's ToString() in place of the number.
 try {
-    $pr = $prJson | ConvertFrom-Json
+    $PrView = $prJson | ConvertFrom-Json
 } catch {
     Exit-WithError "gh returned something that is not JSON for PR #${Pr}: $($_.Exception.Message)"
 }
 
-$State = [string]$pr.state
-$Integration = [string]$pr.baseRefName
-$HeadBranch = [string]$pr.headRefName
+$State = [string]$PrView.state
+$Integration = [string]$PrView.baseRefName
+$HeadBranch = [string]$PrView.headRefName
 # Absent until the PR is actually merged; the sync loop below falls back to plain
 # ref equality when it is empty.
 $MergeOid = ''
-if ($pr.mergeCommit) { $MergeOid = [string]$pr.mergeCommit.oid }
+if ($PrView.mergeCommit) { $MergeOid = [string]$PrView.mergeCommit.oid }
 if (-not $Integration) { Exit-WithError "PR #$Pr has no base branch" }
 
 Write-Output "merge-pr: PR #$Pr  state=$State  base=$Integration  head=$HeadBranch  main=$Main"

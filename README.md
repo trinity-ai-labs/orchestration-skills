@@ -21,7 +21,7 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 |---|---|
 | `setup-worktree.sh` · `.ps1` | Creates a worktree — or attaches one to an existing branch with `--existing` — symlinks the project's env files, exports its env, installs deps |
 | `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each |
-| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local integration branch |
+| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local base branch |
 | `remove-worktree.sh` · `.ps1` | Safely tear down a worktree, killing processes rooted in it first |
 
 ---
@@ -273,7 +273,7 @@ A repo with no config still cuts a worktree — but a **bare** one, with no env 
 - **Never squash-merge, never rebase.** Always real merge commits.
 - **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
 - **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** — they enqueue; a runner gates and comments the verdict; the orchestrator reviews the diff, marks it ready, and merges.
-- **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order: preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in one), real merge commit with `--delete-branch`, then fast-forward the local integration branch — the step with no forcing feedback, and the one a hand-run close-out drops. Then close the issue yourself (`gh issue close` — GitHub won't auto-close, since PRs merge into the integration branch, not `main`).
+- **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order: preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no forcing feedback, and the one a hand-run close-out drops. Then close the issue yourself (`gh issue close` — GitHub won't auto-close, since PRs merge into the integration branch, not `main`).
 
 ---
 

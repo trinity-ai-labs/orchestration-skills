@@ -30,17 +30,25 @@
 #      `gh pr merge --merge --delete-branch` it: a real merge commit (never
 #      squash), deleting both the local and remote branch. A merge that fails
 #      anyway puts the draft flag back before it exits.
-#   5. Sync the MAIN checkout's local integration branch to the just-merged tip.
+#   5. Sync the MAIN checkout's local copy of the PR's base branch to the
+#      just-merged tip - by ref when that branch is not the one checked out.
+#   6. Verify the main checkout is still standing where it was when the run began.
 #
 # Step 5 is the whole reason this helper exists. `gh pr merge` advances the branch
-# on the REMOTE; the local integration branch in the main checkout does NOT move.
-# Syncing it is a manual step with NO forcing feedback - every visible signal
-# (Merged, branch deleted, PR closed) says "done", so it is the step that gets
-# silently skipped, and the miss only surfaces later when the NEXT worktree is cut
-# from a stale HEAD. This helper anchors every git call to the MAIN checkout with
-# `git -C $Main`, independent of cwd, and fast-forwards only (the main checkout
-# never carries direct commits, so a non-ff means something is wrong and should
-# surface loudly, not merge-commit past).
+# on the REMOTE; the local base branch in the main checkout does NOT move. Syncing
+# it is a manual step with NO forcing feedback - every visible signal (Merged,
+# branch deleted, PR closed) says "done", so it is the step that gets silently
+# skipped, and the miss only surfaces later when the NEXT worktree is cut from a
+# stale HEAD. This helper anchors every git call to the MAIN checkout with
+# `git -C $Main`, independent of cwd, and only ever moves the branch FORWARD (the
+# main checkout never carries direct commits, so a non-ff means something is wrong
+# and should surface loudly, not merge-commit past).
+#
+# The main checkout is the one piece of global mutable state in a flow that is
+# otherwise isolated per worktree, and several sessions share it - so step 5 never
+# switches it. A base branch that is not the checked-out one is moved as a REF
+# (`fetch` + `branch -f`), which needs no working tree, and step 6 then confirms
+# nothing else moved the checkout meanwhile.
 #
 # Idempotent: if the PR is already merged, it skips the merge and still runs the
 # worktree teardown + local sync, so a re-run finishes a half-done close-out.
@@ -173,6 +181,34 @@ function Invoke-InMainCheckout {
     try { & $Body @ArgumentList } finally { Pop-Location }
 }
 
+function Get-GitRefOrEmpty {
+    # The sha a ref resolves to, or an empty string when the ref does not exist -
+    # where Get-GitOutput would exit. The sync loop reads refs that can legitimately
+    # be absent for a round (the local base branch, before `branch -f` creates it),
+    # and an absent ref there is a "not yet" to retry rather than a failure to die on.
+    param([Parameter(Mandatory = $true)] [string] $Ref)
+    $out = & git -C $Main rev-parse --verify --quiet $Ref 2>$null
+    if ($LASTEXITCODE -ne 0) { return '' }
+    return (($out | Out-String).Trim())
+}
+
+function Get-WorktreeHoldingBranch {
+    # The path of the worktree that has $Branch checked out, or an empty string if
+    # no worktree does. `git branch -f` refuses to move a branch that is checked out
+    # ANYWHERE, so the ref-only sync in step 4 has to know before it tries - and a
+    # linked worktree standing on the PR's base means a session is working there,
+    # which is a state to report rather than an error to force past.
+    param([Parameter(Mandatory = $true)] [string] $Branch)
+    $out = & git -C $Main worktree list --porcelain 2>$null
+    if ($LASTEXITCODE -ne 0) { return '' }
+    $candidate = ''
+    foreach ($line in (($out | Out-String) -split "`r?`n")) {
+        if ($line.StartsWith('worktree ')) { $candidate = $line.Substring(9).Trim() }
+        elseif ($line.Trim() -eq "branch refs/heads/$Branch") { return (Get-NormalPath $candidate) }
+    }
+    return ''
+}
+
 function Get-PrField {
     # A single field, for the two values that have to be read at a specific MOMENT
     # rather than with the batch below: `mergeable` because GitHub computes it
@@ -222,6 +258,30 @@ if ($PrView.mergeCommit) { $MergeOid = [string]$PrView.mergeCommit.oid }
 if (-not $Integration) { Exit-WithError "PR #$Pr has no base branch" }
 
 Write-Output "merge-pr: PR #$Pr  state=$State  base=$Integration  head=$HeadBranch  main=$Main"
+
+# Where the main checkout stands BEFORE this run touches anything. Step 5 checks it
+# is still here at the end: nothing in this helper switches the checkout, so any
+# movement came from another session, and step 4's verification cannot see it -
+# that check proves the BASE reached the merged tip and has no opinion about a
+# DIFFERENT branch having moved instead, which is the half that corrupts.
+# `--abbrev-ref HEAD` prints the literal "HEAD" on a detached checkout, which
+# compares as its own value and needs no special case.
+$StartBranch = Get-GitOutput @('-C', $Main, 'rev-parse', '--abbrev-ref', 'HEAD')
+$StartHead = Get-GitOutput @('-C', $Main, 'rev-parse', 'HEAD')
+
+function Assert-CheckoutUnmoved {
+    # Stop the run if the main checkout is no longer on the branch it started on.
+    # Called before every advance in step 4 as well as over the finished run in step
+    # 5, because the on-base decision that picks step 4's path is made once and then
+    # used across a retry loop - and on that path `merge --ff-only` names no branch,
+    # so it moves WHATEVER is checked out at the moment it runs. A switch landing in
+    # between would fast-forward another session's branch toward this PR's base,
+    # which is the corruption this helper exists to prevent rather than to relocate.
+    $now = Get-GitOutput @('-C', $Main, 'rev-parse', '--abbrev-ref', 'HEAD')
+    if ($now -ne $StartBranch) {
+        Exit-WithError "the main checkout $Main was on '$StartBranch' when this run started and is on '$now' now - this helper never switches it, so another process moved it mid-run. PR #$Pr IS merged, but the local sync of '$Integration' may be incomplete: check where '$StartBranch' and '$now' point before cutting any worktree off either."
+    }
+}
 
 # --- 0. Wrong-repo guard ---------------------------------------------------------
 # The repo is resolved from cwd/REPO, so a shell sitting in a DIFFERENT repo's
@@ -391,25 +451,47 @@ merging PR #$Pr failed - $DraftNote, and its worktree has already been torn down
     }
 }
 
-# --- 4. Sync the local integration branch in the MAIN checkout ------------------
-# Anchored to MAIN so it works regardless of the caller's cwd. Fast-forward only:
-# the main checkout never carries direct commits (all work lands via PR merge on
-# the remote), so a non-ff pull means an anomaly that should stop us loudly.
-$Current = Get-GitOutput @('-C', $Main, 'rev-parse', '--abbrev-ref', 'HEAD')
-if ($Current -ne $Integration) {
-    Write-Output "merge-pr: main checkout is on '$Current'; switching to '$Integration' ..."
-    & git -C $Main checkout $Integration
-    if ($LASTEXITCODE -ne 0) { Exit-WithError "could not check out '$Integration' in $Main" }
+# --- 4. Sync the local base branch in the MAIN checkout --------------------------
+# Anchored to MAIN so it works regardless of the caller's cwd, and only ever moving
+# the branch forward: the main checkout never carries direct commits (all work lands
+# via PR merge on the remote), so a non-ff means an anomaly that should stop loudly.
+#
+# Which of the two paths runs is decided by whether the base is the branch the main
+# checkout is standing on:
+#
+#   on it      -> `merge --ff-only`, exactly as before; no switch is needed and the
+#                 working tree follows the branch it is already on.
+#   not on it  -> move the REF (`fetch` + `branch -f`), which needs no working tree.
+#
+# The ref-only path is what makes a shared main checkout safe. Switching to the base
+# opens a window in which another session's own switch lands, and everything after
+# it then operates on whatever is checked out at that moment rather than on the base
+# - observed: a slice PR based on an epic branch switched the checkout off the
+# release branch, another session put it back mid-sync, and the local release branch
+# was left pointing at the epic branch's merge commit, six commits of unrelated work,
+# while origin/release had independently advanced. Not switching removes the window
+# entirely, and leaves nothing to switch back afterwards.
+$OnBase = ($StartBranch -eq $Integration)
+
+if (-not $OnBase) {
+    $BaseWt = Get-WorktreeHoldingBranch -Branch $Integration
+    if ($BaseWt) {
+        Exit-WithError @"
+'$Integration' is checked out in the worktree $BaseWt, so its ref cannot be moved from here - git refuses to move a branch any worktree is standing on, and someone is standing on this one. PR #$Pr IS merged; only the local sync is outstanding.
+  Finish it from that worktree:
+    git -C $BaseWt pull --ff-only
+  Until then do NOT cut new worktrees off '$Integration' - the local ref is behind the merged tip.
+"@
+    }
 }
 
-# `gh pr merge` returns before GitHub is guaranteed to serve the new tip, so a pull
-# fired immediately can fast-forward to nothing ("Already up to date") and silently
-# leave the branch on the PRE-merge commit - while a `rev-parse HEAD` in the done
-# message still prints a sha and reads as "synced." That is the "said synced,
-# wasn't" bug. So: poll-fetch until the remote actually carries the merge commit,
-# fast-forward each round, and VERIFY the local branch truly reached the merged tip.
-# The message is never proof; the ref-equality check below is - and on failure we
-# die loudly, never lie.
+# `gh pr merge` returns before GitHub is guaranteed to serve the new tip, so a sync
+# fired immediately can advance to nothing and silently leave the branch on the
+# PRE-merge commit - while a `rev-parse` in the done message still prints a sha and
+# reads as "synced." That is the "said synced, wasn't" bug. So: poll-fetch until the
+# remote actually carries the merge commit, advance each round, and VERIFY the local
+# branch truly reached the merged tip. The message is never proof; the ref-equality
+# check below is - and on failure we die loudly, never lie.
 # The merge just performed above is not reflected in the $MergeOid read before it,
 # so re-read it here - and only here, where it is finally knowable.
 if (-not $MergeOid) {
@@ -422,21 +504,51 @@ if (-not $MergeOid) {
 
 Write-Output "merge-pr: syncing local '$Integration' to the merged tip ..."
 $synced = $false
+$diverged = $false
 foreach ($attempt in 1..6) {
     Test-GitSuccess @('-C', $Main, 'fetch', '--prune', 'origin') | Out-Null
-    Test-GitSuccess @('-C', $Main, 'merge', '--ff-only', "origin/$Integration") | Out-Null
-    $local = Get-GitOutput @('-C', $Main, 'rev-parse', $Integration)
-    $remote = Get-GitOutput @('-C', $Main, 'rev-parse', "origin/$Integration")
-    $carriesMerge = $true
-    if ($MergeOid) {
-        $carriesMerge = Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $MergeOid, $Integration)
+    Assert-CheckoutUnmoved
+    if ($OnBase) {
+        Test-GitSuccess @('-C', $Main, 'merge', '--ff-only', "origin/$Integration") | Out-Null
+    } else {
+        $hasLocal = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$Integration")
+        if ($hasLocal -and -not (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $Integration, "origin/$Integration"))) {
+            # `branch -f` is a force move, so it is the one path here that could
+            # DISCARD commits. The local branch carrying something the remote does
+            # not is a stable condition - the remote only ever advances - so stop on
+            # it rather than retrying.
+            $diverged = $true
+            break
+        }
+        # Creates the branch when the main checkout has no local copy of it, which is
+        # the ordinary state for an epic branch a session never checked out.
+        Test-GitSuccess @('-C', $Main, 'branch', '-f', $Integration, "origin/$Integration") | Out-Null
     }
-    if ($local -eq $remote -and $carriesMerge) {
-        $synced = $true
-        break
+    # The merge-commit ancestry test is only asked once the two refs already agree,
+    # so the rounds spent waiting for the remote to serve the merge cost one git
+    # spawn rather than two.
+    $local = Get-GitRefOrEmpty "refs/heads/$Integration"
+    $remote = Get-GitRefOrEmpty "refs/remotes/origin/$Integration"
+    if ($local -and $local -eq $remote) {
+        $carriesMerge = $true
+        if ($MergeOid) {
+            $carriesMerge = Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $MergeOid, $Integration)
+        }
+        if ($carriesMerge) {
+            $synced = $true
+            break
+        }
     }
     Write-Output "merge-pr: remote not serving the merge yet (attempt $attempt/6) - waiting ..."
     Start-Sleep -Seconds 2
+}
+if ($diverged) {
+    Exit-WithError @"
+local '$Integration' carries commits 'origin/$Integration' does not, so moving its ref would discard them - REFUSED, and the local branch is untouched. PR #$Pr IS merged; only the local sync is outstanding.
+  Inspect what is on it and reconcile it by hand:
+    git -C $Main log --oneline origin/$Integration..$Integration
+  Until then do NOT cut new worktrees off '$Integration'.
+"@
 }
 if (-not $synced) {
     $oid = $MergeOid
@@ -444,5 +556,24 @@ if (-not $synced) {
     Exit-WithError "local '$Integration' did NOT reach the merged tip (merge commit $oid still absent after retries) - SYNC FAILED; do NOT cut new worktrees off '$Integration' until this is resolved."
 }
 
+# --- 5. Verify the main checkout did not move under us ---------------------------
+# Step 4's verification proves the BASE reached the merged tip. It has no opinion
+# about a branch that moved INSTEAD - which is the half that actually corrupts, and
+# is silent: every other signal reads as a successful close-out. Nothing here
+# switches the checkout, so a branch or HEAD that differs from where the run started
+# was moved by another process, and saying so is the difference between an immediate
+# stop and a poisoned base the next worktree forks from.
+Assert-CheckoutUnmoved
+# Only off the base: standing ON it, HEAD is the very ref step 4 verified against the
+# merged tip, so comparing it to the start commit would assert nothing but that the
+# sync happened. Off it, this run moved a DIFFERENT branch's ref and never touched
+# the working tree, so any movement at all is another process's.
+if (-not $OnBase) {
+    $NowHead = Get-GitOutput @('-C', $Main, 'rev-parse', 'HEAD')
+    if ($NowHead -ne $StartHead) {
+        Exit-WithError "the main checkout $Main is still on '$StartBranch' but its HEAD moved from $StartHead to $NowHead - this run only moved the ref of '$Integration', which is a different branch, so another process moved '$StartBranch' mid-run. Check where it points before cutting any worktree off it."
+    }
+}
+
 $short = Get-GitOutput @('-C', $Main, 'rev-parse', '--short', $Integration)
-Write-Output "merge-pr: done - PR #$Pr merged, worktree removed, local '$Integration' synced to $short."
+Write-Output "merge-pr: done - PR #$Pr merged, worktree removed, local '$Integration' synced to $short, main checkout still on '$StartBranch'."

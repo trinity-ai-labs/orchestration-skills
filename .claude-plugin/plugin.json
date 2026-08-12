@@ -3,7 +3,7 @@
   "name": "pipeline",
   "displayName": "Dev Pipeline",
   "description": "write-issue \u2192 decompose \u2192 orchestrate: turn an idea into a grounded issue, slice it into parallel waves, ship it through isolated git worktrees.",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "author": {
     "name": "Trinity AI Labs",
     "url": "https://github.com/trinity-ai-labs"

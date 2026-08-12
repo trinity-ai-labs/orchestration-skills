@@ -21,7 +21,7 @@ The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plu
 |---|---|
 | `setup-worktree.sh` · `.ps1` | Creates a worktree — or attaches one to an existing branch with `--existing` — symlinks the project's env files, exports its env, installs deps |
 | `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each |
-| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local integration branch |
+| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local base branch |
 | `remove-worktree.sh` · `.ps1` | Safely tear down a worktree, killing processes rooted in it first |
 
 ---
@@ -198,6 +198,8 @@ A persisted Windows environment variable is inherited by every process started a
 
 You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`). Every task gets its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>`, branched off the integration branch. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
 
+**One optional second level: the epic branch.** A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. For those, and only those, an **epic branch** is cut from the integration branch in the main checkout: the epic's slices fork from it and PR into it, it is gated as a whole once they have all landed, and it reaches the integration branch as one ordinary merge at the end. The trigger is one question — *does any intermediate state leave the integration branch in a condition you would not ship?* — and never slice count, which measures how long a partial state sits there rather than whether it is broken. It buys isolation and costs deferred conflicts, so the orchestrator merges the integration branch back into it on the same tick that drains the gate queue. Most work never cuts one, and the flow above is unchanged when there isn't one.
+
 **Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: an orchestrator read this diff and is merging it. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge. A green gate says the suite passed; it cannot say the agent solved the right problem.
 
 When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's in**:
@@ -269,9 +271,9 @@ A repo with no config still cuts a worktree — but a **bare** one, with no env 
 
 - **Never** use the Agent tool's `isolation: "worktree"` param or any auto worktree provisioner — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
 - **Never squash-merge, never rebase.** Always real merge commits.
-- **Branch from the integration branch, not `main`.** PRs target the integration branch.
+- **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
 - **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** — they enqueue; a runner gates and comments the verdict; the orchestrator reviews the diff, marks it ready, and merges.
-- **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order: preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in one), real merge commit with `--delete-branch`, then fast-forward the local integration branch — the step with no forcing feedback, and the one a hand-run close-out drops. Then close the issue yourself (`gh issue close` — GitHub won't auto-close, since PRs merge into the integration branch, not `main`).
+- **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order: preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no forcing feedback, and the one a hand-run close-out drops. Then close the issue yourself (`gh issue close` — GitHub won't auto-close, since PRs merge into the integration branch, not `main`).
 
 ---
 

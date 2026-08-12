@@ -8,16 +8,21 @@
 # no load-bearing step can be dropped:
 #
 #   1. Resolve the MAIN checkout + the PR's base (integration) and head branch.
-#   2. Remove the head branch's worktree FIRST — git refuses to delete a branch
-#      that's still checked out in a worktree, so `gh pr merge --delete-branch`
-#      would error on the local-branch step if the worktree still existed. Done
-#      via remove-worktree.sh, which kills processes rooted in the tree first.
-#   3. Mark the PR ready — the orchestrator's review approval — and immediately
+#   2. Preflight the PR's mergeability, BEFORE anything irreversible happens — the
+#      two steps that follow cannot be undone by a later failure, and the step
+#      that actually fails is the last one. A conflicting PR stops here with the
+#      worktree intact and the PR still a draft.
+#   3. Remove the head branch's worktree — git refuses to delete a branch that's
+#      still checked out in a worktree, so `gh pr merge --delete-branch` would
+#      error on the local-branch step if the worktree still existed. Done via
+#      remove-worktree.sh, which kills processes rooted in the tree first.
+#   4. Mark the PR ready — the orchestrator's review approval — and immediately
 #      `gh pr merge --merge --delete-branch` it: a real merge commit (never
-#      squash), deleting both the local and remote branch.
-#   4. Sync the MAIN checkout's local integration branch to the just-merged tip.
+#      squash), deleting both the local and remote branch. A merge that fails
+#      anyway puts the draft flag back before it exits.
+#   5. Sync the MAIN checkout's local integration branch to the just-merged tip.
 #
-# Step 4 is the whole reason this helper exists. `gh pr merge` advances the branch
+# Step 5 is the whole reason this helper exists. `gh pr merge` advances the branch
 # on the REMOTE; the local integration branch in the main checkout does NOT move.
 # Syncing it is a manual step with NO forcing feedback — every visible signal
 # (`✓ Merged`, branch deleted, PR closed) says "done", so it's the step that gets
@@ -79,7 +84,12 @@ worktree_home_default() {
 WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-die() { echo "merge-pr: error: $*" >&2; exit 1; }
+# printf '%b' rather than echo, so a message can carry the `\n` its recovery
+# instructions need: bash's builtin echo prints those two characters verbatim, so a
+# multi-line message written with it arrives as one line with a literal \n inside —
+# and the PowerShell sibling, whose `\n` IS a newline, would then say something the
+# bash side does not.
+die() { printf 'merge-pr: error: %b\n' "$*" >&2; exit 1; }
 
 if [ $# -lt 1 ]; then
   echo "usage: merge-pr.sh <pr-number>" >&2
@@ -145,35 +155,90 @@ else
     || die "PR #$PR's head branch '$HEAD_BRANCH' is unknown in $MAIN (not local, not on origin) — WRONG REPO? The repo is resolved from cwd/REPO; cd into the intended repo and re-run."
 fi
 
-# --- 1. Remove the head branch's worktree FIRST --------------------------------
-# So `--delete-branch` can remove the local branch. remove-worktree.sh is
-# idempotent (no-ops if the worktree is already gone) and derives the worktree
-# path from the branch leaf against this same repo.
+# --- 1. Mergeability preflight ---------------------------------------------------
+# Everything past this point is irreversible, and the step that can actually fail —
+# the merge — is the last one. A PR whose base moved under it fails there with
+# "Pull Request has merge conflicts", by which point the worktree teardown has
+# already removed the only tree the conflict could be resolved in and the review
+# flag has already been flipped. So ask GitHub whether the merge is possible while
+# nothing has been touched yet, and stop clean if it is not.
+#
+# `mergeable` is computed asynchronously: GitHub answers UNKNOWN while its test
+# merge is still running, which is the ordinary answer for a PR pushed seconds ago.
+# UNKNOWN means "not yet known" — neither CONFLICTING nor fine — so it is polled a
+# few times and then FALLS THROUGH rather than blocking. Hard-failing on UNKNOWN
+# would make this helper flaky on exactly the PRs that just arrived, and the merge
+# in step 3 is a truthful authority for the case the poll could not resolve.
+if [ "$STATE" != "MERGED" ]; then
+  MERGEABLE=$(pr_field mergeable 2>/dev/null || true)
+  for attempt in 1 2 3; do
+    if [ "$MERGEABLE" = "MERGEABLE" ] || [ "$MERGEABLE" = "CONFLICTING" ]; then
+      break
+    fi
+    echo "merge-pr: mergeability not computed yet (attempt $attempt/3) — waiting ..."
+    sleep 2
+    MERGEABLE=$(pr_field mergeable 2>/dev/null || true)
+  done
+  if [ "$MERGEABLE" = "CONFLICTING" ]; then
+    # Name the worktree the caller has to resolve it in — setup-worktree.sh puts it
+    # at one of exactly two paths, decided by whether this repo sits in a workspace.
+    CONFLICT_WT="${WORKSPACE_WT:-$WORKTREE_HOME/$PROJECT/$LEAF}"
+    die "PR #$PR conflicts with '$INTEGRATION' — nothing has been touched: the worktree is intact and the PR is still a draft.\n  Resolve it in the branch's own worktree, by merging the base IN (never rebase — these branches are never rewritten):\n    cd $CONFLICT_WT\n    git fetch origin && git merge origin/$INTEGRATION\n    <resolve, commit, push>\n  If that worktree is gone, re-attach one first: setup-worktree.sh --existing $HEAD_BRANCH\n  Then re-gate the PR and re-run: merge-pr.sh $PR"
+  fi
+fi
+
+# --- 2. Remove the head branch's worktree --------------------------------------
+# Before the merge, so `--delete-branch` can remove the local branch — the ordering
+# git forces, and the reason step 1 exists: it is only safe to tear the tree down
+# once the merge is known to be possible. remove-worktree.sh is idempotent (no-ops
+# if the worktree is already gone) and derives the worktree path from the branch
+# leaf against this same repo.
 if [ -n "$HEAD_BRANCH" ]; then
   echo "merge-pr: tearing down worktree for $HEAD_BRANCH ..."
   REPO="$MAIN" "$HERE/remove-worktree.sh" "$HEAD_BRANCH"
 fi
 
-# --- 2. Merge (unless already merged) ------------------------------------------
+# --- 3. Merge (unless already merged) ------------------------------------------
 if [ "$STATE" = "MERGED" ]; then
   echo "merge-pr: PR #$PR already merged — skipping merge, finishing the local sync."
 else
   # `draft -> ready` is the orchestrator's review approval — the one thing in the
   # flow that says a human-in-the-loop read this diff, as opposed to a gate saying
   # the suite passed (the gate reports by PR comment and never touches this flag).
-  # It sits here, one line above the merge, so `ready` can never be a stale badge:
-  # the step-1 teardown above kills processes rooted in the worktree and can take
-  # real time, and a flip before it would leave a window where the PR reads as
-  # approved but is not merged. Inside the not-yet-MERGED branch it is also
-  # idempotent on re-run, and `gh pr ready` on an already-ready PR is a no-op, so
-  # nothing needs to read `isDraft` first.
+  # GitHub refuses to merge a draft, so the flip has to precede the merge; it sits
+  # one line above it so `ready` can never be a stale badge, since the step-2
+  # teardown kills processes rooted in the worktree and can take real time, and a
+  # flip before that would leave a window where the PR reads as approved but is not
+  # merged. `gh pr ready` on an already-ready PR is a no-op, so the flip itself is
+  # unconditional and idempotent on re-run.
+  #
+  # `isDraft` is read anyway, and read HERE rather than with the fields at the top,
+  # because it has one job: to say whether THIS run is what set the flag. Only then
+  # may the failure path put it back — a PR that arrived already ready keeps the
+  # state it came with rather than being pushed into a draft nobody asked for.
+  WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
   echo "merge-pr: marking PR #$PR ready (review approval) ..."
   ( cd "$MAIN" && gh pr ready "$PR" )
   echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
-  ( cd "$MAIN" && gh pr merge "$PR" --merge --delete-branch )
+  if ! ( cd "$MAIN" && gh pr merge "$PR" --merge --delete-branch ); then
+    # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
+    # being merged right this second reads, everywhere else in this flow, as a diff
+    # an orchestrator approved — so leaving it set would have the PR wearing a
+    # review it never received. This matters most when step 1 answered UNKNOWN and
+    # fell through: the conflict it could not rule out surfaces exactly here.
+    DRAFT_NOTE="it was already non-draft before this run and is left that way"
+    if [ "$WAS_DRAFT" = "true" ]; then
+      if ( cd "$MAIN" && gh pr ready "$PR" --undo ); then
+        DRAFT_NOTE="it is back to a draft"
+      else
+        DRAFT_NOTE="its draft flag could NOT be restored — put it back by hand: gh pr ready $PR --undo"
+      fi
+    fi
+    die "merging PR #$PR failed — $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$INTEGRATION\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
+  fi
 fi
 
-# --- 3. Sync the local integration branch in the MAIN checkout ------------------
+# --- 4. Sync the local integration branch in the MAIN checkout ------------------
 # Anchored to MAIN so it works regardless of the caller's cwd. Fast-forward only:
 # the main checkout never carries direct commits (all work lands via PR merge on
 # the remote), so a non-ff pull means an anomaly that should stop us loudly.

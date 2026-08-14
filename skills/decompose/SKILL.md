@@ -1,16 +1,17 @@
 ---
 name: decompose
 description: >-
-  Turn a plan into an orchestration-ready task breakdown — the PREP phase that feeds /pipeline:orchestrate. Use
-  whenever you're asked to DECOMPOSE, break down, slice, or plan-for-parallelism a chunk of work; to get
-  a GitHub issue or an in-chat plan READY for orchestration; or to figure out what can run concurrently.
-  You read the plan (a GitHub issue OR a plan already in the conversation), GROUND it in the actual
-  codebase (real files/modules, not guesses), and emit independent task slices with explicit scope,
-  do-not-touch boundaries, dependency waves, the framework skill each slice must invoke, and a model-tier
-  hint — exactly what the orchestrator's dispatch loop consumes. You do NOT write code, make worktrees,
-  dispatch implementers, or merge — that's /pipeline:orchestrate's job. For a GitHub issue you either POST the
-  decomposition as a comment, or — when the work is large/multi-area enough to warrant it — convert the
-  issue into an UMBRELLA and spawn one sub-issue per slice. Pairs with the orchestrate skill.
+  Ground, validate, and slice a plan into an orchestration-ready task breakdown — the PREP phase that feeds
+  /pipeline:orchestrate. Use whenever you're asked to DECOMPOSE, break down, slice, or plan-for-parallelism a
+  chunk of work; to get a GitHub issue or an in-chat plan READY for orchestration; to figure out what can run
+  concurrently; and ALSO when the work is plainly a single slice — grounding and validation stand on their own,
+  and a plan that needs no splitting can still be wrong. You GROUND the plan in the actual codebase (real
+  files/modules, not guesses) and VALIDATE it against what the code actually does — surfacing wrong assumptions,
+  unspecified behavior, and defects in the plan itself before an implementer builds on them — then emit
+  independent task slices with explicit scope, do-not-touch boundaries, dependency waves, the framework skill
+  each slice must invoke, and a model-tier hint. You do NOT write code, make worktrees, dispatch implementers,
+  or merge — that's /pipeline:orchestrate's job. For a GitHub issue you POST the decomposition as a comment, or
+  — when the work is large/multi-area enough — convert it into an UMBRELLA with one sub-issue per slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
 ---
 

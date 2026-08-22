@@ -6,7 +6,7 @@ The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a gr
 idea / plan  ──/pipeline:write-issue──▶  grounded issue  ──/pipeline:decompose──▶  slices + waves  ──/pipeline:orchestrate──▶  worktrees · PRs · merges
 ```
 
-Four skills in one plugin — `setup` onboards a repo once, then the three-leg pipeline runs on it: each skill's handoff names the next by slash-command, and `decompose` + `orchestrate` both read the same per-project config.
+Five skills in one plugin — `setup` onboards a repo once, then the three-leg pipeline runs on it: each skill's handoff names the next by slash-command, and `decompose` + `orchestrate` both read the same per-project config. `review` is the one an implementer calls on itself mid-slice, not a leg of the pipeline.
 
 | Skill | Does | Never does |
 |---|---|---|
@@ -14,6 +14,7 @@ Four skills in one plugin — `setup` onboards a repo once, then the three-leg p
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code and files it as a forward-facing issue (or umbrella + subs) | Slice into waves; write code |
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | Turns that plan into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Make worktrees; dispatch; merge |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | — (it's the executor) |
+| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality + correctness pass over its **uncommitted** diff, run inline right before it commits | Spawn sub-agents; commit; push; run the full suite |
 
 The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — and `scripts/check.sh` compares the two on every run, so the pair cannot drift apart quietly.
 

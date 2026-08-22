@@ -1,0 +1,168 @@
+---
+name: review
+argument-hint: "[file or path to narrow the pass]"
+description: >-
+  The implementer's own quality + correctness pass over its UNCOMMITTED work, before it commits.
+  Use when an implementer in the worktree flow has finished writing a change and is about to commit
+  it, whenever an `orchestrate` brief says to run a review pass for the slice, and whenever you are
+  asked to review, tighten, simplify, or clean up a change you just wrote and have not committed.
+  Reviews reuse, simplification, efficiency, altitude AND correctness in one pass over the working
+  tree, then applies what it judges right and reports what it rejected. It NEVER dispatches
+  sub-agents and NEVER commits — the agent running the slice is the one that decides what goes in,
+  and the commit step belongs to the flow that called this. Not for reviewing a committed range or
+  someone else's PR (that's the orchestrator reading the diff, plus the gate).
+---
+
+# Review — the implement-time pass
+
+One agent, one working tree, one pass. You have just written a change and have **not** committed it.
+Before you do, you review your own uncommitted diff for both quality and correctness, apply what
+belongs, and report what you deliberately left alone.
+
+This is the **narrow, early** tier of review. The broad tier already exists in this flow and is not
+yours: the orchestrator reads your PR's diff, and the drained gate runs the full build and suite over
+the committed result. So this pass is not a second gate and not a PR review. It is the last thing that
+happens while the change is still entirely yours.
+
+## The three hard constraints
+
+These are the whole reason this skill exists rather than a general-purpose review tool. Each one is
+load-bearing and each one has been violated in production with real cost.
+
+### 1. Never dispatch sub-agents. Do this pass yourself, inline.
+
+**Not a preference — the correctness argument.** A sub-agent spawned as a *fork* inherits the full
+conversation of whoever spawned it. In this flow that conversation is an implementer's brief, and an
+implementer's brief is a list of imperatives ending in *commit, push, open a draft PR, enqueue the
+gate*. A reviewer that inherits it does not read it as background; it reads it as its instructions,
+and it executes them.
+
+That is not hypothetical. Observed, across three consecutive slices of one epic: review agents
+applied fixes, ran the repo's formatter at root, committed in logical blocks, pushed, opened the pull
+requests, and enqueued the gate tickets — all before the implementer that spawned them got its turn
+back. Every artifact looked correct, because the reviewers were faithfully executing a correct brief.
+They were simply not the agent whose judgment those artifacts were supposed to represent.
+
+The second-order damage was worse than the mess. Once unauthorized writes were in play, agents lost
+the ability to tell authorized work from rogue work. A sibling implementer, correctly alarmed, saw a
+legitimate parallel slice's branch and PR appear mid-run, concluded it was more of the same, and
+quarantined that slice's gate ticket with a careful, well-evidenced, and entirely wrong rationale. A
+careful agent and a runaway agent produce identical artifacts: a branch, a PR, a queued ticket.
+
+Even a *non*-fork sub-agent, which inherits no conversation, still holds write tools and can act on a
+misread prompt. So the rule is the simple one, with no exception to reason your way into: **this pass
+spawns nothing.** You read your own diff yourself.
+
+### 2. Never commit, and never push.
+
+Leave every change uncommitted. The flow that called you owns the commit step, and it commits in
+logical, self-contained blocks after this pass — that ordering is the point, because a pass that runs
+after the commits cannot see them.
+
+Do not `git add`, `git commit`, `git push`, open a PR, or enqueue anything. If you believe the change
+is finished, say so in your report and stop; the caller takes it from there.
+
+### 3. Never run a full-suite or whole-package test run.
+
+The gate owns that, one PR at a time, and running it here saturates the machine the gate is queued
+for. Your verification budget is the project's **scoped check** (`scopedCheck` in
+`<repo>/.agents/worktree.json` — typically format-check + lint + typecheck, no build, no tests) plus,
+at most, a **single targeted test file** run directly.
+
+Backgrounding a banned run does not make it allowed. Read the project's config for the actual
+command rather than assuming one.
+
+## Scope
+
+- **Only the code this change touched.** Read `git diff` **and** `git status` (untracked files are
+  part of your change and are the ones a plain `git diff` misses). Diff against the fork point, not
+  `HEAD` — `git diff $(git merge-base HEAD origin/<base>)` — so an already-committed early block is
+  still in view.
+- **Stay inside the worktree you were given.** Never edit a file outside it.
+- **Do not refactor pre-existing code the change merely sits near.** Flag it in the report instead. A
+  cleanup that widens the diff makes the orchestrator's PR review harder, and the slice's do-not-touch
+  boundaries exist because another slice may own that file right now.
+- **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
+  bounds here too.
+
+## What to look for
+
+Run the lenses in this order. It matters: a correctness fix can introduce something to simplify, and
+a simplification can expose a correctness problem.
+
+### Correctness
+
+- The change does what the brief actually asked, including the parts that are easy to skip.
+- Edge cases the happy path hides: empty collections, absent optional values, the first and last
+  iteration, a failure partway through a multi-step write.
+- Error handling that swallows rather than surfaces — a `catch` that logs and continues past a
+  condition the caller needed to know about.
+- Anything that would fail only in combination with a sibling slice's half of a contract. You cannot
+  test that here, so **name it in the report** for the orchestrator, who can.
+
+### Reuse
+
+- Reimplements a helper, type, or utility that already exists — call the existing one.
+- A new abstraction duplicating one already in the codebase — converge on the established pattern.
+- Logic copy-pasted across two or more spots inside this change — extract one shared helper.
+
+### Simplification
+
+- Single-use wrappers, indirection, or abstractions with exactly one caller — inline them.
+- Generics, options bags, or config knobs with one concrete use — collapse to the concrete case.
+- Dead code: unused variables, unreachable branches, functions never called.
+- Over-defensive guards for states the surrounding code makes impossible.
+- Nested conditionals that flatten cleanly with early returns.
+
+### Efficiency
+
+- Repeated lookups or recomputation, work inside a loop that belongs outside it.
+- N+1 or per-item I/O that should be batched.
+- Only where the win is real. Never trade clarity for a micro-gain.
+
+### Altitude and clarity
+
+- A low-level detail leaking into a high-level flow, or a one-liner buried under ceremony — move
+  logic to the layer it belongs in.
+- Vague names (`data`, `result`, `tmp`) → names that say what the value holds.
+- Comments restating the code → delete. Comments explaining a non-obvious *why* or *how* → keep.
+- Match the conventions of the files you are already in.
+
+## What NOT to change
+
+- **Formatting and import order** — the formatter owns those, and the caller runs it in write mode
+  immediately before committing.
+- **Observable behavior**, unless you are fixing a correctness defect you can name. A "cleanup" that
+  changes what the code does is a behavior change wearing a cleanup's clothes.
+- **Subjective style** that reduces neither reuse, complexity, nor cost.
+- **An existing suppression** (`eslint-disable`, `@ts-expect-error`) that the change did not add. It
+  is the previous author's claim, already reviewed on the PR that introduced it. Removing it to look
+  tidy is a behavior change nobody asked for. Flag it if you think it is wrong.
+
+## Process
+
+1. **Gather.** `git diff` against the fork point, `git status` for untracked files, and read the
+   current on-disk version of every file the change touched.
+2. **Read context.** Follow imports out of the changed files far enough to spot the existing helper
+   you should be reusing instead of the one you just wrote.
+3. **Decide, then apply.** Smallest safe edits first. You are the agent that owns this slice, so the
+   call on every finding is yours — apply what belongs and consciously reject the rest.
+4. **Verify.** Run the project's `scopedCheck`. If a targeted test file covers what you changed, run
+   that one file. If an edit breaks a check, fix the cause or revert that edit — never suppress the
+   check.
+5. **Report** (below), and stop. Do not commit.
+
+## Output
+
+Report to the caller in prose, covering four things. Keep it short enough to read at a glance:
+
+- **Applied** — each change you made and the one-line reason.
+- **Rejected** — each finding you considered and deliberately did not act on, and why. This is not
+  filler. A finding you silently dropped is indistinguishable from one you never saw, and the
+  orchestrator reviewing your PR has no way to tell the difference.
+- **Flagged, out of scope** — pre-existing problems you found and correctly left alone, and any
+  cross-slice interaction you could not verify from inside this worktree.
+- **Verification** — which scoped check you ran and its result, and which single test file if any.
+
+Then hand back to whatever called you. The commit, the push, the PR, and the gate ticket are the
+caller's, in that order, and none of them are yours.

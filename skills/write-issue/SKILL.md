@@ -41,6 +41,17 @@ A body that reads like a lab notebook is a bug. A body that reads like a build o
 
 ---
 
+## A follow-up from a live run is a first-class input
+
+Most issues start as an idea. Many start instead as **something a run surfaced and did not land** — residual cleanup, a doc a change made stale, a second call site, a missing test, a rename left half-done. `/pipeline:orchestrate` requires both roles to *file* those rather than list them in a hand-back, so this skill is where they arrive, and they are written exactly like any other issue: grounded, forward-facing, real `file:line` targets. Two things are additional.
+
+- **Link it to what produced it.** `Follows #<N>` for the issue whose work surfaced it, or `Part of #<umbrella>` when that work is a sub-issue of an umbrella — and in the umbrella case, add it to the umbrella's `- [ ] #<sub>` checklist the same way Step 4 links any sub-issue. *The failure this prevents: an unlinked follow-up is indistinguishable from a fresh idea, so whoever picks it up has to reconstruct the slice, the PR and the decision that created the residue before they can size it — and the umbrella it belongs to closes looking complete while its leftovers sit untracked beside it.*
+- **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path". That is a **target**, not archeology: it says where the residue is and why it is there. How the run went, what was tried first, and who noticed still go in the bin, per the rule above.
+
+The linking convention is also what makes a follow-up placeable by `/pipeline:decompose` and `/pipeline:orchestrate`: an issue that says which arc it belongs to can be folded into that arc's wave plan — and while the arc has an **epic branch** live, onto that branch — instead of being scheduled as unrelated work.
+
+---
+
 ## Step 1 — Ground it in the real code (this is what makes the targets trustworthy)
 
 An issue written from the idea alone names files that don't exist and misstates the coupling. **Ground every target before you write it.** This grounding is the single biggest lever on how well `/pipeline:decompose` and the implementer do — real paths, real consumers, real boundaries.
@@ -101,6 +112,7 @@ You may author the umbrella + subs directly, or hand a single issue to `/pipelin
   - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"`
 - **Milestone** takes a number, not a title — resolve it first (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass `-F "milestone=<n>"`.
 - **Umbrella linking**: create the subs, capture their numbers, then PATCH the umbrella body with the `- [ ] #<sub>` checklist. Each sub references the umbrella (`Part of #<umbrella>`).
+- **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>` when the originating work sits under one, in which case PATCH the umbrella body to add it to the checklist as well. An umbrella whose checklist is complete while its follow-ups sit outside it reads as finished work that is not.
 - **Labels**: apply an existing `epic`/`umbrella` label if the repo has one; don't invent exotic labels. That label names the **tracking shape** and nothing else — it is not a branch decision, and `/pipeline:decompose` still answers the epic-branch question on its own two rules. *The failure this prevents: the label reads as the verdict it shares a word with, and an umbrella filed under it looks like a branch already chosen.*
 
 After writing, tell the user what you filed (issue #, or umbrella # + sub #s) and end with the handoff.

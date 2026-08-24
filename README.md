@@ -329,7 +329,8 @@ claude plugin validate . --strict
     │   └── references/gate-queue.md
     ├── write-issue/SKILL.md
     ├── decompose/SKILL.md
-    └── orchestrate/SKILL.md
+    ├── orchestrate/SKILL.md
+    └── review/SKILL.md
 ```
 
 To change the workflow: edit the file, commit, push. A clone-install picks it up on `git pull`.

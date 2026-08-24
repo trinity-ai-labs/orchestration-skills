@@ -61,7 +61,8 @@ Write the body in this order. Not every issue needs every section — small issu
 - **Approach** — the chosen design, stated as decisions (not options you're weighing). If there's a key structural choice, state it and move on.
 - **Targets** — the concrete `file:line` list the work touches, as the to-do list. This is the grounded core; it's what makes the issue actionable. Group by area.
 - **Type / interface sketch** — a short code block for a new type, API shape, or contract, when it clarifies the plan. Real names.
-- **Phases / waves** — if the work has a clear dependency order (foundational thing first, consumers after), name the phases at a high level. Leave the *detailed* slicing (do-not-touch boundaries, model tiers, conflict map) to `/pipeline:decompose` — don't pre-empt it; just give the shape.
+- **Phases / waves** — if the work has a clear dependency order (foundational thing first, consumers after), name the phases at a high level, and at **each boundary between them state whether the branch is independently shippable there** — plus any breaking foundational change (a required field, a NOT-NULL swap, a renamed export) every later phase must follow. That fact is a property of the plan you just designed rather than of the code as it stands, so nothing downstream can read it back out of the tree; left out, it defaults to “shippable”, because an unasked question reads as a no. *The failure this prevents: a foundational phase lands on the shared integration branch and sits there half-migrated — green at every step, and forked from by every other session — because the plan never said the states in between were ones you would not ship.* Leave the *detailed* slicing (do-not-touch boundaries, model tiers, conflict map) to `/pipeline:decompose` — don't pre-empt it; just give the shape.
+- **Seams** — name any **producer → consumer** shape this plan introduces or changes whose two halves land in different phases: a return type, a schema field, a config key, a prompt variable, a behavior that documentation describes. Write each one as *producer → consumer → the shape between them*. The ones to write down most carefully are the **cross-tree** seams — code ↔ docs, code ↔ prompt, code ↔ config — where the halves sit in different languages or different trees and nothing mechanical links them, so each half is correct on its own and only the pair is wrong. *The failure this prevents: an unnamed seam is invisible to a file-based conflict map (the halves share no file), invisible to each half's own checks, and invisible to every later reader — and the author who designed the change is the last person who can still see it without rediscovering it.*
 - **Verify** — what "done" looks like: the behavior, the tests, the gate/check that must pass, the greps that must come back empty. A checkable bar, not a vibe.
 - **Constraints** — the project conventions that bind it (from `AGENTS.md`): compat policy (e.g. forward-only/no-shims where that's the house rule), comment style, etc.
 
@@ -69,11 +70,23 @@ Keep every section in the *forward-facing* register from the rule above.
 
 ---
 
+## What `/pipeline:decompose` does with this
+
+The next leg reads this issue and makes **two path decisions** off it. Neither is yours to make — but both are only as good as the facts above, so write the body knowing what they feed.
+
+- **Output path — a comment, or an umbrella + sub-issues.** `/pipeline:decompose` posts its breakdown as a comment on the issue by default, and converts the issue into an umbrella with one sub-issue per slice when the work is large **and** multi-area **and** each slice is a PR someone would want to track on its own. Your **phases**, your **targets grouped by area**, and your **verify bar** are what that reads from — they say how many waves there are, how many areas they span, and whether a piece closes on its own.
+- **Epic-branch path — the integration branch, or an epic branch cut from it.** Two rules reach for an epic branch and they answer different questions: **does any intermediate state leave the integration branch in a condition you would not ship?**, and — independently of that — whether the slices will be **dispatched in parallel**, since multi-slice work fanned out concurrently defaults to converging on an epic branch rather than on the shared one. Single-slice work never cuts one, and neither rule is a slice count or a busy integration branch. `/pipeline:decompose` answers both in one line every time — the first from your per-boundary **shippability** statements and your **seam** list, the second from the slice shape it derives. Read `/pipeline:decompose` for the rules in full and what the branch costs; this issue's job is to make the first one answerable.
+
+**You supply the evidence; `/pipeline:decompose` returns the verdict.** Write the facts into the body — the phase shape, where the branch is shippable and where it is not, which seams the plan creates — and stop there. *The failure this prevents: an issue that states a conclusion instead of its inputs hands the grounding pass an answer it can no longer check, and leaves the facts behind that answer unwritten anywhere.*
+
+---
+
 ## Step 3 — Single issue vs umbrella + sub-issues
 
 - **Single issue** (the default) — small-to-medium work, a handful of related changes, one release effort. One body, filed; `/pipeline:decompose` reads it and posts its breakdown as a comment or fans out then.
 - **Umbrella + sub-issues** — large AND multi-area AND each piece is a PR someone would want to track/close on its own. Write the umbrella as the overview (goal, the phase/wave shape, a tracked `- [ ] #<sub>` checklist) and one sub-issue per slice (or tightly-coupled cluster), each a self-contained forward-facing spec. Prefix sub-issue titles with their wave (`[W0]`, `[W1]`) so the order is visible.
-- Don't reflexively shard — an umbrella for 2 small slices is tracking overhead with no payoff. Warrant it: multiple waves AND multiple areas AND independently-trackable PRs.
+- Don't reflexively shard — an umbrella for 2 small slices is tracking overhead with no payoff. Warrant it on the same test `/pipeline:decompose` applies: **multiple waves AND multiple areas AND each is a PR someone would want to track on its own.**
+- **An umbrella is not an epic branch, and filing one settles nothing about the other.** The two are orthogonal: an umbrella is a *tracking shape* — how the work is written down, assigned, and closed — while an epic branch is a *branch lifecycle*, where the slices fork from and PR into. Either can exist without the other, and `/pipeline:decompose` decides the branch on its own two rules, never from how the issue was filed. *The failure this prevents: “epic” names both things, so an author who reads it as one concludes that filing an umbrella already answered the branch question — and the facts that would actually answer it never get written.*
 
 You may author the umbrella + subs directly, or hand a single issue to `/pipeline:decompose` and let *it* convert to an umbrella when the work proves large enough — both are fine; pick based on whether you already know the slice shape.
 
@@ -88,7 +101,7 @@ You may author the umbrella + subs directly, or hand a single issue to `/pipelin
   - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"`
 - **Milestone** takes a number, not a title — resolve it first (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass `-F "milestone=<n>"`.
 - **Umbrella linking**: create the subs, capture their numbers, then PATCH the umbrella body with the `- [ ] #<sub>` checklist. Each sub references the umbrella (`Part of #<umbrella>`).
-- **Labels**: apply an existing `epic`/`umbrella` label if the repo has one; don't invent exotic labels.
+- **Labels**: apply an existing `epic`/`umbrella` label if the repo has one; don't invent exotic labels. That label names the **tracking shape** and nothing else — it is not a branch decision, and `/pipeline:decompose` still answers the epic-branch question on its own two rules. *The failure this prevents: the label reads as the verdict it shares a word with, and an umbrella filed under it looks like a branch already chosen.*
 
 After writing, tell the user what you filed (issue #, or umbrella # + sub #s) and end with the handoff.
 
@@ -107,6 +120,7 @@ Then **stop.** Don't slice into waves-with-boundaries, make worktrees, or write 
 ## What write-issue does NOT do (hard boundaries)
 
 - **No slicing into orchestration units.** You give the *shape* (phases); `/pipeline:decompose` produces the slices with owned files, do-not-touch boundaries, model tiers, and the conflict map. Don't do its job in the issue body.
+- **No branch verdict — state the facts instead.** Write where the branch is shippable between phases and which seams the plan creates, and never write “use an epic branch” (or “no epic branch needed”) into an issue body: that is `/pipeline:decompose`'s one-line answer to make, on your evidence plus the code it grounds against. *The failure this prevents: a verdict in the body reads as settled to everyone downstream, though it was reached without the grounding pass that is supposed to reach it — and it displaces the facts that would let anyone re-check it.*
 - **No code, no worktrees, no dispatch, no merge.** You author an issue. `/pipeline:orchestrate` executes. (You *do* spawn read-only `Explore`/research agents in Step 1 — that's grounding, not building.)
 - **No archeology.** See the rule at the top. If you catch yourself narrating how you discovered a fact, cut it and keep the fact.
 - **Hand off, then stop.** Your turn ends at the filed issue + the handoff line.

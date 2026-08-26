@@ -1,17 +1,19 @@
 ---
 name: orchestrate
 description: >-
-  Release-branch worktree workflow (per-project) — the playbook for coordinating and shipping work off
-  an integration branch using isolated git worktrees. Use whenever you're asked to ORCHESTRATE or
-  coordinate work, complete or work a GitHub issue, execute a plan, or handle a batch of tasks (you
-  decompose, make worktrees, dispatch implementer sub-agents, review their PRs, drain the gate queue, and
-  merge); AND whenever you're told to build, implement, or fix a specific thing in a repo that uses this
-  flow (you're the IMPLEMENTER: code in a worktree, run /pipeline:review over your uncommitted diff when the change
-  warrants it, pass a cheap scoped check, push, open a
+  Release-branch worktree workflow (per-project) — the playbook for coordinating and shipping ONE
+  increment of work off an integration branch using isolated git worktrees, and the mechanics
+  /pipeline:execute invokes each cycle to dispatch the increment it just grounded. Running a whole arc
+  or epic to completion is /pipeline:execute's loop, not this skill's. Use whenever you're asked to
+  ORCHESTRATE or coordinate an increment (you decompose it into independent tasks, make worktrees,
+  dispatch implementer sub-agents, review their PRs, drain the gate queue, and merge); AND whenever
+  you're dispatched as an implementer sub-agent, or told directly to build, implement, or fix a specific
+  thing in a repo that uses this flow (you're the IMPLEMENTER: code in a worktree, run /pipeline:review
+  over your uncommitted diff when the change warrants it, pass a cheap scoped check, push, open a
   draft PR, enqueue the gate, hand back). Covers the generic worktree helper (setup-worktree.sh
   + per-project config), default parallelization, the durable gate queue, the PR review loop,
   merge-not-squash / never-rebase, stop-and-report, and cleanup.
-argument-hint: "[issue # or task batch to coordinate — omit if you're implementing directly]"
+argument-hint: "[the increment — a slice or a wave — to coordinate; omit if you're implementing directly]"
 ---
 
 # Orchestrate — release-branch worktree workflow
@@ -26,11 +28,15 @@ This is project-agnostic. The per-project specifics — which env files to symli
 
 ## First: which role are you?
 
-Before acting, decide whether you are the **orchestrator** or an **implementer** — they behave very differently.
+Before acting, decide whether you are the **orchestrator** or an **implementer**. **Which one you are is decided by how you got here, not by how the work looks** — they behave very differently, and both mistakes are silent.
 
-- **ORCHESTRATOR** when the user asks you to *orchestrate / coordinate* work, to *complete or work a GitHub issue*, to *execute a plan*, or hands you a batch of tasks. You are the coordinator. **Do NOT write the implementation yourself.** You decompose the work, create + verify worktrees, dispatch an implementer sub-agent into each (in parallel when independent), then run the review loop, **drain the gate queue**, and merge. You hold the plan, the reviews, the gate runs, and the merges — not the file edits.
+- **ORCHESTRATOR** — entered from **`/pipeline:execute`**, which invokes this skill once per cycle to dispatch the increment it has just grounded, or from a user asking you directly to *orchestrate / coordinate* one increment. You are the coordinator. **Do NOT write the implementation yourself.** You decompose the increment into independent tasks, create + verify worktrees, dispatch an implementer sub-agent into each (in parallel when independent), then run the review loop, **drain the gate queue**, and merge. You hold the plan, the reviews, the gate runs, and the merges — not the file edits.
 
-- **IMPLEMENTER** when you are a dispatched sub-agent, or the user *directly tells you to implement / build / fix* a specific thing. You do the actual code in your assigned worktree, pass a cheap scoped check, push, open a **draft** PR, **enqueue the gate**, and hand back. **You do not run the full gate, you do not mark your own PR ready, and you do not merge your own PR** — a runner gates it and comments the verdict, and the orchestrator reads the diff, marks it ready, and merges. The ready flag is the reviewer's signature, so it has no override carve-out: in every gate mode your PR is a draft when you hand it back.
+- **IMPLEMENTER** — entered from a **dispatch brief** (an orchestrator handed you one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You do the actual code in your assigned worktree, pass a cheap scoped check, push, open a **draft** PR, **enqueue the gate**, and hand back. **You do not run the full gate, you do not mark your own PR ready, and you do not merge your own PR** — a runner gates it and comments the verdict, and the orchestrator reads the diff, marks it ready, and merges. The ready flag is the reviewer's signature, so it has no override carve-out: in every gate mode your PR is a draft when you hand it back.
+
+**One increment is the unit this playbook works in.** An arc, an epic, or a whole issue enters at **`/pipeline:execute`** instead: it grounds only the **horizon** at **slice depth** (everything past it stays at **shape depth**), invokes this skill to dispatch that increment, then **reconciles** what is still outstanding against the tree the increment actually produced, and goes round again — `skills/execute/SKILL.md` §1–2. That holds even for an arc that turns out to be a single increment, because working out where the horizon falls is the loop's first cycle rather than a precondition for entering it. From inside here you are always running one increment; the loop around it is the caller's.
+
+*The failure this prevents: the wrong role raises no error, and both mistakes produce work that looks like progress. Read as an implementer, an orchestrator writes the code it should have been dispatching — one agent, one worktree, no do-not-touch boundaries, and nobody but the author ever reading the diff. Read as an orchestrator, an implementer dispatches the slice it was handed instead of building it, and its sub-agents inherit a brief whose imperatives end in commit, push, open a PR — so the PR is open before the agent that owns the worktree has decided what goes in it.*
 
 ---
 
@@ -208,7 +214,13 @@ Conflicts do not disappear. Today a slice author resolves a small collision agai
 ## Orchestrator
 
 ### Dispatch
-Decompose the batch into independent tasks. For each: create + **verify** a worktree (above), then **dispatch a plain implementer sub-agent** (no `isolation`) pointed at that worktree path — in parallel whenever the tasks are independent. Spin up as many worktrees/branches as the work needs; the gate doesn't bottleneck fan-out (implementers enqueue rather than gate).
+Decompose the increment into independent tasks. For each: create + **verify** a worktree (above), then **dispatch a plain implementer sub-agent** (no `isolation`) pointed at that worktree path — in parallel whenever the tasks are independent. Spin up as many worktrees/branches as the work needs; the gate doesn't bottleneck fan-out (implementers enqueue rather than gate).
+
+**Two rules that govern what you dispatch live in `skills/execute/SKILL.md`, and are pointed at here rather than restated.** They bind you at dispatch time even when you were invoked directly and never read that skill. *The failure a restatement would cause: the rule then lives in two places, the copies drift, and nothing tells a reader which one is stale — so whichever they happen to open wins by accident.*
+
+- **Merge-surface ordering — `skills/execute/SKILL.md` §5.** Work folded into a live arc is placed by **merge surface before slice cohesion**, and churn goes in a **serial wave** — one slice, nothing else in flight. What it means *here*: the wave you are about to cut worktrees for is your last chance to honour that placement, because once its worktrees exist nothing folded joins it. *The failure this prevents: a wide-footprint change dispatched alongside its neighbours merges textually clean and semantically wrong — git merges by line and cannot know two edits must compose — so every gate in the wave stays green.* This file's *Merging a shared hotspot* is the same hazard reached from the other end, and carries the remedy — read the merged region — for a wave that already holds one.
+
+- **The bare-string verify rider — `skills/execute/SKILL.md` §8.** A slice renaming an identifier that crosses a string boundary — a table, a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify bar, written in at **grounding** time by `/pipeline:decompose`, not added at review. What it means *here* is one check before you cut the worktree: **a rename-shaped brief that reaches you without the rider is a gap to send back.** *The failure this prevents: an orchestrator invoked directly never read `execute`, so a gap not caught here is not caught at all — and both checks an implementer actually runs, a typecheck and one targeted test file, are structurally blind to a renamed literal sitting in a fixture, so the slice reports green and the break lands.*
 
 **Pick the model tier per task — match cost to difficulty.** Pass `model: "sonnet"` to the Agent tool for the *bulk* of implementer dispatches: well-scoped, mechanical, or moderate work (wiring, UI from a clear spec, a route/op that mirrors an existing one, tests, a refactor with a known shape). Reserve `model: "opus"` for genuinely HARD slices: subtle algorithms, ambiguous or design-heavy work, tricky concurrency/lifecycle, security-sensitive code, or large cross-cutting changes where a wrong approach is expensive to unwind. When unsure, **start Sonnet** — a Sonnet PR you have to redirect is cheaper than Opus on routine work; escalate to Opus only if the task proves harder than scoped. Trade-off: the easier the model, the **more explicit the brief** must be — exact files, patterns to copy, hard do-not-touch boundaries, research-first steps. Clarity substitutes for model strength, so a Sonnet brief should read as near-deterministic steps, not "figure it out."
 

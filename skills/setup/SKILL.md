@@ -1,7 +1,7 @@
 ---
 name: setup
 description: >-
-  Onboard a repo onto the write-issue → decompose → orchestrate pipeline. Use whenever a repo has no
+  Onboard a repo onto the /pipeline:write-issue → /pipeline:execute pipeline. Use whenever a repo has no
   `.agents/worktree.json` yet, whenever `setup-worktree.sh` warns "no config", when someone asks to
   SET UP / ONBOARD / WIRE UP the pipeline (or a gate queue / enqueue system) for a project, or when
   an orchestrator refuses to dispatch because the project is unconfigured. You GROUND the repo in its
@@ -14,9 +14,9 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 # setup — onboard a repo onto the pipeline
 
-`/pipeline:orchestrate` cuts a worktree per task and expects each project to declare how it builds, checks, and gates itself. That declaration is `<repo>/.agents/worktree.json`. This skill writes it, and scaffolds the gate queue when the project wants one.
+`/pipeline:orchestrate` — the pass `/pipeline:execute` invokes to ship each increment — cuts a worktree per task and expects each project to declare how it builds, checks, and gates itself. That declaration is `<repo>/.agents/worktree.json`. This skill writes it, and scaffolds the gate queue when the project wants one.
 
-**The artifacts live in the project, not in this plugin.** The plugin stays markdown plus three thin helpers; the repo gets its own `worktree.json` and its own queue scripts, which it then owns and evolves. Two projects' queues *should* be allowed to diverge — one may grow transient-red baseline handling the other never needs.
+**The artifacts live in the project, not in this plugin.** The plugin stays markdown plus four thin helpers, each shipped in both shells; the repo gets its own `worktree.json` and its own queue scripts, which it then owns and evolves. Two projects' queues *should* be allowed to diverge — one may grow transient-red baseline handling the other never needs.
 
 ## Why an unconfigured repo is worse than an obviously-broken one
 
@@ -127,9 +127,9 @@ A **zero-dependency** project is not covered by it. A bare worktree there is ful
 
 - **No guessed commands.** Every value traces to a file you read. If you genuinely cannot determine the gate, write the config without `gate` and say so — a missing key is honest, a wrong one is a gate that passes while testing nothing.
 - **No secrets.** `envFiles` carries paths. Never inline a value, never read the env files to "check" them.
-- **No feature work, no slicing, no dispatch.** You configure the repo and stop. Slicing is `/pipeline:decompose`; execution is `/pipeline:orchestrate`.
+- **No feature work, no slicing, no dispatch.** You configure the repo and stop. Running the work is `/pipeline:execute`'s loop — it grounds each increment through `/pipeline:decompose` and ships it through `/pipeline:orchestrate`.
 - **Don't scaffold a queue into a project that doesn't want one.**
 
 **Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
-> **Ready to orchestrate.** `<repo>` is configured — hand work to `/pipeline:write-issue` to file it, or `/pipeline:orchestrate` to execute a plan you already have.
+> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:write-issue` to file it, or hand a plan you already have straight to `/pipeline:execute`.

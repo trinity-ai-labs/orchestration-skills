@@ -1,19 +1,20 @@
 # orchestration-skills
 
-The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a grounded GitHub issue, slice it into parallel waves, then ship it off an integration branch using isolated git worktrees and orchestrator / implementer sub-agents.
+The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a grounded GitHub issue, then run it to completion as a just-in-time loop — ground the next dispatchable increment, ship it off an integration branch through isolated git worktrees and orchestrator / implementer sub-agents, then re-ground what remains against the tree that increment actually produced.
 
 ```
-idea / plan  ──/pipeline:write-issue──▶  grounded issue  ──/pipeline:decompose──▶  slices + waves  ──/pipeline:orchestrate──▶  worktrees · PRs · merges
+idea / plan  ──/pipeline:write-issue──▶  grounded issue  ──/pipeline:execute──▶  ground the horizon · dispatch · reconcile · repeat until empty
 ```
 
-Five skills in one plugin — `setup` onboards a repo once, then the three-leg pipeline runs on it: each skill's handoff names the next by slash-command, and `decompose` + `orchestrate` both read the same per-project config. `review` is the one an implementer calls on itself mid-slice, not a leg of the pipeline.
+Six skills in one plugin, and **two commands**. `setup` onboards a repo once; after that `/pipeline:write-issue` files the plan and `/pipeline:execute` runs it. `decompose` and `orchestrate` are the two passes the loop drives each cycle — still directly invocable when you want one increment grounded or one increment dispatched, but not where an arc starts. `review` is the one an implementer calls on itself mid-slice.
 
 | Skill | Does | Never does |
 |---|---|---|
 | [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if it wants one | Guess a command; write features |
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code and files it as a forward-facing issue (or umbrella + subs) | Slice into waves; write code |
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | Turns that plan into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Make worktrees; dispatch; merge |
-| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | — (it's the executor) |
+| [`/pipeline:execute`](skills/execute/SKILL.md) | Runs an arc to completion as a loop: grounds the horizon, dispatches it, reconciles everything still outstanding against the merged tree, rewrites the rest, repeats | Write code; ground beyond the horizon |
+| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The loop's **grounding** pass: turns the horizon into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Ground past the horizon; make worktrees; dispatch; merge |
+| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | The loop's **dispatch** pass: cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | Run the loop around itself; write the code it dispatches |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality + correctness pass over its **uncommitted** diff, run inline right before it commits | Spawn sub-agents; commit; push; run the full suite |
 
 The plugin also ships the machinery `orchestrate` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — and `scripts/check.sh` compares the two on every run, so the pair cannot drift apart quietly.
@@ -54,7 +55,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its four skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
+Verify with `/plugin list` — you should see `pipeline`, its six skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
 
 ### Prerequisites
 
@@ -197,19 +198,34 @@ A persisted Windows environment variable is inherited by every process started a
 
 ## The mental model
 
+**An arc is a loop, not a plan you write once.** `/pipeline:execute` grounds only the **horizon** — the next dispatchable increment, meaning every remaining item whose dependencies have already landed — dispatches it, then **reconciles** everything still outstanding against the tree that increment actually produced, rewrites what remains, and goes round again until the plan is empty and the close-out is green. That is the whole loop, and it is why the surface is two commands rather than three.
+
+Every item in the plan therefore sits at one of **two grounding depths**, decided by where the horizon is and by nothing else:
+
+| Depth | Applies to | Carries |
+|---|---|---|
+| **Slice depth** | the horizon, and only the horizon | Owned files as real paths, do-not-touch boundaries, depends-on, the framework skill to open with, the model tier, the brief, the verify bar — grounded against the tree as it stands *right now* and dispatched in the same cycle |
+| **Shape depth** | everything beyond it | Goal, area, what it waits on, one line on why it comes after the thing before it — and **no `file:line`, no owned files, no boundaries, no model tier, no verify bar** |
+
+Reaching the horizon is the only thing that promotes an item from one depth to the other — not a well-understood item, not a small one, not one you were asked about. Both mistakes are silent. A coordinate grounded three waves early names a path an intervening wave has since moved: nothing errors, the brief still reads well, and the implementer opens a tree where the target is not there, finds the nearest plausible thing, and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
+
+After every increment merges, the loop re-checks the rest of the plan against the merged tree — coordinates that no longer resolve, renames whose *senses* the plan still uses the old word for, work the tree now forces that no remaining item owns, and assumptions the increment falsified — then folds what the arc cannot ship without into a named slice and files the rest as linked issues. It decides wave assignment, fold-vs-file, sizing and re-slicing itself, and asks you only about a product or design fork the code and conventions cannot settle.
+
 You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`). Every task gets its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>`, branched off the integration branch. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
 
 **One optional second level: the epic branch.** Two rules reach for it. A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. And multi-slice work **dispatched in parallel** reaches for it by default even when every intermediate state would ship, because concurrent slices converging on the shared branch cost something regardless of that: each live slice's base moves under the others, the branch ends up carrying merged trees no single slice's gate ever ran, an epic that turns out wrong is N merges to unpick instead of one to revert, and the two halves of a contract seam are far easier to compare while both are still converging somewhere you control. For those, an **epic branch** is cut from the integration branch in the main checkout: the epic's slices fork from it and PR into it, it is gated as a whole once they have all landed — when the merges actually produced a tree the slice gates did not already cover, which is a one-command check rather than a habit — and it reaches the integration branch as one ordinary merge at the end. Neither rule is a slice count, and neither is "the integration branch is busy": the first asks whether a partial state is *broken*, and the second keys on your own fan-out across one change rather than on other sessions' traffic. It buys isolation and costs deferred conflicts, so the orchestrator merges the integration branch back into it on the same tick that drains the gate queue — mandatory, and the more so now that the second rule fires on the shape this flow reaches for most often. **Single-slice work never cuts one**, and the flow above is unchanged when there isn't one.
 
 **Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: an orchestrator read this diff and is merging it. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge. A green gate says the suite passed; it cannot say the agent solved the right problem.
 
-When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's in**:
+`/pipeline:orchestrate` is where one increment gets shipped, and it runs in one of **two roles — decided by how it was entered, not by how the work looks**:
 
-- **Orchestrator** — you asked it to *coordinate* work, *work a GitHub issue*, or *execute a plan*. It does **not** write code. It decomposes, makes + verifies a worktree per task, dispatches implementer sub-agents in parallel, reviews each PR by reading the diff, drains the gate queue, and merges. Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up folded into the plan.
-- **Implementer** — you told it to *build / fix / implement* a specific thing (or it was dispatched as a sub-agent). It codes in its worktree, updates the docs its change falsifies, greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a verdict per doc it checked. Work it found but could not land, it files as a linked issue and reports by number rather than leaving in prose.
+- **Orchestrator** — entered from `/pipeline:execute`'s loop, which invokes it once per cycle to dispatch the increment it has just grounded, or from you asking it to coordinate one increment directly. It does **not** write code. It makes + verifies a worktree per slice, dispatches implementer sub-agents in parallel, reviews each PR by reading the diff, drains the gate queue, and merges. Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up folded into the plan.
+- **Implementer** — entered from a dispatch brief (an orchestrator handed it one slice and the worktree to build it in), or from you telling it to *build / fix / implement* a specific thing. It codes in its worktree, updates the docs its change falsifies, greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a verdict per doc it checked. Work it found but could not land, it files as a linked issue and reports by number rather than leaving in prose.
+
+An arc, an epic, or a whole issue enters at **`/pipeline:execute`** instead — including one that turns out to be a single increment, because working out where the horizon falls is the loop's first cycle rather than something you have to settle before entering it.
 
 ### Why this shape
-- **Front-loaded planning** → `write-issue` and `decompose` do the expensive grounding *before* any worktree exists, so the orchestrator isn't slicing work mid-flight while juggling PRs and merges.
+- **Just-in-time grounding** → `execute` grounds one increment at a time, against the tree that increment's implementers will actually open, then re-grounds what remains once it has merged. A plan grounded once up front is at its most accurate the moment before any of it runs and decays from there: every wave that lands moves coordinates the later waves were written against, and nothing about that decay raises an error.
 - **Isolated worktrees** → parallel tasks never collide; each has its own `node_modules` and branch.
 - **A durable gate queue** → implementers enqueue and hand back rather than waiting, so a wide fan-out never serializes on a gate lock and a dying agent can't strand committed work.
 - **Real merge commits, never squash/rebase** → history is preserved; parallel-branch conflicts resolve at merge time.
@@ -221,11 +237,17 @@ When you invoke `/pipeline:orchestrate`, Claude first decides **which role it's 
 ```
 /pipeline:setup                                           # → once per repo: writes .agents/worktree.json
 /pipeline:write-issue add per-workspace model overrides   # → files issue #1042, hands off
-/pipeline:decompose #1042                                 # → posts slices + waves onto the issue
-/pipeline:orchestrate work issue #1042                    # → worktrees, PRs, merges
+/pipeline:execute #1042                                   # → grounds the horizon, dispatches it, reconciles, repeats
 ```
 
-Each leg ends with an explicit handoff line and **stops** — you decide whether to run the next.
+Two commands. `write-issue` ends with an explicit handoff line and **stops** — you decide whether to run the second. `execute` then runs the arc to completion on its own, cycle after cycle, reporting what it decided each time; it comes back to you only for a genuine product or design fork the code and conventions cannot settle, asked in plain chat, one question at a time, with a recommendation.
+
+The two passes the loop drives are still there when you want one on its own — they simply aren't where an arc starts:
+
+```
+/pipeline:decompose #1042            # → grounds ONE increment and posts the breakdown; no dispatch, no loop
+/pipeline:orchestrate wave 1 of #1042  # → dispatches ONE increment already grounded; no loop around it
+```
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings the docs it falsifies along with it, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
 
@@ -270,6 +292,7 @@ A repo with no config still cuts a worktree — but a **bare** one, with no env 
 
 ## The hard rules (Claude follows these; good to know)
 
+- **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files, boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the paths — and then nothing errors.
 - **Never** use the Agent tool's `isolation: "worktree"` param or any auto worktree provisioner — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
 - **Never squash-merge, never rebase.** Always real merge commits.
 - **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
@@ -328,6 +351,7 @@ claude plugin validate . --strict
     │   ├── SKILL.md
     │   └── references/gate-queue.md
     ├── write-issue/SKILL.md
+    ├── execute/SKILL.md
     ├── decompose/SKILL.md
     ├── orchestrate/SKILL.md
     └── review/SKILL.md

@@ -145,8 +145,28 @@ jobs:
   # reads the manifest as it was at that commit, so it is only meaningful inside
   # CI — a local copy would either not work (no base to compare against) or lie
   # about what a merge would ship. Every other check ported out; this one stays.
+  #
+  # Scoped to PRs whose base is main via the `if:` below. What this guard
+  # protects is main specifically — plugin.json's `version` is what an
+  # installed plugin is PINNED to, and main is the only branch an install ever
+  # pulls from. A PR whose base is not main cannot produce the failure this job
+  # exists to catch: merging it ships to nobody, so there is nothing for a
+  # stale version to silently fail to reach. That is not a hole in the epic
+  # flow — the epic → main PR that eventually lands the arc is itself a PR
+  # into main, and it diffs against main's sha, so the whole arc's accumulated
+  # content is still checked in one shot, at the one point any of it actually
+  # ships. And the condition fails closed: anything that is not a
+  # pull_request — a push to main — still runs it; only a PR whose base is
+  # some other branch is skipped.
+  #
+  # This scoping exists because the unscoped version fired on every intra-epic
+  # PR, and what that false red costs is not the red itself: a guard that
+  # fails on correct work trains everyone who sees it to disregard that guard,
+  # and an instruction to ignore a red check is indistinguishable from the one
+  # that would wave through a real bump failure.
   version-bump:
     name: plugin content changed ⇒ version bumped
+    if: github.event_name != 'pull_request' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       # The one job that needs history.

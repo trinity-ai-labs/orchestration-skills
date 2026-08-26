@@ -2,28 +2,30 @@
 name: write-issue
 description: >-
   Turn an idea or a rough plan into a clean, grounded, forward-facing GitHub issue (or an umbrella +
-  sub-issues) that feeds /pipeline:decompose. The FIRST leg of the write-issue → decompose → orchestrate pipeline.
-  Use whenever you're asked to WRITE UP / FILE / OPEN an issue, capture a plan as an issue, or turn a
-  design discussion into trackable work. You GROUND the plan in the real codebase (real file:line
-  targets, verified against the code — never guesses or half-remembered claims), then write the issue as
-  a PLAN TO EXECUTE — goal, approach, concrete targets, type/interface sketch, phases, verify — stripped
-  of exploration narrative and history. You do NOT slice into orchestration waves with do-not-touch
-  boundaries and model tiers (that's /pipeline:decompose), write code, or dispatch (that's /pipeline:orchestrate). This
-  skill is project-agnostic — it reads each repo's own AGENTS.md / conventions rather than hardcoding one
-  project. For large multi-area work you write an umbrella + one sub-issue per slice; otherwise a single
-  issue. Ends with the handoff to /pipeline:decompose.
+  sub-issues) that feeds /pipeline:execute. The FIRST of the pipeline's two user-facing legs:
+  /pipeline:write-issue → /pipeline:execute. Use whenever you're asked to WRITE UP / FILE / OPEN an
+  issue, capture a plan as an issue, or turn a design discussion into trackable work. You GROUND the
+  plan in the real codebase (real file:line targets, verified against the code — never guesses or
+  half-remembered claims), then write the issue as a PLAN TO EXECUTE — goal, approach, concrete targets,
+  type/interface sketch, phases, verify — stripped of exploration narrative and history. You do NOT
+  slice into dispatchable waves with do-not-touch boundaries and model tiers, run the arc, or dispatch
+  anything: /pipeline:execute owns the loop that does, grounding each increment through
+  /pipeline:decompose and shipping it through /pipeline:orchestrate. This skill is project-agnostic — it
+  reads each repo's own AGENTS.md / conventions rather than hardcoding one project. For large multi-area
+  work you write an umbrella + one sub-issue per slice; otherwise a single issue. Ends with the handoff
+  to /pipeline:execute.
 argument-hint: "[the idea or plan to write up — omit to write up the plan already in chat]"
 ---
 
 # write-issue — author the issue that feeds the pipeline
 
-The dev pipeline is **`/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:orchestrate`**: write the issue, slice it into parallel waves, execute it in worktrees. This skill owns the first leg — turning an idea or a design discussion into a **clean, grounded, forward-facing issue** the other two can consume without re-deriving the plan.
+The dev pipeline is two commands: **`/pipeline:write-issue` → `/pipeline:execute`**. Write the issue, then run the arc to completion as a just-in-time loop. This skill owns the first leg — turning an idea or a design discussion into a **clean, grounded, forward-facing issue** the loop can execute without re-deriving the plan.
 
 ```
-idea / plan  ──/pipeline:write-issue──▶  a grounded, forward-facing issue  ──/pipeline:decompose──▶  slices + waves  ──/pipeline:orchestrate──▶  worktrees · PRs · merges
+idea / plan  ──/pipeline:write-issue──▶  a grounded, forward-facing issue  ──/pipeline:execute──▶  ground the horizon · dispatch · reconcile · repeat until empty
 ```
 
-`write-issue` produces the **plan**; `decompose` turns it into orchestration-ready **slices**; `orchestrate` **runs** them. This skill never writes code, makes worktrees, or dispatches — it produces the issue the rest of the pipeline executes.
+`write-issue` produces the **plan**; `/pipeline:execute` **runs** it — grounding one increment at a time through `/pipeline:decompose`, shipping each through `/pipeline:orchestrate`, then reconciling everything still outstanding against the tree that increment actually produced. This skill never writes code, makes worktrees, or dispatches — it produces the issue the loop executes.
 
 It is **project-agnostic**. Like `decompose`/`orchestrate`, it reads each repo's own conventions (`AGENTS.md`, per-project config) rather than hardcoding a stack. Nothing below assumes a particular project.
 
@@ -31,7 +33,7 @@ It is **project-agnostic**. Like `decompose`/`orchestrate`, it reads each repo's
 
 ## The one rule that defines a good issue: forward-facing, not archeological
 
-**The issue states the plan to execute — never how you figured it out.** An issue is read by an implementer (human or `/pipeline:decompose`) who needs *what we're going to do*, not the journey to it. Exploration narrative, discovery history, and corrections-to-earlier-analysis are noise that buries the actionable spec.
+**The issue states the plan to execute — never how you figured it out.** An issue is read by an implementer (human or `/pipeline:execute`) who needs *what we're going to do*, not the journey to it. Exploration narrative, discovery history, and corrections-to-earlier-analysis are noise that buries the actionable spec.
 
 - **KEEP** — the goal, the approach, concrete `file:line` targets (the to-do list), a type/interface sketch where it clarifies, the phases/waves, the verify bar.
 - **STRIP** — "an earlier scan found / was wrong", "verified against the code", "the first pass missed X", "the research said", how-we-discovered-it, and any correction-of-a-prior-investigation meta.
@@ -43,12 +45,12 @@ A body that reads like a lab notebook is a bug. A body that reads like a build o
 
 ## A follow-up from a live run is a first-class input
 
-Most issues start as an idea. Many start instead as **something a run surfaced and did not land** — residual cleanup, a doc a change made stale, a second call site, a missing test, a rename left half-done. `/pipeline:orchestrate` requires both roles to *file* those rather than list them in a hand-back, so this skill is where they arrive, and they are written exactly like any other issue: grounded, forward-facing, real `file:line` targets. Two things are additional.
+Most issues start as an idea. Many start instead as **something a run surfaced and did not land** — residual cleanup, a doc a change made stale, a second call site, a missing test, a rename left half-done. `/pipeline:orchestrate` requires both roles to *file* those rather than list them in a hand-back, and `/pipeline:execute` sends every item its fold-vs-file test declines to fold the same way — so this skill is where they arrive, and they are written exactly like any other issue: grounded, forward-facing, real `file:line` targets. Two things are additional.
 
 - **Link it to what produced it.** `Follows #<N>` for the issue whose work surfaced it, or `Part of #<umbrella>` when that work is a sub-issue of an umbrella — and in the umbrella case, add it to the umbrella's `- [ ] #<sub>` checklist the same way Step 4 links any sub-issue. *The failure this prevents: an unlinked follow-up is indistinguishable from a fresh idea, so whoever picks it up has to reconstruct the slice, the PR and the decision that created the residue before they can size it — and the umbrella it belongs to closes looking complete while its leftovers sit untracked beside it.*
 - **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path". That is a **target**, not archeology: it says where the residue is and why it is there. How the run went, what was tried first, and who noticed still go in the bin, per the rule above.
 
-The linking convention is also what makes a follow-up placeable by `/pipeline:decompose` and `/pipeline:orchestrate`: an issue that says which arc it belongs to can be folded into that arc's wave plan — and while the arc has an **epic branch** live, onto that branch — instead of being scheduled as unrelated work.
+The linking convention is also what makes a follow-up **placeable**: an issue that names the arc it came out of is one `/pipeline:execute` can run its fold-vs-file test against — folded into that arc's wave plan as a named slice when the arc genuinely cannot land without it, and otherwise left linked and tracked beside it rather than scheduled as unrelated work. Either way it inherits the arc's branch level: while that arc has an **epic branch** live, the follow-up it surfaced forks from and PRs into that branch like any other slice of it.
 
 ---
 
@@ -81,11 +83,13 @@ Keep every section in the *forward-facing* register from the rule above.
 
 ---
 
-## What `/pipeline:decompose` does with this
+## What the second leg does with this
 
-The next leg reads this issue and makes **two path decisions** off it. Neither is yours to make — but both are only as good as the facts above, so write the body knowing what they feed.
+`/pipeline:execute` runs the arc as a loop: it grounds the next dispatchable increment — the **horizon** — through `/pipeline:decompose`, ships it through `/pipeline:orchestrate`, then reconciles everything still outstanding against the tree that increment produced and goes round again. Your **phases** are what its first cycle reads the horizon out of; everything past that horizon deliberately stays ungrounded until the cycle that dispatches it.
 
-- **Output path — a comment, or an umbrella + sub-issues.** `/pipeline:decompose` posts its breakdown as a comment on the issue by default, and converts the issue into an umbrella with one sub-issue per slice when the work is large **and** multi-area **and** each slice is a PR someone would want to track on its own. Your **phases**, your **targets grouped by area**, and your **verify bar** are what that reads from — they say how many waves there are, how many areas they span, and whether a piece closes on its own.
+Two path decisions come off this issue on that first cycle. Neither is yours to make — but both are only as good as the facts above, so write the body knowing what they feed.
+
+- **Output path — a comment, or an umbrella + sub-issues.** `/pipeline:decompose` posts its breakdown as a comment on the issue by default, and converts the issue into an umbrella with one sub-issue per slice when the work is large **and** multi-area **and** each slice is a PR someone would want to track on its own. Your **phases**, your **targets grouped by area**, and your **verify bar** are what that reads from — they say how many waves there are, how many areas they span, and whether a piece closes on its own. An umbrella that gets filed then becomes the loop's live state: its body carries the **remaining** plan and is rewritten every cycle rather than appended to, with one comment per completed increment as the history.
 - **Epic-branch path — the integration branch, or an epic branch cut from it.** Two rules reach for an epic branch and they answer different questions: **does any intermediate state leave the integration branch in a condition you would not ship?**, and — independently of that — whether the slices will be **dispatched in parallel**, since multi-slice work fanned out concurrently defaults to converging on an epic branch rather than on the shared one. Single-slice work never cuts one, and neither rule is a slice count or a busy integration branch. `/pipeline:decompose` answers both in one line every time — the first from your per-boundary **shippability** statements and your **seam** list, the second from the slice shape it derives. Read `/pipeline:decompose` for the rules in full and what the branch costs; this issue's job is to make the first one answerable.
 
 **You supply the evidence; `/pipeline:decompose` returns the verdict.** Write the facts into the body — the phase shape, where the branch is shippable and where it is not, which seams the plan creates — and stop there. *The failure this prevents: an issue that states a conclusion instead of its inputs hands the grounding pass an answer it can no longer check, and leaves the facts behind that answer unwritten anywhere.*
@@ -99,7 +103,7 @@ The next leg reads this issue and makes **two path decisions** off it. Neither i
 - Don't reflexively shard — an umbrella for 2 small slices is tracking overhead with no payoff. Warrant it on the same test `/pipeline:decompose` applies: **multiple waves AND multiple areas AND each is a PR someone would want to track on its own.**
 - **An umbrella is not an epic branch, and filing one settles nothing about the other.** The two are orthogonal: an umbrella is a *tracking shape* — how the work is written down, assigned, and closed — while an epic branch is a *branch lifecycle*, where the slices fork from and PR into. Either can exist without the other, and `/pipeline:decompose` decides the branch on its own two rules, never from how the issue was filed. *The failure this prevents: "epic" names both things, so an author who reads it as one concludes that filing an umbrella already answered the branch question — and the facts that would actually answer it never get written.*
 
-You may author the umbrella + subs directly, or hand a single issue to `/pipeline:decompose` and let *it* convert to an umbrella when the work proves large enough — both are fine; pick based on whether you already know the slice shape.
+You may author the umbrella + subs directly, or hand a single issue to `/pipeline:execute` and let its first grounding cycle convert to an umbrella when the work proves large enough — both are fine; pick based on whether you already know the slice shape.
 
 ---
 
@@ -123,18 +127,18 @@ After writing, tell the user what you filed (issue #, or umbrella # + sub #s) an
 
 End with, verbatim intent:
 
-> **Ready to decompose.** Hand this to `/pipeline:decompose` (e.g. `/pipeline:decompose #<N>`), which grounds it into parallel slices + waves; then `/pipeline:orchestrate` cuts a worktree per slice and merges.
+> **Ready to execute.** Hand this to `/pipeline:execute` (e.g. `/pipeline:execute #<N>`), which runs the arc as a loop: it grounds the next dispatchable increment through `/pipeline:decompose`, ships it through `/pipeline:orchestrate` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the rest against the tree that increment produced and repeats until the plan is empty.
 
-Then **stop.** Don't slice into waves-with-boundaries, make worktrees, or write code — the next legs own those.
+Then **stop.** Don't slice into waves-with-boundaries, make worktrees, or write code — the loop owns those.
 
 ---
 
 ## What write-issue does NOT do (hard boundaries)
 
-- **No slicing into orchestration units.** You give the *shape* (phases); `/pipeline:decompose` produces the slices with owned files, do-not-touch boundaries, model tiers, and the conflict map. Don't do its job in the issue body.
+- **No slicing into dispatchable units.** You give the *shape* (phases); `/pipeline:decompose` produces the slices with owned files, do-not-touch boundaries, model tiers, and the conflict map — one increment at a time, as `/pipeline:execute`'s loop reaches each one. Don't do its job in the issue body.
 - **No branch verdict — state the facts instead.** Write where the branch is shippable between phases and which seams the plan creates, and never write "use an epic branch" (or "no epic branch needed") into an issue body: that is `/pipeline:decompose`'s one-line answer to make, on your evidence plus the code it grounds against. *The failure this prevents: a verdict in the body reads as settled to everyone downstream, though it was reached without the grounding pass that is supposed to reach it — and it displaces the facts that would let anyone re-check it.*
-- **No code, no worktrees, no dispatch, no merge.** You author an issue. `/pipeline:orchestrate` executes. (You *do* spawn read-only `Explore`/research agents in Step 1 — that's grounding, not building.)
+- **No code, no worktrees, no dispatch, no merge.** You author an issue. `/pipeline:execute` runs it. (You *do* spawn read-only `Explore`/research agents in Step 1 — that's grounding, not building.)
 - **No archeology.** See the rule at the top. If you catch yourself narrating how you discovered a fact, cut it and keep the fact.
 - **Hand off, then stop.** Your turn ends at the filed issue + the handoff line.
 
-**Why this shape:** the pipeline is only as good as its first artifact. A vague or archeological issue forces `/pipeline:decompose` to re-ground and re-interpret, and an implementer to guess. A grounded, forward-facing issue — real targets, stated decisions, a checkable verify — is a plan the rest of the pipeline executes instead of reverse-engineering.
+**Why this shape:** the pipeline is only as good as its first artifact, and the loop that consumes it re-reads that artifact every cycle. A vague or archeological issue forces each cycle to re-derive what the arc is for before it can ground anything, and an implementer to guess. A grounded, forward-facing issue — real targets, stated decisions, a checkable verify — is a plan `/pipeline:execute` runs instead of reverse-engineering.

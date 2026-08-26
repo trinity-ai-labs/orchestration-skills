@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "pipeline",
   "displayName": "Dev Pipeline",
-  "description": "write-issue \u2192 decompose \u2192 orchestrate: turn an idea into a grounded issue, slice it into parallel waves, ship it through isolated git worktrees.",
-  "version": "1.18.0",
+  "description": "write-issue \u2192 execute: turn an idea into a grounded issue, then run the arc as a just-in-time loop \u2014 ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
+  "version": "2.0.0",
   "author": {
     "name": "Trinity AI Labs",
     "url": "https://github.com/trinity-ai-labs"

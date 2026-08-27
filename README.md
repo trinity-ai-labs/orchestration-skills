@@ -11,7 +11,7 @@ Six skills in one plugin, and **two commands**. `setup` onboards a repo once; af
 | Skill | Does | Never does |
 |---|---|---|
 | [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if it wants one | Guess a command; write features |
-| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code and files it as a forward-facing issue (or umbrella + subs) | Slice into waves; write code |
+| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code — every load-bearing claim verified — and files it as a forward-facing issue (or umbrella + subs): goal, approach, the surface it lands on, phases, verify | Slice into waves; write a line-level to-do list; write code |
 | [`/pipeline:execute`](skills/execute/SKILL.md) | Runs an arc to completion as a loop: grounds the horizon, dispatches it, reconciles everything still outstanding against the merged tree, rewrites the rest, repeats | Write code; ground beyond the horizon |
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | The loop's **grounding** pass: turns the horizon into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Ground past the horizon; make worktrees; dispatch; merge |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | The loop's **dispatch** pass: cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | Run the loop around itself; write the code it dispatches |

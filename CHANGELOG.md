@@ -2,6 +2,14 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 2.2.1
+
+- **The epic branch's name carries no mechanical meaning; `transient-red/<epic-slug>`'s name is the contract.** Nothing reads an epic branch's name — not a helper in `bin/`, not a step in the playbook — because the branch is identified by what forks from it and PRs into it, so any prefix a team likes is fine. The marker is the opposite: the detector finds the window by looking for that exact ref, so its spelling is exact and not a matter of taste. `orchestrate`'s epic-branch mechanics state the two together, where the branch is cut, because the branch's name is free precisely *because* the marker took the job of being found — and a reader who carries the freedom across to the marker writes one no detector will find.
+
+- **A detector never keys on a branch-name prefix.** `orchestrate`'s transient-red guidance still names the two prefixes that look right, `epic/*` and `integration/*`, and now carries the rule they are instances of: tooling that has to ask "is this an epic branch" answers with a dedicated ref of its own, the way the marker does.
+
+- **`decompose`'s breakdown header takes the real epic branch name, not a `feat/<epic-leaf>` template.** A `feat/…` epic branch is indistinguishable in a PR list from the `feat/<leaf>` slices merging into it, which is the one distinction that header carries; the slot is a neutral placeholder with a one-line note that the only thing worth choosing the name for is that it does not read like a slice.
+
 ## 2.2.0
 
 - **The transient-red window was described but never opened, and a relaxation that never fires is indistinguishable from one that was never built.** `orchestrate` told you to put the window on an epic branch and how to read a drained gate's red against it; `decompose` flagged which slices lived in it. Both are judgments made by something that can read prose. A project's **commit-time** tooling cannot — and where a repo relaxes its pre-commit compile check for exactly this window (forgiving diagnostics that all point at files the branch never touched, holding the branch's own files to the full bar), the only thing it can consult from inside a slice worktree is the ref graph. Nothing in the flow ever put the fact there. The gap is silent in both directions: a detector looking for one ref and a flow that pushed another never meet, nothing errors, and every slice pays full strict-path friction for a relaxation the repo believes it has.

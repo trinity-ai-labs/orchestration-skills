@@ -141,7 +141,7 @@ Use this shape (here the arc is mid-flight, with Wave 0 already merged; on a fir
 
 ```
 ## Decomposition: <plan title>
-Integration branch: release/x.x.x   ·   Epic branch: feat/<epic-leaf> (or: not needed — <why>)
+Integration branch: release/x.x.x   ·   Epic branch: <epic-branch> (or: not needed — <why>)
 Horizon: Wave 1 — Slices 2, 3, 4
 
 ### Parallelization plan (whole arc — dependency shape, not grounding)
@@ -174,6 +174,8 @@ Horizon: Wave 1 — Slices 2, 3, 4
 - Area: the settings UI
 - Why it comes after: it renders the field Slice 2 adds, so its shape is not decided until Slice 2 merges
 ```
+
+**The epic branch's name carries no mechanical meaning** (`/pipeline:orchestrate` → *The epic branch* → *Mechanics*), so that slot takes the real branch name rather than a convention — and the one thing worth choosing for is that it does not read like a slice branch. *The failure this prevents: an epic branch named `feat/…` is indistinguishable in a PR list from the `feat/<leaf>` slices merging into it, and this header is where a reader goes to tell them apart.*
 
 End with the handoff line, verbatim intent:
 

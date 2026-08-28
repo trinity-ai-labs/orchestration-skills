@@ -2,6 +2,12 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.0.1
+
+- **`orchestrate` §2 delegated the divergence tick to a pointer, and a pointer is skippable.** The paragraph named the tick, then sent you to `/pipeline:execute` for the interval, the purpose and every mechanic — so a reader who did not follow it still had enough text to feel informed. What that reader reaches for instead is `ScheduleWakeup`'s own tool description, which warns against scheduling wakeups to poll for background work the harness tracks; that warning is about polling **for completion**, but nothing in §2 said so, and the conclusion "this does not apply to my sub-agents" looks sound. Observed: a dispatcher did exactly this, ran an entire session with no tick armed, and wrote a confident critique of the skill listing three defects the unopened section already answered. §2 now states the load-bearing minimum itself — poll every ~10 minutes (≈600s), completion notifications are free and are NOT the mechanism, the tick is for early divergence detection — keeps the pointer for the detail, and names that rationalization so the next reader cannot reuse it. The mechanism did not change; the delegation is what failed.
+
+- **§2's cadence contradicted the mechanic it pointed at.** It read "you owe a tick for every minute in between" — per-minute against `execute`'s ~10 minutes. Two numbers for one timer means a reader either picks one at random or reads the whole instruction as approximate. §2 now carries `execute`'s number.
+
 ## 3.0.0
 
 **Breaking: `/pipeline:execute` and `/pipeline:orchestrate` have exchanged meanings.** The arc loop — the leg you type after `/pipeline:write-issue` — is now `/pipeline:orchestrate`. The per-increment worktree playbook it drives each cycle is now `/pipeline:execute`. Anything that invokes `/pipeline:execute` to run an issue end to end must move to `/pipeline:orchestrate`. *The failure this rename creates for anyone who does not follow it, and the reason it is called out first: the old name still resolves. A saved prompt or a downstream repo's `AGENTS.md` that says `/pipeline:execute #123` now reaches the skill that ships ONE increment and stops — no reconcile, no second cycle, no close-out — and it reports success, because shipping one increment is exactly what it was asked to do.*

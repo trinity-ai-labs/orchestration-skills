@@ -249,7 +249,7 @@ if ($targets.Count -eq 0) {
     }
 
     # Brief pause - enough for a clean shutdown handler to run and the lock dir to
-    # be removed, but short enough not to stall the orchestrator.
+    # be removed, but short enough not to stall the dispatcher.
     Start-Sleep -Seconds 2
 
     # Force-kill any survivors. A force-killed gate process leaves its slot dir

@@ -16,7 +16,7 @@
 #      still checked out in a worktree, so `gh pr merge --delete-branch` would
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.sh, which kills processes rooted in the tree first.
-#   4. Mark the PR ready — the orchestrator's review approval — and immediately
+#   4. Mark the PR ready — the dispatcher's review approval — and immediately
 #      `gh pr merge --merge --delete-branch` it: a real merge commit (never
 #      squash), deleting both the local and remote branch. A merge that fails
 #      anyway puts the draft flag back before it exits.
@@ -244,7 +244,7 @@ fi
 if [ "$STATE" = "MERGED" ]; then
   echo "merge-pr: PR #$PR already merged — skipping merge, finishing the local sync."
 else
-  # `draft -> ready` is the orchestrator's review approval — the one thing in the
+  # `draft -> ready` is the dispatcher's review approval — the one thing in the
   # flow that says a human-in-the-loop read this diff, as opposed to a gate saying
   # the suite passed (the gate reports by PR comment and never touches this flag).
   # GitHub refuses to merge a draft, so the flip has to precede the merge; it sits
@@ -265,7 +265,7 @@ else
   if ! ( cd "$MAIN" && gh pr merge "$PR" --merge --delete-branch ); then
     # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
     # being merged right this second reads, everywhere else in this flow, as a diff
-    # an orchestrator approved — so leaving it set would have the PR wearing a
+    # a dispatcher approved — so leaving it set would have the PR wearing a
     # review it never received. This matters most when step 1 answered UNKNOWN and
     # fell through: the conflict it could not rule out surfaces exactly here.
     DRAFT_NOTE="it was already non-draft before this run and is left that way"

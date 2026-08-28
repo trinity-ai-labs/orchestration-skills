@@ -193,7 +193,7 @@ jobs:
           # demanding a bump for it would fail a PR that ships nothing:
           #   .github/      CI config; runs on a runner, never on a user's machine.
           #   .agents/      this repo's OWN worktree.json — contributor tooling read
-          #                 by an orchestrator working here, never by an installed
+          #                 by a dispatcher working here, never by an installed
           #                 plugin. market-skills exempts it for the same reason.
           #   scripts/      the contributor gate. Unlike bin/, which Claude Code puts
           #                 on a user's PATH, nothing under scripts/ is shipped or

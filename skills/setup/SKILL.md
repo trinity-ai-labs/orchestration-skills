@@ -1,10 +1,10 @@
 ---
 name: setup
 description: >-
-  Onboard a repo onto the /pipeline:write-issue → /pipeline:execute pipeline. Use whenever a repo has no
+  Onboard a repo onto the /pipeline:write-issue → /pipeline:orchestrate pipeline. Use whenever a repo has no
   `.agents/worktree.json` yet, whenever `setup-worktree.sh` warns "no config", when someone asks to
   SET UP / ONBOARD / WIRE UP the pipeline (or a gate queue / enqueue system) for a project, or when
-  an orchestrator refuses to dispatch because the project is unconfigured. You GROUND the repo in its
+  a dispatcher refuses to dispatch because the project is unconfigured. You GROUND the repo in its
   real scripts, CI, and AGENTS.md — never guessed commands — then write `.agents/worktree.json` and,
   when the project wants one, scaffold a durable gate queue INTO THAT REPO. The artifacts belong to
   the project: this skill carries the knowledge, the repo carries the code, so each project owns and
@@ -14,13 +14,13 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 # setup — onboard a repo onto the pipeline
 
-`/pipeline:orchestrate` — the pass `/pipeline:execute` invokes to ship each increment — cuts a worktree per task and expects each project to declare how it builds, checks, and gates itself. That declaration is `<repo>/.agents/worktree.json`. This skill writes it, and scaffolds the gate queue when the project wants one.
+`/pipeline:execute` — the pass `/pipeline:orchestrate` invokes to ship each increment — cuts a worktree per task and expects each project to declare how it builds, checks, and gates itself. That declaration is `<repo>/.agents/worktree.json`. This skill writes it, and scaffolds the gate queue when the project wants one.
 
 **The artifacts live in the project, not in this plugin.** The plugin stays markdown plus four thin helpers, each shipped in both shells; the repo gets its own `worktree.json` and its own queue scripts, which it then owns and evolves. Two projects' queues *should* be allowed to diverge — one may grow transient-red baseline handling the other never needs.
 
 ## Why an unconfigured repo is worse than an obviously-broken one
 
-`setup-worktree.sh` does not fail when config is missing. It prints a note **to stderr** and cuts a bare worktree — no env symlinks, no `node_modules`. **Where the project has an install step**, an implementer dispatched into that worktree then fails its checks for reasons that look like code bugs, and burns a run before anyone notices the real cause. A zero-dependency project escapes that particular failure — a bare worktree is the only kind it has — but not the rest of it: with no config, the gate command, the conventions, and the framework skills are all things the orchestrator has to guess, and a guessed gate is one that passes while testing nothing. Treat "no config" as a hard stop, not a warning.
+`setup-worktree.sh` does not fail when config is missing. It prints a note **to stderr** and cuts a bare worktree — no env symlinks, no `node_modules`. **Where the project has an install step**, an implementer dispatched into that worktree then fails its checks for reasons that look like code bugs, and burns a run before anyone notices the real cause. A zero-dependency project escapes that particular failure — a bare worktree is the only kind it has — but not the rest of it: with no config, the gate command, the conventions, and the framework skills are all things the dispatcher has to guess, and a guessed gate is one that passes while testing nothing. Treat "no config" as a hard stop, not a warning.
 
 ---
 
@@ -36,7 +36,7 @@ Most repos are not Trinity-shaped. Adopting machinery a project doesn't need is 
 
 **`gate` and `scopedCheck` being the same command is a normal, correct answer.** It means the repo has one authoritative check and no separate heavy tier. Don't invent a heavier gate to fill the key — a fabricated `gate` is a command that either doesn't exist or tests nothing.
 
-**A repo with no queue is normal too.** Omit `enqueue` and `drain`, and the implementer runs the check itself and comments the result on its own draft PR — `/pipeline:orchestrate` reads their absence as "this project gates in-line". The PR is still a draft at hand-back; only who runs the gate changes.
+**A repo with no queue is normal too.** Omit `enqueue` and `drain`, and the implementer runs the check itself and comments the result on its own draft PR — `/pipeline:execute` reads their absence as "this project gates in-line". The PR is still a draft at hand-back; only who runs the gate changes.
 
 Keys you have no honest value for are **left out**, never guessed. A markdown repo has no `install` and no `envFiles`; writing `"install": "npm install"` into it produces a worktree setup that fails every time.
 
@@ -89,13 +89,13 @@ For a monorepo, note which commands live at the **root** and which are per-packa
 | `frameworkSkills` | skills | `{skill, when}` per area, from the deps actually imported |
 | `briefConventions` | skills | Only what `AGENTS.md` doesn't already say |
 
-Keep `briefConventions` short. It is not a place to restate the orchestration protocol — "don't run the full gate", "enqueue then hand back", "never rebase", the transient-red reading and the formatter rule are all in `/pipeline:orchestrate` already and are identical for every project. Duplicating them there means two copies that drift, and the copy agents read is the one no human ever opens. Point at `AGENTS.md`; state only the gotchas that would otherwise cost a run.
+Keep `briefConventions` short. It is not a place to restate the orchestration protocol — "don't run the full gate", "enqueue then hand back", "never rebase", the transient-red reading and the formatter rule are all in `/pipeline:execute` already and are identical for every project. Duplicating them there means two copies that drift, and the copy agents read is the one no human ever opens. Point at `AGENTS.md`; state only the gotchas that would otherwise cost a run.
 
 See `examples/worktree.json` in this plugin for a complete file.
 
 ## Step 3 — The gate queue (only if the project wants one)
 
-The queue exists so implementers never run the heavy gate: they push, open a draft PR, enqueue a durable ticket, and hand back, while orchestrators drain the queue one gate at a time. It buys three things — no gate lock for a wide fan-out to serialize on, no thundering herd of concurrent builds, and no way for a dying agent to strand committed work.
+The queue exists so implementers never run the heavy gate: they push, open a draft PR, enqueue a durable ticket, and hand back, while dispatchers drain the queue one gate at a time. It buys three things — no gate lock for a wide fan-out to serialize on, no thundering herd of concurrent builds, and no way for a dying agent to strand committed work.
 
 **Not every project needs it.** A repo whose gate takes seconds, or that no one fans out across, is better off with no queue at all: omit `enqueue`/`drain`, and the implementer runs the gate itself and comments the result on its own draft PR. Say which you chose and why. Adding a queue to a repo that doesn't need one is pure ceremony.
 
@@ -127,9 +127,9 @@ A **zero-dependency** project is not covered by it. A bare worktree there is ful
 
 - **No guessed commands.** Every value traces to a file you read. If you genuinely cannot determine the gate, write the config without `gate` and say so — a missing key is honest, a wrong one is a gate that passes while testing nothing.
 - **No secrets.** `envFiles` carries paths. Never inline a value, never read the env files to "check" them.
-- **No feature work, no slicing, no dispatch.** You configure the repo and stop. Running the work is `/pipeline:execute`'s loop — it grounds each increment through `/pipeline:decompose` and ships it through `/pipeline:orchestrate`.
+- **No feature work, no slicing, no dispatch.** You configure the repo and stop. Running the work is `/pipeline:orchestrate`'s loop — it grounds each increment through `/pipeline:decompose` and ships it through `/pipeline:execute`.
 - **Don't scaffold a queue into a project that doesn't want one.**
 
 **Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
-> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:write-issue` to file it, or hand a plan you already have straight to `/pipeline:execute`.
+> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:write-issue` to file it, or hand a plan you already have straight to `/pipeline:orchestrate`.

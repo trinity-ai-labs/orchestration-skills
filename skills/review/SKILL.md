@@ -10,7 +10,7 @@ description: >-
   tree, then applies what it judges right and reports what it rejected. It NEVER dispatches
   sub-agents and NEVER commits — the agent running the slice is the one that decides what goes in,
   and the commit step belongs to the flow that called this. Not for reviewing a committed range or
-  someone else's PR (that's the orchestrator reading the diff, plus the gate).
+  someone else's PR (that's the dispatcher reading the diff, plus the gate).
 ---
 
 # Review — the implement-time pass
@@ -20,7 +20,7 @@ Before you do, you review your own uncommitted diff for both quality and correct
 belongs, and report what you deliberately left alone.
 
 This is the **narrow, early** tier of review. The broad tier already exists in this flow and is not
-yours: the orchestrator reads your PR's diff, and the drained gate runs the full build and suite over
+yours: the dispatcher reads your PR's diff, and the drained gate runs the full build and suite over
 the committed result. So this pass is not a second gate and not a PR review. It is the last thing that
 happens while the change is still entirely yours.
 
@@ -80,7 +80,7 @@ command rather than assuming one.
   still in view.
 - **Stay inside the worktree you were given.** Never edit a file outside it.
 - **Do not refactor pre-existing code the change merely sits near.** Flag it in the report instead. A
-  cleanup that widens the diff makes the orchestrator's PR review harder, and the slice's do-not-touch
+  cleanup that widens the diff makes the dispatcher's PR review harder, and the slice's do-not-touch
   boundaries exist because another slice may own that file right now.
 - **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
   bounds here too.
@@ -98,7 +98,7 @@ a simplification can expose a correctness problem.
 - Error handling that swallows rather than surfaces — a `catch` that logs and continues past a
   condition the caller needed to know about.
 - Anything that would fail only in combination with a sibling slice's half of a contract. You cannot
-  test that here, so **name it in the report** for the orchestrator, who can.
+  test that here, so **name it in the report** for the dispatcher, who can.
 
 ### Reuse
 
@@ -159,7 +159,7 @@ Report to the caller in prose, covering four things. Keep it short enough to rea
 - **Applied** — each change you made and the one-line reason.
 - **Rejected** — each finding you considered and deliberately did not act on, and why. This is not
   filler. A finding you silently dropped is indistinguishable from one you never saw, and the
-  orchestrator reviewing your PR has no way to tell the difference.
+  dispatcher reviewing your PR has no way to tell the difference.
 - **Flagged, out of scope** — pre-existing problems you found and correctly left alone, and any
   cross-slice interaction you could not verify from inside this worktree. **The admission test is
   narrow, and it is about the boundary rather than the effort:** an item belongs here only when

@@ -49,7 +49,7 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 
 **5. The slot must be re-entrant for descendants.** The `gate` script itself runs inside the slot, and it may invoke something that also tries to acquire. Pass the holder down (an env var) so a descendant recognizes its own ancestor's slot instead of deadlocking waiting for it.
 
-**6. A drain pass exits.** It is not a daemon. It drains what is queued and returns, so an orchestrator re-invokes it each tick and can bound it with `--max <n>`. A long-lived daemon reintroduces the process state this design exists to avoid.
+**6. A drain pass exits.** It is not a daemon. It drains what is queued and returns, so a dispatcher re-invokes it each tick and can bound it with `--max <n>`. A long-lived daemon reintroduces the process state this design exists to avoid.
 
 **7. The report is a state transition too — a ticket is not done until its verdict is delivered.** The other six invariants make the queue survive a process dying. This one makes it survive the network: record the verdict on the ticket *before* attempting to report it, so a failed post is a reconciliation problem rather than an amnesia one. See *Reporting* below for what that costs and what it buys.
 
@@ -61,7 +61,7 @@ Put the prune on the reconcile walk. That pass already reads every ticket in `do
 
 The runner gates *inside the ticket's worktree*. Anything that mutates that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, then reports against whatever HEAD is current when it finishes.
 
-This has actually happened: a fix agent committed at 22:34:37 and a ~2m20s gate posted `✓ passed` at 22:34:38 — green, against code no gate had ever seen. The comment is the evidence an orchestrator reads before merging, so a green comment describing a tree that no longer exists is enough to get untested code merged.
+This has actually happened: a fix agent committed at 22:34:37 and a ~2m20s gate posted `✓ passed` at 22:34:38 — green, against code no gate had ever seen. The comment is the evidence a dispatcher reads before merging, so a green comment describing a tree that no longer exists is enough to get untested code merged.
 
 So: don't edit, and don't remove, a worktree whose ticket is in `queue/` or `processing/`. Wait for it to resolve. Document this where the project's contributors will see it.
 
@@ -69,11 +69,11 @@ So: don't edit, and don't remove, a worktree whose ticket is in `queue/` or `pro
 
 **The verdict is a PR comment, in both directions, and the PR stays draft either way.** Green posts a passing comment; red posts the failing tail. The comment is the only channel — the queue never touches the PR's draft flag, in either direction.
 
-That is what makes the reading rule a single sentence: **a PR is gated iff it carries a gate comment.** Draft-ness carries a different meaning entirely — nobody has approved this yet — and the only thing that clears it is the orchestrator marking the PR ready as it merges, having read the diff. Keeping the two on separate channels is the point: a machine can attest that the suite passed, and only a reader can attest that the change is right.
+That is what makes the reading rule a single sentence: **a PR is gated iff it carries a gate comment.** Draft-ness carries a different meaning entirely — nobody has approved this yet — and the only thing that clears it is the dispatcher marking the PR ready as it merges, having read the diff. Keeping the two on separate channels is the point: a machine can attest that the suite passed, and only a reader can attest that the change is right.
 
 An implementer opening a PR without `--draft` is therefore a real bug with a mechanical consequence: the PR arrives already carrying the flag that means "reviewed and merging", without a gate comment and without anyone having read it.
 
-A red ticket is orchestrator feedback, not lost work: the failure is visible on the PR, a fix agent re-pushes, and it re-enqueues.
+A red ticket is dispatcher feedback, not lost work: the failure is visible on the PR, a fix agent re-pushes, and it re-enqueues.
 
 **Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** Everything above this section is about surviving process death and filesystem races; the report is the one step that depends on a machine you do not control. If the verdict lives only in the reporting call, a network blip destroys it — the gate ran, the result is gone, and recovering it means gating again.
 

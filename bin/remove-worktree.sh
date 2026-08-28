@@ -343,7 +343,7 @@ if [ "${#UNIQUE_PIDS[@]}" -gt 0 ]; then
   done
 
   # Brief pause — enough for a clean SIGTERM handler to run and the lock dir to
-  # be removed, but short enough to not stall the orchestrator.
+  # be removed, but short enough to not stall the dispatcher.
   sleep 2
 
   # SIGKILL any survivors. A SIGKILL'd gate process will leave its slot dir

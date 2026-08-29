@@ -2,6 +2,12 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.2.0
+
+- **The blind `git stash pop` kept happening, so the argument-less form is now banned outright rather than left to follow from the reasoning.** The rule was complete — a repo-global stack, a marker per agent, a re-match by marker before every touch — and it was still being broken occasionally, which is a placement problem rather than a content one: `git stash pop` is one of the most automatic commands there is, it *is* correct in a single-checkout repo, so the instinct arrives already justified and never reaches the paragraph that would have stopped it. `execute`'s stash rule now leads with the mechanical form — every `pop`, `apply` and `drop` carries an explicit ref re-matched one command earlier — and names the case that gets rationalized: a `git stash list` showing exactly one entry, which is the weakest evidence on the list, because that list is repo-wide and the gap between your two commands is precisely when a sibling worktree pushes onto the stack. The costs are stated beside it, because they are not comparable: re-matching is one `git stash list | grep`, and a wrong pop takes a human's WIP out of the tree they left it in and drops it from the stack, recoverable only through `git fsck --unreachable` and only until the next gc.
+
+- **The ban is now stated at the two places an agent actually reaches for a stash**, since a rule at the bottom of *Hard rules* is not where anyone is standing when the urge arrives. Holding a whole slice uncommitted for the review pass is one — the temptation is a clean tree for a check, and the answer is a WIP commit on your own branch, which is worktree-local where the stash stack is shared. Resolving a merge conflict is the other, and it is the worse one: stash-resolve-pop is reached for at the one moment several worktrees are guaranteed to be live and touching the stack.
+
 ## 3.1.0
 
 Eight rules, every one of them found by running this pipeline rather than by reading it — three days on a large TypeScript monorepo, 134 merges, 464 commits, four multi-slice epics. Where a bullet says *Observed*, that is what it means.

@@ -24,6 +24,11 @@
 #      just-merged tip — by ref when that branch is not the one checked out.
 #   6. Verify the main checkout is still standing where it was when the run began.
 #
+# Before any of that it REFUSES to run when the copy being executed, or the directory
+# it is being run from, sits inside the worktree step 3 tears down: that teardown
+# kills every process rooted in the tree, and this process would be one of them. The
+# guard below says why it refuses rather than re-execing from somewhere safe.
+#
 # Step 5 is the whole reason this helper exists. `gh pr merge` advances the branch
 # on the REMOTE; the local base branch in the main checkout does NOT move. Syncing
 # it is a manual step with NO forcing feedback — every visible signal (`✓ Merged`,
@@ -67,6 +72,28 @@ norm_path() {
 is_windows() {
   case "$(uname -s 2>/dev/null)" in
   MINGW* | MSYS* | CYGWIN*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# A directory in PHYSICAL form: symlinks resolved, no trailing slash. The guard
+# below decides whether two paths are the same tree by comparing them as strings,
+# and one directory has more than one spelling — /tmp IS a symlink to /private/tmp
+# on macOS, and git prints the resolved form while a caller's cwd carries whichever
+# form they typed. Two spellings of one directory compare unequal, which makes a
+# guard that silently never fires. A path that does not exist has nothing to
+# resolve and comes back as it went in.
+real_dir() { # real_dir <dir>
+  (CDPATH='' cd -- "$1" 2>/dev/null && pwd -P) || printf '%s\n' "${1%/}"
+}
+
+# Is <candidate> the directory <tree>, or inside it? Anchored on the separator,
+# exactly as remove-worktree.sh anchors its kill scan, so ".../1322-foo" cannot
+# match ".../1322-foo-retry" — this decides a REFUSAL, and an over-eager match here
+# would block a legitimate close-out rather than merely fail to prevent a bad one.
+path_inside() { # path_inside <candidate-dir> <tree>
+  case "$1" in
+  "$2" | "$2"/*) return 0 ;;
   *) return 1 ;;
   esac
 }
@@ -195,6 +222,45 @@ else
     || git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$HEAD_BRANCH" \
     || { git -C "$MAIN" fetch --prune origin >/dev/null 2>&1 && git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$HEAD_BRANCH"; } \
     || die "PR #$PR's head branch '$HEAD_BRANCH' is unknown in $MAIN (not local, not on origin) — WRONG REPO? The repo is resolved from cwd/REPO; cd into the intended repo and re-run."
+fi
+
+# --- Self-teardown guard ---------------------------------------------------------
+# Step 2 hands the head branch's worktree to remove-worktree.sh, which kills every
+# process rooted in that tree BEFORE removing it — found by lsof (open descriptors
+# AND cwd) and by pgrep over the argv. Both of those find THIS process whenever
+# merge-pr is running out of, or standing in, the very tree it is about to delete:
+# by its script path, when the copy being executed is the one inside the worktree,
+# and by its cwd, when the caller merely happens to be standing there. Either way
+# the run is SIGTERMed in the middle of the teardown, and what that leaves is the
+# worst shape a failure takes — the worktree gone, the PR NOT merged, and a
+# transcript whose last lines are a teardown reporting success, because the orphaned
+# child goes on printing after the process that would have merged is already dead.
+#
+# So refuse here, before the preflight and before anything has been touched.
+# Refusing rather than re-execing a copy from somewhere safe: WHICH copy that would
+# be is a guess — the installed one may be a different version, or absent entirely
+# on the machine of someone whose checkout IS this repo — and silently running code
+# the caller did not name is a poor trade on the one helper whose whole job is to be
+# the final step.
+#
+# Both comparisons are string prefixes rather than a process scan, so they hold
+# identically where the scan itself does not: under Git Bash neither lsof nor pgrep
+# exists, and there the same overlap makes `git worktree remove` fail on files
+# Windows has locked instead.
+DOOMED_WT=$(worktree_holding "$HEAD_BRANCH")
+[ -z "$DOOMED_WT" ] || DOOMED_WT=$(real_dir "$(norm_path "$DOOMED_WT")")
+# The MAIN checkout is never what step 2 removes — remove-worktree.sh resolves its
+# target under $WORKTREE_HOME — so a head branch that happens to be checked out
+# there is not a tree this run will delete, and refusing on it would block a
+# close-out launched from the one directory that is always safe.
+[ "$DOOMED_WT" != "$(real_dir "$MAIN")" ] || DOOMED_WT=""
+if [ -n "$DOOMED_WT" ]; then
+  if path_inside "$(real_dir "$HERE")" "$DOOMED_WT"; then
+    die "this copy of merge-pr.sh lives at $HERE/merge-pr.sh, INSIDE the worktree this close-out has to tear down ($DOOMED_WT) — REFUSED, and nothing has been touched: the worktree is intact and PR #$PR is untouched.\n  The teardown kills every process rooted in that tree, and this one is rooted there: the run would be SIGTERMed mid-teardown, leaving the tree removed and the PR unmerged while the teardown printed a clean finish.\n  Run a copy that lives OUTSIDE that tree — bare off PATH is the installed one:\n    cd $MAIN\n    merge-pr.sh $PR"
+  fi
+  if path_inside "$(real_dir "$PWD")" "$DOOMED_WT"; then
+    die "this run's working directory ($PWD) is INSIDE the worktree this close-out has to tear down ($DOOMED_WT) — REFUSED, and nothing has been touched: the worktree is intact and PR #$PR is untouched.\n  The teardown kills every process whose cwd is rooted in that tree, and this one's is: the run would be SIGTERMed mid-teardown, leaving the tree removed and the PR unmerged while the teardown printed a clean finish.\n  Re-run from outside that tree — the helper resolves the repo from cwd, so stand in the main checkout:\n    cd $MAIN\n    merge-pr.sh $PR"
+  fi
 fi
 
 # --- 1. Mergeability preflight ---------------------------------------------------

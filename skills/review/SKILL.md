@@ -99,6 +99,11 @@ a simplification can expose a correctness problem.
   condition the caller needed to know about.
 - Anything that would fail only in combination with a sibling slice's half of a contract. You cannot
   test that here, so **name it in the report** for the dispatcher, who can.
+- **Comments your diff rewrote or moved, checked against the code they describe.** A comment that
+  asserts what other code does is prose against behavior — no checker compares the two, so this pass
+  is one of the few places it can be caught. A claim that proves false is a finding to report, never
+  a sentence to quietly correct: accurate prose over a real bug documents the bug as the design.
+  `skills/execute/SKILL.md`'s implementer section carries the rule and the failure behind it.
 
 ### Reuse
 

@@ -34,6 +34,11 @@
 #      just-merged tip - by ref when that branch is not the one checked out.
 #   6. Verify the main checkout is still standing where it was when the run began.
 #
+# Before any of that it REFUSES to run when the copy being executed, or the directory
+# it is being run from, sits inside the worktree step 3 tears down: that teardown
+# kills every process rooted in the tree, and this process would be one of them. The
+# guard below says why it refuses rather than re-execing from somewhere safe.
+#
 # Step 5 is the whole reason this helper exists. `gh pr merge` advances the branch
 # on the REMOTE; the local base branch in the main checkout does NOT move. Syncing
 # it is a manual step with NO forcing feedback - every visible signal (Merged,
@@ -85,6 +90,35 @@ function Get-NormalPath {
         $p = $p.Substring(0, $p.Length - 1)
     }
     return $p
+}
+
+function Get-RealPath {
+    # A directory as the filesystem itself spells it, normalised to forward slashes
+    # with no trailing separator. The guard below decides whether two paths are the
+    # same tree by comparing them as strings, and one directory has more than one
+    # spelling - a link, a relative form, a different case. Two spellings of one
+    # directory compare unequal, which makes a guard that silently never fires. A
+    # path that does not exist has nothing to resolve and comes back as it went in.
+    param([string] $Path)
+    if (-not $Path) { return '' }
+    $resolved = Resolve-Path -LiteralPath $Path -ErrorAction SilentlyContinue
+    if ($resolved) { return (Get-NormalPath $resolved.ProviderPath) }
+    return (Get-NormalPath $Path)
+}
+
+function Test-PathInside {
+    # Is $Candidate the directory $Tree, or inside it? Anchored on the separator,
+    # exactly as remove-worktree.ps1 anchors its kill scan, so ".../1322-foo" cannot
+    # match ".../1322-foo-retry" - this decides a REFUSAL, and an over-eager match
+    # here would block a legitimate close-out rather than merely fail to prevent a
+    # bad one. Case-insensitive, because Windows paths are.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Candidate,
+        [Parameter(Mandatory = $true)] [string] $Tree
+    )
+    if (-not $Candidate -or -not $Tree) { return $false }
+    if ($Candidate.Equals($Tree, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    return $Candidate.StartsWith("$Tree/", [StringComparison]::OrdinalIgnoreCase)
 }
 
 function Test-OnWindows {
@@ -325,6 +359,55 @@ if ($State -eq 'MERGED') {
     }
     if (-not $known) {
         Exit-WithError "PR #$Pr's head branch '$HeadBranch' is unknown in $Main (not local, not on origin) - WRONG REPO? The repo is resolved from cwd/REPO; cd into the intended repo and re-run."
+    }
+}
+
+# --- Self-teardown guard ---------------------------------------------------------
+# Step 2 hands the head branch's worktree to remove-worktree.ps1, which kills every
+# process rooted in that tree BEFORE removing it. This process is rooted there
+# whenever merge-pr is running out of, or standing in, the very tree it is about to
+# delete: by its script path, when the copy being executed is the one inside the
+# worktree, and by its cwd, when the caller merely happens to be standing there.
+# Both are fatal, in different ways per platform. Where the scan matches, the run is
+# killed in the middle of the teardown and what it leaves is the worst shape a
+# failure takes - the worktree gone, the PR NOT merged, and a transcript whose last
+# lines are a teardown reporting success. Where it does not, Windows refuses to
+# delete a directory a process is standing in or has a file open under, and the
+# teardown fails on a locked file instead. The pair is ONE contract implemented
+# twice, so the same command refuses in both shells rather than failing differently.
+#
+# Refusing rather than re-execing a copy from somewhere safe: WHICH copy that would
+# be is a guess - the installed one may be a different version, or absent entirely
+# on the machine of someone whose checkout IS this repo - and silently running code
+# the caller did not name is a poor trade on the one helper whose whole job is to be
+# the final step.
+$DoomedWt = Get-WorktreeHoldingBranch $HeadBranch
+if ($DoomedWt) { $DoomedWt = Get-RealPath $DoomedWt }
+# The MAIN checkout is never what step 2 removes - remove-worktree.ps1 resolves its
+# target under the worktree home - so a head branch that happens to be checked out
+# there is not a tree this run will delete, and refusing on it would block a
+# close-out launched from the one directory that is always safe.
+if ($DoomedWt -and $DoomedWt.Equals((Get-RealPath $Main), [StringComparison]::OrdinalIgnoreCase)) {
+    $DoomedWt = ''
+}
+if ($DoomedWt) {
+    if (Test-PathInside -Candidate (Get-RealPath $Here) -Tree $DoomedWt) {
+        Exit-WithError @"
+this copy of merge-pr.ps1 lives at $Here/merge-pr.ps1, INSIDE the worktree this close-out has to tear down ($DoomedWt) - REFUSED, and nothing has been touched: the worktree is intact and PR #$Pr is untouched.
+  The teardown kills every process rooted in that tree, and this one is rooted there: the run would die mid-teardown, leaving the tree removed and the PR unmerged while the teardown printed a clean finish.
+  Run a copy that lives OUTSIDE that tree - bare off PATH is the installed one:
+    cd $Main
+    merge-pr.ps1 $Pr
+"@
+    }
+    if (Test-PathInside -Candidate (Get-RealPath (Get-Location).Path) -Tree $DoomedWt) {
+        Exit-WithError @"
+this run's working directory ($((Get-Location).Path)) is INSIDE the worktree this close-out has to tear down ($DoomedWt) - REFUSED, and nothing has been touched: the worktree is intact and PR #$Pr is untouched.
+  The teardown kills every process whose cwd is rooted in that tree, and this one's is: the run would die mid-teardown, leaving the tree removed and the PR unmerged while the teardown printed a clean finish.
+  Re-run from outside that tree - the helper resolves the repo from cwd, so stand in the main checkout:
+    cd $Main
+    merge-pr.ps1 $Pr
+"@
     }
 }
 

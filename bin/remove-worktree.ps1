@@ -32,6 +32,12 @@
 # Safety invariants:
 #   - Only kills processes rooted at the EXACT absolute worktree path (trailing
 #     slash anchored), so a leaf named "1322-foo" cannot match "1322-foo-retry".
+#   - REFUSES outright when the running script, or the directory it is being run
+#     from, is itself inside the target path: the scan below would find THIS
+#     process and kill it mid-teardown, and Windows would refuse the removal on a
+#     file the run itself has locked - leaving the caller dead or the tree half
+#     gone, and whatever the caller was in the middle of (a merge, most of the
+#     time) silently undone.
 #   - Prints every candidate PID + command line before killing; you can see exactly
 #     what will be terminated.
 #   - Escalates a graceful close to a forced kill with a brief pause between them,
@@ -85,6 +91,35 @@ function Get-NormalPath {
         $p = $p.Substring(0, $p.Length - 1)
     }
     return $p
+}
+
+function Get-RealPath {
+    # A directory as the filesystem itself spells it, normalised to forward slashes
+    # with no trailing separator. The guard below decides whether two paths are the
+    # same tree by comparing them as strings, and one directory has more than one
+    # spelling - a link, a relative form, a different case. Two spellings of one
+    # directory compare unequal, which makes a guard that silently never fires. A
+    # path that does not exist has nothing to resolve and comes back as it went in.
+    param([string] $Path)
+    if (-not $Path) { return '' }
+    $resolved = Resolve-Path -LiteralPath $Path -ErrorAction SilentlyContinue
+    if ($resolved) { return (Get-NormalPath $resolved.ProviderPath) }
+    return (Get-NormalPath $Path)
+}
+
+function Test-PathInside {
+    # Is $Candidate the directory $Tree, or inside it? Anchored on the separator,
+    # exactly as the kill scan below anchors its prefixes, so ".../1322-foo" cannot
+    # match ".../1322-foo-retry" - this decides a REFUSAL, and an over-eager match
+    # here would block a legitimate teardown rather than merely fail to prevent a
+    # bad one. Case-insensitive, because Windows paths are.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Candidate,
+        [Parameter(Mandatory = $true)] [string] $Tree
+    )
+    if (-not $Candidate -or -not $Tree) { return $false }
+    if ($Candidate.Equals($Tree, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    return $Candidate.StartsWith("$Tree/", [StringComparison]::OrdinalIgnoreCase)
 }
 
 function Get-RepoRoot {
@@ -192,6 +227,44 @@ if (-not $Main) {
         Remove-Item -LiteralPath $Wt -Recurse -Force
         exit 0
     }
+}
+
+# --- Refuse to tear down the tree this process is running in --------------------
+# The scan below finds processes by their command line and excludes exactly one PID:
+# this script's own. That is not enough when the script IS inside the tree, because
+# the caller is then rooted there too - the copy being executed lives in the doomed
+# path, or the caller is simply standing in it, or both. Where the scan matches that
+# caller it kills it, this script goes on to remove the tree, and the caller dies
+# mid-flight with whatever it was doing undone; where it does not, Windows refuses
+# to delete a directory a process is standing in or has a file open under, and the
+# removal fails on a locked file. It is worst through merge-pr, whose teardown step
+# this is: the tree goes, the PR is never merged, and the transcript ends on these
+# teardown lines reporting success.
+#
+# Refusing rather than re-execing from somewhere safe: which copy to re-exec is a
+# guess (the installed one may be a different version, or absent), and silently
+# running code the caller did not name is worse than stopping with a message. The
+# bash sibling refuses on the same two signals, because the pair is ONE contract
+# implemented twice and a command that refuses in one shell and proceeds in the
+# other is the drift the contract exists to prevent.
+$SelfDir = Get-RealPath $PSScriptRoot
+$WtReal = Get-RealPath $Wt
+if (Test-PathInside -Candidate $SelfDir -Tree $WtReal) {
+    Exit-WithError @"
+this copy of remove-worktree.ps1 lives at $SelfDir/remove-worktree.ps1, INSIDE the worktree it was asked to remove ($Wt) - REFUSED, and nothing has been killed or removed.
+  The scan below would find this process and whatever invoked it, kill them, and remove the tree out from under the run.
+  Run a copy that lives OUTSIDE that tree - bare off PATH is the installed one:
+    remove-worktree.ps1 $Target
+"@
+}
+if (Test-PathInside -Candidate (Get-RealPath (Get-Location).Path) -Tree $WtReal) {
+    Exit-WithError @"
+this run's working directory ($((Get-Location).Path)) is INSIDE the worktree it was asked to remove ($Wt) - REFUSED, and nothing has been killed or removed.
+  The scan below would find this process and whatever invoked it, kill them, and remove the tree out from under the run.
+  Re-run from outside that tree - the helper resolves the repo from cwd, so stand in the main checkout:
+    cd $Main
+    remove-worktree.ps1 $Target
+"@
 }
 
 # --- Kill processes rooted in the worktree FIRST --------------------------------

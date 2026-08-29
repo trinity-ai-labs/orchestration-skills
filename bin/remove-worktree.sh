@@ -23,6 +23,11 @@
 # Safety invariants:
 #   - Only kills processes rooted at the EXACT absolute worktree path (trailing
 #     slash anchored), so a leaf named "1322-foo" cannot match "1322-foo-retry".
+#   - REFUSES outright when the running script, or the directory it is being run
+#     from, is itself inside the target path: the scan below would find THIS
+#     process and kill it mid-teardown, leaving the tree removed, the caller dead,
+#     and whatever the caller was in the middle of (a merge, most of the time)
+#     silently undone.
 #   - Prints every candidate PID + command before killing; you can see exactly
 #     what will be terminated.
 #   - Escalates SIGTERM → SIGKILL with a brief pause so in-flight cleanup runs
@@ -72,6 +77,28 @@ is_windows() {
   esac
 }
 
+# A directory in PHYSICAL form: symlinks resolved, no trailing slash. The guard
+# below decides whether two paths are the same tree by comparing them as strings,
+# and one directory has more than one spelling — /tmp IS a symlink to /private/tmp
+# on macOS, and git prints the resolved form while a caller's cwd carries whichever
+# form they typed. Two spellings of one directory compare unequal, which makes a
+# guard that silently never fires. A path that does not exist has nothing to
+# resolve and comes back as it went in.
+real_dir() { # real_dir <dir>
+  (CDPATH='' cd -- "$1" 2>/dev/null && pwd -P) || printf '%s\n' "${1%/}"
+}
+
+# Is <candidate> the directory <tree>, or inside it? Anchored on the separator,
+# exactly as the kill scan below anchors WT_PREFIX, so ".../1322-foo" cannot match
+# ".../1322-foo-retry" — this decides a REFUSAL, and an over-eager match here would
+# block a legitimate teardown rather than merely fail to prevent a bad one.
+path_inside() { # path_inside <candidate-dir> <tree>
+  case "$1" in
+  "$2" | "$2"/*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
 # On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
 # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
 # past MAX_PATH's 260 characters as a matter of routine, and the install then fails
@@ -99,7 +126,12 @@ is_abs_path() { # is_abs_path <string>
 
 WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 
-die() { echo "remove-worktree: error: $*" >&2; exit 1; }
+# printf '%b' rather than echo, so a message can carry the `\n` its recovery
+# instructions need: bash's builtin echo prints those two characters verbatim, so a
+# multi-line message written with it arrives as one line with a literal \n inside —
+# and the PowerShell sibling, whose `\n` IS a newline, would then say something the
+# bash side does not.
+die() { printf 'remove-worktree: error: %b\n' "$*" >&2; exit 1; }
 
 if [ $# -lt 1 ]; then
   echo "usage: remove-worktree.sh <branch-leaf-or-absolute-path>" >&2
@@ -171,6 +203,35 @@ if is_abs_path "$INPUT"; then
     exit 0
   fi
   MAIN=$(dirname "$(norm_path "$COMMON")")
+fi
+
+# --- Refuse to tear down the tree this process is running in --------------------
+# The scan below finds processes by their open descriptors and cwd (lsof) and by
+# their argv (pgrep), and it excludes exactly one PID: this script's own. That is
+# not enough when the script IS inside the tree, because the caller is then rooted
+# there too — the copy being executed lives in the doomed path, or the caller is
+# simply standing in it, or both. The scan finds that caller and SIGTERMs it, this
+# script goes on to remove the tree, and the caller dies mid-flight with whatever it
+# was doing undone. It is worst through merge-pr, whose teardown step this is: the
+# tree goes, the PR is never merged, and the transcript ends on these teardown lines
+# reporting success, because this process outlives the one that would have reported
+# the failure.
+#
+# Refusing rather than re-execing from somewhere safe: which copy to re-exec is a
+# guess (the installed one may be a different version, or absent), and silently
+# running code the caller did not name is worse than stopping with a message.
+#
+# Both comparisons are string prefixes rather than a process scan, so they hold
+# identically where the scan is degraded: under Git Bash neither lsof nor pgrep
+# exists, and there the same overlap makes the `git worktree remove` below fail on
+# files Windows has locked instead.
+SELF_DIR=$(real_dir "$(norm_path "$(dirname "${BASH_SOURCE[0]}")")")
+WT_REAL=$(real_dir "$WT")
+if path_inside "$SELF_DIR" "$WT_REAL"; then
+  die "this copy of remove-worktree.sh lives at $SELF_DIR/remove-worktree.sh, INSIDE the worktree it was asked to remove ($WT) — REFUSED, and nothing has been killed or removed.\n  The scan below would find this process and whatever invoked it, kill them, and remove the tree out from under the run.\n  Run a copy that lives OUTSIDE that tree — bare off PATH is the installed one:\n    remove-worktree.sh $INPUT"
+fi
+if path_inside "$(real_dir "$PWD")" "$WT_REAL"; then
+  die "this run's working directory ($PWD) is INSIDE the worktree it was asked to remove ($WT) — REFUSED, and nothing has been killed or removed.\n  The scan below matches on cwd, so it would find this process and whatever invoked it, kill them, and remove the tree out from under the run.\n  Re-run from outside that tree — the helper resolves the repo from cwd, so stand in the main checkout:\n    cd $MAIN\n    remove-worktree.sh $INPUT"
 fi
 
 # --- Kill processes rooted in the worktree FIRST --------------------------------

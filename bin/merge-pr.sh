@@ -20,8 +20,8 @@
 #      `gh pr merge --merge --delete-branch` it: a real merge commit (never
 #      squash), deleting both the local and remote branch. A merge that fails
 #      anyway puts the draft flag back before it exits.
-#   5. Sync the MAIN checkout's local copy of the PR's base branch to the
-#      just-merged tip — by ref when that branch is not the one checked out.
+#   5. Sync the local copy of the PR's base branch to the just-merged tip — in the
+#      main checkout, in whatever linked worktree is standing on it, or by ref.
 #   6. Verify the main checkout is still standing where it was when the run began.
 #
 # Before any of that it REFUSES to run when the copy being executed, or the directory
@@ -43,9 +43,10 @@
 #
 # The main checkout is the one piece of global mutable state in a flow that is
 # otherwise isolated per worktree, and several sessions share it — so step 5 never
-# switches it. A base branch that is not the checked-out one is moved as a REF
-# (`fetch` + `branch -f`), which needs no working tree, and step 6 then confirms
-# nothing else moved the checkout meanwhile.
+# switches it. A base branch that is not the checked-out one is advanced where it
+# already lives: inside the linked worktree standing on it, or as a bare REF
+# (`fetch` + `branch -f`) when none is. Step 6 then confirms nothing else moved the
+# checkout meanwhile.
 #
 # Idempotent: if the PR is already merged, it skips the merge and still runs the
 # worktree teardown + local sync, so a re-run finishes a half-done close-out.
@@ -149,10 +150,11 @@ MAIN=$(dirname "$COMMON")
 pr_field() { ( cd "$MAIN" && gh pr view "$PR" --json "$1" -q ".$1" ); }
 
 # The path of the worktree that has $1 checked out, or empty if no worktree does.
-# `git branch -f` refuses to move a branch that is checked out ANYWHERE, so the
-# ref-only sync in step 4 has to know before it tries — and a linked worktree
-# standing on the PR's base means a session is working there, which is a state to
-# report rather than an error to force past.
+# `git branch -f` refuses to move a branch that is checked out ANYWHERE, so step 4
+# has to know before it tries: a base standing in a linked worktree is advanced from
+# inside that tree instead. Answering empty is not a failure — an epic branch whose
+# worktree has been torn down is exactly that case, and the sync falls back to
+# moving the ref.
 worktree_holding() {
   git -C "$MAIN" worktree list --porcelain | awk -v ref="branch refs/heads/$1" '
     /^worktree / { wt = substr($0, 10) }
@@ -351,14 +353,25 @@ fi
 # the branch forward: the main checkout never carries direct commits (all work lands
 # via PR merge on the remote), so a non-ff means an anomaly that should stop loudly.
 #
-# Which of the two paths runs is decided by whether the base is the branch the main
-# checkout is standing on:
+# Which of the THREE paths runs is decided by where the base branch actually is:
 #
-#   on it      -> `merge --ff-only`, exactly as before; no switch is needed and the
-#                 working tree follows the branch it is already on.
-#   not on it  -> move the REF (`fetch` + `branch -f`), which needs no working tree.
+#   the main checkout is standing on it
+#              -> `merge --ff-only` there; no switch is needed and the working tree
+#                 follows the branch it is already on.
+#   a LINKED worktree is standing on it
+#              -> `merge --ff-only` inside THAT worktree. This is the ordinary path,
+#                 not an edge: an epic branch gets a worktree of its own, and every
+#                 slice of that epic PRs into it, so every one of those close-outs
+#                 finds the base checked out somewhere.
+#   nothing is standing on it
+#              -> move the REF (`fetch` + `branch -f`), which needs no working tree.
 #
-# The ref-only path is what makes a shared main checkout safe. Switching to the base
+# `branch -f` is what forces the split: git refuses to move a branch any worktree is
+# standing on, so a checked-out base has to be advanced from inside its own tree.
+# `--ff-only` is why doing so is safe — it can only move the branch forward, never
+# discard a commit, which is the same guarantee the on-base path already relies on.
+#
+# What none of the three does is SWITCH the main checkout. Switching to the base
 # opens a window in which another session's own switch lands, and everything after
 # it then operates on whatever is checked out at that moment rather than on the base
 # — observed: a slice PR based on an epic branch switched the checkout off the
@@ -367,12 +380,8 @@ fi
 # while origin/release had independently advanced. Not switching removes the window
 # entirely, and leaves nothing to switch back afterwards.
 ON_BASE=0
+BASE_WT=""
 if [ "$START_BRANCH" = "$INTEGRATION" ]; then ON_BASE=1; fi
-
-if [ "$ON_BASE" -eq 0 ]; then
-  BASE_WT=$(worktree_holding "$INTEGRATION")
-  [ -z "$BASE_WT" ] || die "'$INTEGRATION' is checked out in the worktree $BASE_WT, so its ref cannot be moved from here — git refuses to move a branch any worktree is standing on, and someone is standing on this one. PR #$PR IS merged; only the local sync is outstanding.\n  Finish it from that worktree:\n    git -C $BASE_WT pull --ff-only\n  Until then do NOT cut new worktrees off '$INTEGRATION' — the local ref is behind the merged tip."
-fi
 
 # `gh pr merge` returns before GitHub is guaranteed to serve the new tip, so a sync
 # fired immediately can advance to nothing and silently leave the branch on the
@@ -385,6 +394,8 @@ MERGE_OID=$( cd "$MAIN" && gh pr view "$PR" --json mergeCommit -q '.mergeCommit.
 echo "merge-pr: syncing local '$INTEGRATION' to the merged tip ..."
 synced=""
 diverged=""
+ff_failed=""
+ff_out=""
 for attempt in 1 2 3 4 5 6; do
   git -C "$MAIN" fetch --prune origin >/dev/null 2>&1 || true
   assert_checkout_unmoved
@@ -392,15 +403,42 @@ for attempt in 1 2 3 4 5 6; do
     git -C "$MAIN" merge --ff-only "origin/$INTEGRATION" >/dev/null 2>&1 || true
   elif git -C "$MAIN" show-ref --verify --quiet "refs/heads/$INTEGRATION" \
     && ! git -C "$MAIN" merge-base --is-ancestor "$INTEGRATION" "origin/$INTEGRATION" 2>/dev/null; then
-    # `branch -f` is a force move, so it is the one path here that could DISCARD
-    # commits. The local branch carrying something the remote does not is a stable
+    # Checked FIRST, so it covers both off-base paths rather than only the ref one.
+    # It is the precise instrument for one of the two ways a sync can be blocked —
+    # the local branch carrying commits the remote does not — and answering it here,
+    # off the refs, is what lets the worktree path below attribute its own failure to
+    # the OTHER cause instead of guessing between them. `branch -f` is a force move
+    # and could DISCARD those commits; `merge --ff-only` could not, but would fail
+    # with a message the caller then has to interpret. Either way it is a stable
     # condition — the remote only ever advances — so stop on it rather than retrying.
     diverged=1
     break
   else
-    # Creates the branch when the main checkout has no local copy of it, which is
-    # the ordinary state for an epic branch a session never checked out.
-    git -C "$MAIN" branch -f "$INTEGRATION" "origin/$INTEGRATION" >/dev/null 2>&1 || true
+    # Re-resolved EVERY round rather than once before the loop, because `merge` names
+    # no branch: it moves whatever the tree it runs in has checked out. Asking which
+    # tree holds the base immediately before merging in it is what keeps those two
+    # the same tree, and it is the same question either way, so a stale answer buys
+    # nothing. It also makes both ways the answer can change self-healing instead of
+    # fatal: a worktree removed mid-run, or switched to another branch, simply stops
+    # holding the base, and the sync falls through to moving the ref — which is what
+    # is now correct for that state.
+    BASE_WT=$(worktree_holding "$INTEGRATION")
+    if [ -n "$BASE_WT" ]; then
+      # A linked worktree is standing on the base, so its ref cannot be moved from
+      # outside; advance it from inside that tree instead. Divergence was ruled out
+      # above, so a failure here is the tree's STATE, not the refs' — keep git's own
+      # message, which names the files that block the fast-forward and is the part a
+      # caller cannot re-derive from "sync failed".
+      if ! ff_out=$(git -C "$BASE_WT" merge --ff-only "origin/$INTEGRATION" 2>&1); then
+        ff_failed=1
+        break
+      fi
+    else
+      # Creates the branch when the main checkout has no local copy of it, which is
+      # the ordinary state for an epic branch whose own worktree has since been torn
+      # down.
+      git -C "$MAIN" branch -f "$INTEGRATION" "origin/$INTEGRATION" >/dev/null 2>&1 || true
+    fi
   fi
   LOCAL=$(git -C "$MAIN" rev-parse --verify --quiet "refs/heads/$INTEGRATION" || true)
   REMOTE=$(git -C "$MAIN" rev-parse --verify --quiet "refs/remotes/origin/$INTEGRATION" || true)
@@ -412,7 +450,8 @@ for attempt in 1 2 3 4 5 6; do
   echo "merge-pr: remote not serving the merge yet (attempt $attempt/6) — waiting ..."
   sleep 2
 done
-[ -z "$diverged" ] || die "local '$INTEGRATION' carries commits 'origin/$INTEGRATION' does not, so moving its ref would discard them — REFUSED, and the local branch is untouched. PR #$PR IS merged; only the local sync is outstanding.\n  Inspect what is on it and reconcile it by hand:\n    git -C $MAIN log --oneline origin/$INTEGRATION..$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION'."
+[ -z "$diverged" ] || die "local '$INTEGRATION' carries commits 'origin/$INTEGRATION' does not, so advancing it would discard them — REFUSED, and the local branch is untouched. PR #$PR IS merged; only the local sync is outstanding.\n  Inspect what is on it and reconcile it by hand:\n    git -C $MAIN log --oneline origin/$INTEGRATION..$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION'."
+[ -z "$ff_failed" ] || die "could not fast-forward '$INTEGRATION' inside the worktree $BASE_WT, so the local branch is still behind the merged tip. PR #$PR IS merged; only the local sync is outstanding.\n  '$INTEGRATION' is NOT diverged — that was checked first — so what blocks it is the state of that working tree: uncommitted changes over a file the fast-forward touches, or a merge left unfinished in it. git said:\n    ${ff_out:-(no output)}\n  Clear that tree and finish the sync from inside it:\n    git -C $BASE_WT status\n    git -C $BASE_WT merge --ff-only origin/$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION' — the local ref is behind the merged tip."
 [ -n "$synced" ] || die "local '$INTEGRATION' did NOT reach the merged tip (merge commit ${MERGE_OID:-unknown} still absent after retries) — SYNC FAILED; do NOT cut new worktrees off '$INTEGRATION' until this is resolved."
 
 # --- 5. Verify the main checkout did not move under us ---------------------------
@@ -425,11 +464,12 @@ done
 assert_checkout_unmoved
 # Only off the base: standing ON it, HEAD is the very ref step 4 verified against the
 # merged tip, so comparing it to the start commit would assert nothing but that the
-# sync happened. Off it, this run moved a DIFFERENT branch's ref and never touched
-# the working tree, so any movement at all is another process's.
+# sync happened. Off it, step 4 advanced a DIFFERENT branch — by ref, or inside its
+# own linked worktree — and never touched the MAIN checkout's working tree at all,
+# so any movement here is another process's.
 if [ "$ON_BASE" -eq 0 ]; then
   NOW_HEAD=$(git -C "$MAIN" rev-parse HEAD)
-  [ "$NOW_HEAD" = "$START_HEAD" ] || die "the main checkout $MAIN is still on '$START_BRANCH' but its HEAD moved from $START_HEAD to $NOW_HEAD — this run only moved the ref of '$INTEGRATION', which is a different branch, so another process moved '$START_BRANCH' mid-run. Check where it points before cutting any worktree off it."
+  [ "$NOW_HEAD" = "$START_HEAD" ] || die "the main checkout $MAIN is still on '$START_BRANCH' but its HEAD moved from $START_HEAD to $NOW_HEAD — this run only advanced '$INTEGRATION', which is a different branch, so another process moved '$START_BRANCH' mid-run. Check where it points before cutting any worktree off it."
 fi
 
 echo "merge-pr: done — PR #$PR merged, worktree removed, local '$INTEGRATION' synced to $(git -C "$MAIN" rev-parse --short "$INTEGRATION"), main checkout still on '$START_BRANCH'."

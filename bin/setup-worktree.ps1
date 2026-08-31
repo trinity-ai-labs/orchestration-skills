@@ -62,12 +62,20 @@
 # to shell out to python3 with a node fallback and fails outright on a machine that
 # has neither. This path needs nothing beyond PowerShell itself.
 
-# The analogue of `set -e`. It only covers CMDLET failures: Windows PowerShell 5.1
-# does not fold a native command's exit code into $ErrorActionPreference, so every
-# git / gh call below checks $LASTEXITCODE explicitly. Without that check a failed
-# git call falls through on empty output and the script keeps going against a path
-# it never resolved.
+# The analogue of `set -e`, and it covers CMDLET failures only. Whether a native
+# command's non-zero exit ALSO raises a terminating error is a separate switch, so
+# this script sets both rather than inheriting either. Windows PowerShell 5.1 has
+# no such switch; 7.4 added one, off by default today, and a caller's session or
+# profile can turn it on - a preference variable is inherited by every script the
+# session runs. These helpers spend non-zero exits as questions rather than as
+# failures, so with it on a probing git call throws before the $LASTEXITCODE check
+# below ever reads it, and with it off that check is what stops a failed git
+# call from falling through on empty output and carrying the script on against a
+# path it never resolved. Pinning it off is also what keeps this comment true: one
+# that asserts today's default as a guarantee goes stale silently when the default
+# moves, with nothing at the code it describes to show that it has.
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
 
 function Write-Stderr {
     # `echo ... >&2`. Write-Error would work but wraps the message in a formatted

@@ -4,7 +4,9 @@ description: >-
   Onboard a repo onto the /pipeline:write-issue → /pipeline:orchestrate pipeline. Use whenever a repo has no
   `.agents/worktree.json` yet, whenever `setup-worktree.sh` warns "no config", when someone asks to
   SET UP / ONBOARD / WIRE UP the pipeline (or a gate queue / enqueue system) for a project, or when
-  a dispatcher refuses to dispatch because the project is unconfigured. You GROUND the repo in its
+  a dispatcher refuses to dispatch because the project is unconfigured. Also use it on the one PRESENCE
+  case — a project whose gate queue was scaffolded against an older spec — to RECONCILE what its runner
+  actually implements against the reference's invariants. You GROUND the repo in its
   real scripts, CI, and AGENTS.md — never guessed commands — then write `.agents/worktree.json` and,
   when the project wants one, scaffold a durable gate queue INTO THAT REPO. The artifacts belong to
   the project: this skill carries the knowledge, the repo carries the code, so each project owns and
@@ -101,6 +103,18 @@ The queue exists so implementers never run the heavy gate: they push, open a dra
 
 If it does want one, scaffold the three scripts into the project and add their `package.json` entries. **Read `references/gate-queue.md` before writing a line of it** — the correctness of the whole thing rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) that are easy to get subtly wrong and whose failure mode is a green gate against code no gate ever saw.
 
+### Already has a queue? Reconcile it — report the delta, never rewrite
+
+*Scaffold* has one branch, and it is the case this skill is otherwise blind to. Every other trigger here is an **absence** — no config, a helper warning, a dispatcher refusing. This one is a **presence**: the three scripts are already there, so the project is not onboarding, it is possibly *behind*. The ownership split that makes this design right — the repo owns and evolves its own queue — is the same split that guarantees no signal ever crosses back when the reference gains an invariant.
+
+So when the scripts already exist, read them against the invariants in `references/gate-queue.md` and hand back a **per-invariant delta**: implemented, absent, or not determinable by reading. That third verdict is a real answer rather than a hedge — give it with the command you would have to run to settle it.
+
+- **Report, never rewrite.** Two projects' queues *should* be allowed to diverge, and an overwrite cannot tell a deliberate divergence from a stale one, so it destroys both. The output is a list a maintainer decides on, one invariant at a time — this pass edits nothing.
+- **Read the code, never a version stamp.** A stamp recorded at scaffold time looks like the cheap version of this and does not work, because **an invariant can be partly already true on the day it ships**: the reference is written from implementations that already exist, and says so in its first paragraph. Invariant 9 is the worked example — its announcement half (an `onWait` that prints the slot holder on a failed acquire) was already implemented in a real project before the invariant was written, while its read-only `--status` half was genuinely new. A stamp answers "current" or "behind" and both are wrong here: bumped on partial adoption it says current, left alone it says behind on an invariant nine-tenths satisfied. Neither one names the single missing clause, which is the only part that ever caused drift.
+- **The half-recognised invariant is exactly what a human re-read misses.** A maintainer re-reading invariant 9 recognises their own runner in most of it and concludes they are current. The delta is worth writing down *because* most of what it checks comes back implemented — that is what makes the remainder invisible without it.
+
+*The failure this prevents: a project onboards once, the reference gains invariants over the following months, and no signal ever reaches that project. Every invariant it does implement still holds, so the queue keeps working, nothing errors, and nothing looks stale. It surfaces only when a dispatcher follows a newer instruction assuming a mode the runner never had — observed as `drain --status` falling through to a full drain on a pre-invariant-9 runner, symptom `drained 0 ticket(s)`, caught only because the output shape looked wrong. Re-running setup on that repo would not have closed the gap; it would have returned a successful verification report.*
+
 ## Step 4 — Verify it, don't assert it
 
 A config that parses is not a config that works. Prove each layer:
@@ -110,7 +124,7 @@ A config that parses is not a config that works. Prove each layer:
 1. **The reader agrees.** `setup-worktree.sh <branch> <base>` (or `setup-worktree.ps1`) in the repo, then confirm each declared env file is **present** in the new worktree and deps are installed — not that the command exited 0. Present, not necessarily symlinked: on Windows a real symlink needs Developer Mode or an elevated shell, so the helper falls back to a **copy** and says so on stderr. That is a working setup, not a broken one — the only thing it costs is that a later edit to the main checkout's env file will not propagate, which the helper's own warning spells out.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip.
 3. **The gate command exists.** Run the *scoped* check for real. Don't run the full gate just to prove it resolves — `<pm> run <script> --help` or the script listing is enough.
-4. **The queue round-trips**, if you scaffolded one: enqueue a ticket, drain it, confirm the ticket reached `done/` and the PR carries the gate's verdict comment. A queue that enqueues but never drains is worse than none — work vanishes into a directory nobody reads.
+4. **The queue round-trips**, if you scaffolded one: enqueue a ticket, drain it, confirm the ticket reached `done/` and the PR carries the gate's verdict comment. A queue that enqueues but never drains is worse than none — work vanishes into a directory nobody reads. **Then exercise the read-only mode too — `drain --status` — and confirm it reports the state and claims nothing** (queue depth and in-flight claims unchanged, no ticket moved). The round-trip alone is the happy path and never invokes that mode, so it comes back green on a runner that does not implement it; and an unrecognised flag falling through to a full drain is indistinguishable from a working mode until you read the output shape. That is the check invariant 9's rejection requirement exists to make possible — a runner without the mode must say so rather than drain.
 5. **Tear down** the verification worktree with `remove-worktree.sh` (or `remove-worktree.ps1`).
 
 ## Step 5 — Land it as a reviewable change

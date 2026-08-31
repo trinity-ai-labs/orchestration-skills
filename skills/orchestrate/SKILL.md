@@ -175,7 +175,7 @@ Two properties make this a rider rather than a note about one arc:
 
 ---
 
-## 9. What execute does NOT do (hard boundaries)
+## 9. What orchestrate does NOT do (hard boundaries)
 
 - **No implementation code, ever.** You ground, dispatch, read merged diffs, and rewrite the plan. `/pipeline:execute` already forbids the dispatcher role from implementing; it is restated here because the loop is where the temptation actually lands — on the small folded item that "would take a second." *The failure this prevents: the moment you take an implementer's turn, nobody is holding the loop — the cycle's reconcile does not run, and the plan silently stops being rewritten.*
 - **Never ground beyond the horizon.** This is the single rule the whole skill exists to enforce. Writing a `file:line` into an item three waves out rebuilds the exact defect this loop replaces, and it does so while looking like diligence.

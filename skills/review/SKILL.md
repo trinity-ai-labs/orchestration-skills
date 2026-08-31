@@ -143,6 +143,15 @@ a simplification can expose a correctness problem.
 - **An existing suppression** (`eslint-disable`, `@ts-expect-error`) that the change did not add. It
   is the previous author's claim, already reviewed on the PR that introduced it. Removing it to look
   tidy is a behavior change nobody asked for. Flag it if you think it is wrong.
+- **Anything whose reason you have not established.** The bullet above is one case of a general rule,
+  and `skills/orchestrate/SKILL.md` §4 is where that rule lives — establish why a thing is the way it
+  is before you disposition it, and where it has a valid reason and is idiomatic for its context,
+  leave it and say you checked. Read it there; this skill does not carry a second copy. *The failure
+  this prevents: this pass edits the working tree directly, so a construct tidied away before it was
+  understood is gone by the time anyone could have asked why it was there — and in a diff, removing
+  something load-bearing looks exactly like removing something redundant. A suppression is only the
+  case that comes up often enough to have earned its own line; the odd-looking guard, the redundant
+  check and the narrower type fail the same way.*
 
 ## Process
 

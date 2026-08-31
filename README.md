@@ -282,7 +282,7 @@ Both args of the first form are required — no default base, since integration 
 
 ## Onboarding a new project
 
-Run **`/pipeline:setup`** in that repo. It grounds the commands in the repo's real lockfile, scripts, and CI, writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that repo* if the project wants one — the plugin carries the knowledge, the project owns the code, so each queue can evolve independently. It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down.
+Run **`/pipeline:setup`** in that repo. It grounds the commands in the repo's real lockfile, scripts, and CI, writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that repo* if the project wants one — the plugin carries the knowledge, the project owns the code, so each queue can evolve independently. It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where it scaffolded a queue the verification goes past that happy path, because a round trip comes back green whether or not the queue has the two surfaces a dispatcher later needs to interrogate it without disturbing it: it also asks the queue for its state read-only and confirms that asking moved nothing, and puts two drains in contention to confirm the blocked one says who holds the slot rather than sitting silent.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing.
 

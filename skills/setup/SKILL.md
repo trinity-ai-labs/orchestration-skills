@@ -82,7 +82,7 @@ For a monorepo, note which commands live at the **root** and which are per-packa
 | Key | Read by | Source it from |
 |---|---|---|
 | `envFiles` | `setup-worktree.sh` | Gitignored env paths that exist in the main checkout |
-| `install` | `setup-worktree.sh` | The lockfile's package manager, frozen/CI form |
+| `install` | `setup-worktree.sh` + skills | The lockfile's package manager, frozen/CI form |
 | `env` | `setup-worktree.sh` | Shared build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | skills | What CI runs before merge |
 | `scopedCheck` | skills | The no-build, no-test subset |

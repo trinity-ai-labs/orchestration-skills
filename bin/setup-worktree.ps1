@@ -53,6 +53,13 @@
 # base tip before dispatching an agent. It is a line rather than a claim inside
 # the READY text so that the honest check and the lazy read are the same act.
 #
+# Neither line is printed unless the worktree is really on <branch>. The path is
+# derived from the branch LEAF, so two branches sharing one resolve to the same
+# directory and the second call is handed the first's tree with its branch never
+# created; that is a case the HEAD comparison cannot catch, since the tree is
+# standing on the base. Both modes therefore read the branch back off the tree and
+# exit non-zero instead of reporting a success that isn't one.
+#
 # Every branch gets the same treatment - env symlinks and a real install - so a
 # worktree is always self-contained and can face any check the project has, a
 # re-attached tree exactly as much as a fresh one.
@@ -379,6 +386,39 @@ if ($known -contains $Wt) {
 } else {
     & git -C $Main worktree add @AddArgs
     if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree add failed (exit $LASTEXITCODE)" }
+}
+
+# The tree that exists now may not be on the branch that was asked for, and every
+# signal after this point is byte-identical to a success if it isn't. $Wt is
+# derived from the branch LEAF, so two branches sharing a leaf resolve to one
+# directory; the guard above finds the first one's worktree already registered
+# there and skips `git worktree add`, so the requested branch is never created -
+# and the caller's one mandated check cannot see it, because comparing the printed
+# HEAD against the base tip MATCHES when the tree is standing on the base itself.
+# So read back what the tree is really on and refuse rather than print READY.
+#
+# Keyed on the observed branch, never on a name pattern: no branch prefix carries
+# meaning to any helper here, so any two branches sharing a leaf collide whatever
+# they are called. It covers --existing too, where the same comparison confirms
+# the tree handed back is on the branch the caller asked to attach to.
+# `--abbrev-ref HEAD` prints the literal "HEAD" on a detached checkout, which
+# compares as its own value and needs no special case.
+$OnBranch = Get-GitOutput @('-C', $Wt, 'rev-parse', '--abbrev-ref', 'HEAD')
+if ($OnBranch -ne $Branch) {
+    # What the skipped `git worktree add` would have done differs by mode. --existing
+    # is only ever asked for a branch that already exists - the arms above stop or
+    # track origin rather than invent one - so "never created" would be a plainly
+    # false claim there about a branch the caller can go and look at.
+    if ($Existing) {
+        $Missed = "'$Branch' was never checked out here"
+    } else {
+        $Missed = "'$Branch' was never created"
+    }
+    Write-Stderr "refusing: $Wt is on '$OnBranch', not the requested '$Branch'."
+    Write-Stderr "  The worktree path is derived from the branch leaf, so it is shared by every branch whose leaf is '$Slug'."
+    Write-Stderr "  One of them already had a worktree registered here, so 'git worktree add' was skipped and $Missed."
+    Write-Stderr "  Give '$Branch' a leaf no live worktree is holding, or free this one first:"
+    Exit-WithError "    git -C `"$Main`" worktree list"
 }
 
 # Symlink the project's gitignored env files (tests/build read these).

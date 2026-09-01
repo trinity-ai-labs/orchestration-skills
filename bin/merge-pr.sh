@@ -7,7 +7,8 @@
 # whole "Merge & cleanup" sequence as ONE command, in the one correct order, so
 # no load-bearing step can be dropped:
 #
-#   1. Resolve the MAIN checkout + the PR's base (integration) and head branch.
+#   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
+#      and decide which merge MODE this one boundary gets (see below).
 #   2. Preflight the PR's mergeability, BEFORE anything irreversible happens — the
 #      two steps that follow cannot be undone by a later failure, and the step
 #      that actually fails is the last one. A conflicting PR stops here with the
@@ -17,12 +18,38 @@
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.sh, which kills processes rooted in the tree first.
 #   4. Mark the PR ready — the dispatcher's review approval — and immediately
-#      `gh pr merge --merge --delete-branch` it: a real merge commit (never
-#      squash), deleting both the local and remote branch. A merge that fails
-#      anyway puts the draft flag back before it exits.
+#      `gh pr merge` it, deleting both the local and remote branch. A merge that
+#      fails anyway puts the draft flag back before it exits.
 #   5. Sync the local copy of the PR's base branch to the just-merged tip — in the
 #      main checkout, in whatever linked worktree is standing on it, or by ref.
 #   6. Verify the main checkout is still standing where it was when the run began.
+#
+# The merge mode. Every merge here is a real merge commit, with exactly ONE
+# exception a project may opt into: the epic buffer branch collapsing back into
+# the integration branch it was cut from. That branch is scaffolding — it exists
+# for one arc and is deleted at its end — so on a long-lived release branch a
+# project may prefer one commit per arc to N slice merges plus a merge commit.
+# It is declared up front in <repo>/.agents/worktree.json, never decided here:
+#
+#   { "epicMerge": "merge" }   // "merge" (the default) | "squash"
+#
+# Absent, unreadable, or anything but the exact string "squash" means "merge", so
+# a typo cannot silently squash and no existing project changes behaviour. There
+# is deliberately no argument, no environment variable and no flag for this: the
+# helper CLI contract is frozen (AGENTS.md), and a per-merge switch is exactly the
+# close-out-time history decision the config exists to prevent.
+#
+# Even under "squash" the boundary is one merge and one only. A slice -> epic
+# merge stays a real merge commit with no opt-out (those merge commits are the
+# epic's review record, and the integration gate's `^2` check reads their second
+# parent), and single-slice work cuts no epic branch, so it has no buffer to
+# collapse. What separates them is a RELATIONSHIP, never a branch name — no
+# prefix is ever the key for anything in this flow — and the relationship IS the
+# definition of an epic branch: it is the branch an epic's slices PR'd into.
+# `gh pr list --base <head> --state merged` answers exactly that, and every way it
+# can fail to answer — a network error, an empty response, a gh failure, a count
+# of zero — falls back to a real merge commit. A missed squash is cosmetic; a
+# wrong squash is unrecoverable history.
 #
 # Before any of that it REFUSES to run when the copy being executed, or the directory
 # it is being run from, sits inside the worktree step 3 tears down: that teardown
@@ -119,6 +146,76 @@ worktree_home_default() {
 
 WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_REL=".agents/worktree.json"
+
+# One scalar out of the project's own config, or nothing at all.
+#
+# Deliberately smaller than setup-worktree.sh's emit_config: that one hands back
+# an array and an env map, so it has to emit shell for its caller to eval, while a
+# single string travels out of a command substitution with no eval in the picture.
+# What it copies verbatim is the INTERPRETER PROBE, because that part is not a
+# convenience — on Windows `command -v python3` succeeds against the Microsoft
+# Store's App Execution Alias, a stub that opens the Store and prints nothing, so
+# a probe that only asks whether the name RESOLVES selects an "interpreter" whose
+# empty output is indistinguishable from a config that declared nothing.
+#
+# Where setup-worktree.sh EXITS when nothing on PATH can parse JSON, this returns
+# empty and the caller falls back to a real merge commit. That asymmetry is the
+# point rather than leniency, and it comes from what the unreadable config costs
+# each side. There, it yields a worktree with no env symlinks and no install — a
+# broken tree wearing every appearance of a good one — so stopping is the only
+# honest answer. Here it yields precisely today's behaviour, which is what every
+# project that has never heard of this key already gets: the fallback IS the safe
+# state, so an unreadable config costs a cosmetic miss, where refusing would break
+# the close-out of every PR on a machine with neither node nor python over a key
+# most projects never set.
+read_config_scalar() { # read_config_scalar <config-path> <key>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 0
+  # A malformed config is swallowed here for the same reason a missing interpreter
+  # is: the fallback is the non-destructive default, so there is nothing to warn
+  # about that the merge itself will not already say plainly.
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      try {
+        const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"))[process.argv[2]];
+        if (typeof value === "string") process.stdout.write(value);
+      } catch (err) { /* unreadable config reads as "not declared" */ }
+    ' "$1" "$2" 2>/dev/null || true
+  else
+    "${runner[@]}" - "$1" "$2" 2>/dev/null <<'PY' || true
+import json, sys
+try:
+    value = json.load(open(sys.argv[1])).get(sys.argv[2])
+except Exception:
+    value = None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
 
 # printf '%b' rather than echo, so a message can carry the `\n` its recovery
 # instructions need: bash's builtin echo prints those two characters verbatim, so a
@@ -265,6 +362,50 @@ if [ -n "$DOOMED_WT" ]; then
   fi
 fi
 
+# --- Merge mode ------------------------------------------------------------------
+# Two questions, both answered before anything irreversible happens, and BOTH have
+# to say yes for the squash path to be reachable. The order is a short-circuit: the
+# config is a local file read, so a project that has not opted in never spends the
+# gh call at all and behaves exactly as it does today.
+#
+#   1. Did the PROJECT declare it? Only the exact string "squash" counts. Absent,
+#      unreadable, misspelled, or any other value is "merge".
+#   2. Is this the epic boundary? An epic branch is the branch an epic's slices
+#      PR'd into, so asking GitHub how many merged PRs targeted the HEAD branch IS
+#      the definition rather than a proxy for it. A slice branch and a single-slice
+#      branch both answer 0, which is what keeps those two merges real without
+#      needing a rule of their own.
+#
+# Every way that second question can fail to produce a positive integer — gh
+# missing, unauthenticated, offline, rate-limited, a branch nobody PR'd into, a
+# reply that is not a number — lands on "merge". The asymmetry is the whole design:
+# a missed squash leaves a readable history that merely has more commits in it,
+# while a wrong squash flattens an arc's commits off the integration branch
+# irreversibly.
+#
+# The epic tip is captured HERE, before the merge, because the squash close-out
+# below needs the commit that was gated in order to check what actually landed —
+# and after the squash the PR no longer points at a branch that exists. Failing to
+# capture it therefore
+# falls back to "merge" as well: without that commit the squash path has no
+# substitute for the ancestry check it breaks, and a squash whose result cannot be
+# verified is exactly the unrecoverable case above.
+MERGE_MODE="merge"
+EPIC_TIP=""
+if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge)" = "squash" ]; then
+  SLICE_PRS=$( cd "$MAIN" && gh pr list --base "$HEAD_BRANCH" --state merged --json number --jq 'length' 2>/dev/null ) || SLICE_PRS=""
+  case "$SLICE_PRS" in
+  '' | *[!0-9]*) SLICE_PRS=0 ;;
+  esac
+  if [ "$SLICE_PRS" -gt 0 ]; then
+    EPIC_TIP=$( pr_field headRefOid 2>/dev/null || true )
+    if [ -n "$EPIC_TIP" ]; then
+      MERGE_MODE="squash"
+      echo "merge-pr: '$HEAD_BRANCH' is an epic branch ($SLICE_PRS merged slice PR(s) targeted it) and this project declares epicMerge=squash — it collapses into one commit on '$INTEGRATION'."
+    fi
+  fi
+fi
+
 # --- 1. Mergeability preflight ---------------------------------------------------
 # Everything past this point is irreversible, and the step that can actually fail —
 # the merge — is the last one. A PR whose base moved under it fails there with
@@ -329,8 +470,20 @@ else
   WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
   echo "merge-pr: marking PR #$PR ready (review approval) ..."
   ( cd "$MAIN" && gh pr ready "$PR" )
-  echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
-  if ! ( cd "$MAIN" && gh pr merge "$PR" --merge --delete-branch ); then
+  # The squash path deliberately does NOT pass --delete-branch. The branch has to
+  # outlive the merge long enough for the squash close-out below to compare what
+  # landed against the commit that was gated, because that comparison is what
+  # replaces the ancestry guarantee a squash destroys — and a branch already
+  # deleted by the same call that squashed it could not be kept if the comparison
+  # came back wrong.
+  if [ "$MERGE_MODE" = "squash" ]; then
+    MERGE_ARGS=(--squash)
+    echo "merge-pr: merging PR #$PR (squash — the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
+  else
+    MERGE_ARGS=(--merge --delete-branch)
+    echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
+  fi
+  if ! ( cd "$MAIN" && gh pr merge "$PR" "${MERGE_ARGS[@]}" ); then
     # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
     # being merged right this second reads, everywhere else in this flow, as a diff
     # a dispatcher approved — so leaving it set would have the PR wearing a

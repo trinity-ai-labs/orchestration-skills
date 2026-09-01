@@ -17,7 +17,8 @@
 # "Merge & cleanup" sequence as ONE command, in the one correct order, so no
 # load-bearing step can be dropped:
 #
-#   1. Resolve the MAIN checkout + the PR's base (integration) and head branch.
+#   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
+#      and decide which merge MODE this one boundary gets (see below).
 #   2. Preflight the PR's mergeability, BEFORE anything irreversible happens - the
 #      two steps that follow cannot be undone by a later failure, and the step
 #      that actually fails is the last one. A conflicting PR stops here with the
@@ -27,12 +28,38 @@
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.ps1, which kills processes rooted in the tree first.
 #   4. Mark the PR ready - the dispatcher's review approval - and immediately
-#      `gh pr merge --merge --delete-branch` it: a real merge commit (never
-#      squash), deleting both the local and remote branch. A merge that fails
-#      anyway puts the draft flag back before it exits.
+#      `gh pr merge` it, deleting both the local and remote branch. A merge that
+#      fails anyway puts the draft flag back before it exits.
 #   5. Sync the local copy of the PR's base branch to the just-merged tip - in the
 #      main checkout, in whatever linked worktree is standing on it, or by ref.
 #   6. Verify the main checkout is still standing where it was when the run began.
+#
+# The merge mode. Every merge here is a real merge commit, with exactly ONE
+# exception a project may opt into: the epic buffer branch collapsing back into
+# the integration branch it was cut from. That branch is scaffolding - it exists
+# for one arc and is deleted at its end - so on a long-lived release branch a
+# project may prefer one commit per arc to N slice merges plus a merge commit.
+# It is declared up front in <repo>/.agents/worktree.json, never decided here:
+#
+#   { "epicMerge": "merge" }   // "merge" (the default) | "squash"
+#
+# Absent, unreadable, or anything but the exact string "squash" means "merge", so
+# a typo cannot silently squash and no existing project changes behaviour. There
+# is deliberately no argument, no environment variable and no flag for this: the
+# helper CLI contract is frozen (AGENTS.md), and a per-merge switch is exactly the
+# close-out-time history decision the config exists to prevent.
+#
+# Even under "squash" the boundary is one merge and one only. A slice -> epic
+# merge stays a real merge commit with no opt-out (those merge commits are the
+# epic's review record, and the integration gate's `^2` check reads their second
+# parent), and single-slice work cuts no epic branch, so it has no buffer to
+# collapse. What separates them is a RELATIONSHIP, never a branch name - no
+# prefix is ever the key for anything in this flow - and the relationship IS the
+# definition of an epic branch: it is the branch an epic's slices PR'd into.
+# `gh pr list --base <head> --state merged` answers exactly that, and every way it
+# can fail to answer - a network error, an empty response, a gh failure, a count
+# of zero - falls back to a real merge commit. A missed squash is cosmetic; a
+# wrong squash is unrecoverable history.
 #
 # Before any of that it REFUSES to run when the copy being executed, or the directory
 # it is being run from, sits inside the worktree step 3 tears down: that teardown
@@ -73,6 +100,7 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 
 $Here = $PSScriptRoot
+$ConfigRel = '.agents/worktree.json'
 
 function Write-Stderr {
     param([Parameter(Mandatory = $true)] [string] $Message)
@@ -165,6 +193,51 @@ function Get-GitOutput {
         Exit-WithError ("git " + ($GitArgs -join ' ') + " failed (exit $LASTEXITCODE)")
     }
     return (($out | Out-String).Trim())
+}
+
+function Get-ConfigScalar {
+    # One scalar out of the project's own config, or an empty string.
+    #
+    # Deliberately smaller than setup-worktree.ps1's config block: that one reads an
+    # array and an env map and has to expand shell syntax in the values, while this
+    # needs a single string compared against a literal. ConvertFrom-Json is built in,
+    # so unlike the bash sibling there is no interpreter to probe for and no machine
+    # on which this reader is simply unavailable.
+    #
+    # Where setup-worktree.ps1 EXITS on a config it cannot parse, this returns empty
+    # and the caller falls back to a real merge commit. That asymmetry is the point
+    # rather than leniency, and it comes from what the unreadable config costs each
+    # side. There, it yields a worktree with no env symlinks and no install - a
+    # broken tree wearing every appearance of a good one - so stopping is the only
+    # honest answer. Here it yields precisely today's behaviour, which is what every
+    # project that has never heard of this key already gets: the fallback IS the safe
+    # state, so an unreadable config costs a cosmetic miss where refusing would break
+    # the close-out of every PR over a key most projects never set.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Path,
+        [Parameter(Mandatory = $true)] [string] $Name
+    )
+    if (-not (Test-Path -LiteralPath $Path)) { return '' }
+    try {
+        $cfg = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    } catch {
+        return ''
+    }
+    # The key is matched CASE-SENSITIVELY, which PowerShell does not do on its own:
+    # a PSObject property lookup ignores case, so `"EpicMerge"` would be found here
+    # and NOT by the bash sibling, whose node / python parse reads the exact key.
+    # A pair that disagrees about the same config file is the drift the parity rule
+    # exists to prevent, and this one fails in the destructive direction - the whole
+    # promise of the key is that a misspelling cannot silently squash. Iterating the
+    # properties is also what keeps this safe under Set-StrictMode 2.0, which turns
+    # a plain read of an absent property into a throw.
+    foreach ($prop in $cfg.PSObject.Properties) {
+        if ($prop.Name -ceq $Name) {
+            if ($prop.Value -is [string]) { return $prop.Value }
+            return ''
+        }
+    }
+    return ''
 }
 
 function Get-RepoRoot {
@@ -275,7 +348,7 @@ function Get-PrField {
 # so the preflight's FIRST answer is free; only an answer that has not settled yet
 # costs a further call.
 $prJson = Invoke-InMainCheckout {
-    $raw = & gh pr view $Pr --json state,baseRefName,headRefName,mergeCommit,mergeable
+    $raw = & gh pr view $Pr --json state,baseRefName,headRefName,headRefOid,mergeCommit,mergeable
     if ($LASTEXITCODE -ne 0) { return $null }
     return (($raw | Out-String).Trim())
 }
@@ -421,6 +494,59 @@ this run's working directory ($((Get-Location).Path)) is INSIDE the worktree thi
     }
 }
 
+# --- Merge mode ------------------------------------------------------------------
+# Two questions, both answered before anything irreversible happens, and BOTH have
+# to say yes for the squash path to be reachable. The order is a short-circuit: the
+# config is a local file read, so a project that has not opted in never spends the
+# gh call at all and behaves exactly as it does today.
+#
+#   1. Did the PROJECT declare it? Only the exact string "squash" counts. Absent,
+#      unreadable, misspelled, or any other value is "merge".
+#   2. Is this the epic boundary? An epic branch is the branch an epic's slices
+#      PR'd into, so asking GitHub how many merged PRs targeted the HEAD branch IS
+#      the definition rather than a proxy for it. A slice branch and a single-slice
+#      branch both answer 0, which is what keeps those two merges real without
+#      needing a rule of their own.
+#
+# Every way that second question can fail to produce a positive integer - gh
+# missing, unauthenticated, offline, rate-limited, a branch nobody PR'd into, a
+# reply that is not a number - lands on "merge". The asymmetry is the whole design:
+# a missed squash leaves a readable history that merely has more commits in it,
+# while a wrong squash flattens an arc's commits off the integration branch
+# irreversibly.
+#
+# The epic tip is captured HERE, before the merge, because the squash close-out
+# below needs the commit that was gated in order to check what actually landed -
+# and after the squash the PR no longer points at a branch that exists. Failing to
+# capture it therefore falls back to "merge" as well: without that commit the
+# squash path has no substitute for the ancestry check it breaks, and a squash
+# whose result cannot be verified is exactly the unrecoverable case above.
+$MergeMode = 'merge'
+$EpicTip = ''
+# `-ceq`, not `-eq`: PowerShell's default string comparison ignores case, so `-eq`
+# would accept "Squash" and "SQUASH" where the bash sibling's `=` accepts neither.
+# Observed on this very pair before the fix - the .ps1 squashed a config the .sh
+# merged, from the same file. Only the exact string counts, on both sides.
+if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge') -ceq 'squash') {
+    $slicePrs = Invoke-InMainCheckout -ArgumentList @($HeadBranch) -Body {
+        param([string] $Base)
+        $value = (& gh pr list --base $Base --state merged --json number --jq 'length' 2>$null | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0) { return '' }
+        return $value
+    }
+    if ($slicePrs -match '^[0-9]+$' -and [int] $slicePrs -gt 0) {
+        # Read the same way as the mergeCommit field above: the batch requested it,
+        # so the property exists on the object whether or not it carries a value.
+        $tip = ''
+        if ($PrView.headRefOid) { $tip = [string]$PrView.headRefOid }
+        if ($tip) {
+            $MergeMode = 'squash'
+            $EpicTip = $tip
+            Write-Output "merge-pr: '$HeadBranch' is an epic branch ($slicePrs merged slice PR(s) targeted it) and this project declares epicMerge=squash - it collapses into one commit on '$Integration'."
+        }
+    }
+}
+
 # --- 1. Mergeability preflight ---------------------------------------------------
 # Everything past this point is irreversible, and the step that can actually fail -
 # the merge - is the last one. A PR whose base moved under it fails there with
@@ -508,10 +634,24 @@ if ($State -eq 'MERGED') {
     # gh's own output is left flowing to the host, so the exit code travels out of
     # the scriptblock through a script-scoped flag rather than as a return value -
     # a returned boolean would arrive appended to everything gh printed.
-    Write-Output "merge-pr: merging PR #$Pr (real merge commit, deleting branch) ..."
+    #
+    # The squash path deliberately does NOT pass --delete-branch. The branch has to
+    # outlive the merge long enough for the squash close-out below to compare what
+    # landed against the commit that was gated, because that comparison is what
+    # replaces the ancestry guarantee a squash destroys - and a branch already
+    # deleted by the same call that squashed it could not be kept if the comparison
+    # came back wrong.
+    if ($MergeMode -eq 'squash') {
+        $MergeArgs = @('--squash')
+        Write-Output "merge-pr: merging PR #$Pr (squash - the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
+    } else {
+        $MergeArgs = @('--merge', '--delete-branch')
+        Write-Output "merge-pr: merging PR #$Pr (real merge commit, deleting branch) ..."
+    }
     $script:MergeFailed = $false
-    Invoke-InMainCheckout {
-        & gh pr merge $Pr --merge --delete-branch
+    Invoke-InMainCheckout -ArgumentList @(, $MergeArgs) -Body {
+        param([string[]] $GhMergeArgs)
+        & gh pr merge $Pr @GhMergeArgs
         if ($LASTEXITCODE -ne 0) { $script:MergeFailed = $true }
     }
     if ($script:MergeFailed) {

@@ -90,8 +90,11 @@ For a monorepo, note which commands live at the **root** and which are per-packa
 | `format` | skills | The formatter in *write* mode |
 | `frameworkSkills` | skills | `{skill, when}` per area, from the deps actually imported |
 | `briefConventions` | skills | Only what `AGENTS.md` doesn't already say |
+| `epicMerge` | `merge-pr.sh` + `.ps1` | The project's own history policy — **omit it** unless a long-lived release branch wants one commit per arc, and omit it outright if the integration branch is the repo's default branch, where it does nothing |
 
 Keep `briefConventions` short. It is not a place to restate the orchestration protocol — "don't run the full gate", "enqueue then hand back", "never rebase", the transient-red reading and the formatter rule are all in `/pipeline:execute` already and are identical for every project. Duplicating them there means two copies that drift, and the copy agents read is the one no human ever opens. Point at `AGENTS.md`; state only the gotchas that would otherwise cost a run.
+
+**`epicMerge` is the only key in that table read by a helper other than `setup-worktree`**, which is why its `Read by` cell names a different pair of scripts than every other script-read row. `"merge"` is the default; every value but the exact lowercase `"squash"` means `merge`, in both ports, which compare the key and the value case-sensitively. It governs exactly one merge — an epic branch collapsing back into the integration branch it was cut from — and **only when that integration branch is not the repository's default branch**. So a project where those are the same branch can declare `"squash"` and correctly see nothing happen, which makes "omit it there" a structural fact rather than a convention someone has to remember, and a harder reason to leave it out than any preference about commit counts. Default to omitting the key: write it only when the project has a long-lived release branch, actually wants one commit per arc on it, and has said so. `/pipeline:execute`'s *The epic branch* → *Mechanics* carries both conditions and the trade the option makes.
 
 See `examples/worktree.json` in this plugin for a complete file.
 

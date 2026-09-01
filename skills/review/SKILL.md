@@ -72,6 +72,22 @@ at most, a **single targeted test file** run directly.
 Backgrounding a banned run does not make it allowed. Read the project's config for the actual
 command rather than assuming one.
 
+**And the run that actually stalls this pass is a permitted one, so that sentence cannot reach it.**
+Your entire budget — the scoped check and one targeted test file — is allowed, and the stall shape
+does not care which run it was: the turn ends, and the caller never gets the report. So the rule is
+keyed to the handoff rather than to the ban. **Never background a check and end your turn on it.**
+Both of your checks run in the **foreground**, and this pass ends at its report, never at a wait.
+The rule reaches checks and commands and nothing else; here it reaches nothing else by construction,
+since constraint 1 above leaves this pass no sub-agents to be waiting on.
+
+*The failure this prevents, observed on `trinity-ai-labs/trinity` PR #4798, at exactly the moment
+this pass runs: an agent had finished its change and was about to commit, backgrounded the project's
+`pnpm check` — its `scopedCheck`, permitted here, and re-run by the pre-commit hook on `git commit`
+anyway — and ended its turn on it. The change was complete, correct and uncommitted: no commit, no
+push, no PR. The wait bought nothing the commit would not have enforced one step later. The gate
+runner claimed the ticket and spent the claim refusing a dirty tree, which is the queue detecting the
+symptom while nothing anywhere had a rule against the cause.*
+
 ## Scope
 
 - **Only the code this change touched.** Read `git diff` **and** `git status` (untracked files are

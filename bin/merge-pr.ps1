@@ -51,16 +51,40 @@
 # helper CLI contract is frozen (AGENTS.md), and a per-merge switch is exactly the
 # close-out-time history decision the config exists to prevent.
 #
-# Even under "squash" the boundary is one merge and one only. A slice -> epic
-# merge stays a real merge commit with no opt-out (those merge commits are the
-# epic's review record, and the integration gate's `^2` check reads their second
-# parent), and single-slice work cuts no epic branch, so it has no buffer to
-# collapse. What separates them is a RELATIONSHIP, never a branch name - no
-# prefix is ever the key for anything in this flow - and the relationship IS the
-# definition of an epic branch: it is the branch an epic's slices PR'd into.
-# `gh pr list --base <head> --state merged` answers exactly that, and every way it
-# can fail to answer - a network error, an empty response, a gh failure, a count
-# of zero - falls back to a real merge commit. A missed squash is cosmetic; a
+# Even under "squash" the boundary is one merge and one only, and TWO conditions
+# have to hold for it. A slice -> epic merge stays a real merge commit with no
+# opt-out (those merge commits are the epic's review record, and the integration
+# gate's `^2` check reads their second parent), and single-slice work cuts no epic
+# branch, so it has no buffer to collapse. What separates them is a RELATIONSHIP,
+# never a branch name - no prefix is ever the key for anything in this flow - and
+# the relationship IS the definition of an epic branch: it is the branch an epic's
+# slices PR'd into. `gh pr list --base <head> --state merged` answers exactly that,
+# and a slice branch and a single-slice branch both answer zero.
+#
+# That question alone would reach one merge it must never reach, because an
+# INTEGRATION branch answers it too - it is the branch every slice of every arc
+# PR'd into, so a long-lived `release/x.y.z` counts in the dozens. Under "squash"
+# a `release/0.4.0 -> dev` close-out would therefore collapse the entire release
+# branch, irreversibly, with the tree comparison passing and every signal reading
+# clean. So the squash additionally requires that the PR's BASE is not the
+# repository's default branch, which is the standing constraint - the squashes are
+# for epic buffers merging into integration/release branches, not into `main` or
+# `dev` - expressed as something the helper can check rather than as advice
+# someone has to remember.
+#
+# That narrowing is deliberate and it has one consequence worth stating, because
+# the next reader will otherwise read it as a bug: in a project whose INTEGRATION
+# branch simply IS the default branch, the genuine `epic -> main` boundary is
+# skipped too, and `"epicMerge": "squash"` correctly does nothing there. Such a
+# project was already told to leave the setting at its default; this makes that
+# automatic instead of a thing anyone has to remember, and it is the only reading
+# under which the constraint can be enforced rather than advised - nothing
+# distinguishes an integration branch merging into `main` from an epic branch
+# merging into `main` except a prefix, and no prefix is ever the key here.
+#
+# Every way either question can fail to produce a usable answer - a network error,
+# an empty response, a gh failure, a count of zero, a default branch that could not
+# be determined - falls back to a real merge commit. A missed squash is cosmetic; a
 # wrong squash is unrecoverable history.
 #
 # Before any of that it REFUSES to run when the copy being executed, or the directory
@@ -497,25 +521,37 @@ this run's working directory ($((Get-Location).Path)) is INSIDE the worktree thi
 }
 
 # --- Merge mode ------------------------------------------------------------------
-# Two questions, both answered before anything irreversible happens, and BOTH have
+# Three questions, all answered before anything irreversible happens, and ALL have
 # to say yes for the squash path to be reachable. The order is a short-circuit: the
-# config is a local file read, so a project that has not opted in never spends the
+# config is a local file read, so a project that has not opted in never spends a
 # gh call at all and behaves exactly as it does today.
 #
 #   1. Did the PROJECT declare it? Only the exact string "squash" counts. Absent,
 #      unreadable, misspelled, or any other value is "merge".
-#   2. Is this the epic boundary? An epic branch is the branch an epic's slices
+#   2. Is this a boundary the squash is allowed to reach? The standing constraint
+#      is that the squashes are for an epic buffer collapsing into an
+#      integration/release branch - never for a release branch merging back into
+#      `main` or `dev`. The default branch is what tells those apart, so a base
+#      that IS the default branch never squashes. That is deliberately wider than
+#      the release-branch case it was added for: in a project whose integration
+#      branch is itself the default branch, the genuine `epic -> main` boundary is
+#      skipped too, and "squash" correctly does nothing. Such a project was already
+#      told to leave the setting at its default; this makes that automatic. The
+#      alternative - telling an integration branch from an epic branch when both
+#      merge into `main` - has no answer but a branch-name prefix, and no prefix is
+#      ever the key for anything in this flow.
+#   3. Is this the epic boundary? An epic branch is the branch an epic's slices
 #      PR'd into, so asking GitHub how many merged PRs targeted the HEAD branch IS
 #      the definition rather than a proxy for it. A slice branch and a single-slice
 #      branch both answer 0, which is what keeps those two merges real without
 #      needing a rule of their own.
 #
-# Every way that second question can fail to produce a positive integer - gh
-# missing, unauthenticated, offline, rate-limited, a branch nobody PR'd into, a
-# reply that is not a number - lands on "merge". The asymmetry is the whole design:
-# a missed squash leaves a readable history that merely has more commits in it,
-# while a wrong squash flattens an arc's commits off the integration branch
-# irreversibly.
+# Every way questions 2 and 3 can fail to produce a usable answer - gh missing,
+# unauthenticated, offline, rate-limited, a default branch that came back empty or
+# unresolvable, a branch nobody PR'd into, a reply that is not a number - lands on
+# "merge". The asymmetry is the whole design: a missed squash leaves a readable
+# history that merely has more commits in it, while a wrong squash flattens an
+# arc's commits off the integration branch irreversibly.
 #
 # The epic tip is captured HERE, before the merge, because the squash close-out
 # below needs the commit that was gated in order to check what actually landed -
@@ -530,21 +566,48 @@ $EpicTip = ''
 # Observed on this very pair before the fix - the .ps1 squashed a config the .sh
 # merged, from the same file. Only the exact string counts, on both sides.
 if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge') -ceq 'squash') {
-    $slicePrs = Invoke-InMainCheckout -ArgumentList @($HeadBranch) -Body {
-        param([string] $Base)
-        $value = (& gh pr list --base $Base --state merged --json number --jq 'length' 2>$null | Out-String).Trim()
+    # An unknown default branch is not a licence to guess, and "not answered" has
+    # two shapes rather than one. gh (2.92) renders a null field as an empty line -
+    # which is also what a failed call and a repository with no default branch
+    # produce - while a raw `jq -r` prints the literal "null" for that same input.
+    # A gh that ever formatted it the second way would hand back a string that
+    # compares unequal to every real base, i.e. it would read as "not the default
+    # branch" and OPEN the squash path on the one answer that means the question
+    # went unanswered. Both shapes are normalised to empty so the single truthiness
+    # test below covers them, and a branch genuinely named `null` is normalised
+    # with them: on an answer this ambiguous, merge is the direction everything on
+    # this path errs in.
+    $defaultBranch = Invoke-InMainCheckout -Body {
+        $value = (& gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>$null | Out-String).Trim()
         if ($LASTEXITCODE -ne 0) { return '' }
         return $value
     }
-    if ($slicePrs -match '^[0-9]+$' -and [int] $slicePrs -gt 0) {
-        # Read the same way as the mergeCommit field above: the batch requested it,
-        # so the property exists on the object whether or not it carries a value.
-        $tip = ''
-        if ($PrView.headRefOid) { $tip = [string]$PrView.headRefOid }
-        if ($tip) {
-            $MergeMode = 'squash'
-            $EpicTip = $tip
-            Write-Output "merge-pr: '$HeadBranch' is an epic branch ($slicePrs merged slice PR(s) targeted it) and this project declares epicMerge=squash - it collapses into one commit on '$Integration'."
+    if ($defaultBranch -ceq 'null') { $defaultBranch = '' }
+    # `-cne`, not `-ne`: PowerShell's default string comparison ignores case, and
+    # git refs are case-SENSITIVE, so a base literally named `Main` in a repo whose
+    # default branch is `main` is a different branch that `-ne` would call the same
+    # one - skipping a squash that was legitimate. The same class of bug the
+    # `-ceq 'squash'` above exists for, arriving through the other comparison, and
+    # in the other direction; both are wrong and only the case-sensitive form
+    # matches what the bash sibling's `!=` does.
+    if ($defaultBranch -and ($Integration -cne $defaultBranch)) {
+        $slicePrs = Invoke-InMainCheckout -ArgumentList @($HeadBranch) -Body {
+            param([string] $Base)
+            $value = (& gh pr list --base $Base --state merged --json number --jq 'length' 2>$null | Out-String).Trim()
+            if ($LASTEXITCODE -ne 0) { return '' }
+            return $value
+        }
+        if ($slicePrs -match '^[0-9]+$' -and [int] $slicePrs -gt 0) {
+            # Read the same way as the mergeCommit field above: the batch requested
+            # it, so the property exists on the object whether or not it carries a
+            # value.
+            $tip = ''
+            if ($PrView.headRefOid) { $tip = [string]$PrView.headRefOid }
+            if ($tip) {
+                $MergeMode = 'squash'
+                $EpicTip = $tip
+                Write-Output "merge-pr: '$HeadBranch' is an epic branch ($slicePrs merged slice PR(s) targeted it) and this project declares epicMerge=squash - it collapses into one commit on '$Integration'."
+            }
         }
     }
 }
@@ -920,12 +983,30 @@ PR #$Pr was squashed onto '$Integration', but $verifyFailed - so '$HeadBranch' h
   Everything else is done: the merge is complete and local '$Integration' is synced. Re-running merge-pr.ps1 $Pr resumes from this check.
 "@
         }
-        # `-D`, not `-d`, and this is the one place in the flow where that is
-        # correct: `-d` asks the ancestry question, which on this path is answered
-        # "no" for a reason that has nothing to do with whether the work landed. The
-        # tree comparison above is what earns the force, and it is why the force
-        # cannot be copied anywhere else - on the merge path `-d` would be right and
-        # its refusal would be real.
+        # `-D`, not `-d`. This is the one place in this flow where git's "not fully
+        # merged" refusal is overridden, and that refusal is precisely the one the
+        # standing rule says never to force past - so the two conditions below are
+        # what make it correct HERE, and neither is context that carries anywhere
+        # else. (Step 4's `branch -f` forces a different refusal entirely, with its
+        # own divergence check standing in for it; nothing about this line applies
+        # to it, and nothing about it applies to this line.)
+        #
+        #   - ONLY on this path. `-d` asks the ancestry question, which a squash
+        #     answers "no" for a reason that has nothing to do with whether the work
+        #     landed. On the merge path that same refusal would be REAL, and nothing
+        #     there needs a force anyway - `gh pr merge --delete-branch` does the
+        #     deleting and no `git branch -d` runs at all.
+        #   - ONLY after the tree comparison PASSED. The Exit-WithError immediately
+        #     above is not a formality standing between the check and the delete; it
+        #     IS the guard `-d` would otherwise have been. Reached with the
+        #     comparison failed, skipped, or moved below this point, `-D` deletes a
+        #     branch whose work is not on the integration branch, and nothing
+        #     anywhere records that it existed.
+        #
+        # So do not lift this line out of the block, do not move it above that
+        # Exit-WithError, and do not cite it as precedent for forcing past any other
+        # guard. The tree comparison is what earns the force, and it earns it
+        # exactly once, here.
         $deleteFailed = @()
         if ($hasRemote) {
             Write-Output "merge-pr: tree matches - deleting '$HeadBranch' on origin ..."

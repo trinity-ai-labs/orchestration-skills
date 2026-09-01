@@ -151,7 +151,7 @@ git config --global --add safe.directory <path>
 
 ## Per-project config
 
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. `setup-worktree.sh` reads `envFiles`, `env`, and `install`; the skills read the rest — and `install` as well, the one key both of them read, because the epic worktree's tick re-runs it.
+Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads `epicMerge`. The skills read the rest — and `install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it.
 
 ```json
 {
@@ -162,6 +162,7 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
   "enqueue": "pnpm gate:enqueue",
   "drain": "pnpm gate:drain",
   "format": "pnpm format",
+  "epicMerge": "merge",
   "env": { "TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/my-turbo}" },
   "frameworkSkills": [{ "skill": "solid", "when": "SolidJS UI" }],
   "briefConventions": "Match surrounding style. Never rebase, never self-merge."
@@ -179,8 +180,11 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | `format` | skills | The auto-formatter in *write* mode, run right before committing |
 | `frameworkSkills` | skills | `{skill, when}` pairs — the skill each area opens with |
 | `briefConventions` | skills | Conventions baked into every dispatched implementer brief |
+| `epicMerge` | script | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch. Read by `merge-pr`, not `setup-worktree`. Omitting it means `"merge"`; see the note below before setting it |
 
 See [`examples/worktree.json`](examples/worktree.json) for a complete file.
+
+**`epicMerge` reaches exactly one merge, and declines to reach it in more projects than you would guess.** It governs an epic branch's own collapse back into the integration branch — the branch is scaffolding, cut for one arc and deleted at its end, so a project on a long-lived release branch may prefer one commit per arc to N slice merges plus a merge commit. Every other merge in the flow stays a real merge commit with no opt-out. Even under `"squash"` two conditions must both hold: the PR's base is **not** the repository's default branch, and the head branch has merged PRs into it (which is what makes it an epic branch). Any question the helper cannot answer — gh offline, unauthenticated, an unreadable config, a value that is not exactly the lowercase `"squash"` — falls back to `merge`, because a missed squash is cosmetic and a wrong squash is unrecoverable. **The first condition means a project whose integration branch simply *is* its default branch never squashes, even at the genuine epic boundary** — this repo is one, so `"epicMerge": "squash"` here correctly does nothing. That is the design: without it the same test matches a release branch merging into `main`, and the helper would collapse an entire release branch with every signal reading like a clean close-out. Both ports compare the key, the value and the branch names case-sensitively, so `"Squash"` and `"EpicMerge"` mean `merge` in bash and PowerShell alike. Full rule, both conditions and the trade: [`skills/execute/SKILL.md`](skills/execute/SKILL.md) → *The epic branch* → *Mechanics*.
 
 **Why it lives in the repo.** It travels with the clone, works under any checkout directory name, and is reviewed in the same PR as the change that alters it. Keying it to a directory name instead — the old design — meant a repo cloned to a different folder silently got no config, and the helper would cut a bare worktree with no env and no `node_modules` while only warning on stderr.
 

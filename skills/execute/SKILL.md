@@ -46,12 +46,12 @@ Before acting, decide whether you are the **dispatcher** or an **implementer**. 
 
 ## Per-project config
 
-The worktree tooling is generic; each project declares its specifics in **its own repo** at `<repo>/.agents/worktree.json`. The helper reads `envFiles`, `env`, and `install` from it; you read the rest (`cat <repo>/.agents/worktree.json`) to learn the gate, the framework skills, and the brief conventions.
+The worktree tooling is generic; each project declares its specifics in **its own repo** at `<repo>/.agents/worktree.json`. The helper reads `envFiles`, `env`, and `install` from it; you read the rest (`cat <repo>/.agents/worktree.json`) to learn the gate, the framework skills, and the brief conventions — and `install` as well, the one key both of you read, because the epic worktree's tick re-runs it (*Draining the gate queue*).
 
 Config lives in the repo — not in your home directory — so it travels with the clone, works under any checkout directory name, and is reviewed in the same PR as the change that alters it. **No config → STOP and say so.** The helper will happily cut a bare worktree (no env symlinks, no `node_modules`) and only warn on stderr; an implementer dispatched into that worktree then fails its checks for reasons that look like code bugs. Don't dispatch into a config-less repo — get the file written first. Keys:
 
 - `envFiles` — gitignored env files to symlink from the main checkout into each worktree.
-- `install` — install command run inside a new worktree (worktrees don't share `node_modules`).
+- `install` — install command run inside a new worktree (worktrees don't share `node_modules`), and re-run on every tick in the epic worktree, the one tree whose dependencies can go stale under it (*Draining the gate queue*).
 - `gate` — the heavy full gate (build + test). This is what the RUNNER runs against a queued PR's worktree; implementers do NOT run it (they enqueue it). It's also what a human runs for a manual full check.
 - `scopedCheck` — the cheap, unlocked check an implementer's commits are held to (format-check + lint + typecheck; no build, no test). For Trinity this is `pnpm check`, and the agentic pre-commit hook already enforces it on every commit.
 - `enqueue` / `drain` — how an implementer enqueues its PR for gating, and how the dispatcher drains the queue. For Trinity: `pnpm gate:enqueue` and `pnpm gate:drain`. **Both absent means the project has no queue** — see below.

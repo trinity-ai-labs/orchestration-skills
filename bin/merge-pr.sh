@@ -22,7 +22,9 @@
 #      fails anyway puts the draft flag back before it exits.
 #   5. Sync the local copy of the PR's base branch to the just-merged tip — in the
 #      main checkout, in whatever linked worktree is standing on it, or by ref.
-#   6. Verify the main checkout is still standing where it was when the run began.
+#   6. On the squash path ONLY: verify the merged tree against the epic tip that
+#      was gated, and delete the branch once it matches.
+#   7. Verify the main checkout is still standing where it was when the run began.
 #
 # The merge mode. Every merge here is a real merge commit, with exactly ONE
 # exception a project may opt into: the epic buffer branch collapsing back into
@@ -72,7 +74,7 @@
 # otherwise isolated per worktree, and several sessions share it — so step 5 never
 # switches it. A base branch that is not the checked-out one is advanced where it
 # already lives: inside the linked worktree standing on it, or as a bare REF
-# (`fetch` + `branch -f`) when none is. Step 6 then confirms nothing else moved the
+# (`fetch` + `branch -f`) when none is. Step 7 then confirms nothing else moved the
 # checkout meanwhile.
 #
 # Idempotent: if the PR is already merged, it skips the merge and still runs the
@@ -266,7 +268,7 @@ HEAD_BRANCH=$(pr_field headRefName)
 
 echo "merge-pr: PR #$PR  state=$STATE  base=$INTEGRATION  head=$HEAD_BRANCH  main=$MAIN"
 
-# Where the main checkout stands BEFORE this run touches anything. Step 5 checks it
+# Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
 # movement came from another session, and step 4's verification cannot see it —
 # that check proves the BASE reached the merged tip and has no opinion about a
@@ -277,7 +279,7 @@ START_BRANCH=$(git -C "$MAIN" rev-parse --abbrev-ref HEAD)
 START_HEAD=$(git -C "$MAIN" rev-parse HEAD)
 
 # Stop the run if the main checkout is no longer on the branch it started on.
-# Called before every advance in step 4 as well as over the finished run in step 5,
+# Called before every advance in step 4 as well as over the finished run in step 6,
 # because the on-base decision that picks step 4's path is made once and then used
 # across a retry loop — and on that path `merge --ff-only` names no branch, so it
 # moves WHATEVER is checked out at the moment it runs. A switch landing in between
@@ -607,7 +609,90 @@ done
 [ -z "$ff_failed" ] || die "could not fast-forward '$INTEGRATION' inside the worktree $BASE_WT, so the local branch is still behind the merged tip. PR #$PR IS merged; only the local sync is outstanding.\n  '$INTEGRATION' is NOT diverged — that was checked first — so what blocks it is the state of that working tree: uncommitted changes over a file the fast-forward touches, or a merge left unfinished in it. git said:\n    ${ff_out:-(no output)}\n  Clear that tree and finish the sync from inside it:\n    git -C $BASE_WT status\n    git -C $BASE_WT merge --ff-only origin/$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION' — the local ref is behind the merged tip."
 [ -n "$synced" ] || die "local '$INTEGRATION' did NOT reach the merged tip (merge commit ${MERGE_OID:-unknown} still absent after retries) — SYNC FAILED; do NOT cut new worktrees off '$INTEGRATION' until this is resolved."
 
-# --- 5. Verify the main checkout did not move under us ---------------------------
+# --- 5. Squash close-out: verify the tree, THEN delete the branch ----------------
+# Nothing to do on the merge path — `--delete-branch` already removed both copies
+# of the branch, and the merge commit's second parent keeps the ancestry that
+# `git branch -d` and the integration gate's `^2` check both read.
+#
+# On the squash path neither of those is true, and the two failures are one fact:
+# the squash commit has no second parent, so the epic branch is NOT an ancestor of
+# the new integration tip. `git branch -d` therefore reports it as not fully
+# merged on EVERY squashed close-out, and the flow's standing rule — stop on that
+# warning, never force past it — would halt every one of them if followed
+# literally here.
+#
+# So the warning is not waved through; it is ANSWERED BY A DIFFERENT INSTRUMENT.
+# It is a statement about ancestry, and squash breaks ancestry by construction, so
+# on this path it is expected and carries no information. What has to be true
+# instead is that what landed IS what was gated, and that is a question about
+# TREES, which a squash preserves exactly:
+#
+#   git diff --quiet <epic tip before the merge> <the squash commit>
+#
+# Empty means the integration branch now holds, byte for byte, the tree the
+# close-out gate ran on. That is a stronger property than `^2` ever gave, because
+# it compares the trees directly instead of inferring coverage from parentage —
+# and it only comes back empty when the close-out cadence was actually run, since
+# the final `merge origin/<integration>` into the epic before gating is what makes
+# those two trees equal. A skipped cadence surfaces here as a failed comparison
+# rather than as a non-empty diff nobody looked at.
+#
+# Deleting only ever happens after that comparison passes. If it fails the branch
+# survives untouched, which is the entire safety story on this path.
+#
+# Placed after the sync rather than beside the merge so that a failure here leaves
+# every other part of the close-out finished: the merge is done and the local base
+# branch is at the merged tip, so the only thing outstanding is a branch that still
+# exists. Re-running the helper resumes from exactly here.
+if [ "$MERGE_MODE" = "squash" ]; then
+  HAS_REMOTE=0
+  HAS_LOCAL=0
+  if git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$HEAD_BRANCH"; then HAS_REMOTE=1; fi
+  if git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then HAS_LOCAL=1; fi
+  if [ "$HAS_REMOTE" -eq 0 ] && [ "$HAS_LOCAL" -eq 0 ]; then
+    echo "merge-pr: '$HEAD_BRANCH' is already gone locally and on origin — an earlier run finished the squash close-out."
+  else
+    echo "merge-pr: verifying the squashed tree against the epic tip that was gated ($(printf '%.12s' "$EPIC_TIP")) ..."
+    # Both objects have to be READABLE before the comparison means anything: an
+    # absent one makes `git diff` fail rather than answer, and a check that could
+    # not run must never stand in for one that passed. The epic tip survives in
+    # the local branch or in origin/<head> — neither is pruned yet, because this
+    # path is exactly the one that did not delete the branch — and the squash
+    # commit arrived with step 4's fetch, which already proved '$INTEGRATION'
+    # carries it.
+    VERIFY_FAILED=""
+    if [ -z "$MERGE_OID" ]; then
+      VERIFY_FAILED="GitHub has not reported the squash commit for PR #$PR yet, so there is nothing to compare the epic tip against"
+    elif ! git -C "$MAIN" cat-file -e "$EPIC_TIP^{commit}" 2>/dev/null; then
+      VERIFY_FAILED="the epic tip $EPIC_TIP is not an object this repo holds, so the comparison could not be made"
+    elif ! git -C "$MAIN" cat-file -e "$MERGE_OID^{commit}" 2>/dev/null; then
+      VERIFY_FAILED="the squash commit $MERGE_OID is not an object this repo holds, so the comparison could not be made"
+    elif ! git -C "$MAIN" diff --quiet "$EPIC_TIP" "$MERGE_OID"; then
+      VERIFY_FAILED="the tree on '$INTEGRATION' after the squash is NOT the tree that was gated"
+    fi
+    [ -z "$VERIFY_FAILED" ] || die "PR #$PR was squashed onto '$INTEGRATION', but $VERIFY_FAILED — so '$HEAD_BRANCH' has NOT been deleted and is intact, locally and on origin.\n  On this path that comparison REPLACES git's \"not fully merged\" warning: a squash breaks ancestry by construction, so the warning says nothing, and the tree check is the only thing standing between the delete and losing work. It did not pass, so nothing was deleted.\n  See for yourself:\n    git -C $MAIN diff $EPIC_TIP ${MERGE_OID:-<squash commit>}\n  The usual cause is the close-out cadence being skipped — '$INTEGRATION' moved while the epic ran and was never merged back INTO '$HEAD_BRANCH', so what landed is not what the close-out gate ran on.\n  Everything else is done: the merge is complete and local '$INTEGRATION' is synced. Re-running merge-pr.sh $PR resumes from this check."
+    # `-D`, not `-d`, and this is the one place in the flow where that is correct:
+    # `-d` asks the ancestry question, which on this path is answered "no" for a
+    # reason that has nothing to do with whether the work landed. The tree
+    # comparison one line above is what earns the force, and it is why the force
+    # cannot be copied anywhere else — on the merge path `-d` would be right and
+    # its refusal would be real.
+    DELETE_FAILED=""
+    if [ "$HAS_REMOTE" -eq 1 ]; then
+      echo "merge-pr: tree matches — deleting '$HEAD_BRANCH' on origin ..."
+      git -C "$MAIN" push origin --delete "$HEAD_BRANCH" >/dev/null 2>&1 \
+        || DELETE_FAILED="git -C $MAIN push origin --delete $HEAD_BRANCH"
+    fi
+    if [ "$HAS_LOCAL" -eq 1 ]; then
+      echo "merge-pr: tree matches — deleting local '$HEAD_BRANCH' ..."
+      git -C "$MAIN" branch -D "$HEAD_BRANCH" >/dev/null 2>&1 \
+        || DELETE_FAILED="${DELETE_FAILED:+$DELETE_FAILED\n    }git -C $MAIN branch -D $HEAD_BRANCH"
+    fi
+    [ -z "$DELETE_FAILED" ] || die "PR #$PR is squashed onto '$INTEGRATION' and the tree was VERIFIED against the gated epic tip, but deleting '$HEAD_BRANCH' failed.\n  Nothing is at risk — the work is on '$INTEGRATION' and the local sync is done; only the branch is left behind. Finish it by hand:\n    $DELETE_FAILED"
+  fi
+fi
+
+# --- 6. Verify the main checkout did not move under us ---------------------------
 # Step 4's verification proves the BASE reached the merged tip. It has no opinion
 # about a branch that moved INSTEAD — which is the half that actually corrupts, and
 # is silent: every other signal reads as a successful close-out. Nothing here

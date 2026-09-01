@@ -151,7 +151,7 @@ git config --global --add safe.directory <path>
 
 ## Per-project config
 
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. `setup-worktree.sh` reads `envFiles`, `env`, and `install`; the skills read the rest.
+Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. `setup-worktree.sh` reads `envFiles`, `env`, and `install`; the skills read the rest — and `install` as well, the one key both of them read, because the epic worktree's tick re-runs it.
 
 ```json
 {
@@ -171,7 +171,7 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | Key | Read by | Meaning |
 |---|---|---|
 | `envFiles` | script | Gitignored files symlinked from the main checkout into each worktree |
-| `install` | script | Run inside a new worktree — worktrees never share `node_modules`. Omit it, and `envFiles`, for a zero-dependency repo: a guessed install command fails every worktree setup |
+| `install` | script + skills | Run inside a new worktree — worktrees never share `node_modules` — and re-run on every tick in the epic worktree, the one tree whose dependencies can go stale under it. Omit it, and `envFiles`, for a zero-dependency repo: a guessed install command fails every worktree setup |
 | `env` | script | Exported before the install; most usefully a shared build-cache dir |
 | `gate` | skills | The authoritative check before merge. With a queue, the *runner* runs it, never an implementer. May equal `scopedCheck` when the repo has only one tier |
 | `scopedCheck` | skills | The cheap bar an implementer's commits are held to |

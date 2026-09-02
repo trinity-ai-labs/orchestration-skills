@@ -490,14 +490,35 @@ if ($State -eq 'MERGED') {
 # on the machine of someone whose checkout IS this repo - and silently running code
 # the caller did not name is a poor trade on the one helper whose whole job is to be
 # the final step.
-$DoomedWt = Get-WorktreeHoldingBranch $HeadBranch
-if ($DoomedWt) { $DoomedWt = Get-RealPath $DoomedWt }
-# The MAIN checkout is never what step 2 removes - remove-worktree.ps1 resolves its
-# target under the worktree home - so a head branch that happens to be checked out
-# there is not a tree this run will delete, and refusing on it would block a
-# close-out launched from the one directory that is always safe.
+#
+# Two forms of one answer, and they are not interchangeable. $HeadWt keeps the path
+# exactly as git printed it, because that is what step 2 HANDS to
+# remove-worktree.ps1 - git matches its registry against what it recorded, and a
+# resolved spelling of the same directory is a different string. $DoomedWt is the
+# resolved form, because the guards below decide whether two paths are the same tree
+# by comparing them, and one directory has more than one spelling.
+#
+# Step 2 reuses this value rather than asking again, and that is a correctness
+# requirement rather than thrift: the guards below refuse the run when THIS process
+# is rooted in the tree about to be torn down, so a second Get-WorktreeHoldingBranch
+# there could answer differently and the teardown would then be about a tree the
+# guards never examined.
+$HeadWt = Get-WorktreeHoldingBranch $HeadBranch
+# A registration whose directory was deleted by hand still lists here. Handing that
+# path over would send remove-worktree.ps1 down its absolute-path branch, where a
+# missing directory it cannot resolve a repo from means it skips the prune that is
+# the only thing left to do - so drop back to the branch name, which reaches it.
+if ($HeadWt -and -not (Test-Path -LiteralPath $HeadWt)) { $HeadWt = '' }
+$DoomedWt = ''
+if ($HeadWt) { $DoomedWt = Get-RealPath $HeadWt }
+# The MAIN checkout is never what step 2 removes - a head branch that happens to be
+# checked out there is not a tree this run will delete, and refusing on it would
+# block a close-out launched from the one directory that is always safe. Blanking
+# $HeadWt with it is what keeps that true now that step 2 takes this path directly:
+# the one path this run must never hand to a teardown is the main checkout's.
 if ($DoomedWt -and $DoomedWt.Equals((Get-RealPath $Main), [StringComparison]::OrdinalIgnoreCase)) {
     $DoomedWt = ''
+    $HeadWt = ''
 }
 if ($DoomedWt) {
     if (Test-PathInside -Candidate (Get-RealPath $Here) -Tree $DoomedWt) {
@@ -655,17 +676,35 @@ PR #$Pr conflicts with '$Integration' - nothing has been touched: the worktree i
 # --- 2. Remove the head branch's worktree --------------------------------------
 # Before the merge, so `--delete-branch` can remove the local branch - the ordering
 # git forces, and the reason step 1 exists: it is only safe to tear the tree down
-# once the merge is known to be possible. remove-worktree.ps1 is idempotent (no-ops
-# if the worktree is already gone) and derives the worktree path from the branch
-# leaf against this same repo. REPO is handed over through the
-# environment rather than a `$env:` assignment expression so the parity check's
-# env-var scan sees only what this script CONSUMES, never what it produces.
+# once the merge is known to be possible. remove-worktree.ps1 is idempotent, no-oping
+# if the worktree is already gone. REPO is handed over through the environment rather
+# than a `$env:` assignment expression so the parity check's env-var scan sees only
+# what this script CONSUMES, never what it produces.
+#
+# Hand over the PATH this run already resolved, not the branch name. $HeadWt is git's
+# own answer to "which worktree has this branch checked out", so it is right under
+# every layout at once - the bare <worktree home>/<project>/<leaf>, a workspace
+# member's <worktree home>/<workspace>/<leaf>/<repo>, and anywhere WORKTREE_DEST put
+# one. Passing the branch made the callee re-derive from scratch what the caller was
+# already holding, and that is exactly how the two got out of step: this helper knew
+# about the workspace layout and remove-worktree did not, so a workspace member's
+# teardown resolved a path that never existed, reported "already removed", and exited
+# 0 - which the $LASTEXITCODE check below duly passed, because the miss was not an
+# error - and the --delete-branch below then ran against a branch still checked out
+# in a live worktree, the precise failure the remove-then-merge ordering prevents.
+#
+# The branch name stays as the fallback for the case git has no answer to give: a
+# worktree in detached HEAD, one whose branch was switched, or a tree already gone.
+# There remove-worktree.ps1's own (now workspace-aware) resolution takes over, which
+# is why both halves of this fix were needed and neither substitutes for the other.
 if ($HeadBranch) {
     Write-Output "merge-pr: tearing down worktree for $HeadBranch ..."
+    $teardownTarget = $HeadBranch
+    if ($HeadWt) { $teardownTarget = $HeadWt }
     $priorRepo = [Environment]::GetEnvironmentVariable('REPO')
     [Environment]::SetEnvironmentVariable('REPO', $Main)
     try {
-        & (Join-Path $Here 'remove-worktree.ps1') $HeadBranch
+        & (Join-Path $Here 'remove-worktree.ps1') $teardownTarget
         if ($LASTEXITCODE -ne 0) { Exit-WithError "remove-worktree.ps1 failed (exit $LASTEXITCODE)" }
     } finally {
         [Environment]::SetEnvironmentVariable('REPO', $priorRepo)

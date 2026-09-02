@@ -382,7 +382,39 @@ if [ -n "$INSTALL_CMD" ]; then
   # accept so the first worktree setup warms the cache instead of stalling. Harmless
   # when INSTALL_CMD doesn't go through corepack.
   export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-  ( cd "$WT" && eval "$INSTALL_CMD" )
+  # Captured and tested rather than left to `set -e`, for the reason the config
+  # reader above gives — and for two more that are specific to here. `set -e`
+  # does stop the script before READY:, but it stops it MUTE: the only thing on
+  # stderr is the install tool's own output, so a caller is left reading npm's
+  # noise with nothing saying which worktree it belongs to, or that a tree was
+  # created and is still standing. And it exits with the INSTALL's status — 7
+  # for a tool that returns 7 — where every other refusal here, and the
+  # PowerShell sibling's failed-install path, exits 1. Two ports returning
+  # different codes for the same input is the drift the frozen contract exists
+  # to prevent, and nothing catches it: the parity check reads surface shape,
+  # not semantics.
+  #
+  # Guarding the subshell also stops `set -e` from aborting a multi-command
+  # install line partway, so `a; b` now means what the shell says it means and
+  # its status is b's. That is what the sibling has always done — PowerShell has
+  # no errexit for native commands, and $PSNativeCommandUseErrorActionPreference
+  # is pinned $false — so the two agree on `;` lines now, where before they did
+  # not. `a && b` is unaffected either way.
+  INSTALL_STATUS=0
+  ( cd "$WT" && eval "$INSTALL_CMD" ) || INSTALL_STATUS=$?
+  if [ "$INSTALL_STATUS" -ne 0 ]; then
+    # "did not complete" rather than "has no deps": an install that died partway
+    # leaves a PARTIAL dependency tree, which is the worse of the two states —
+    # a bare tree is obviously bare, a half-populated one looks provisioned and
+    # fails selectively — so the message must not promise the tidier one.
+    echo "install failed (exit $INSTALL_STATUS): $INSTALL_CMD" >&2
+    echo "  in worktree: $WT" >&2
+    echo "  the tree was created and is LEFT IN PLACE so you can diagnose it, but its" >&2
+    echo "  install did not complete: no READY: line is printed, and nothing should be" >&2
+    echo "  dispatched into it. Re-run the same command once the install is fixed - the" >&2
+    echo "  worktree is reused and the install retried." >&2
+    exit 1
+  fi
 fi
 
 if [ "$EXISTING" -eq 1 ]; then

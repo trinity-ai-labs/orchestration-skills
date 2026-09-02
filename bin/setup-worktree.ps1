@@ -241,7 +241,24 @@ function Invoke-ProjectInstall {
     try {
         Invoke-Expression $Command
         if ($LASTEXITCODE -ne 0) {
-            Exit-WithError "install command failed (exit $LASTEXITCODE): $Command"
+            # Naming the command alone leaves a reader unable to say which worktree
+            # it belongs to, and by this point a tree exists - so whether it survives
+            # is a fact the caller needs stated rather than inferred from silence.
+            # Both ports leave it standing, print no READY: line, and exit 1; the
+            # message is kept word-for-word in step with the bash sibling's so a
+            # user who reads one and then the other cannot conclude they differ.
+            # "did not complete" rather than "has no deps": an install that died
+            # partway leaves a PARTIAL dependency tree, which is the worse of the
+            # two states - a bare tree is obviously bare, a half-populated one
+            # looks provisioned and fails selectively - so the message must not
+            # promise the tidier one.
+            Write-Stderr "install failed (exit $LASTEXITCODE): $Command"
+            Write-Stderr "  in worktree: $WorkingDirectory"
+            Write-Stderr "  the tree was created and is LEFT IN PLACE so you can diagnose it, but its"
+            Write-Stderr "  install did not complete: no READY: line is printed, and nothing should be"
+            Write-Stderr "  dispatched into it. Re-run the same command once the install is fixed - the"
+            Write-Stderr "  worktree is reused and the install retried."
+            exit 1
         }
     } finally {
         Pop-Location

@@ -236,6 +236,24 @@ function Invoke-ProjectInstall {
     # sibling evals it for the same reason and at the same trust level: by the time
     # you are cutting a worktree you already run this repo's install and test
     # commands.
+    #
+    # KNOWN LIMIT - a command line whose own last act is to exit the shell.
+    # `exit` is a PowerShell keyword rather than a program, so Invoke-Expression
+    # running a line like `exit 7` terminates this script inside the call: the
+    # $LASTEXITCODE test below never runs, none of the messages under it is
+    # written, and the process exits 7 - where the bash sibling prints "install
+    # failed (exit 7): exit 7" and exits 1. That is the one input on which the two
+    # ports report differently. Both still withhold the READY: line.
+    #
+    # Documented rather than fixed. Every fix reinterprets the command line -
+    # running it in a child scope or a child process changes how EVERY install
+    # line is parsed and what state it may set - and this is a frozen-contract
+    # helper, so that cost lands on every project to remove a defect no real
+    # config reaches: a bare `exit N` is not an install command.
+    #
+    # And it fails in the safe direction. The status is still non-zero and no
+    # READY: line is printed, so a caller holding to "non-zero means stop" stops
+    # on both ports; what differs is the code and the missing explanation.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '',
         Justification = 'The config''s install value is a project-declared command line; interpreting it is the feature, and the bash sibling evals the same string.')]
     param(

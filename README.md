@@ -151,7 +151,7 @@ git config --global --add safe.directory <path>
 
 ## Per-project config
 
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads `epicMerge`. The skills read the rest — and `install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it. Both scripts read the **main checkout's working copy** of the file, never the branch they are acting on, which is what makes a change to this config impossible to exercise in the worktree that writes it: [`skills/execute/SKILL.md`](skills/execute/SKILL.md) → *Worktree creation* carries why neither pushing the branch nor cutting a second worktree gets round it, and how to verify such a change instead.
+Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads `epicMerge`. The skills read the rest — and `install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it. Both scripts read the **main checkout's working copy** of the file, never the branch they are acting on, so a change to this config is exercised by no worktree at all until it reaches that copy — not the one that writes it, and not any cut after it either, which on a multi-slice arc is the rest of the arc: [`skills/execute/SKILL.md`](skills/execute/SKILL.md) → *Worktree creation* carries why neither pushing the branch nor cutting a second worktree gets round it, which merge ends the window, and how to verify such a change in the meantime.
 
 ```json
 {

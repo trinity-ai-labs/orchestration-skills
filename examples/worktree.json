@@ -10,13 +10,17 @@
   "sharedResources": [
     {
       "resource": "the Postgres database the test suite migrates and truncates",
-      "isolatedBy": "tests/bootstrap hashes the worktree's own absolute path into a database name, creates it if absent, and exports it before the framework boots — at the bootstrap, so a directly-run test file is isolated too, not only a run launched through gate"
+      "isolatedBy": "tests/bootstrap takes the worktree path from `git rev-parse --path-format=absolute --show-toplevel` (never $PWD, which spells a symlinked entry differently and hashes one worktree into two databases), hashes it into a database name, creates that database if absent, marks it with a COMMENT ON DATABASE carrying the same path — re-asserted on every boot, since a crash between create and comment would otherwise leave it unmarked — and exports the name before the framework boots; at the bootstrap, so a directly-run test file is isolated too, not only a run launched through gate. That comment is what reclaim reads, and an unmarked database is out of scope for the sweep forever"
     },
     {
       "resource": "the fixed port the e2e run binds",
       "isolatedBy": null
     }
   ],
+  "reclaim": {
+    "report": "pnpm worktree:reclaim",
+    "drop": "pnpm worktree:reclaim --drop"
+  },
   "env": {
     "TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/my-project-turbo}"
   },

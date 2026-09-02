@@ -8,8 +8,11 @@
 # PowerShell tool and the .sh helper is not runnable. Same argument, the same
 # WORKTREE_HOME / REPO / MERGE_PR_FORCE environment variables, and the same exit
 # codes, because the pair is ONE CLI contract implemented twice; scripts/check.sh
-# compares the usage lines and the consumed env-var sets on every run so the two
-# cannot drift apart.
+# compares the usage lines and the consumed env-var sets on every run. Everything
+# it compares is SURFACE SHAPE, and semantics are out of its reach: both ports can
+# pass every check it makes and still behave differently on the same input. What
+# holds the pair together is the frozen contract in AGENTS.md and the review of
+# every change to it; the check catches the drift that shows on the surface.
 #
 # ASCII only, no exceptions - see the note in setup-worktree.ps1 for why.
 #

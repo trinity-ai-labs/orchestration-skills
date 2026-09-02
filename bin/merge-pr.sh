@@ -372,13 +372,37 @@ fi
 # identically where the scan itself does not: under Git Bash neither lsof nor pgrep
 # exists, and there the same overlap makes `git worktree remove` fail on files
 # Windows has locked instead.
-DOOMED_WT=$(worktree_holding "$HEAD_BRANCH")
-[ -z "$DOOMED_WT" ] || DOOMED_WT=$(real_dir "$(norm_path "$DOOMED_WT")")
-# The MAIN checkout is never what step 2 removes — remove-worktree.sh resolves its
-# target under $WORKTREE_HOME — so a head branch that happens to be checked out
-# there is not a tree this run will delete, and refusing on it would block a
-# close-out launched from the one directory that is always safe.
-[ "$DOOMED_WT" != "$(real_dir "$MAIN")" ] || DOOMED_WT=""
+#
+# Two forms of one answer, and they are not interchangeable. HEAD_WT keeps the path
+# exactly as git printed it, because that is what step 2 HANDS to remove-worktree.sh
+# — git matches its registry against what it recorded, and a resolved-through-symlink
+# spelling of the same directory is a different string. DOOMED_WT is the physical
+# form, because the guards below decide whether two paths are the same tree by
+# comparing them, and one directory has more than one spelling.
+#
+# Step 2 reuses this value rather than asking again, and that is a correctness
+# requirement rather than thrift: the guards below refuse the run when THIS process
+# is rooted in the tree about to be torn down, so a second `worktree_holding` there
+# could answer differently and the teardown would then be about a tree the guards
+# never examined.
+HEAD_WT=$(worktree_holding "$HEAD_BRANCH")
+[ -z "$HEAD_WT" ] || HEAD_WT=$(norm_path "$HEAD_WT")
+# A registration whose directory was deleted by hand still lists here. Handing that
+# path over would send remove-worktree.sh down its absolute-path branch, where a
+# missing directory it cannot resolve a repo from means it skips the prune that is
+# the only thing left to do — so drop back to the branch name, which reaches it.
+[ -z "$HEAD_WT" ] || [ -d "$HEAD_WT" ] || HEAD_WT=""
+DOOMED_WT="$HEAD_WT"
+[ -z "$DOOMED_WT" ] || DOOMED_WT=$(real_dir "$DOOMED_WT")
+# The MAIN checkout is never what step 2 removes — a head branch that happens to be
+# checked out there is not a tree this run will delete, and refusing on it would
+# block a close-out launched from the one directory that is always safe. Blanking
+# HEAD_WT with it is what keeps that true now that step 2 takes this path directly:
+# the one path this run must never hand to a teardown is the main checkout's.
+if [ "$DOOMED_WT" = "$(real_dir "$MAIN")" ]; then
+  DOOMED_WT=""
+  HEAD_WT=""
+fi
 if [ -n "$DOOMED_WT" ]; then
   if path_inside "$(real_dir "$HERE")" "$DOOMED_WT"; then
     die "this copy of merge-pr.sh lives at $HERE/merge-pr.sh, INSIDE the worktree this close-out has to tear down ($DOOMED_WT) — REFUSED, and nothing has been touched: the worktree is intact and PR #$PR is untouched.\n  The teardown kills every process rooted in that tree, and this one is rooted there: the run would be SIGTERMed mid-teardown, leaving the tree removed and the PR unmerged while the teardown printed a clean finish.\n  Run a copy that lives OUTSIDE that tree — bare off PATH is the installed one:\n    cd $MAIN\n    merge-pr.sh $PR"
@@ -496,12 +520,28 @@ fi
 # --- 2. Remove the head branch's worktree --------------------------------------
 # Before the merge, so `--delete-branch` can remove the local branch — the ordering
 # git forces, and the reason step 1 exists: it is only safe to tear the tree down
-# once the merge is known to be possible. remove-worktree.sh is idempotent (no-ops
-# if the worktree is already gone) and derives the worktree path from the branch
-# leaf against this same repo.
+# once the merge is known to be possible. remove-worktree.sh is idempotent, no-oping
+# if the worktree is already gone.
+#
+# Hand over the PATH this run already resolved, not the branch name. HEAD_WT is
+# git's own answer to "which worktree has this branch checked out", so it is right
+# under every layout at once — the bare $WORKTREE_HOME/<project>/<leaf>, a workspace
+# member's $WORKTREE_HOME/<workspace>/<leaf>/<repo>, and anywhere WORKTREE_DEST put
+# one. Passing the branch made the callee re-derive from scratch what the caller
+# was already holding, and that is exactly how the two got out of step: this helper
+# knew about the workspace layout and remove-worktree did not, so a workspace
+# member's teardown resolved a path that never existed, reported "already removed",
+# exited 0, and the `--delete-branch` below then ran against a branch still checked
+# out in a live worktree — the precise failure the remove-then-merge ordering exists
+# to prevent.
+#
+# The branch name stays as the fallback for the case git has no answer to give: a
+# worktree in detached HEAD, one whose branch was switched, or a tree already gone.
+# There remove-worktree.sh's own (now workspace-aware) resolution takes over, which
+# is why both halves of this fix were needed and neither substitutes for the other.
 if [ -n "$HEAD_BRANCH" ]; then
   echo "merge-pr: tearing down worktree for $HEAD_BRANCH ..."
-  REPO="$MAIN" "$HERE/remove-worktree.sh" "$HEAD_BRANCH"
+  REPO="$MAIN" "$HERE/remove-worktree.sh" "${HEAD_WT:-$HEAD_BRANCH}"
 fi
 
 # --- 3. Merge (unless already merged) ------------------------------------------

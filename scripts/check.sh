@@ -66,6 +66,36 @@
 #      only this check enforces them, because prose does not stop two
 #      hand-maintained copies of the same logic from drifting apart, it only
 #      makes the drift someone's fault after the fact.
+#   8. Every skills/<name>/SKILL.md path cited in a tracked *.md resolves in the
+#      tree. The skills point at each other constantly instead of restating each
+#      other — two copies of a rule drift and nothing marks which one is stale —
+#      so a rename or a deletion leaves a citation pointing at nothing, and a
+#      dead path reads exactly as authoritative as a live one. Observed: a
+#      dispatch instruction named the wrong skill, survived a rename that swapped
+#      two skills' names wholesale, read perfectly across seven releases, and
+#      reached two live briefs. Scoped to git-tracked files, so an untracked
+#      scratch note or a gate log left in a worktree cannot turn the gate red.
+#      What it does NOT reach, deliberately: only the file-path form. A citation
+#      by prose phrase (decompose's Verify field cites "per execute's own note on
+#      backgrounding a banned run") and a count duplicated across two sentences
+#      ("five items" against "one of the four") go stale identically and are
+#      invisible here. Neither is mechanically checkable in this corpus: italics
+#      carry emphasis throughout, not just around section names, so a pattern
+#      over them is mostly false positives, and a noisy check is one the next
+#      author routes around. Both keep the prose rules already pointed at them.
+#      The third residual IS a coordinate and is left out only by scope: a
+#      reference doc cited by path, skills/setup/references/gate-queue.md, cited
+#      4 times and resolving today. Widening to it is a character class, not a
+#      new idea — counted here so it stays countable rather than forgotten.
+#      The line drawn is the corpus's own — if a checker can tell the reference
+#      is stale without reading the sentence, it is a coordinate.
+#      Unlike 4 there is no anchor separating a citation from prose SHOWING a
+#      dead path, because a dead path is a dead path either way. A doc that needs
+#      to display one writes it in the placeholder form the corpus already uses
+#      (this comment, or README.md's skills/<slug>/SKILL.md): angle brackets are
+#      not a path component, so nothing has to be suppressed — and no per-line
+#      opt-out is offered, since one would be indistinguishable from a real stale
+#      citation claiming to be deliberate.
 #
 # Every check that scans a SET of files asserts the set is non-empty before it
 # scans: a check whose pattern stops matching prints the same green as a check
@@ -509,10 +539,52 @@ else
 fi
 rm -f "$parity_out"
 
+# --- 8. every skills/<name>/SKILL.md path cited in a tracked doc resolves -----
+
+# The set is what git tracks, not what the glob finds: a scratch note, a gate log
+# or a stray copy sitting in a worktree is not a doc this repo ships, and a gate
+# that goes red on one is a gate a contributor learns to stop trusting. On a bare
+# clone git is present by construction, so this needs nothing installed.
+md_files=''
+for f in $(git ls-files '*.md' 2>/dev/null); do
+	[ -f "$f" ] || continue
+	md_files="$md_files $f"
+done
+if [ -z "$md_files" ]; then
+	fail "citations: git listed no tracked *.md files — this check scanned nothing"
+else
+	cite_hits="$(grep -hoE 'skills/[A-Za-z0-9_-]+/SKILL\.md' $md_files)"
+	if [ -z "$cite_hits" ]; then
+		fail "citations: no skills/<name>/SKILL.md path matched in any tracked *.md — this check scanned nothing"
+	else
+		cite_count="$(printf '%s\n' "$cite_hits" | wc -l | tr -d ' ')"
+		cited="$(printf '%s\n' "$cite_hits" | sort -u)"
+		distinct=0
+		dangling=''
+		for path in $cited; do
+			distinct=$((distinct + 1))
+			[ -f "$path" ] || dangling="$dangling $path"
+		done
+		if [ -n "$dangling" ]; then
+			# Every dangling path, and every site citing it, in one run: a rename
+			# breaks citations in batches, and reporting the first would cost a gate
+			# run per citation to discover the rest. Deduped because one line citing
+			# two dead paths is grepped once per path and would otherwise be printed
+			# twice, reading as two separate sites.
+			for path in $dangling; do
+				grep -nF -- "$path" $md_files
+			done | sort -u | sed 's/^/      /' >&2
+			fail "citations: cited in a tracked doc but absent from the tree:$dangling"
+		else
+			ok "citations: $cite_count skills/<name>/SKILL.md citation(s) across tracked docs resolve ($distinct distinct path(s))"
+		fi
+	fi
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

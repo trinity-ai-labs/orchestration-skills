@@ -179,12 +179,12 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | `env` | script | Exported before the install; most usefully a shared build-cache dir |
 | `gate` | skills | The authoritative check before merge. With a queue, the *runner* runs it, never an implementer. May equal `scopedCheck` when the repo has only one tier |
 | `scopedCheck` | skills | The cheap bar an implementer's commits are held to |
-| `sharedResources` | skills | What the checks touch **outside** the worktree and how each worktree gets its own — `{resource, isolatedBy}` entries, `isolatedBy: null` for one that stays shared. Write `[]` when there is nothing: here alone, omitting the key and declaring it empty mean opposite things. See the note below |
+| `sharedResources` | skills | What the checks touch **outside** the worktree and how each worktree gets its own — `{resource, isolatedBy}` entries, `isolatedBy: null` for one that stays shared. Write `[]` when there is nothing: here alone, omitting the key and declaring it empty mean opposite things. See the `sharedResources` note |
 | `enqueue` / `drain` | skills | How a **gate** joins the queue — a PR's, or a dispatcher's own integration gate on a merged tree that has no PR — and how a dispatcher drains it. **Omit both** if the project has no queue — every gate is then run by hand, the implementer's included |
 | `format` | skills | The auto-formatter in *write* mode, run right before committing |
 | `frameworkSkills` | skills | `{skill, when}` pairs — the skill each area opens with |
 | `briefConventions` | skills | Conventions baked into every dispatched implementer brief |
-| `epicMerge` | `merge-pr.sh` + `.ps1` | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch. Omitting it means `"merge"`; see the note below before setting it |
+| `epicMerge` | `merge-pr.sh` + `.ps1` | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch. Omitting it means `"merge"`; see the `epicMerge` note before setting it |
 
 See [`examples/worktree.json`](examples/worktree.json) for a complete file.
 
@@ -214,7 +214,7 @@ Every item in the plan therefore sits at one of **two grounding depths**, decide
 
 | Depth | Applies to | Carries |
 |---|---|---|
-| **Slice depth** | the horizon, and only the horizon | Owned files as real paths, do-not-touch boundaries, the artifacts the slice derives, depends-on, the framework skill to open with, the model tier, the brief, the verify bar — grounded against the tree as it stands *right now* and dispatched in the same cycle |
+| **Slice depth** | the horizon, and only the horizon | Owned files as real paths, do-not-touch boundaries, the artifacts the slice derives, depends-on, the framework skill to open with, the model tier, the brief, the verify bar — grounded against the tree as it stands *right now* and dispatched in the same cycle. Where a query produced the owned list, the count that query returned **unfiltered** rides beside it, and the two file lists are then read asymmetrically: the owned list is a **floor** on what the change must reach, the boundaries a **ceiling** on what it may edit |
 | **Shape depth** | everything beyond it | Goal, area, what it waits on, one line on why it comes after the thing before it — and **no `file:line`, no owned files, no boundaries, no model tier, no verify bar** |
 
 Reaching the horizon is the only thing that promotes an item from one depth to the other — not a well-understood item, not a small one, not one you were asked about. Both mistakes are silent. A coordinate grounded three waves early names a path an intervening wave has since moved: nothing errors, the brief still reads well, and the implementer opens a tree where the target is not there, finds the nearest plausible thing, and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
@@ -268,7 +268,7 @@ setup-worktree.sh fix/toast-position release/0.4.0     # fork a new branch off t
 setup-worktree.sh --existing fix/toast-position        # attach a tree to a branch that already exists
 ```
 
-`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the table above — but not in your own terminal, Bash or PowerShell alike. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc

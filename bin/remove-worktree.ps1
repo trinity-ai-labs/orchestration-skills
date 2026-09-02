@@ -46,6 +46,12 @@
 #     to close, which is the closest equivalent, and `Stop-Process -Force` is the
 #     SIGKILL end of the escalation.
 #   - Idempotent: if the path doesn't exist or no processes match, no-ops cleanly.
+#   - But "the path I computed does not exist" and "the worktree I was asked to
+#     remove is already gone" are DIFFERENT claims, and only the second one is a
+#     clean no-op. When a leaf resolves to nothing, git's worktree registry is
+#     consulted before the no-op is claimed: a registered worktree named for that
+#     leaf sitting somewhere else means this run looked in the wrong place, and
+#     that fails loudly rather than reporting a teardown that never happened.
 #   - Exits non-zero with a descriptive message on real failure.
 #
 # Caveats:
@@ -143,6 +149,47 @@ function Get-RepoRoot {
     return (Get-NormalPath (Split-Path -Path $common -Parent))
 }
 
+function Find-StrayWorktree {
+    # The path of a worktree git has REGISTERED for this repo whose directory is
+    # named for $Leaf, at either layout this helper knows - <leaf> at the end (bare)
+    # or <workspace>/<leaf>/<repo> (a workspace member) one segment up - excluding
+    # the main checkout and excluding $Skip, the path the caller already looked at.
+    # Empty when there is none, which is the "genuinely already gone" answer.
+    #
+    # git's registry is the authority on which worktrees this repo has, whatever
+    # path they sit at, so it is what separates "nothing is at the path I derived"
+    # from "the worktree I was asked to remove is already gone" - two claims that
+    # otherwise print the same line and exit 0.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Main,
+        [Parameter(Mandatory = $true)] [string] $Leaf,
+        [Parameter(Mandatory = $true)] [string] $Skip
+    )
+    $out = & git -C $Main worktree list --porcelain 2>$null
+    if ($LASTEXITCODE -ne 0) { return '' }
+    $mainReal = Get-RealPath $Main
+    foreach ($line in (($out | Out-String) -split "`r?`n")) {
+        if (-not $line.StartsWith('worktree ')) { continue }
+        $p = Get-NormalPath $line.Substring(9).Trim()
+        if (-not $p) { continue }
+        $seg = $p.Split('/')
+        $n = $seg.Length
+        $named = $seg[$n - 1].Equals($Leaf, [StringComparison]::OrdinalIgnoreCase) -or
+        ($n -ge 2 -and $seg[$n - 2].Equals($Leaf, [StringComparison]::OrdinalIgnoreCase))
+        if (-not $named) { continue }
+        if ($p.Equals($Skip, [StringComparison]::OrdinalIgnoreCase)) { continue }
+        # Through Get-RealPath, because this decides a REFUSAL and one directory has
+        # more than one spelling - a raw string compare that misses would report the
+        # main checkout as a stray and block a legitimate teardown.
+        if ((Get-RealPath $p).Equals($mainReal, [StringComparison]::OrdinalIgnoreCase)) { continue }
+        # A registration left behind by a hand-deleted directory points at nothing
+        # on disk; prune is its remedy, not a wrong-path error.
+        if (-not (Test-Path -LiteralPath $p)) { continue }
+        return $p
+    }
+    return ''
+}
+
 function Get-WorktreeHome {
     # WORKTREE_HOME wins whenever it is set. Otherwise the default is
     # platform-dependent, and it MUST match the bash sibling byte for byte: on
@@ -187,7 +234,12 @@ if (-not $Repo) { $Repo = (Get-Location).Path }
 # absolute here: reading `C:/Users/you/.worktrees/x` as a branch LEAF would resolve
 # a target path that does not exist, and the run would then no-op while reporting
 # success on a worktree it never touched.
+#
+# $Leaf stays empty on the absolute-path branch: it is what the checks below use to
+# tell "the caller NAMED this path" from "this script DERIVED it", and only a
+# derived path can have been derived wrongly.
 $Main = ''
+$Leaf = ''
 if ($Target -match '^(/|[A-Za-z]:[\\/])') {
     $Wt = Get-NormalPath $Target
 } else {
@@ -201,6 +253,33 @@ if ($Target -match '^(/|[A-Za-z]:[\\/])') {
     # otherwise a full branch name resolves to a non-existent nested path.
     $Leaf = $Target.Substring($Target.LastIndexOf('/') + 1)
     $Wt = "$WorktreeHome/$Project/$Leaf"
+    # A repo inside a workspace (a containing folder of sibling repos, marked by
+    # .agents/workspace.json) keeps its worktrees under the WORKSPACE's namespace
+    # rather than its own - setup-worktree.ps1 puts them at
+    # $WORKTREE_HOME/<workspace>/<leaf>/<repo>. Assembling only the bare layout here
+    # resolved a path that never exists for every workspace member, so the run
+    # printed "already removed" and exited 0 with the tree still standing - and
+    # merge-pr, whose teardown step this is, then ran --delete-branch against a
+    # branch still checked out in a live worktree.
+    #
+    # Accepting EITHER layout rather than switching outright, which is the same
+    # answer merge-pr's wrong-repo guard already gives: a tree cut before its repo
+    # moved into a workspace sits at the bare path, and a teardown that could no
+    # longer see it would be this same bug pointing the other way.
+    #
+    # WORKTREE_DEST is deliberately NOT read here, even though setup-worktree.ps1
+    # branches on it first. It is a CREATION-time input - setup-workspace.ps1 sets
+    # it to place a tree it is about to cut - and at teardown a caller already has a
+    # way to name an exact path: pass it as the argument. Reading it would make one
+    # stale export silently redirect every later `remove-worktree <leaf>` at a
+    # single fixed path regardless of which leaf was asked for.
+    $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
+    if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
+        $WorkspaceWt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
+        if ((Test-Path -LiteralPath $WorkspaceWt) -or -not (Test-Path -LiteralPath $Wt)) {
+            $Wt = $WorkspaceWt
+        }
+    }
 }
 
 Write-Output "remove-worktree: target path: $Wt"
@@ -208,7 +287,6 @@ Write-Output "remove-worktree: target path: $Wt"
 # --- Idempotent path-exists check ----------------------------------------------
 if (-not (Test-Path -LiteralPath $Wt)) {
     Write-Output "remove-worktree: path does not exist or already removed: $Wt"
-    Write-Output "  running git worktree prune to clean stale refs..."
     # Still need to know which repo to prune. If we resolved from REPO above, $Main
     # is already set; otherwise derive it from the nearest repo.
     if (-not $Main) {
@@ -218,6 +296,32 @@ if (-not (Test-Path -LiteralPath $Wt)) {
             exit 0
         }
     }
+
+    # Idempotence is right and stays: re-running a close-out whose tree is genuinely
+    # gone must succeed. What must NOT stay is the conflation - "nothing is at the
+    # path I derived" and "the worktree I was asked to remove is already gone" are
+    # different claims, and both printed the line above and exited 0. That is
+    # precisely why the workspace-layout miss went unnoticed: a teardown that looked
+    # in the wrong place is byte-identical to one with nothing left to do, so no
+    # caller could tell them apart without parsing a message that says the same
+    # thing either way.
+    #
+    # Only for a DERIVED path. An absolute one was named by the caller, so there is
+    # no derivation to have got wrong and nothing here to second-guess.
+    if ($Leaf) {
+        $Stray = Find-StrayWorktree -Main $Main -Leaf $Leaf -Skip $Wt
+        if ($Stray) {
+            Exit-WithError @"
+no worktree at $Wt, but $Main has one REGISTERED at $Stray whose directory is named '$Leaf' - this run resolved the wrong path and has removed nothing.
+  Tear it down by its absolute path instead:
+    remove-worktree.ps1 $Stray
+"@
+        }
+    }
+
+    # Announced here rather than beside the message above, so a run that stops on the
+    # stray check does not first claim it is about to prune and then not do it.
+    Write-Output "  running git worktree prune to clean stale refs..."
     & git -C $Main worktree prune
     if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree prune failed (exit $LASTEXITCODE)" }
     Write-Output "remove-worktree: done (path was already absent)."

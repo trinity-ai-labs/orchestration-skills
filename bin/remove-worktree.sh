@@ -33,6 +33,12 @@
 #   - Escalates SIGTERM → SIGKILL with a brief pause so in-flight cleanup runs
 #     where possible (node's process.on('exit') release path).
 #   - Idempotent: if the path doesn't exist or no processes match, no-ops cleanly.
+#   - But "the path I computed does not exist" and "the worktree I was asked to
+#     remove is already gone" are DIFFERENT claims, and only the second one is a
+#     clean no-op. When a leaf resolves to nothing, git's worktree registry is
+#     consulted before the no-op is claimed: a registered worktree named for that
+#     leaf sitting somewhere else means this run looked in the wrong place, and
+#     that fails loudly rather than reporting a teardown that never happened.
 #   - Exits non-zero with a descriptive message on real failure.
 #   - Keeps the two PID namespaces STRICTLY separate. A Windows PID and an MSYS
 #     PID are unrelated numbers from unrelated counters, so passing one to the
@@ -147,6 +153,10 @@ REPO="${REPO:-$PWD}"
 # --- Resolve the worktree path -------------------------------------------------
 # If the input looks like an absolute path, trust it directly; otherwise treat
 # it as a branch leaf and resolve it via the repo the caller is standing in.
+# LEAF stays empty on the absolute-path branch: it is what the checks below use
+# to tell "the caller NAMED this path" from "this script DERIVED it", and only a
+# derived path can have been derived wrongly.
+LEAF=""
 if is_abs_path "$INPUT"; then
   WT="$INPUT"
 else
@@ -162,6 +172,33 @@ else
   # otherwise a full branch name resolves to a non-existent nested path.
   LEAF="${INPUT##*/}"
   WT="$WORKTREE_HOME/$PROJECT/$LEAF"
+  # A repo inside a workspace (a containing folder of sibling repos, marked by
+  # .agents/workspace.json) keeps its worktrees under the WORKSPACE's namespace
+  # rather than its own — setup-worktree.sh puts them at
+  # $WORKTREE_HOME/<workspace>/<leaf>/<repo>. Assembling only the bare layout
+  # here resolved a path that never exists for every workspace member, so the run
+  # printed "already removed" and exited 0 with the tree still standing — and
+  # merge-pr, whose teardown step this is, then ran `--delete-branch` against a
+  # branch still checked out in a live worktree.
+  #
+  # Accepting EITHER layout rather than switching outright, which is the same
+  # answer merge-pr's wrong-repo guard already gives: a tree cut before its repo
+  # moved into a workspace sits at the bare path, and a teardown that could no
+  # longer see it would be this same bug pointing the other way.
+  #
+  # WORKTREE_DEST is deliberately NOT read here, even though setup-worktree.sh
+  # branches on it first. It is a CREATION-time input — setup-workspace.sh sets it
+  # to place a tree it is about to cut — and at teardown a caller already has a way
+  # to name an exact path: pass it as the argument. Reading it would make one stale
+  # export silently redirect every later `remove-worktree <leaf>` at a single fixed
+  # path regardless of which leaf was asked for.
+  WORKSPACE_ROOT="$(dirname "$MAIN")"
+  if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
+    WORKSPACE_WT="$WORKTREE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
+    if [ -d "$WORKSPACE_WT" ] || [ ! -d "$WT" ]; then
+      WT="$WORKSPACE_WT"
+    fi
+  fi
 fi
 
 # Normalise the ASSEMBLED path, whichever branch produced it — both are
@@ -176,7 +213,6 @@ echo "remove-worktree: target path: $WT"
 # --- Idempotent path-exists check ----------------------------------------------
 if [ ! -d "$WT" ]; then
   echo "remove-worktree: path does not exist or already removed: $WT"
-  echo "  running git worktree prune to clean stale refs..."
   # Still need to know which repo to prune. If we resolved from REPO above,
   # COMMON/MAIN are already set; otherwise derive from the nearest repo.
   if is_abs_path "$INPUT"; then
@@ -187,6 +223,50 @@ if [ ! -d "$WT" ]; then
       exit 0
     fi
   fi
+
+  # Idempotence is right and stays: re-running a close-out whose tree is genuinely
+  # gone must succeed. What must NOT stay is the conflation — "nothing is at the
+  # path I derived" and "the worktree I was asked to remove is already gone" are
+  # different claims, and both printed the line above and exited 0. That is
+  # precisely why the workspace-layout miss went unnoticed: a teardown that looked
+  # in the wrong place is byte-identical to one with nothing left to do, so no
+  # caller could tell them apart without parsing a message that says the same thing
+  # either way. git's registry answers it — it is the authority on which worktrees
+  # this repo has, whatever path they sit at — so ask before claiming the no-op.
+  #
+  # Only for a DERIVED path. An absolute one was named by the caller, so there is
+  # no derivation to have got wrong and nothing here to second-guess.
+  #
+  # A candidate is a stray only if it is somewhere ELSE and actually on disk: a
+  # registration left behind by a hand-deleted directory points at nothing, and
+  # prune below is exactly its remedy rather than a wrong-path error.
+  if [ -n "$LEAF" ]; then
+    STRAY=""
+    MAIN_REAL=$(real_dir "$MAIN")
+    while IFS= read -r cand; do
+      cand="$(norm_path "$cand")"
+      [ -n "$cand" ] || continue
+      # Both layouts this helper knows: <leaf> at the end (bare), and
+      # <workspace>/<leaf>/<repo> (a workspace member) one segment up.
+      CAND_PARENT="${cand%/*}"
+      [ "${cand##*/}" = "$LEAF" ] || [ "${CAND_PARENT##*/}" = "$LEAF" ] || continue
+      [ "$cand" != "$WT" ] || continue
+      # Through real_dir, because this decides a REFUSAL and one directory has more
+      # than one spelling — a raw string compare that misses would report the main
+      # checkout as a stray and block a legitimate teardown.
+      [ "$(real_dir "$cand")" != "$MAIN_REAL" ] || continue
+      [ -d "$cand" ] || continue
+      STRAY="$cand"
+      break
+    done < <(git -C "$MAIN" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')
+    if [ -n "$STRAY" ]; then
+      die "no worktree at $WT, but $MAIN has one REGISTERED at $STRAY whose directory is named '$LEAF' — this run resolved the wrong path and has removed nothing.\n  Tear it down by its absolute path instead:\n    remove-worktree.sh $STRAY"
+    fi
+  fi
+
+  # Announced here rather than beside the message above, so a run that stops on the
+  # stray check does not first claim it is about to prune and then not do it.
+  echo "  running git worktree prune to clean stale refs..."
   git -C "$MAIN" worktree prune
   echo "remove-worktree: done (path was already absent)."
   exit 0

@@ -6,6 +6,7 @@
   "enqueue": "pnpm gate:enqueue",
   "drain": "pnpm gate:drain",
   "format": "pnpm format",
+  "upstreamFindings": false,
   "epicMerge": "merge",
   "sharedResources": [
     {

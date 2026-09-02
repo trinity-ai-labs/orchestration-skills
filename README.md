@@ -28,6 +28,22 @@ The plugin also ships the machinery `execute` drives. Claude Code puts a plugin'
 
 ---
 
+## Filing findings upstream (off by default)
+
+> **Read this before you install.** This plugin can open a GitHub issue **in this repository, which is public**, from inside whatever repository you are running it in. It does that only when you have switched it on, and it is **off unless you switch it on** — but it is a thing the plugin can do, so it is stated here rather than buried in a config table.
+
+**What it is.** At the end of an arc, `/pipeline:orchestrate` answers one question in writing: did this run surface a defect or a gap in *the pipeline itself* — not in your code, in these skills. Where you have enabled it, an answer that names a real observed failure becomes an issue **in this repository**, so the same gap stops costing every other install the same way. Where you have not, it goes to you in the run's own report and nowhere else. Either way the question is asked and answered; the key decides only where the answer can go.
+
+**It is opt-in, per project, and absence is a no.** Set `"upstreamFindings": true` in that project's own `.agents/worktree.json` (**[Per-project config](#per-project-config)**, below) and the close-out may file. Leave the key out, set it to `false`, or set it to anything that is not exactly `true`, and it may not — a missing key is a decided **no**, not an unanswered question, and that is the opposite of how the `sharedResources` key in the same file reads its own absence. Nothing else turns it on: not a flag, not a prompt, not the plugin updating itself.
+
+**What a filed finding contains.** The *shape* of the failure, the counts, and the conclusion — written for a reader who has never seen your repository. It does **not** contain a file path, a symbol, a route, a branch name, a client or engagement name, or a home directory. Enabling the key is consent to **file**; it is not consent to **disclose**, and the two are independent: the person who sets the key sets it once and is frequently not the person whose code a later finding is about, so the rule against carrying identifiers holds on an opted-in project exactly as it does everywhere else.
+
+**And it tells you.** When a run files something, the close-out names the issue it opened and the repository it opened it in, so a filing is visible in the run's own output rather than something you discover later in a public tracker.
+
+**If you are unsure, do nothing.** The default is off, and every other part of this plugin works identically with the key absent.
+
+---
+
 ## Install
 
 **Install from the marketplace** (the supported path — versioned, auto-updating):
@@ -162,6 +178,7 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
   "enqueue": "pnpm gate:enqueue",
   "drain": "pnpm gate:drain",
   "format": "pnpm format",
+  "upstreamFindings": false,
   "epicMerge": "merge",
   "sharedResources": [
     { "resource": "the Postgres database the suite migrates", "isolatedBy": "tests/bootstrap derives a database name from `git rev-parse --path-format=absolute --show-toplevel`, and marks the database with that same path" }
@@ -184,6 +201,7 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 | `reclaim` | skills | `{report, drop}` — the project's own sweep for resources whose worktree is gone, run by a dispatcher at arc close-out. **Omit both** where nothing durable is created; unlike `sharedResources`, that absence is derived from the entries above rather than an unasked question. See the `sharedResources` note |
 | `enqueue` / `drain` | skills | How a **gate** joins the queue — a PR's, or a dispatcher's own integration gate on a merged tree that has no PR — and how a dispatcher drains it. **Omit both** if the project has no queue — every gate is then run by hand, the implementer's included |
 | `format` | skills | The auto-formatter in *write* mode, run right before committing |
+| `upstreamFindings` | skills | `true` lets an arc's close-out file a **pipeline** finding as an issue against this plugin's own **public** repository. Absent, `false`, or anything that is not exactly `true` means **no** — a decided answer, and the opposite reading of absence to `sharedResources`. See [Filing findings upstream](#filing-findings-upstream-off-by-default) |
 | `frameworkSkills` | skills | `{skill, when}` pairs — the skill each area opens with |
 | `briefConventions` | skills | Conventions baked into every dispatched implementer brief |
 | `epicMerge` | `merge-pr.sh` + `.ps1` | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch. Omitting it means `"merge"`; see the `epicMerge` note before setting it |
@@ -191,6 +209,8 @@ Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, c
 See [`examples/worktree.json`](examples/worktree.json) for a complete file.
 
 **`sharedResources` is a value no file in your repo can tell you, and the one key whose absence is not the safe reading.** A worktree gets its own checkout, its own branch and its own `node_modules` — and still reaches the same database, the same Redis, the same cache directory, the same port as every other worktree on the machine. That key is where a project says which of those its checks touch and what gives each worktree its own; `/pipeline:setup` **asks** for it, because it cannot be derived from a lockfile or a CI file, and then **falsifies** the answer by cutting two worktrees and gating both at once. It is a declaration, not a mechanism: the plugin never provisions anything and never calls a project's isolation code, because that code has to sit at an entry point *every* invocation reaches — the test bootstrap — and a hook the plugin called would isolate only the runs it launched, while the flow routinely has an implementer run a single test file directly. Two consequences worth knowing before you fill it in. An entry with `"isolatedBy": null` says the resource stays shared, which means this project's checks are **not** parallel-safe and a wave has to be narrowed or sequenced. And a mechanism that derives a per-worktree name from the worktree's own absolute path — the only thing already unique per tree — creates resources that **outlive the tree**: they are named after a path rather than a branch, so a dead worktree's is indistinguishable *by name* from a live one's, and `remove-worktree` drops nothing it created. `reclaim` is what owns that cleanup, and it puts one requirement back on the mechanism: as it creates each resource it must **mark** it with the worktree's absolute path — a `COMMENT ON DATABASE`, a key in the keyspace, a file in the directory — taken from `git rev-parse --path-format=absolute --show-toplevel` and never from `$PWD`, which spells a symlinked entry differently and hands one worktree two databases. The mark is the only thing that ever attributes a resource back to a worktree; an unmarked one is never dropped, and never found either.
+
+**`upstreamFindings` is the key that lets a finding leave your repository, which is why it is disclosed at the top rather than only here.** [Filing findings upstream](#filing-findings-upstream-off-by-default) is the full statement — what a finding may and may not contain, why enabling it is consent to file and never consent to disclose, and why the close-out says out loud when it has filed. Two things belong beside the key itself. It is read only by the skills, never by a helper, so nothing in `bin/` behaves differently either way. And its **absence** is a deliberate reading rather than a shrug, the opposite one to `sharedResources`: there the unsafe direction is assuming a hazard away, so a missing key means the question was never put; here the unsafe direction is acting, so a missing key is a no. [`skills/orchestrate/SKILL.md`](skills/orchestrate/SKILL.md) → §7 is where the close-out rule itself lives.
 
 **`epicMerge` reaches exactly one merge, and declines to reach it in more projects than you would guess.** It governs an epic branch's own collapse back into the integration branch — the branch is scaffolding, cut for one arc and deleted at its end, so a project on a long-lived release branch may prefer one commit per arc to N slice merges plus a merge commit. Every other merge in the flow stays a real merge commit with no opt-out. Even under `"squash"` two conditions must both hold, and one of them is the reason to read the rule before setting the key: **the PR's base must not be the repository's default branch, so a project whose integration branch simply *is* its default branch never squashes even at the genuine epic boundary.** This repo is one, so `"epicMerge": "squash"` here correctly does nothing — the behaviour is otherwise indistinguishable from the option being broken, which is why it is stated here rather than left to be discovered. Both ports compare the key, the value and the branch names case-sensitively, so `"Squash"` and `"EpicMerge"` mean `merge` in bash and PowerShell alike. The other condition, why every unanswerable question falls back to `merge`, and the trade the option makes are all in [`skills/execute/SKILL.md`](skills/execute/SKILL.md) → *The epic branch* → *Mechanics*, which is the one place that argument lives.
 

@@ -11,9 +11,11 @@
 # positional arguments, the WORKTREE_HOME / REPO / WORKTREE_DEST environment
 # variables, the "READY: <path>" line on stdout, and the exit codes. The pair is
 # ONE CLI contract implemented twice, and scripts/check.sh compares the two usage
-# lines and the two consumed env-var sets on every run so the copies cannot drift
-# apart quietly - prose alone never stopped two hand-maintained copies of the same
-# logic from diverging, it only made the divergence someone's fault afterwards.
+# lines and the two consumed env-var sets on every run. Everything it compares is
+# SURFACE SHAPE, and semantics are out of its reach: both ports can pass every
+# check it makes and still behave differently on the same input. What holds the
+# pair together is the frozen contract in AGENTS.md and the review of every change
+# to it; the check catches the drift that shows on the surface.
 #
 # ASCII only, no exceptions. Windows PowerShell 5.1 decodes a file that carries no
 # byte-order mark using the system ANSI codepage, so a single non-ASCII byte

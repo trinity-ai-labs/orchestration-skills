@@ -308,11 +308,11 @@ setx PATH "$env:USERPROFILE\.claude\skills\pipeline\bin;$env:PATH"
 
 Both args of the first form are required — no default base, since integration branches roll over and a hardcoded default goes stale. `--existing` is the recovery form, for when a branch outlives its worktree (a close-out that failed at the merge, a tree removed by hand); it takes no base, because an existing branch's base is whatever it already forked from, and it refuses rather than creating a branch that isn't there. It is a flag and never an inference — attaching to a branch you meant to fork fresh is how a worktree ends up quietly behind the integration tip.
 
-> **Always verify HEAD before dispatching an agent into a worktree.** The helper prints it — `READY: <path>` and then `HEAD: <sha>` — but does not check it for you:
+> **Always verify HEAD before dispatching an agent into a worktree.** The helper prints it — `READY: <path>` and then `HEAD: <sha>` — and, when it is forking a new branch, withholds both unless the tree it is about to hand back **contains** the base. That refusal is a weaker comparison than this one, and does not retire it:
 > ```bash
 > git rev-parse origin/release/0.4.0     # the HEAD: line must match this
 > ```
-> A mismatch means the base is stale. Compare the sha, not the `READY: … off <base>` text: that says what was asked for, and this check exists for the case where what you got is something else.
+> The helper asks whether the base tip is an **ancestor** of the tree's HEAD, and resolves that tip in your **main checkout**. So a tree carrying its own commits on top of the base passes there — that is the legitimate re-attach it must not refuse — and so does a base branch that is itself behind `origin`, which is an ancestor of everything cut from it. Both hand back an ordinary `READY:`/`HEAD:` pair, and this comparison is what catches them. `--existing` takes no base, so that refusal does not run there at all and this is the only comparison covering a re-attached tree. A mismatch means the base is stale. Compare the sha, not the `READY: … off <base>` text: that says what was asked for, and this check exists for the case where what you got is something else.
 
 ---
 

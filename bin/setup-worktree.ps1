@@ -11,9 +11,11 @@
 # positional arguments, the WORKTREE_HOME / REPO / WORKTREE_DEST environment
 # variables, the "READY: <path>" line on stdout, and the exit codes. The pair is
 # ONE CLI contract implemented twice, and scripts/check.sh compares the two usage
-# lines and the two consumed env-var sets on every run so the copies cannot drift
-# apart quietly - prose alone never stopped two hand-maintained copies of the same
-# logic from diverging, it only made the divergence someone's fault afterwards.
+# lines and the two consumed env-var sets on every run. Everything it compares is
+# SURFACE SHAPE, and semantics are out of its reach: both ports can pass every
+# check it makes and still behave differently on the same input. What holds the
+# pair together is the frozen contract in AGENTS.md and the review of every change
+# to it; the check catches the drift that shows on the surface.
 #
 # ASCII only, no exceptions. Windows PowerShell 5.1 decodes a file that carries no
 # byte-order mark using the system ANSI codepage, so a single non-ASCII byte
@@ -59,6 +61,17 @@
 # created; that is a case the HEAD comparison cannot catch, since the tree is
 # standing on the base. Both modes therefore read the branch back off the tree and
 # exit non-zero instead of reporting a success that isn't one.
+#
+# The same skipped `git worktree add` can also hand back a tree standing on the
+# REQUESTED branch at a commit <base> has since moved past, which the branch
+# read-back cannot see because the branch is the right one. So the new-branch mode
+# additionally refuses unless <base>'s tip is an ANCESTOR of the worktree's HEAD -
+# ancestry rather than equality, since a tree that has already committed work on
+# top of <base> is a legitimate re-attach and its HEAD is a descendant. --existing
+# takes no base, so it has nothing to resolve this against and is out of scope.
+# The caller's own comparison is still owed and still catches what this cannot:
+# this reads the base tip as the MAIN CHECKOUT has it, so a base that is itself
+# behind origin passes here and fails there.
 #
 # Every branch gets the same treatment - env symlinks and a real install - so a
 # worktree is always self-contained and can face any check the project has, a
@@ -223,6 +236,24 @@ function Invoke-ProjectInstall {
     # sibling evals it for the same reason and at the same trust level: by the time
     # you are cutting a worktree you already run this repo's install and test
     # commands.
+    #
+    # KNOWN LIMIT - a command line whose own last act is to exit the shell.
+    # `exit` is a PowerShell keyword rather than a program, so Invoke-Expression
+    # running a line like `exit 7` terminates this script inside the call: the
+    # $LASTEXITCODE test below never runs, none of the messages under it is
+    # written, and the process exits 7 - where the bash sibling prints "install
+    # failed (exit 7): exit 7" and exits 1. That is the one input on which the two
+    # ports report differently. Both still withhold the READY: line.
+    #
+    # Documented rather than fixed. Every fix reinterprets the command line -
+    # running it in a child scope or a child process changes how EVERY install
+    # line is parsed and what state it may set - and this is a frozen-contract
+    # helper, so that cost lands on every project to remove a defect no real
+    # config reaches: a bare `exit N` is not an install command.
+    #
+    # And it fails in the safe direction. The status is still non-zero and no
+    # READY: line is printed, so a caller holding to "non-zero means stop" stops
+    # on both ports; what differs is the code and the missing explanation.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '',
         Justification = 'The config''s install value is a project-declared command line; interpreting it is the feature, and the bash sibling evals the same string.')]
     param(
@@ -436,6 +467,37 @@ if ($OnBranch -ne $Branch) {
     Write-Stderr "  One of them already had a worktree registered here, so 'git worktree add' was skipped and $Missed."
     Write-Stderr "  Give '$Branch' a leaf no live worktree is holding, or free this one first:"
     Exit-WithError "    git -C `"$Main`" worktree list"
+}
+
+# The branch is right; the commit under it may still not be. The idempotency guard
+# skips `git worktree add` for any worktree already registered at this path - and
+# the refusal above is keyed on the branch NAME alone, so a tree cut off <base>
+# some time ago, on exactly the branch asked for, passes it while <base> has moved
+# on underneath. That tree is stale, and every signal after this point is
+# byte-identical to a fresh cut.
+#
+# ANCESTRY, not equality: a caller re-attaching to a tree that has already
+# committed work on top of <base> must still pass, and its HEAD is a descendant of
+# the base tip rather than a match. Equality would refuse exactly that case.
+#
+# --existing takes no base, so there is nothing to resolve this comparison
+# against; the check is confined to the new-branch mode by construction rather
+# than left out of it by omission.
+if (-not $Existing) {
+    # Resolved here rather than reused from the pre-add check: the base tip that
+    # matters is the one standing when the tree is handed back.
+    $BaseTip = Get-GitOutput @('-C', $Main, 'rev-parse', '--verify', "$Base^{commit}")
+    $WtHead = Get-GitOutput @('-C', $Wt, 'rev-parse', 'HEAD')
+    if (-not (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $BaseTip, $WtHead))) {
+        Write-Stderr "refusing: $Wt does not contain '$Base'."
+        Write-Stderr "  base tip:      $BaseTip"
+        Write-Stderr "  worktree HEAD: $WtHead"
+        Write-Stderr "  A worktree was already registered at this path, so 'git worktree add' was skipped."
+        Write-Stderr "  The tree was handed back as it stood, at a commit '$Base' has since moved past."
+        Write-Stderr "  Bring the tree up to '$Base', or free the path so a fresh one can be cut:"
+        Write-Stderr "    git -C `"$Wt`" merge $Base"
+        Exit-WithError "    git -C `"$Main`" worktree list"
+    }
 }
 
 # Symlink the project's gitignored env files (tests/build read these).

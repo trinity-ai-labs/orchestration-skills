@@ -46,6 +46,17 @@
 # standing on the base. Both modes therefore read the branch back off the tree and
 # exit non-zero instead of reporting a success that isn't one.
 #
+# The same skipped `git worktree add` can also hand back a tree standing on the
+# REQUESTED branch at a commit <base> has since moved past, which the branch
+# read-back cannot see because the branch is the right one. So the new-branch mode
+# additionally refuses unless <base>'s tip is an ANCESTOR of the worktree's HEAD —
+# ancestry rather than equality, since a tree that has already committed work on
+# top of <base> is a legitimate re-attach and its HEAD is a descendant. --existing
+# takes no base, so it has nothing to resolve this against and is out of scope.
+# The caller's own comparison is still owed and still catches what this cannot:
+# this reads the base tip as the MAIN CHECKOUT has it, so a base that is itself
+# behind origin passes here and fails there.
+#
 # Every branch gets the same treatment — env symlinks and a real install — so a
 # worktree is always self-contained and can face any check the project has, a
 # re-attached tree exactly as much as a fresh one.
@@ -347,6 +358,38 @@ if [ "$ON_BRANCH" != "$BRANCH" ]; then
   echo "  Give '$BRANCH' a leaf no live worktree is holding, or free this one first:" >&2
   echo "    git -C \"$MAIN\" worktree list" >&2
   exit 1
+fi
+
+# The branch is right; the commit under it may still not be. The idempotency guard
+# skips `git worktree add` for any worktree already registered at this path — and
+# the refusal above is keyed on the branch NAME alone, so a tree cut off <base>
+# some time ago, on exactly the branch asked for, passes it while <base> has moved
+# on underneath. That tree is stale, and every signal after this point is
+# byte-identical to a fresh cut.
+#
+# ANCESTRY, not equality: a caller re-attaching to a tree that has already
+# committed work on top of <base> must still pass, and its HEAD is a descendant of
+# the base tip rather than a match. Equality would refuse exactly that case.
+#
+# --existing takes no base, so there is nothing to resolve this comparison
+# against; the check is confined to the new-branch mode by construction rather
+# than left out of it by omission.
+if [ "$EXISTING" -eq 0 ]; then
+  # Resolved here rather than reused from the pre-add check: the base tip that
+  # matters is the one standing when the tree is handed back.
+  BASE_TIP=$(git -C "$MAIN" rev-parse --verify "$BASE^{commit}")
+  WT_HEAD=$(git -C "$WT" rev-parse HEAD)
+  if ! git -C "$MAIN" merge-base --is-ancestor "$BASE_TIP" "$WT_HEAD"; then
+    echo "refusing: $WT does not contain '$BASE'." >&2
+    echo "  base tip:      $BASE_TIP" >&2
+    echo "  worktree HEAD: $WT_HEAD" >&2
+    echo "  A worktree was already registered at this path, so 'git worktree add' was skipped." >&2
+    echo "  The tree was handed back as it stood, at a commit '$BASE' has since moved past." >&2
+    echo "  Bring the tree up to '$BASE', or free the path so a fresh one can be cut:" >&2
+    echo "    git -C \"$WT\" merge $BASE" >&2
+    echo "    git -C \"$MAIN\" worktree list" >&2
+    exit 1
+  fi
 fi
 
 # Symlink the project's gitignored env files (tests/build read these). Guarded

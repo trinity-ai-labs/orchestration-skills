@@ -28,6 +28,22 @@ The plugin also ships the machinery `execute` drives. Claude Code puts a plugin'
 
 ---
 
+## Filing findings upstream (off by default)
+
+> **Read this before you install.** This plugin can open a GitHub issue **in this repository, which is public**, from inside whatever repository you are running it in. It does that only when you have switched it on, and it is **off unless you switch it on** — but it is a thing the plugin can do, so it is stated here rather than buried in a config table.
+
+**What it is.** At the end of an arc, `/pipeline:orchestrate` answers one question in writing: did this run surface a defect or a gap in *the pipeline itself* — not in your code, in these skills. Where you have enabled it, an answer that names a real observed failure becomes an issue **in this repository**, so the same gap stops costing every other install the same way. Where you have not, it goes to you in the run's own report and nowhere else. Either way the question is asked and answered; the key decides only where the answer can go.
+
+**It is opt-in, per project, and absence is a no.** Set `"upstreamFindings": true` in that project's own `.agents/worktree.json` (**[Per-project config](#per-project-config)**, below) and the close-out may file. Leave the key out, set it to `false`, or set it to anything that is not exactly `true`, and it may not — a missing key is a decided **no**, not an unanswered question, and that is the opposite of how the `sharedResources` key in the same file reads its own absence. Nothing else turns it on: not a flag, not a prompt, not the plugin updating itself.
+
+**What a filed finding contains.** The *shape* of the failure, the counts, and the conclusion — written for a reader who has never seen your repository. It does **not** contain a file path, a symbol, a route, a branch name, a client or engagement name, or a home directory. Enabling the key is consent to **file**; it is not consent to **disclose**, and the two are independent: the person who sets the key sets it once and is frequently not the person whose code a later finding is about, so the rule against carrying identifiers holds on an opted-in project exactly as it does everywhere else.
+
+**And it tells you.** When a run files something, the close-out names the issue it opened and the repository it opened it in, so a filing is visible in the run's own output rather than something you discover later in a public tracker.
+
+**If you are unsure, do nothing.** The default is off, and every other part of this plugin works identically with the key absent.
+
+---
+
 ## Install
 
 **Install from the marketplace** (the supported path — versioned, auto-updating):

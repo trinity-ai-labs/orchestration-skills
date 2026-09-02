@@ -101,6 +101,32 @@ symptom while nothing anywhere had a rule against the cause.*
 - **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
   bounds here too.
 
+**And when the diff in front of you IS this corpus, the bar you are judging by has two copies — the
+worktree's is the one that counts.** You were loaded from the **installed** plugin, at whatever
+version the cache happens to be serving. In every other repository that copy and the tree you are
+standing in are unrelated documents and the question never arises; in the one that ships these skills
+they are a single document at two versions, and the tree is authoritative because it is what the
+change ships — a rule that disagrees with it is the cache being behind, not the tree being wrong. So
+read a governing rule out of `skills/` before you judge by it, `diff` the copies where one looks wrong
+or absent, take the tree's, and say in your report which copy you read. The implementer whose tree
+this is has been told the same thing, and that does not cover you: you were loaded as your own skill
+from that same cache, and it is *your* lenses that decide what gets edited.
+
+**Being the pass that acts by REWRITING is what makes a stale copy worse here than anywhere else it
+lands.** Reuse and Simplification below both push a change toward the pattern already established —
+and a rule this diff has just changed still reads as established in the copy you were handed, so
+*converge on what is already there* comes out as an edit dragging the new wording back to the old one.
+That is a revert, and it arrives in your Applied list wearing the word convergence. *The failure this
+prevents: measured in the tree that shipped this, against the cache that was actually enabled, this
+file differed from that copy by 16 lines — every one of them in the* Flagged, out of scope *bullet and
+the hand-back line that closes this file, both of which say what becomes of a flagged item. The older
+copy said it becomes a filed, linked issue and nothing else; the tree says it becomes that **or** a
+comment on the issue already carrying that failure. A pass reading the older bar flags the item
+correctly and hands the caller the wrong disposition for it, which is the duplicate
+`skills/write-issue/SKILL.md`'s* Before you file, search what is already filed *exists to stop.
+Nothing errors in either direction, and a report written under a superseded bar reads exactly like one
+written under the current one.*
+
 ## What to look for
 
 Run the lenses in this order. It matters: a correctness fix can introduce something to simplify, and

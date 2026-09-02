@@ -454,25 +454,25 @@ The bullet above says what a drain's exit is not. This is the signal that actual
 **The shape.** Poll the ledger, remember the ticket files you have already reported, and print one line per new arrival whose `branch` is in the wave:
 
 ```sh
-DONE="<queue-root>/<project>/done"     # the ledger; the gate-queue reference has the layout
-seen=""
-for t in "$DONE"/*.json.*; do [ -e "$t" ] && seen="$seen[$t]"; done   # prime: what is already there is history
+DONE="<queue-root>/<project>/done"        # the ledger; the gate-queue reference has the layout
+SEEN=$(mktemp)                            # the seen set, one ticket path per line
+find "$DONE" -name '*.json.*' > "$SEEN"   # prime: what is already there is history
 while true; do
-  for t in "$DONE"/*.json.*; do
-    [ -e "$t" ] || continue
-    case "$seen" in *"[$t]"*) continue ;; esac
-    b=$(jq -r '.branch' "$t" 2>/dev/null) || continue   # unreadable now; retried next pass
-    seen="$seen[$t]"
+  find "$DONE" -name '*.json.*' | while IFS= read -r t; do
+    if grep -qxF "$t" "$SEEN"; then continue; fi
+    b=$(jq -r '.branch' "$t" 2>/dev/null)   # unreadable now; retried next pass
+    if [ -z "$b" ]; then continue; fi
+    echo "$t" >> "$SEEN"
     case "$b" in
-      feat/slice-a|feat/slice-b)                        # this wave's branches, exactly as enqueued
-        echo "settled: $b  PR $(jq -r '.prNumber' "$t")" ;;
+      feat/slice-a|feat/slice-b)            # this wave's branches, exactly as enqueued
+        echo "settled: $b  PR $(jq -r '.prNumber // "none"' "$t")" ;;   # PR-less ticket: the branch is the handle
     esac
   done
   sleep 5
 done
 ```
 
-Two details there are load-bearing. **Prime the seen set before the loop** — `done/` is a durable ledger holding every settlement this machine has made and not yet pruned, so an unprimed watch replays that whole archive as this wave's news on its first pass. And **dedupe on the ticket file, never on the branch** — a branch that goes red, takes a fix agent, and re-enqueues settles twice, and the second settlement is the one you are waiting for. (Read the JSON, not the filename: the claim suffix `done/` keeps is a runner's PID, not a ticket identity you can parse a branch out of.)
+Every part of that shape is load-bearing, and it opens on the shell you will actually paste it into — the harness runs a `Monitor` command in the session's shell, which on macOS is **zsh** by default. **The seen set is a FILE, and never a shell string the loop appends each ticket path into**: in zsh a `[` immediately after a parameter expansion — `$var[` — opens an array subscript, so a string accumulator written the obvious way makes the shell evaluate a ticket path as a math expression, and the watch dies with `bad math expression: operand expected` before it ever reaches the loop. **And the ledger is enumerated with `find`, never with a bare glob**: zsh's default `nomatch` makes an unmatched `"$DONE"/*.json.*` a fatal error rather than a literal, so a watch armed while `done/` is still empty — the ordinary state at the start of a wave on a fresh queue — dies for a second reason, and it dies before the kind of `[ -e "$t" ]` guard that makes a bare glob safe under POSIX `sh` ever gets to run. Being a file rather than a variable is also what lets the loop body sit on the right-hand side of a pipe, since the subshell's writes reach the parent where a variable's would be discarded with it. *The failure both of those prevent is the one this whole subsection exists to stop, and* Silence from this watch means nothing settled *spells it out: a watch that dies at arm time produces exactly that silence, its one error notification arrives at arm time and scrolls past, and after it a dead watch and a wave with nothing settling are indistinguishable — which is the state a dispatcher arms this instrument to get out of.* **Prime the seen set before the loop** — `done/` is a durable ledger holding every settlement this machine has made and not yet pruned, so an unprimed watch replays that whole archive as this wave's news on its first pass. **Dedupe on the ticket file, never on the branch** — a branch that goes red, takes a fix agent, and re-enqueues settles twice, and the second settlement is the one you are waiting for. (Read the JSON, not the filename: the claim suffix `done/` keeps is a runner's PID, not a ticket identity you can parse a branch out of.) And **read the ticket before you mark it seen**, which is why the append sits below the `jq` rather than above it — a ticket caught mid-write is unreadable for one pass, so marking it first retires it unreported, where reading first simply lets it come round again.
 
 **A few seconds is the right interval, and it is not the tick's question.** Each poll is a local directory listing plus a small JSON read, so running it often costs nothing — where the ~10-minute cadence in *Dispatch in the background, then monitor for divergence* is a cadence for reading **worktrees**, which is expensive and is answering something else entirely. **So do not put this on that tick, and do not give it that tick's period.** The tick keeps its one job and its two riders; this is a separate instrument, not a third rider. *The failure this prevents is the one the drain rider already names: a dispatcher that comes to read the tick as a list of commands to run stops diffing worktrees, and the divergence check is the half of the tick whose skipping costs a whole run.*
 

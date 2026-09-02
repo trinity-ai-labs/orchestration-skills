@@ -66,6 +66,23 @@
 #      only this check enforces them, because prose does not stop two
 #      hand-maintained copies of the same logic from drifting apart, it only
 #      makes the drift someone's fault after the fact.
+#      It also asserts one thing about each sibling ALONE, which the comparison
+#      cannot: a helper that consumes WORKTREE_HOME reads
+#      .agents/workspace.json. Comparing siblings is structurally blind to a
+#      SHARED omission — two ports that are identically wrong agree with each
+#      other perfectly — and that is exactly how remove-worktree shipped with no
+#      workspace branch in either language, resolving a path that never exists
+#      for every workspace member, printing "already removed" and exiting 0.
+#      A repo inside a workspace keeps its worktrees at
+#      $WORKTREE_HOME/<workspace>/<leaf>/<repo> rather than the bare
+#      $WORKTREE_HOME/<project>/<leaf>, so a helper that resolves paths under
+#      that home and never looks at the marker knows only half the layouts.
+#      This stays at the altitude the rest of 7 works at — a token in the
+#      comment-stripped source, exactly like the env-var scan — and it makes no
+#      claim that the branch it finds is CORRECT, only that the question was
+#      asked. That is the honest ceiling here: whether a workspace path is
+#      assembled right is semantics, and a checker that judged it would be a
+#      second implementation of the thing it checks.
 #   8. Every path under skills/ ending in .md that a tracked *.md cites resolves
 #      in the tree. The skills point at each other constantly instead of
 #      restating each other — two copies of a rule drift and nothing marks which
@@ -389,6 +406,14 @@ CONTRACT_ENV = {
     "WORKTREE_HOME", "REPO", "WORKSPACE", "WORKTREE_DEST", "MERGE_PR_FORCE",
 }
 
+# The marker that says a containing folder of sibling repos is a WORKSPACE, and
+# therefore that its members' worktrees live at
+# $WORKTREE_HOME/<workspace>/<leaf>/<repo> rather than $WORKTREE_HOME/<project>/<leaf>.
+# A helper that resolves paths under the worktree home and never reads this knows
+# only one of the two layouts - which is not a drift between siblings but a gap in
+# both at once, the one shape the comparison below cannot see.
+WORKSPACE_MARKER = ".agents/workspace.json"
+
 # A bash script CONSUMES an environment variable by reading it with a fallback:
 # ${NAME:-...} and its :=/:?/:+ siblings.
 SH_CONSUMED = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*):[-=?+]")
@@ -544,6 +569,19 @@ for name in sorted(set(sh_files) & set(ps_files)):
             f"bin/{name}: consumed contract env vars disagree - only in .sh: "
             f"{only_sh}; only in .ps1: {only_ps}"
         )
+
+    # Per-sibling, not a comparison: the shared omission the comparison cannot see.
+    for ext, env, code in ((".sh", sh_env, sh_code), (".ps1", ps_env, ps_code)):
+        if "WORKTREE_HOME" in env and WORKSPACE_MARKER not in code:
+            problems.append(
+                f"bin/{name}{ext}: resolves paths under WORKTREE_HOME but never "
+                f"reads {WORKSPACE_MARKER} - a repo inside a workspace keeps its "
+                "worktrees at $WORKTREE_HOME/<workspace>/<leaf>/<repo>, so a helper "
+                "that knows only the bare $WORKTREE_HOME/<project>/<leaf> resolves a "
+                "path that never exists for every workspace member. Both siblings "
+                "missing it agree with each other perfectly, which is why this is "
+                "checked per file rather than between them."
+            )
 
 for problem in problems:
     print(problem)

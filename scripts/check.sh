@@ -16,12 +16,15 @@
 #      runtime failure discovered at the moment of use. Reading the shebang
 #      keeps this correct if a script ever legitimately needs bash — the shebang
 #      is the contract, and this checks whatever it declares.
-#   2. .claude-plugin/plugin.json parses and carries what Claude Code needs.
-#      `claude plugin validate --strict` is the authoritative check and the one
-#      the community-marketplace review runs, but it needs the CLI installed and
-#      is not reproducible on a bare runner. This covers the failure modes that
+#   2. .claude-plugin/plugin.json parses and carries what Claude Code needs —
+#      plus what the SKILLS need, which is not the same set. `claude plugin
+#      validate --strict` is the authoritative check and the one the
+#      community-marketplace review runs, but it needs the CLI installed and is
+#      not reproducible on a bare runner. This covers the failure modes that
 #      actually break a published plugin: unparseable JSON, a missing name, and
 #      the `author` field whose absence makes --strict fail at submission time.
+#      It also covers `repository`, which the loader does not need at all — see
+#      the field list below for why it is required here anyway.
 #      The catalogue that lists this plugin lives in trinity-ai-labs/claude-plugins
 #      and is validated there — this repo ships a plugin, not a marketplace.
 #   3. Every skill has the frontmatter Claude Code needs, with `name` matching
@@ -227,7 +230,24 @@ except ValueError as err:
 if not isinstance(plugin, dict):
     print("is not a JSON object")
     sys.exit(0)
-for field in ("name", "description", "author", "version", "license"):
+# repository is NOT here because Claude Code needs it to load the plugin — it does
+# not. It is here because skills/orchestrate/SKILL.md section 7 resolves the filing
+# target for a close-out finding from this field, in a rule whose whole point is
+# that the target is never guessed or remembered; the same section compares the
+# same field against the origin to decide whether that finding crosses a repo
+# boundary. Drop the field and both resolve to nothing, silently: a manifest
+# without repository is still a well-formed manifest, so every other signal stays
+# green. That is exactly how it would come to be absent, which is why this sits on
+# the list rather than in a commit message — the next reader tidying away a field
+# the loader does not need is who it is written for.
+#
+# Keep quote characters BALANCED in here, this comment included. The heredoc body
+# sits inside a $(...) substitution, and sh tracks quoting across the whole of it
+# while looking for the closing paren — so one stray apostrophe in a comment reads
+# as an unterminated string, and the gate dies with a syntax error at end of file,
+# hundreds of lines below the character that caused it. CI runs this the same way,
+# nested one substitution deeper.
+for field in ("name", "description", "author", "version", "license", "repository"):
     if not plugin.get(field):
         print(f"missing '{field}'")
 PY

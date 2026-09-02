@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: shellcheck · plugin manifest · skill frontmatter · example config · PSScriptAnalyzer
+      - name: the repo gate (scripts/check.sh)
         run: |
           set -euo pipefail
           out="$(sh scripts/check.sh)"

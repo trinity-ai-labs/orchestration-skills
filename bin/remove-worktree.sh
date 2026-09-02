@@ -214,9 +214,15 @@ echo "remove-worktree: target path: $WT"
 if [ ! -d "$WT" ]; then
   echo "remove-worktree: path does not exist or already removed: $WT"
   # Still need to know which repo to prune. If we resolved from REPO above,
-  # COMMON/MAIN are already set; otherwise derive from the nearest repo.
+  # COMMON/MAIN are already set; otherwise derive it from REPO — NOT from $WT,
+  # which this branch has just established is not a directory, so `git -C "$WT"`
+  # could only ever fail. It did: the .sh printed "cannot find repo" and skipped
+  # the prune on every absolute-path call, leaving the stale registration behind,
+  # while the .ps1 fell back to REPO and pruned it. Same command, same input, two
+  # results — the semantic drift the parity check compares surface shape too high
+  # up to see, and which AGENTS.md therefore leaves to review.
   if is_abs_path "$INPUT"; then
-    if COMMON=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+    if COMMON=$(git -C "$REPO" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
       MAIN=$(dirname "$(norm_path "$COMMON")")
     else
       echo "remove-worktree: cannot find repo for $WT — skipping prune" >&2

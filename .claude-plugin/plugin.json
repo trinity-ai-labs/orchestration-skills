@@ -3,7 +3,7 @@
   "name": "pipeline",
   "displayName": "Dev Pipeline",
   "description": "write-issue \u2192 orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop \u2014 ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
-  "version": "3.27.0",
+  "version": "3.28.0",
   "author": {
     "name": "Trinity AI Labs",
     "url": "https://github.com/trinity-ai-labs"

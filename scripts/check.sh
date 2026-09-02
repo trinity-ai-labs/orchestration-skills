@@ -158,31 +158,45 @@
 #      qualifier "this repo's own #N", and an attribution naming the owning
 #      repository as an `owner/repo` code span sitting immediately before the
 #      number (`trinity-ai-labs/trinity` (PR #4798)). Either one anywhere in the
-#      paragraph clears every coordinate in that paragraph, deliberately: a
-#      worked example carrying three coordinates would otherwise have to repeat
-#      the qualifier three times, which is worse prose than the defect it
-#      prevents.
+#      PASSAGE clears every coordinate in that passage, deliberately: a worked
+#      example carrying three coordinates would otherwise have to repeat the
+#      qualifier three times, which is worse prose than the defect it prevents.
 #      Code spans and fenced blocks are stripped from the text COORDINATES are
 #      read out of, so a worked invocation (`decompose #1042`) is not a citation
 #      and never was. They are not stripped from the text the attribution is
 #      matched against, because that form puts the repository inside a code span
 #      and the number outside it, so one strip would delete the thing being
-#      looked for. The paragraph is the blank-line block, which makes a run of
-#      bullets with no blank line between them ONE paragraph — the coarse
-#      direction, on purpose. The tighter unit reds on a worked example that
-#      continues across two bullets, and a check that reds on correct prose is
-#      one the next author routes around.
+#      looked for. The PASSAGE is a whole paragraph, or ONE list item within
+#      one: a blank-line block cut again at its list markers, with a marker
+#      opening a passage and every later line joining it, so a multi-line item
+#      stays whole. That last part is load-bearing rather than incidental —
+#      decompose's umbrella-disambiguation example carries its qualifier and one
+#      of the coordinates it covers nine lines and two code fences apart, inside
+#      one item.
+#      The item rather than the blank-line block, because the unit has to be the
+#      smallest span a reader takes a qualifier as governing, and a bullet run is
+#      not that: the qualifier in one bullet has nothing to do with a coordinate
+#      in the next. The block unit shipped first and was measured — a bare
+#      coordinate injected into a bullet whose SIBLING carried a qualifier came
+#      back green, which is exactly the defect this check exists to catch,
+#      cleared by a sentence four bullets away. Tightening cost no false
+#      positives: all nine live coordinates still pass, and the only one needing
+#      more than its own line (decompose's continuation) is covered by its own
+#      item.
+#      Nesting is deliberately NOT containment: an indented sub-bullet is its own
+#      passage, not part of its parent. Treating it as part would reintroduce the
+#      same leak one level down, a parent's qualifier clearing every child.
 #      Scoped to skills/ because that is what ships. AGENTS.md, README.md and
 #      CHANGELOG.md are read only from this checkout, where a bare number is
 #      already correct and this rule would be pure noise.
 #      The honest ceiling, and it is the same one check 7 states about surface
 #      shape: this asserts the question was asked, never that the answer is
-#      right. A paragraph citing two repositories that qualifies only one of
+#      right. A passage citing two repositories that qualifies only one of
 #      them passes, and separating those needs the sentence read.
 #      One narrower gap, considered and left open: an UNBALANCED backtick makes
 #      the code-span strip pair the wrong two, which can swallow a coordinate
-#      and green it. Asserting balance per paragraph was rejected — no tracked
-#      paragraph is unbalanced today, so it would buy a case that has not
+#      and green it. Asserting balance per passage was rejected — no tracked
+#      passage is unbalanced today, so it would buy a case that has not
 #      occurred, and it would red the gate on a markdown defect that has nothing
 #      to do with trackers, under a message about them.
 #
@@ -757,17 +771,20 @@ ATTRIBUTION = re.compile(
 )
 CODE_SPAN = re.compile(r"`[^`]*`")
 FENCE = re.compile(r"^[ \t]*(?:```|~~~)")
+# A list marker, which is where a blank-line block is cut into passages. The
+# trailing \s is what keeps prose out: `*The failure this prevents` opens an
+# italic run and `3.19.0 shipped` opens a sentence, and neither is a bullet.
+MARKER = re.compile(r"^[ \t]*(?:[-*+]|[0-9]+\.)\s")
 
 problems = []
 coordinates = 0
-paragraphs = 0
+passages = 0
 
 for name in sys.argv[1:]:
     text = pathlib.Path(name).read_text(encoding="utf-8", errors="replace")
     # Fenced lines are emptied rather than dropped, so a fence sitting inside a
-    # list item does not split that item into two paragraphs. decompose's
-    # umbrella-disambiguation example is exactly that shape: the qualifier and
-    # one of the coordinates it covers sit on opposite sides of a fence.
+    # list item neither splits that item nor opens a new one - an emptied line
+    # matches no marker, so it joins whatever passage it is already in.
     fenced = False
     lines = []
     for number, raw in enumerate(text.splitlines(), 1):
@@ -797,7 +814,26 @@ for name in sys.argv[1:]:
     if current:
         blocks.append(current)
 
+    # Then cut each block at its list markers. The passage - a whole paragraph,
+    # or ONE list item within one - is the span a qualifier is taken to govern,
+    # and a bullet run is not that: a qualifier in one bullet has nothing to do
+    # with a coordinate in the next. A marker opens a passage and every later
+    # line joins it, so a multi-line item stays whole - which decompose's
+    # umbrella-disambiguation example needs, its qualifier and one of the
+    # coordinates it covers being nine lines and two code fences apart. Lines
+    # before a block's first marker are a passage of their own.
+    passages_in_block = []
     for block in blocks:
+        current = []
+        for entry in block:
+            if MARKER.match(entry[2]) and current:
+                passages_in_block.append(current)
+                current = []
+            current.append(entry)
+        if current:
+            passages_in_block.append(current)
+
+    for block in passages_in_block:
         joined = " ".join(line for _, _, line in block)
         # Citations are read from the code-span-stripped text and attributions
         # from the raw text, because the attributed form puts the repository
@@ -807,7 +843,7 @@ for name in sys.argv[1:]:
         hits = CITATION.findall(prose)
         if not hits:
             continue
-        paragraphs += 1
+        passages += 1
         coordinates += len(hits)
         if QUALIFIER.search(prose) or ATTRIBUTION.search(joined):
             continue
@@ -832,15 +868,15 @@ if coordinates == 0:
 # Counts first, on one line, so the shell can report what was examined without
 # re-deriving it: a green naming no total is indistinguishable from a green over
 # an empty scan.
-print(f"{coordinates} {paragraphs} {len(problems)}")
+print(f"{coordinates} {passages} {len(problems)}")
 for problem in problems:
     print(problem)
 PY
 	tracker_status=$?
 	tracker_coords=''
-	tracker_paras=''
+	tracker_passages=''
 	tracker_problems=''
-	{ read -r tracker_coords tracker_paras tracker_problems; } <"$tracker_out"
+	{ read -r tracker_coords tracker_passages tracker_problems; } <"$tracker_out"
 	if [ "$tracker_status" -ne 0 ] || [ -z "$tracker_problems" ]; then
 		sed 's/^/      /' "$tracker_out" >&2
 		fail "tracker-citations: the scanner crashed — shipped prose could not be examined"
@@ -858,7 +894,7 @@ PY
 		# would exit 0 having just printed failures.
 		fails=$((fails + 1))
 	else
-		ok "tracker-citations: $tracker_coords coordinate(s) across $tracker_paras paragraph(s) in shipped prose name the tracker they resolve in"
+		ok "tracker-citations: $tracker_coords coordinate(s) across $tracker_passages passage(s) in shipped prose name the tracker they resolve in"
 	fi
 	rm -f "$tracker_out"
 fi

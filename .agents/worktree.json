@@ -1,5 +1,6 @@
 {
   "envFiles": [],
+  "sharedResources": [],
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
   "briefConventions": "See AGENTS.md at the repo root — it carries the full conventions plus the frozen helper contract and the bin/ parity rule."

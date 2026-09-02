@@ -196,13 +196,13 @@ Report to the caller in prose, covering four things. Keep it short enough to rea
   fixing it falls outside the slice boundary the brief drew, or is genuinely unverifiable from
   this worktree. It is not a bucket for work you could have done — for that the caller's flow
   already has a sanctioned path, the out-of-scope fix isolated in its own commit, and that path
-  is preferred over deferring. What is genuinely left is the **caller's** to turn into a filed,
-  linked issue; this pass reports it and files nothing, exactly as it dispatches nothing, commits
-  nothing, and pushes nothing. *The failure this prevents: a flagged list reads as diligence, so a
-  bucket with a loose admission test quietly absorbs the work the pass was called in to do — and
-  every item in it dies with the turn unless the caller makes it tracked.*
+  is preferred over deferring. What is genuinely left is the **caller's** to file — as a linked
+  issue, or as a comment on the one already carrying that failure; this pass reports it and files
+  nothing, exactly as it dispatches nothing, commits nothing, and pushes nothing. *The failure this
+  prevents: a flagged list reads as diligence, so a bucket with a loose admission test quietly
+  absorbs the work the pass was called in to do — and every item in it dies with the turn unless
+  the caller makes it tracked.*
 - **Verification** — which scoped check you ran and its result, and which single test file if any.
 
-Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, and any
-follow-up issue the flagged items become are the caller's, in that order, and none of them are
-yours.
+Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, and whatever
+filing a flagged item becomes are the caller's, in that order, and none of them are yours.

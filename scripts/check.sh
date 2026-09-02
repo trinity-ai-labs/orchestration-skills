@@ -66,15 +66,42 @@
 #      only this check enforces them, because prose does not stop two
 #      hand-maintained copies of the same logic from drifting apart, it only
 #      makes the drift someone's fault after the fact.
-#   8. Every skills/<name>/SKILL.md path cited in a tracked *.md resolves in the
-#      tree. The skills point at each other constantly instead of restating each
-#      other — two copies of a rule drift and nothing marks which one is stale —
-#      so a rename or a deletion leaves a citation pointing at nothing, and a
-#      dead path reads exactly as authoritative as a live one. Observed: a
-#      dispatch instruction named the wrong skill, survived a rename that swapped
-#      two skills' names wholesale, read perfectly across seven releases, and
-#      reached two live briefs. Scoped to git-tracked files, so an untracked
-#      scratch note or a gate log left in a worktree cannot turn the gate red.
+#   8. Every path under skills/ ending in .md that a tracked *.md cites resolves
+#      in the tree. The skills point at each other constantly instead of
+#      restating each other — two copies of a rule drift and nothing marks which
+#      one is stale — so a rename or a deletion leaves a citation pointing at
+#      nothing, and a dead path reads exactly as authoritative as a live one.
+#      Observed: a dispatch instruction named the wrong skill, survived a rename
+#      that swapped two skills' names wholesale, read perfectly across seven
+#      releases, and reached two live briefs. Scoped to git-tracked files, so an
+#      untracked scratch note or a gate log left in a worktree cannot turn the
+#      gate red.
+#      It follows the CORPUS rather than enumerating one filename. Scoped to
+#      SKILL.md — which is what shipped first — it missed a reference doc cited
+#      by path, skills/setup/references/gate-queue.md, which is the same
+#      coordinate with the same failure mode and was uncovered while the check
+#      read as complete. The character class admits the nested segment instead,
+#      so a reference doc added tomorrow is covered the day it is cited rather
+#      than the day someone remembers to widen a filename list.
+#      The citation shape stays PATH-shaped, and that is the boundary that keeps
+#      this check quiet: the pattern is anchored on skills/, so every match names
+#      a directory. A BARE filename is deliberately unreachable — this corpus
+#      writes README.md and AGENTS.md in running prose constantly, naming no
+#      directory and usually not even this repo, so a pattern over those would
+#      red the gate on every other project's README mentioned in passing. That
+#      is the noisy-check failure below, arriving through the widening instead of
+#      through italics.
+#      One false positive the nesting does admit, named here so a red on it is a
+#      diagnosis rather than a mystery: the match is unanchored on its LEFT, and
+#      every sibling repo is named <something>-skills, so a URL of the form
+#      github.com/<org>/<x>-skills/blob/main/<doc>.md matches from its own
+#      "skills/" onward and reports skills/blob/main/<doc>.md as dangling. No
+#      tracked doc carries one today, and the remedy is the house style anyway —
+#      a doc in THIS repo is cited by repo-relative path, which is the form this
+#      check exists to keep alive. A left-boundary guard was considered and
+#      rejected: it costs a second grep stage plus a boundary character class
+#      whose every member is a judgement call, to buy a case that has not
+#      occurred and that names itself in the failure output when it does.
 #      What it does NOT reach, deliberately: only the file-path form. A citation
 #      by prose phrase (decompose's Verify field cites "per execute's own note on
 #      backgrounding a banned run") and a count duplicated across two sentences
@@ -83,19 +110,19 @@
 #      carry emphasis throughout, not just around section names, so a pattern
 #      over them is mostly false positives, and a noisy check is one the next
 #      author routes around. Both keep the prose rules already pointed at them.
-#      The third residual IS a coordinate and is left out only by scope: a
-#      reference doc cited by path, skills/setup/references/gate-queue.md, cited
-#      4 times and resolving today. Widening to it is a character class, not a
-#      new idea — counted here so it stays countable rather than forgotten.
 #      The line drawn is the corpus's own — if a checker can tell the reference
 #      is stale without reading the sentence, it is a coordinate.
 #      Unlike 4 there is no anchor separating a citation from prose SHOWING a
 #      dead path, because a dead path is a dead path either way. A doc that needs
 #      to display one writes it in the placeholder form the corpus already uses
 #      (this comment, or README.md's skills/<slug>/SKILL.md): angle brackets are
-#      not a path component, so nothing has to be suppressed — and no per-line
-#      opt-out is offered, since one would be indistinguishable from a real stale
-#      citation claiming to be deliberate.
+#      not a path component, so the pattern does not match and nothing has to be
+#      suppressed. The widening preserves that exactly — < is outside the class,
+#      so skills/<slug>/ still fails at its first character — which is load-
+#      bearing rather than incidental, since this comment and the README both
+#      carry the form and a widening that reached it would red the gate on the
+#      check's own documentation. No per-line opt-out is offered, since one would
+#      be indistinguishable from a real stale citation claiming to be deliberate.
 #
 # Every check that scans a SET of files asserts the set is non-empty before it
 # scans: a check whose pattern stops matching prints the same green as a check
@@ -539,7 +566,7 @@ else
 fi
 rm -f "$parity_out"
 
-# --- 8. every skills/<name>/SKILL.md path cited in a tracked doc resolves -----
+# --- 8. every skills/ .md path cited in a tracked doc resolves ----------------
 
 # The set is what git tracks, not what the glob finds: a scratch note, a gate log
 # or a stray copy sitting in a worktree is not a doc this repo ships, and a gate
@@ -553,9 +580,14 @@ done
 if [ -z "$md_files" ]; then
 	fail "citations: git listed no tracked *.md files — this check scanned nothing"
 else
-	cite_hits="$(grep -hoE 'skills/[A-Za-z0-9_-]+/SKILL\.md' $md_files)"
+	# The class carries / so the path may nest — skills/<slug>/SKILL.md and
+	# skills/<slug>/references/<doc>.md are one pattern, not two. It carries
+	# neither < nor >, which is what keeps the placeholder form the corpus writes
+	# for a deliberately dangling example out of the match; and the literal
+	# skills/ prefix is what keeps a bare README.md in prose out of it.
+	cite_hits="$(grep -hoE 'skills/[A-Za-z0-9_/-]+\.md' $md_files)"
 	if [ -z "$cite_hits" ]; then
-		fail "citations: no skills/<name>/SKILL.md path matched in any tracked *.md — this check scanned nothing"
+		fail "citations: no skills/ .md path matched in any tracked *.md — this check scanned nothing"
 	else
 		cite_count="$(printf '%s\n' "$cite_hits" | wc -l | tr -d ' ')"
 		cited="$(printf '%s\n' "$cite_hits" | sort -u)"
@@ -576,7 +608,7 @@ else
 			done | sort -u | sed 's/^/      /' >&2
 			fail "citations: cited in a tracked doc but absent from the tree:$dangling"
 		else
-			ok "citations: $cite_count skills/<name>/SKILL.md citation(s) across tracked docs resolve ($distinct distinct path(s))"
+			ok "citations: $cite_count skills/ .md path citation(s) across tracked docs resolve ($distinct distinct path(s))"
 		fi
 	fi
 fi

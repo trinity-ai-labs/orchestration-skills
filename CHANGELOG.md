@@ -2,6 +2,10 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.61.0
+
+- `CHANGELOG.md` is a changelog again: 98,922 → 8,991 words, one to three lines per release. All 108 release headings survive in order; every issue and PR link is kept, and the reasoning lives there rather than in this file. It was nearly twice the size of the product it describes.
+
 ## 3.60.0
 
 - `skills/review/SKILL.md` drops a machine-local line-count measurement and keeps the claim it was supporting ([#285](https://github.com/trinity-ai-labs/orchestration-skills/issues/285)). Corpus 53,658 → 53,590 words.

@@ -1,7 +1,7 @@
 {
   "name": "pipeline",
-  "version": "4.2.0",
-  "description": "write-issue → orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop — ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
+  "version": "4.3.0",
+  "description": "co-think → write-issue → orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop — ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
   "author": {
     "name": "Trinity AI Labs",
     "url": "https://github.com/trinity-ai-labs"

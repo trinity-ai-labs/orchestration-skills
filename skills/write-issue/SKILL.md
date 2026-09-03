@@ -1,22 +1,24 @@
 ---
 name: write-issue
 description: >-
-  Turn an idea or a rough plan into a grounded, forward-facing GitHub issue — or an umbrella +
-  sub-issues — feeding /pipeline:orchestrate. Fed by /pipeline:co-think and feeding /pipeline:orchestrate. Use whenever you're asked to WRITE UP / FILE / OPEN an
-  issue, capture a plan as an issue, or turn a design discussion into trackable work. You GROUND the
-  plan in the real codebase — every load-bearing claim verified against the code — then write it as a
-  PLAN TO EXECUTE: goal, approach, the surface it lands on as real modules and files, phases, seams,
-  verify — no exploration narrative, history or line numbers. You do NOT slice into dispatchable
-  waves, run the arc, or dispatch: /pipeline:orchestrate owns that loop.
-  Ends with the handoff to /pipeline:orchestrate.
-argument-hint: "[the idea or plan to write up — omit to write up the plan already in chat]"
+  Write a settled shape up as a grounded, forward-facing GitHub issue — or an umbrella + sub-issues.
+  Fed by /pipeline:co-think, feeding /pipeline:orchestrate. Its input is a decision already made: the
+  approach chosen, the pieces named, the order agreed, a bug already diagnosed, or a follow-up a live
+  run surfaced. Use whenever you're asked to WRITE UP / FILE / OPEN an issue, to capture agreed work
+  as something trackable, or to turn a concluded design discussion into one. You GROUND it in the real
+  codebase — every load-bearing claim verified against the code — then write it forward-facing as work
+  to execute: goal, approach, the surface it lands on as real modules and files, phases, seams,
+  verify. Ends with the handoff to /pipeline:orchestrate.
+argument-hint: "[the settled shape to write up — omit to write up what is already agreed in chat]"
 ---
 
 # write-issue — author the issue that feeds the pipeline
 
-The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns the first leg: an idea turned into a **grounded, forward-facing issue** the loop executes without re-deriving it.
+The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. `co-think` settles the shape; this skill owns the leg after it, turning a settled shape into a **grounded, forward-facing issue** the loop executes without re-deriving it.
 
-You never write code, make worktrees, or dispatch. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config), not a hardcoded stack.
+⛔ **Your input is a shape already settled — where it is not, hand back to `/pipeline:co-think` and say so.** Settling unshaped work is that pass's job, not this one, and the tell is that you are about to choose the approach, name the pieces or settle the order yourself instead of writing down one already agreed: an issue grounded off an unsettled shape comes out TRUE and aimed wrong, and no pass downstream reopens the goal, so the whole arc executes it correctly.
+
+⛔ **You never write code, make worktrees, or dispatch, and you do not slice into dispatchable waves or run the arc** — `/pipeline:orchestrate` owns that loop. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config), not a hardcoded stack.
 
 **Four steps, in order — and the file does not end at the fourth**: *Two rules that fire at every step* follows them.
 
@@ -62,7 +64,7 @@ A comment reached this way **is** a filing — the failure, the reasoning, a rec
 
 **Ground with `file:line`; write down the module and the file** — the line number is how you *check* a claim, not what the issue *carries* (Step 3's *Surface*).
 
-- **Spawn fresh read-only `Explore` agents** — never forks — in parallel, one per subsystem, for the real files, the patterns to copy and the consumers a change ripples into — **invoking this skill is what authorizes them**, and it authorizes these read-only agents and nothing else.
+- **Spawn fresh read-only search agents** — never forks — in parallel, one per subsystem, for the real files, the patterns to copy and the consumers a change ripples into — **invoking this skill is what authorizes them**, and it authorizes these read-only agents and nothing else.
 - **Grep the WHOLE repo and cite the definition line — or the claim doesn't count.** A folder-scoped grep produces confident-but-wrong claims. Check "X is/isn't a consumer" or "only one call site" tree-wide; two sources disagreeing means you read the file.
 - **A SECTION citation is a load-bearing claim that method cannot settle — resolve it by OPENING the section, never by searching for the word it turns on.** A symbol has a definition line or none; a section citation attributes an *argument* to prose, where the search is agreeable rather than silent — the word it turns on usually sits there in an unrelated sense — and cannot dangle: a wrong one resolves to a real section, as authoritative-looking as a right one.
 - **A COUNT is a third such claim, and its citation is its INSTRUMENT** — write the unit beside the figure and the tree you took it against (`grep -c` counts matching lines, `grep -o | wc -l` occurrences).

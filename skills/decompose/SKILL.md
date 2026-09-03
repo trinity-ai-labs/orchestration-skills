@@ -9,8 +9,7 @@ description: >-
   the actual codebase and VALIDATE it against what the code really does, surfacing wrong assumptions,
   unspecified behavior and defects in the plan before an implementer builds on them. The horizon emits at
   SLICE depth (owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar);
-  everything past it at SHAPE depth (goal, area, dependency — no file:line). You NEVER ground beyond the
-  horizon, and you do NOT write code, make worktrees, dispatch implementers or merge. On the GitHub path
+  everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
   you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
 ---
@@ -73,5 +72,5 @@ In chat, or back onto the issue as a comment or as an umbrella with one sub-issu
 
 - ⛔ **Never ground beyond the horizon** — no `file:line`, no owned-file list, no boundaries, no framework skill, no model tier, no verify bar on any item outside the next dispatchable set, however well you understand it and however directly a user asked. Grounding more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the paths.
 - ⛔ **An enumeration you emit carries its count, and the count says what it counts.** A set has nothing in it to say it is short, so a truncated list names real files in the right format and reconciles with every other field — take the number from the command that filtered nothing, write it beside the list, and name the unit or the command, since `wc -l` counts matching lines fed a `grep` and members fed a file list. `skills/decompose/references/grounding.md`'s *An enumeration is a claim* carries the sweep mechanics.
-- ⛔ **No code, no worktrees, no dispatch, no merge** — `/pipeline:execute` dispatches and merges, `/pipeline:orchestrate` owns the loop around you. You never edit a source file, and if you catch yourself opening one to change it, stop; never run a worktree helper or any harness auto-provisioner; never spawn implementer sub-agents to build; never merge a PR. Decompose is read-only against the working tree, plus GitHub writes on the issue path — the read-only `Explore` agents in action 1 are grounding, not building.
+- ⛔ **No code, no worktrees, no dispatch, no merge** — `/pipeline:execute` dispatches and merges, `/pipeline:orchestrate` owns the loop around you. You never edit a source file, and if you catch yourself opening one to change it, stop; never run a worktree helper or any harness auto-provisioner; never spawn implementer sub-agents to build; never merge a PR. Decompose is read-only against the working tree, plus GitHub writes on the issue path — the read-only search agents in action 1 are grounding, not building.
 - ⛔ **No loop, and no over-decomposition.** Reconciling a landed increment, deciding what folds in and what gets filed, and rewriting the plan are steps of `/pipeline:orchestrate`'s loop — a pass that reconciles as well as grounds does it against the tree it read at the top of its own turn, the one tree that cannot falsify anything. And coordination that costs more than it saves is a regression, because the gate is a real serialized cost.

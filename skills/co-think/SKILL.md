@@ -20,7 +20,9 @@ This pass owns that decision. You work the shape out with the user and end by **
 
 ## 1. Classify the request out loud, before your first question
 
-Say which path you are on and why, in one sentence — *"this looks bounded, so I'll put a short design in chat rather than write an issue"* — so the user can override it before you spend a single question. A bug report classifies only once its cause is known, so it goes to 4 first.
+**Write the goal down as ONE testable sentence, in the user's terms, before you name a path**, then score whatever is already on the table against it and say the verdict out loud, including where it indicts your own proposal — an unwritten goal cannot be scored against, so the plan gets compared to nothing and every plan passes.
+
+Then say which path you are on and why, in one sentence — *"this looks bounded, so I'll put a short design in chat rather than write an issue"* — so the user can override it before you spend a single question. A bug report classifies only once its cause is known, so it goes to 4 first.
 
 | Path | What it is |
 |---|---|
@@ -37,11 +39,14 @@ Say which path you are on and why, in one sentence — *"this looks bounded, so 
 
 Help split it instead: name the independent pieces, say how they relate, and settle what order they get built in. **Each piece then takes its own trip through the pipeline** — its own shaping, its own issue, its own run. Shape the first one here; the rest wait.
 
+**Separate what is FORCED from what is being SEQUENCED, and settle the forced item before you compare routes.** Anything true under every route — a defect, a missing piece, a correction the work needs whichever order it lands in — comes out of the routing argument and gets settled first, since nothing else asks this: whether the arc can ship without an item is a different question from whether the item is independent of the argument being had, and left in, a sequencing debate holds hostage work that is needed however it resolves.
+
 ## 3. Ask one question per message
 
 - **One question per message.** A topic needing more becomes several messages, never one message carrying three questions.
 - **Multiple choice wherever the answer has a small set of options**, open-ended where it does not.
 - **Lead with your recommendation and why**, then the alternatives. On the architectural path that is two or three approaches with their trade-offs, the recommended one first.
+- **Name what would change your mind, then proceed on your recommendation anyway**, marking the assumption you are proceeding under. A flip condition is information that makes an override cheap, not a gate — whoever disagrees corrects one sentence, whoever agrees says nothing and the work is already moving — because a recommendation handed back with a fork attached is still a fork: the answer is already reasoned out, and asking anyway costs the user a restatement of a goal they have already stated.
 - **YAGNI, out loud.** Cut what the stated goal does not need from every approach you present — before a thing is designed is the cheapest moment it will ever be to remove it.
 - Aim at purpose, constraints and success criteria. A gap an existing pattern or the repo's own conventions settles is not a question: adopt the answer, say you did, move on.
 
@@ -85,7 +90,9 @@ Name the route out loud with its command in it, so the user can take it themselv
 
 ---
 
-Two rules fire at no single action:
+Four rules fire at no single action:
 
+- ⛔ **Shape toward the GOAL — every mechanism serves it and may be changed or deleted.** A check, a ceiling, a pipeline step or an existing pattern is an answer to an older goal, so shaping new work around it tunes that answer instead of testing the question; ask what the user is actually trying to achieve, then whether the mechanism still serves it — unasked, a mechanism that is present and enforced reads as a constraint rather than a choice, so the pass adjusts its parameters (which unit, which number, which threshold) and never asks whether it should exist at all, while every iteration looks like progress.
+- ⛔ **After a correction: restate, commit, go.** One line naming the goal, one line saying what you will therefore do, then do it — no second round of analysis, no re-derivation of what was just settled, no closing question; more reasoning is what a corrected pass has to offer and it reads as taking the correction seriously, but it lands as not having heard it, and the tell is a reply longer than the correction that prompted it.
 - ⛔ **You do not build here.** No implementation code, no worktree, no branch, no issue body written on the side. This pass produces an agreed shape and a route; the pass at the end of that route does the rest.
 - ⛔ **The ratchet is one-way.** Complexity found at any point upgrades the path — stop, say so, re-classify from 1. Nothing downgrades mid-task, and an approval already given covers the task it was given for, never the follow-up that fell out of it.

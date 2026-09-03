@@ -199,16 +199,29 @@
 #      passage is unbalanced today, so it would buy a case that has not
 #      occurred, and it would red the gate on a markdown defect that has nothing
 #      to do with trackers, under a message about them.
-#  10. No tracked file under skills/ exceeds the ATTENTION BUDGET: 30,000 words,
-#      measured with `wc -w`. skills/ ships, and a rule only binds the agent that
-#      actually reads it — so past some total the corpus stops being a set of
-#      rules and becomes a document its reader is compacted out of. That failure
-#      is observed rather than theoretical, and it is the one nothing else here
-#      can see: no diff contains it, and which rule gets dropped is settled by
-#      file size and position rather than by anyone.
+#  10. Tracked prose under skills/ is held to TWO ATTENTION BUDGETS, both
+#      measured with `wc -w` over the same file set: no single file over 30,000
+#      words, and the CORPUS — the sum across all of them — under a RATCHET.
+#      skills/ ships, and a rule only binds the agent that actually reads it —
+#      so past some total the corpus stops being a set of rules and becomes a
+#      document its reader is compacted out of. That failure is observed rather
+#      than theoretical, and it is the one nothing else here can see: no diff
+#      contains it, and which rule gets dropped is settled by file size and
+#      position rather than by anyone.
+#      It is also a property of the TOTAL, which is why the per-file half alone
+#      structurally could not see it: every one of the 17 tracked files was
+#      green while they summed to 121,280 words — 4x the per-file ceiling — and
+#      this check reported ok on that every release, where a green ceiling line
+#      is read as headroom.
+#      The ratchet is a RATCHET and not a target. It is set to the tree's
+#      measured total once a cut has landed, so it only ever moves DOWN, and
+#      raising it to fit new prose is the one edit this constant must never
+#      receive — guardrail gaming arriving as a one-character diff. Extraction
+#      is a remedy for the per-file half ALONE: it moves words between files,
+#      and the corpus half counts them wherever they sit.
 #      AGENTS.md is the prose that OWNS this rule; this is the half that
-#      enforces it, and the two are a pair that has to be changed together. The
-#      number and the instrument are copied from there deliberately rather than
+#      enforces it, and the two are a pair that has to be changed together. Both
+#      numbers and the instrument are copied from there deliberately rather than
 #      parsed out of it — a scanner over that bullet would make a reword change
 #      what the gate enforces, silently — and the same house pattern check 7
 #      uses for the contract env vars it borrows from the same file. **The unit
@@ -216,12 +229,12 @@
 #      characters are all plausible readings of "how long is this file", they
 #      all disagree with `wc -w`, and picking a different one leaves BOTH halves
 #      green while the pair says two different things. So: `wc -w`, tracked
-#      files under skills/, 30,000.
-#      It reports the largest file and its count on success, not just a verdict.
-#      A ceiling check that prints only "ok" tells an author nothing about how
-#      much room is left, which is the number they need before adding prose —
-#      and this is a rule an author is expected to plan against rather than
-#      discover by going red.
+#      files under skills/, 30,000 per file and the ratchet across them.
+#      It reports BOTH numbers on success, not just a verdict — the largest file
+#      with its count, and the corpus total against the ratchet. A ceiling check
+#      that prints only "ok" tells an author nothing about how much room is
+#      left, which is the number they need before adding prose; and the corpus
+#      total is the number a green per-file line was being read as vouching for.
 #      What it does NOT do: judge whether an extraction was the RIGHT one. Which
 #      bodies may move behind a pointer is the discriminator AGENTS.md states,
 #      and it turns on TWO tests, both of which need the prose read: whether a
@@ -931,13 +944,21 @@ PY
 	rm -f "$tracker_out"
 fi
 
-# --- 10. no tracked file under skills/ exceeds the attention budget ----------
+# --- 10. skills/ within the per-file ceiling AND the corpus ratchet ----------
 
-# The ceiling and the instrument AGENTS.md states. Changing either here without
-# changing it there leaves the two halves of one rule disagreeing, with both of
-# them green — see the note at 10 above for why the unit matters as much as the
-# number.
+# The per-file ceiling and the instrument AGENTS.md states. Changing either here
+# without changing it there leaves the two halves of one rule disagreeing, with
+# both of them green — see the note at 10 above for why the unit matters as much
+# as the number.
 budget=30000
+
+# The corpus-wide ceiling: the SUM of the same measurement over the same file
+# set. It is a RATCHET — lowered to the tree's measured total once a cut has
+# landed, never raised to fit new prose — so a change that adds net words to
+# skills/ goes red here even while every individual file stays comfortably under
+# the per-file number. The arc driving it down is this repo's own #298, whose
+# end state is under 40,000.
+corpus_ratchet=121280
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose
@@ -955,6 +976,7 @@ else
 	budget_largest=0
 	budget_largest_file=''
 	budget_broke=''
+	budget_total=0
 	for f in $budget_files; do
 		# wc's OWN exit status, captured before anything else touches the value:
 		# the substitution runs wc alone, so a failure here is wc's and not some
@@ -980,6 +1002,11 @@ else
 			;;
 		esac
 		budget_counted=$((budget_counted + 1))
+		# The same measurement the per-file half tests, behind the same guards:
+		# an unmeasurable file has already `continue`d, so it is missing from
+		# this sum exactly as it is from the count — and it fails the check on
+		# its own, so a short sum is never what a green rests on.
+		budget_total=$((budget_total + words))
 		if [ "$words" -gt "$budget_largest" ]; then
 			budget_largest="$words"
 			budget_largest_file="$f"
@@ -1002,19 +1029,25 @@ else
 	if [ -n "$budget_over" ]; then
 		# Named with its count, so the author can see how far over it is rather
 		# than only that it is: the remedy is to extract or delete to make room,
-		# and how much room is the first thing they need.
-		fail "attention-budget: over the ${budget}-word ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests"
+		# and how much room is the first thing they need. It also says which
+		# half extraction settles, since a reader who takes it as the whole
+		# remedy relocates words the corpus half counts wherever they sit.
+		fail "attention-budget: over the ${budget}-word PER-FILE ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests. Extraction settles this half only: the corpus ratchet counts the same words wherever they sit"
+		budget_clean=0
+	fi
+	if [ "$budget_total" -gt "$corpus_ratchet" ]; then
+		fail "attention-budget: the corpus is $budget_total words (wc -w across $budget_counted tracked skills/ file(s)), over the ${corpus_ratchet}-word ratchet — DELETE prose; extraction moves words between files and leaves this total untouched. The ratchet only ever moves down: lower it to the tree's new total once a cut has landed, never raise it to fit"
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then
-		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word ceiling (wc -w; largest $budget_largest_file at $budget_largest)"
+		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word per-file ceiling (wc -w; largest $budget_largest_file at $budget_largest); corpus $budget_total against the ${corpus_ratchet}-word ratchet"
 	fi
 fi
 
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository, shipped prose within the attention budget\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository, shipped prose within the per-file ceiling and the corpus ratchet\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

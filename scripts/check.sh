@@ -224,10 +224,13 @@
 #      discover by going red.
 #      What it does NOT do: judge whether an extraction was the RIGHT one. Which
 #      bodies may move behind a pointer is the discriminator AGENTS.md states,
-#      and it turns on whether a reader would NOTICE the absence — which needs
-#      the prose read. A green here means the file is small enough, never that
-#      splitting it was done well; that judgement stays with the diff, which in
-#      a prose repo is the only review there is.
+#      and it turns on TWO tests, both of which need the prose read: whether a
+#      reader would NOTICE the absence, and whether that reader reaches the body
+#      on the HAPPY PATH. An error-path body fails the second however cleanly it
+#      passes the first, so extracting one is not a way back under this ceiling.
+#      A green here means the file is small enough, never that splitting it was
+#      done well; that judgement stays with the diff, which in a prose repo is
+#      the only review there is.
 #
 # Every check that scans a SET of files asserts the set is non-empty before it
 # scans: a check whose pattern stops matching prints the same green as a check
@@ -1000,7 +1003,7 @@ else
 		# Named with its count, so the author can see how far over it is rather
 		# than only that it is: the remedy is to extract or delete to make room,
 		# and how much room is the first thing they need.
-		fail "attention-budget: over the ${budget}-word ceiling (wc -w):$budget_over — extract a whole role or subsystem body behind a pointer, or delete, to make room; AGENTS.md carries the discriminator for which is which"
+		fail "attention-budget: over the ${budget}-word ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests"
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then

@@ -9,7 +9,7 @@ Reference for Step 3 of `/pipeline:setup`. Author it *into the project* — the 
 | Script | Role |
 |---|---|
 | `enqueue-gate.mjs` | Drops a durable ticket for one gate — an implementer's, after it opens its draft PR, or a dispatcher's on a tree with no PR |
-| `gate-runner.mjs` | A one-shot drain pass: claim → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
+| `gate-runner.mjs` | A one-shot drain pass: claim → check the tree → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
 | `gate-slot.mjs` | A machine-wide mutex so only one heavy gate runs at a time |
 
 Wire them up as `gate:enqueue`, `gate:drain`, and (wrapping the gate) `gate`.
@@ -77,13 +77,19 @@ Put the prune on the reconcile walk, which already reads every ticket in `done/`
 
 **A runner blocked on a held slot WAITS.** The queue is machine-wide, so the holder is routinely another session's runner; refusing would also decide off a PID liveness check inside the window invariant 4 documents as wrong. A wrong refusal drops a drain, where a wrong wait costs a sleeping process.
 
+**10. Refuse to gate a worktree carrying uncommitted tracked changes.** After the claim and *before* acquiring the slot, run `git status --porcelain` in the ticket's `worktreePath`; where any tracked path is modified, staged or deleted, settle the ticket **refused** — the reason, the count, and the head SHA it found — and run no gate. Untracked files alone are not the signal, a build artefact not being an edit. A gate there judges a tree no commit holds, under a SHA that may still match the PR's, so its verdict is indistinguishable from one about the pushed diff. Refusing before the slot also keeps a moving tree from spending a serialized gate.
+
+**Refused is a third outcome, not a red**, because the two say different things to the dispatcher reading them: red is feedback about the diff and is answered by dispatching a fix agent, where refused says nothing was gated and the tree moved under the ticket, and is answered by committing or reverting that tree and re-enqueueing. A refusal carries no failing tail — no gate ran to produce one.
+
+**A refusal is a verdict, so invariant 7 binds it unchanged: it is not done until it is delivered.** Comment it on the PR like any other and leave the PR draft. Settling it silently leaves the PR bare instead, and **a PR carrying no gate comment has not been gated** — which sends a dispatcher to re-enqueue a tree that is still dirty, one refusal per pass. On a PR-less ticket it is delivered the moment it settles, as any PR-less ticket is (invariant 8). The head SHA it recorded is also what *Reporting*'s moved-off-SHA rule reads for it, no SHA having been gated.
+
 ## The worktree is frozen from enqueue until the ticket settles
 
 The runner gates *inside the ticket's worktree*, so mutating that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, and its comment is what a dispatcher reads before merging. Don't edit, and don't remove, a worktree whose ticket is in `queue/` or `processing/`; document this where the project's contributors will see it.
 
 ## Reporting
 
-**The verdict is a PR comment, in both directions, and the PR stays draft either way.** Green posts a passing comment; red posts the failing tail. Where the ticket has a PR that comment is the only channel, and the queue never touches the draft flag — which is what makes **a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
+**The verdict is a PR comment whichever way it went, and the PR stays draft.** Green posts a passing comment, red the failing tail, and a refusal the reason nothing was gated, plus the head SHA. Where the ticket has a PR that comment is the only channel, and the queue never touches the draft flag — which is what makes **a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
 
 **Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** The report is the one step depending on a machine you do not control. It also keeps apart states that must stay distinguishable: "in `done/`, no comment" is produced by a failed post, by a gate skipped because its worktree had vanished, by an exception mid-pass, and — benignly — by a PR-less ticket. Only the enqueue-time undeliverable flag tells the last from the first; on GitHub they look identical.
 

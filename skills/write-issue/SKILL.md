@@ -19,31 +19,22 @@ The pipeline is two commands: **`/pipeline:write-issue` → `/pipeline:orchestra
 
 You never write code, make worktrees, or dispatch. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config), not a hardcoded stack.
 
----
-
-## The one rule that defines a good issue: forward-facing, not archeological
-
-**The issue states the plan to execute — never how you figured it out.** An implementer needs *what we're going to do*; exploration narrative buries the spec.
-
-- **KEEP** — the goal, the approach, the surface the work lands on (real modules and files, grouped by area), a type/interface sketch where it clarifies, the phases/waves, the verify bar.
-- **STRIP** — "an earlier scan found / was wrong", "verified against the code", "the first pass missed X", "the research said", how-we-discovered-it, and any correction-of-a-prior-investigation meta.
-- Where a correction matters, **bake the correct fact silently into the plan** rather than narrating it.
-- **And one thing that is not archeology but goes anyway: the line numbers.** A `file:line` written for phase 4 is wrong by the time phase 4 runs, and `/pipeline:decompose` re-derives them at the horizon anyway; nothing re-checks this body, so a stale coordinate reads like a live one.
+**Four steps, in order — and the file does not end at the fourth**: *Two rules that fire at every step* follows them.
 
 ---
 
 ## A follow-up from a live run is a first-class input
 
-Many issues start as **something a run surfaced and did not land** — residual cleanup, a stale doc, a half-done rename; `skills/orchestrate/SKILL.md` §4 sends here what it could neither settle from the tree nor fold into the live arc. Write them like any other issue, keeping the recommendation they arrive with rather than re-deriving a neutral question.
+**A second way in, not a fifth step.** Many issues start as **something a run surfaced and did not land** — residual cleanup, a stale doc, a half-done rename; `skills/orchestrate/SKILL.md` §4 sends here what it could neither settle from the tree nor fold into the live arc. Write them like any other issue, through the same four steps, keeping the recommendation they arrive with rather than re-deriving a neutral question.
 
-- **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete. `Follows #<N>` for the issue whose work surfaced it; `Part of #<umbrella>` where that work sits under an umbrella, plus that umbrella's `- [ ] #<sub>` checklist (Step 4). **A finding from behind a fence takes one further line**: an item found inside a file its brief marked `Do NOT touch` carries `Filed from behind a fence: <the fenced path>` — `skills/execute/references/implementer.md`'s *File your follow-ups BEFORE you hand back* holds the form, `skills/orchestrate/SKILL.md` §4 keys on the line.
+- **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete; Step 4's *Follow-up linking* holds the forms. **A finding from behind a fence takes one further line**: an item found inside a file its brief marked `Do NOT touch` carries `Filed from behind a fence: <the fenced path>` — `skills/execute/references/implementer.md`'s *File your follow-ups BEFORE you hand back* holds the form, `skills/orchestrate/SKILL.md` §4 keys on the line.
 - **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path": **surface**, not archeology.
 
 ---
 
-## Before you file, search what is already filed — by failure shape, open and closed
+## Step 1 — Before you file, search what is already filed — by failure shape, open and closed
 
-**Check what the tracker already holds before an item filed out of a run — a follow-up, a residual, a close-out finding — becomes a new number**, and run it **before** grounding: the outcome decides whether there is a body to write.
+**Run this before you ground anything: the outcome decides whether there is a body to write at all.** Every item out of a run — a follow-up, a residual, a close-out finding — passes it before it becomes a new number.
 
 **Key it on the failure SHAPE — what breaks, under what conditions, with what silent symptom — never on the item's own words, and cover CLOSED issues as well as open.**
 
@@ -58,19 +49,19 @@ Many issues start as **something a run surfaced and did not land** — residual 
   - **Present and still failing → a REGRESSION**, naming that issue and what shipped to close it. **File a new issue and comment on the closed one pointing at it; never reopen it** — that erases which release the fix landed in.
   - **Absent → file nothing**: what was observed is **version skew**, the copy read being older than the release that fixed it. Say so as skew, not as a defect.
   - **You cannot establish which → say that, rather than picking**: the only one of the three a next reader can act on.
-- **Nothing describes it → file, exactly as before.**
+- **Nothing describes it → there is a body to write, and Steps 2–4 are how.**
 
 **⛔ Not licence to skip filing because something RELATED exists — the test is whether two items share a FAILURE, not a subject area.** A finding buried in a neighbour closes when the host does.
 
-A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork, and why it is not the one already there — via *Step 4*'s comment endpoint.
+A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork, and why it is not the one already there — via Step 4's comment endpoint.
 
 ---
 
-## Step 1 — Ground it in the real code
+## Step 2 — Ground it in the real code
 
 **Verify every load-bearing claim against the actual code before you write it.** An ungrounded issue comes out confidently wrong — a consumer that isn't one, a sole call site that is one of six — and nothing downstream can tell it from a correct one.
 
-**Ground with `file:line`; write down the module and the file** — the line number is how you *check* a claim, not what the issue *carries* (Step 2's *Surface*).
+**Ground with `file:line`; write down the module and the file** — the line number is how you *check* a claim, not what the issue *carries* (Step 3's *Surface*).
 
 - **Spawn fresh read-only `Explore` agents** — never forks — in parallel, one per subsystem, for the real files, the patterns to copy and the consumers a change ripples into — **invoking this skill authorizes them** (`skills/execute/SKILL.md` → *First: which role are you?*).
 - **Grep the WHOLE repo and cite the definition line — or the claim doesn't count.** A folder-scoped grep produces confident-but-wrong claims. Check "X is/isn't a consumer" or "only one call site" tree-wide; two sources disagreeing means you read the file.
@@ -83,31 +74,25 @@ Where the idea is under-specified, resolve what you can from the code and conven
 
 ---
 
-## Step 2 — Structure the body
+## Step 3 — Structure the body
 
 Write the body in this order. Small issues collapse to goal + surface + verify.
 
 - **Goal** — one or two sentences: what changes and why it's worth doing. Forward-facing.
 - **Approach** — the chosen design, stated as decisions rather than options you're weighing.
-- **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each change ripples into. The grounded core, and a **map, not a checklist** — no line numbers, nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is `/pipeline:decompose`'s, at the horizon.
+- **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each change ripples into. The grounded core, and a **map, not a checklist** — nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is `/pipeline:decompose`'s, at the horizon.
 - **Type / interface sketch** — a short code block for a new type, API shape or contract, with real names.
 - **Phases / waves** — name the phases where the work has a dependency order, and at **each boundary state whether the branch is independently shippable there**, plus any breaking foundational change (a required field, a NOT-NULL swap, a renamed export) later phases must follow. That is a property of the plan, not the code, so nothing downstream reads it back out of the tree and an unasked question reads as a yes — which is how a foundational phase sits half-migrated on a shared branch, green at every step. **Never write the branch verdict itself** ("use an epic branch", "no epic branch needed") — that is `/pipeline:decompose`'s, on your facts.
 - **Seams** — name any **producer → consumer** shape this plan introduces or changes whose halves land in different phases: a return type, a schema field, a config key, a behavior documentation describes. Write each as *producer → consumer → the shape between them*. **Where that shape is a status, flag or state value rather than a structure, say what the consuming side *does* with it** — one that only filters is safe, one whose read feeds an action is the seam. The **cross-tree** ones matter most — code ↔ docs, code ↔ prompt, code ↔ config — where nothing mechanical links the halves. `skills/orchestrate/SKILL.md` §7 seeds the arc's seam map here and re-derives nothing.
 - **Verify** — what "done" looks like: the behavior, the tests, the gate, the greps that must come back empty — a checkable bar, not a vibe. **A negative names its baseline** (*unchanged*, *no new X* — the fork point unless you name another) and **a grep names the domain it sweeps**; a bar naming neither is satisfied by whichever end whoever runs it picks. **A filed bar outlives the arc, so read it against the rest of the body first**: against the **Constraints**; against what the **Approach** asks for; any requirement against the vocabulary the target can express it with; any *derive X from Y* against whether Y is reachable (`skills/decompose/SKILL.md` Step 3's `Verify` field and closing check argue both).
 - **Constraints** — the project conventions that bind it, from `AGENTS.md`: compat policy, comment style, the rest.
 
-Keep every section in the *forward-facing* register.
-
----
-
-## Step 3 — Single issue vs umbrella + sub-issues
+**Then settle the shape — one issue, or umbrella + subs.**
 
 - **Single issue** (the default) — small-to-medium work, one release effort. One body, filed; `/pipeline:decompose` comments its breakdown on it, or fans out then.
-- **Umbrella + sub-issues** — large AND multi-area AND each piece a PR someone would want to track/close alone. The umbrella is the overview — goal, phase/wave shape, a tracked `- [ ] #<sub>` checklist; each sub is one slice, a self-contained forward-facing spec titled with its wave (`[W0]`, `[W1]`).
+- **Umbrella + sub-issues** — large AND multi-area AND each piece a PR someone would want to track/close alone. The umbrella is the overview — goal, phase/wave shape, a tracked `- [ ] #<sub>` checklist; each sub is one slice, a self-contained forward-facing spec titled with its wave (`[W0]`, `[W1]`). Author them at Step 4, or let `/pipeline:orchestrate`'s first cycle convert a single issue.
 - Don't reflexively shard — an umbrella for 2 small slices is overhead with no payoff; that test is `/pipeline:decompose`'s own.
 - **An umbrella is not an epic branch, and filing one settles nothing about the other.** An umbrella is a *tracking shape*; an epic branch is a *branch lifecycle*, decided by `/pipeline:decompose` on its own two rules, never from how the issue was filed. "Epic" names both, so reading them as one takes the branch question for answered and leaves the facts unwritten.
-
-Author the umbrella + subs directly, or let `/pipeline:orchestrate`'s first cycle convert one.
 
 ---
 
@@ -124,6 +109,20 @@ Author the umbrella + subs directly, or let `/pipeline:orchestrate`'s first cycl
 - **Labels**: apply an existing `epic`/`umbrella` label where the repo has one; don't invent exotic ones. It names the **tracking shape**, never a branch decision, though it reads as the verdict it shares a word with.
 
 Then tell the user what you filed (issue #, or umbrella # + sub #s).
+
+---
+
+## Two rules that fire at every step
+
+Neither fires at one action; both bind every line of prose this skill writes, a comment on an existing issue included.
+
+**Forward-facing, not archeological: the issue states the plan to execute, never how you figured it out.** An implementer needs *what we're going to do*; exploration narrative buries the spec.
+
+- **KEEP** — the goal, the approach, the surface the work lands on (real modules and files, grouped by area), a type/interface sketch where it clarifies, the phases/waves, the verify bar.
+- **STRIP** — "an earlier scan found / was wrong", "verified against the code", "the first pass missed X", "the research said", how-we-discovered-it, and any correction-of-a-prior-investigation meta.
+- Where a correction matters, **bake the correct fact silently into the plan** rather than narrating it.
+
+**No line numbers.** Not archeology, and it goes anyway: a `file:line` written for phase 4 is wrong by the time phase 4 runs, and `/pipeline:decompose` re-derives coordinates at the horizon regardless. Nothing re-checks this body, so a stale coordinate reads like a live one.
 
 ---
 

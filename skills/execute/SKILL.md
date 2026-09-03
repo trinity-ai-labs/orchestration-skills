@@ -24,7 +24,7 @@ We work off an **integration branch** (Trinity: `release/x.x.x` — find the act
 
 **One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats. That holds for an arc that turns out to be one increment too: working out where the horizon falls is the loop's first cycle, not a precondition for entering it.
 
-**The harness's "do not call the Agent tool unless the user requested it" guard is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale.
+**A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale. `skills/execute/references/platforms.md` names your host's spawn tool.
 
 **This file is a SPINE, not the whole of your instructions**, and **a reader who reaches the end of it has not finished reading this skill.**
 

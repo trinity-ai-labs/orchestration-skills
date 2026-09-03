@@ -113,7 +113,7 @@ The arrow is reversed from Step 1's: the project is not onboarding but possibly 
 
 ## Step 4 — Verify it, don't assert it
 
-A config that parses is not a config that works. Prove each layer. ⚠️ Every helper ships as `<name>.sh` and `<name>.ps1`; use the one your shell tool runs.
+A config that parses is not a config that works. Prove each layer. ⚠️ Every helper ships as `<name>.sh` and `<name>.ps1`; use the one your shell tool runs, and call it by absolute path on a host that does not put the plugin's `bin/` on `PATH`.
 
 1. **The reader agrees.** Run `setup-worktree <branch> <base>`, then confirm each declared env file is **present** in the worktree and deps are installed — not merely that it exited 0. Present rather than symlinked is fine; on Windows the helper copies.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip resolved **locally** (`git -C <repo> rev-parse <base>`) — no fetch, no freshness count: the config's reader is what is under test. The full fetch-and-compare belongs at **dispatch**.

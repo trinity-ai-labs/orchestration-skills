@@ -2,8 +2,7 @@
 name: write-issue
 description: >-
   Turn an idea or a rough plan into a grounded, forward-facing GitHub issue — or an umbrella +
-  sub-issues — feeding /pipeline:orchestrate. The FIRST of the pipeline's two legs:
-  /pipeline:write-issue → /pipeline:orchestrate. Use whenever you're asked to WRITE UP / FILE / OPEN an
+  sub-issues — feeding /pipeline:orchestrate. Fed by /pipeline:co-think and feeding /pipeline:orchestrate. Use whenever you're asked to WRITE UP / FILE / OPEN an
   issue, capture a plan as an issue, or turn a design discussion into trackable work. You GROUND the
   plan in the real codebase — every load-bearing claim verified against the code — then write it as a
   PLAN TO EXECUTE: goal, approach, the surface it lands on as real modules and files, phases, seams,
@@ -15,7 +14,7 @@ argument-hint: "[the idea or plan to write up — omit to write up the plan alre
 
 # write-issue — author the issue that feeds the pipeline
 
-The pipeline is two commands: **`/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns the first leg: an idea turned into a **grounded, forward-facing issue** the loop executes without re-deriving it.
+The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns the first leg: an idea turned into a **grounded, forward-facing issue** the loop executes without re-deriving it.
 
 You never write code, make worktrees, or dispatch. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config), not a hardcoded stack.
 

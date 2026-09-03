@@ -1,8 +1,7 @@
 ---
 name: orchestrate
 description: >-
-  Run an arc of work to completion as a just-in-time loop — the pipeline's second and last user-facing leg,
-  after /pipeline:write-issue, and the one command you type to take a body of work end to end. Use whenever
+  Run an arc of work to completion as a just-in-time loop — the pipeline's last leg, after /pipeline:co-think and /pipeline:write-issue, and the one command you type to take a body of work end to end. Use whenever
   you're asked to ORCHESTRATE or coordinate an arc, an epic, an issue or a batch of tasks, to EXECUTE or RUN
   a plan, to WORK or COMPLETE a GitHub issue, or to SHIP one through to merge. You ground only the HORIZON —
   the next dispatchable increment — via /pipeline:decompose, dispatch it via /pipeline:execute, then
@@ -14,7 +13,7 @@ argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan a
 
 # Orchestrate — the just-in-time arc loop
 
-The pipeline is two commands: **`/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns everything after the issue, running the arc to completion one increment at a time.
+The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns everything after the issue, running the arc to completion one increment at a time.
 
 ```
 issue / plan  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · rewrite the rest  ──▶  repeat until empty

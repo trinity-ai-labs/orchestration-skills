@@ -2,6 +2,12 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.60.0
+
+- **The last machine-local measurement leaves shipped prose ([#285](https://github.com/trinity-ai-labs/orchestration-skills/issues/285)).** `skills/review/SKILL.md` carried *"this file differed from that copy by 16 lines"* — a count taken against whichever plugin cache happened to be enabled on one machine, which no reader can reproduce and which #285 had already measured as drifted (26 by line delta, 34 by changed lines). It states no unit either. `AGENTS.md`'s count convention says such a measurement does not belong in shipped prose at all, so the number goes and the claim it was supporting stays: an older installed copy said a flagged item becomes a filed issue and nothing else, where the tree also allows a comment on the issue already carrying that failure.
+
+*#285's other two seats — `skills/write-issue/SKILL.md` Step 1 and `skills/setup/SKILL.md` Step 1 — carried the same shape and went with the 3.58.0 cut, which is how a board reconcile against a 56% deletion found this one still standing. 53,658 → 53,590.*
+
 ## 3.59.0
 
 Two corrections to what the skills tell an agent about spawning other agents.

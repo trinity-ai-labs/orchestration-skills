@@ -250,6 +250,26 @@ PY
 # bash side does not.
 die() { printf 'merge-pr: error: %b\n' "$*" >&2; exit 1; }
 
+# Run a git call this helper assumes will succeed, putting its stdout in GIT_OUT.
+#
+# Left to `set -e` these stop the run MUTE and with GIT's status — 128 for most
+# git failures — where every other refusal in this file exits 1 through die()
+# with a message naming the helper. Two ports returning different codes for the
+# same input is the drift the frozen contract exists to prevent, and nothing
+# catches it: the parity check reads surface shape, not semantics. The message
+# and the code here are the PowerShell sibling's Get-GitOutput, word for word.
+#
+# The output goes to a variable rather than to stdout because `exit` inside a
+# command substitution only exits the SUBSHELL: `X=$(git_out …)` would report the
+# failure and carry on running in the parent, and an interpolation inside a
+# successful `echo` would not stop the run at all.
+GIT_OUT=""
+git_out() { # git_out <git-arg>… — sets GIT_OUT to git's stdout, or dies 1
+  local status=0
+  GIT_OUT=$(git "$@") || status=$?
+  [ "$status" -eq 0 ] || die "git $* failed (exit $status)"
+}
+
 if [ $# -lt 1 ]; then
   echo "usage: merge-pr.sh <pr-number>" >&2
   echo "  e.g. merge-pr.sh 2094" >&2
@@ -299,8 +319,10 @@ echo "merge-pr: PR #$PR  state=$STATE  base=$INTEGRATION  head=$HEAD_BRANCH  mai
 # DIFFERENT branch having moved instead, which is the half that corrupts.
 # `--abbrev-ref HEAD` prints the literal "HEAD" on a detached checkout, which
 # compares as its own value and needs no special case.
-START_BRANCH=$(git -C "$MAIN" rev-parse --abbrev-ref HEAD)
-START_HEAD=$(git -C "$MAIN" rev-parse HEAD)
+git_out -C "$MAIN" rev-parse --abbrev-ref HEAD
+START_BRANCH="$GIT_OUT"
+git_out -C "$MAIN" rev-parse HEAD
+START_HEAD="$GIT_OUT"
 
 # Stop the run if the main checkout is no longer on the branch it started on.
 # Called before every advance in step 4 as well as over the finished run in step 6,
@@ -310,7 +332,8 @@ START_HEAD=$(git -C "$MAIN" rev-parse HEAD)
 # would fast-forward another session's branch toward this PR's base, which is the
 # corruption this helper exists to prevent rather than to relocate.
 assert_checkout_unmoved() {
-  NOW_BRANCH=$(git -C "$MAIN" rev-parse --abbrev-ref HEAD)
+  git_out -C "$MAIN" rev-parse --abbrev-ref HEAD
+  NOW_BRANCH="$GIT_OUT"
   [ "$NOW_BRANCH" = "$START_BRANCH" ] || die "the main checkout $MAIN was on '$START_BRANCH' when this run started and is on '$NOW_BRANCH' now — this helper never switches it, so another process moved it mid-run. PR #$PR IS merged, but the local sync of '$INTEGRATION' may be incomplete: check where '$START_BRANCH' and '$NOW_BRANCH' point before cutting any worktree off either."
 }
 
@@ -816,8 +839,14 @@ assert_checkout_unmoved
 # own linked worktree — and never touched the MAIN checkout's working tree at all,
 # so any movement here is another process's.
 if [ "$ON_BASE" -eq 0 ]; then
-  NOW_HEAD=$(git -C "$MAIN" rev-parse HEAD)
+  git_out -C "$MAIN" rev-parse HEAD
+  NOW_HEAD="$GIT_OUT"
   [ "$NOW_HEAD" = "$START_HEAD" ] || die "the main checkout $MAIN is still on '$START_BRANCH' but its HEAD moved from $START_HEAD to $NOW_HEAD — this run only advanced '$INTEGRATION', which is a different branch, so another process moved '$START_BRANCH' mid-run. Check where it points before cutting any worktree off it."
 fi
 
-echo "merge-pr: done — PR #$PR merged, worktree removed, local '$INTEGRATION' synced to $(git -C "$MAIN" rev-parse --short "$INTEGRATION"), main checkout still on '$START_BRANCH'."
+# Resolved on its own line rather than inside the echo, because a command
+# substitution that fails inside a successful `echo` takes nothing down with it:
+# errexit reads the echo's own status, which is 0, so the run would announce a
+# close-out with an empty sha where the synced tip should be and exit 0.
+git_out -C "$MAIN" rev-parse --short "$INTEGRATION"
+echo "merge-pr: done — PR #$PR merged, worktree removed, local '$INTEGRATION' synced to $GIT_OUT, main checkout still on '$START_BRANCH'."

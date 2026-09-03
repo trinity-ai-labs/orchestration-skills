@@ -27,7 +27,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 - **Invoked by `/pipeline:orchestrate` for one increment** — the loop names the horizon. Ground and slice **that increment only**, emit the remainder at shape depth, hand it back.
 - **In-chat plan** — decompose it and emit the breakdown **in chat**, ending with the handoff line.
-- **GitHub issue** (`decompose #1042`) — read it with `gh issue view <N>`, ground it, then write the breakdown back to GitHub. Ask once if it's ambiguous between this and the in-chat path.
+- **GitHub issue** (`decompose #<issue>`) — read it with `gh issue view <N>`, ground it, then write the breakdown back to GitHub. Ask once if it's ambiguous between this and the in-chat path.
 
 **All three paths ground the horizon and nothing else — only *who names it* changes.** On the direct paths you work it out from the plan's dependency order, as the loop's first cycle does. **The horizon is the next dispatchable set: every remaining item whose dependencies have already landed.** It alone emits at **slice depth** — owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar, grounded against the tree right now; everything past it emits at **shape depth** — goal, area, what it waits on and why, and none of the grounded fields.
 

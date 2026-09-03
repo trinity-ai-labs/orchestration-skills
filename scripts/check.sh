@@ -697,7 +697,7 @@ fi
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, shipped prose carries no issue numbers, shipped prose within budget, free of issue numbers, war stories and cross-skill citations\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories and cross-skill citations\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

@@ -1,6 +1,6 @@
 # orchestration-skills
 
-The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a grounded GitHub issue, then run it to completion as a just-in-time loop — ground the next dispatchable increment, ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents, then re-ground what remains against the tree that increment actually produced.
+The **dev pipeline**, packaged as one plugin for **Claude Code and Codex**: turn an idea into a grounded GitHub issue, then run it to completion as a just-in-time loop — ground the next dispatchable increment, ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents, then re-ground what remains against the tree that increment actually produced.
 
 ```
 rough idea ──/pipeline:co-think──▶ shaped work ──/pipeline:write-issue──▶ grounded issue ──/pipeline:orchestrate──▶ done
@@ -23,7 +23,7 @@ rough idea ──/pipeline:co-think──▶ shaped work ──/pipeline:write-i
 
 Both are directly invocable when you want one breakdown or one increment shipped — that is a side door, not the front one.
 
-The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — one CLI contract implemented twice. `scripts/check.sh` compares the two on every run, but everything it compares is **surface shape** — a missing sibling, a usage line or a contract environment variable the two sides disagree on, a byte a `.ps1` may not contain. **Semantics are out of its reach**, so two ports can pass all of it and still behave differently on the same input, which is not hypothetical: until 3.40.0 a failed install exited with the install tool's own status in bash and `1` in PowerShell, and nothing in the check could see it. What actually holds the pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; the check catches the drift that shows on the surface.
+The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. **Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — one CLI contract implemented twice. `scripts/check.sh` compares the two on every run, but everything it compares is **surface shape** — a missing sibling, a usage line or a contract environment variable the two sides disagree on, a byte a `.ps1` may not contain. **Semantics are out of its reach**, so two ports can pass all of it and still behave differently on the same input, which is not hypothetical: until 3.40.0 a failed install exited with the install tool's own status in bash and `1` in PowerShell, and nothing in the check could see it. What actually holds the pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; the check catches the drift that shows on the surface.
 
 | Command | What it does |
 |---|---|
@@ -58,7 +58,7 @@ The plugin also ships the machinery `execute` drives. Claude Code puts a plugin'
 
 ## Install
 
-**Install from the marketplace** (the supported path — versioned, auto-updating):
+**On Claude Code, install from the marketplace** (the supported path — versioned, auto-updating):
 
 ```
 /plugin marketplace add trinity-ai-labs/claude-plugins
@@ -68,6 +68,15 @@ The plugin also ships the machinery `execute` drives. Claude Code puts a plugin'
 Then turn on auto-update: `/plugin` → **Marketplaces** → select `trinity-ai-labs` → **Enable auto-update**. It is **off by default for third-party marketplaces**, so without this you never receive anything. Equivalently, set `"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry in `~/.claude/settings.json`.
 
 ⚠️ **Auto-update delivers a new `version`, not a new commit.** Because `plugin.json` declares `version`, an install is pinned to that string — pushing to `main` without bumping it ships nothing to anyone. CI fails the build if shipped content changes without a bump, so this can't happen silently. See [CHANGELOG.md](CHANGELOG.md).
+
+**On Codex**, add this repository as a marketplace and install from it. The marketplace manifest ships at `.agents/plugins/marketplace.json`, so the repository is the marketplace:
+
+```bash
+codex plugin marketplace add trinity-ai-labs/orchestration-skills
+codex plugin add pipeline@trinity-ai-labs
+```
+
+`codex plugin marketplace add` also takes a local path, which is how you install a checkout you are editing. Codex reads `.codex-plugin/plugin.json` where Claude Code reads `.claude-plugin/plugin.json`; the `skills/` tree is shared, and the repo's gate fails if the two manifests disagree on `version`. Refresh with `codex plugin marketplace upgrade`.
 
 **For developing the plugin itself**, clone it into your skills directory instead — edits then apply live, with no release step:
 
@@ -83,11 +92,13 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its seven skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its seven skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
 
 ### Prerequisites
 
-**Platform support.** Every helper ships in both languages, because Claude Code does not hand every platform the same shell:
+**Platform support.** Two questions: which language of helper runs, and whether it is on your `PATH`.
+
+**Which language.** Every helper ships in both, because Claude Code does not hand every platform the same shell:
 
 | Where Claude Code runs | Shell tool you get | Helpers that run there |
 |---|---|---|
@@ -98,9 +109,11 @@ Verify with `/plugin list` — you should see `pipeline`, its seven skills, and 
 
 The PowerShell tool is rolling out progressively *alongside* the Bash tool rather than replacing it, so a Windows session can land in either one. That is why both copies ship and why neither may be added alone: a helper that exists in only one language is simply missing from `PATH` for everyone on the other shell, with no error until someone tries to run it.
 
+**Whether it is on `PATH`.** Claude Code puts an enabled plugin's `bin/` on the shell tool's `PATH`, so the helpers are bare commands. **Codex does not** — its manifest has no `bin` key — though it does install `bin/` with the rest of the plugin, under `$CODEX_HOME/plugins/cache/<marketplace>/<plugin>/<version>/`. On Codex the helpers are therefore called by absolute path from that root. The skills state this where they invoke a helper, so you should not have to think about it; it matters when you are reading a run that died at its first command.
+
 - **git** (worktrees are built in)
 - **[GitHub CLI](https://cli.github.com/)** (`gh`) authenticated: `gh auth login` — used to file issues and open/merge PRs
-- **[Claude Code](https://claude.com/claude-code)** — where the skills run
+- **A host that loads the plugin** — [Claude Code](https://claude.com/claude-code) or [Codex](https://developers.openai.com/codex); the same `skills/` tree runs on both
 - **A JSON interpreter for the `.sh` helpers only** — bash has no JSON parser, so they shell out to the first of `node`, `python3`, `python`, or `py -3` that works. They *run* each candidate rather than trusting `command -v`, because Windows ships a `python3.exe` alias that is a stub launching the Microsoft Store and returning nothing — a probe that only checks for the name on `PATH` picks it and then fails with an empty config. The `.ps1` helpers need none of this: `ConvertFrom-Json` is built into PowerShell, so that path has no interpreter to be missing in the first place.
 - Whatever your project needs to install and test
 
@@ -304,7 +317,7 @@ setup-worktree.sh fix/toast-position release/0.4.0     # fork a new branch off t
 setup-worktree.sh --existing fix/toast-position        # attach a tree to a branch that already exists
 ```
 
-`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike, and not on Codex at all. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc
@@ -346,10 +359,10 @@ A repo with no config still cuts a worktree — but a **bare** one, with no env 
 
 ---
 
-## The hard rules (Claude follows these; good to know)
+## The hard rules (the agent follows these; good to know)
 
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files, boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the paths — and then nothing errors.
-- **Never** use the Agent tool's `isolation: "worktree"` param or any auto worktree provisioner — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
+- **Never** use a harness parameter or any auto worktree provisioner that makes the worktree for you — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
 - **Never squash-merge, never rebase.** Always real merge commits — with one exception a *project* declares in its config and nobody decides at merge time: an epic branch collapsing back into a non-default integration branch, where `"epicMerge": "squash"` is set (**Per-project config**, above). Never rebase has no exception at all.
 - **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
 - **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** — they enqueue; a runner gates and comments the verdict; the dispatcher reviews the diff, marks it ready, and merges. On a project that declares no queue (**Per-project config**, above) the implementer runs the gate itself and comments the result — that is the default there rather than a grant — and the **implementer's** half of the line is unchanged: still a draft, still never its own merge. The dispatcher's half does not go unchanged with it — there the verdict comment arrives *before* the hand-back rather than after it, so it is not the signal that the implementer is done, and **Where the review approval lives**, above, is where that is argued.
@@ -361,7 +374,7 @@ A repo with no config still cuts a worktree — but a **bare** one, with no env 
 
 ## Adding a skill
 
-Drop `skills/<slug>/SKILL.md` in and it loads — no manifest edit needed. The repo's gate enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name.
+Drop `skills/<slug>/SKILL.md` in and it loads on both hosts — no manifest edit needed either way: Claude Code discovers `skills/` on its own, and the Codex manifest points at the whole tree. The repo's gate enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name. (`argument-hint` is not a Codex key, but it lives in frontmatter rather than a manifest, so it is simply ignored there.)
 
 Run it before you push — it is the same command CI runs, so there is no second copy to drift:
 
@@ -393,13 +406,17 @@ claude plugin validate . --strict
 
 ```
 .
-├── .agents/worktree.json        # this repo's OWN pipeline config — contributor-only
+├── .agents/
+│   ├── worktree.json            # this repo's OWN pipeline config — contributor-only
+│   └── plugins/marketplace.json # the Codex marketplace entry — this repo IS the marketplace
 ├── .claude-plugin/
-│   └── plugin.json              # the plugin manifest — `name` sets the namespace
+│   └── plugin.json              # the Claude Code manifest — `name` sets the namespace
+├── .codex-plugin/
+│   └── plugin.json              # the Codex manifest — same version, or the gate reds
 ├── .github/workflows/ci.yml     # runs scripts/check.sh on Linux AND Windows, plus the version-bump guard
 ├── .gitattributes               # pins bin/* to LF — a CRLF checkout kills every helper at its shebang
 ├── AGENTS.md                    # repo conventions, the frozen helper contract, and the rules a change here is held to
-├── bin/                         # SHIPPED — on PATH while the plugin is enabled
+├── bin/                         # SHIPPED — on PATH under Claude Code; by absolute path under Codex
 │   ├── setup-worktree.sh        # .sh for the Bash tool, .ps1 for the PowerShell tool —
 │   ├── setup-worktree.ps1       #   one contract, two languages, kept in step by scripts/check.sh
 │   ├── setup-workspace.sh

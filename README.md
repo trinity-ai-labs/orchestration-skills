@@ -314,8 +314,12 @@ Both args of the first form are required — no default base, since integration 
 
 > **Always verify HEAD before dispatching an agent into a worktree.** The helper prints it — `READY: <path>` and then `HEAD: <sha>` — and, when it is forking a new branch, withholds both unless the tree it is about to hand back **contains** the base. That refusal is a weaker comparison than this one, and does not retire it:
 > ```bash
-> git rev-parse origin/release/0.4.0     # the HEAD: line must match this
+> git fetch origin                                            # origin/… is a local cache — without this you compare a stale pair
+> git rev-parse origin/release/0.4.0                          # the HEAD: line must match this
+> git rev-list --count release/0.4.0..origin/release/0.4.0    # …and this must be 0
 > ```
+> **The fetch is part of the check, not preparation for it.** A remote-tracking ref is what the remote looked like at *that clone's* last fetch, and reading one contacts nothing — so in a checkout that has not fetched, the local base and `origin/<base>` hold the same commit for the same reason, the comparison is true, and it passes in exactly the case it exists to fail. Run it in the repository you are verifying: a fetch in some other repo you touched earlier in the session moves nothing here, and that is the shape this arrives in. The count is the half equality cannot give you — it answers *how far behind is the base I just forked from*, where two refs that go stale together answer nothing. Observed: a worktree that passed the `rev-parse` comparison on its own, with no fetch ahead of it, was 2,392 commits behind its real base tip — that checkout's last fetch was seventeen days old, so the local base and the remote-tracking ref were byte-identical and the comparison was true and meaningless.
+>
 > The helper asks whether the base tip is an **ancestor** of the tree's HEAD, and resolves that tip in your **main checkout**. So a tree carrying its own commits on top of the base passes there — that is the legitimate re-attach it must not refuse — and so does a base branch that is itself behind `origin`, which is an ancestor of everything cut from it. Both hand back an ordinary `READY:`/`HEAD:` pair, and this comparison is what catches them. `--existing` takes no base, so that refusal does not run there at all and this is the only comparison covering a re-attached tree. A mismatch means the base is stale. Compare the sha, not the `READY: … off <base>` text: that says what was asked for, and this check exists for the case where what you got is something else.
 
 ---

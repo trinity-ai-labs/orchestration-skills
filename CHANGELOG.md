@@ -2,6 +2,20 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.58.0
+
+Wave 2 of the corpus cut ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)). Seven files rewritten to their instructions: **84,439 → 53,762 words.** Across both waves the shipped corpus is down from 121,280 — a 56% cut — and the ratchet in check 10 drops to the tree's own measured total.
+
+- **The seven.** `skills/execute/references/epic-branch.md` 9,618 → 2,992, `skills/setup/SKILL.md` 8,785 → 3,053, `skills/execute/SKILL.md` 8,091 → 2,483, `skills/write-issue/SKILL.md` 7,028 → 2,499, `skills/execute/references/draining-the-gate.md` 5,150 → 1,998, `skills/setup/references/gate-queue.md` 4,565 → 1,999, `skills/execute/references/per-project-config.md` 4,451 → 1,999. Every procedure, command, config key, numbered invariant, ordering constraint and prohibition survives; the apparatus does not.
+
+- **Two frontmatter descriptions were the largest single cuts in their files** — `execute` 192 → 88 words, `setup` 133 → 67. A description is read to decide whether to *load* a skill, and both summarized the workflow, which is the documented way to get an agent to follow the description instead of reading the file. Triggers only now.
+
+- **`skills/setup/SKILL.md`'s *What setup does NOT do* section is gone.** Four of its five rules were already stated where the reader acts on them — never guess a command, you declare and never provision, only scaffold a queue the project wants. The fifth, that `envFiles` carries paths and is never inlined or read, moved onto the `envFiles` row of the config table.
+
+- **Five citations that promised a removed incident are deleted rather than repaired.** *"carries the operative rule **and the observed failure**"* becomes *"carries the rule"*. `AGENTS.md`'s worked example of `skills/orchestrate/SKILL.md` §3's item numbering went with it: wave 1 left that section with no numbered items, so the example was fully falsified and the rule it illustrated now stands alone.
+
+*Two implementers were wedged for around two hours by an upstream API degradation and a third was terminated by a 500 mid-run. None of it cost any work: the third had committed, pushed and opened its PR before dying, and the other two had their cuts finished in their own surviving worktrees. The handoff order this playbook mandates — commit, push, draft PR, then gate — is what made that true.*
+
 ## 3.57.0
 
 The shipped corpus was 121,280 words — larger than the context window it has to be read in, which is a failure it had already suffered and could not measure. 3.56.0 gave `scripts/check.sh` check 10 a corpus-wide ratchet beside its per-file ceiling; this release is the first cut against it ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)).

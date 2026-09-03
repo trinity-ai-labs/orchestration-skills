@@ -1,6 +1,14 @@
 # Changelog
 
-Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
+Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
+
+## 4.2.0
+
+- **The plugin installs and runs on Codex as well as Claude Code.** A second manifest, `.codex-plugin/plugin.json`, sits beside the Claude Code one; the `skills/` tree is shared and unchanged in shape. `.agents/plugins/marketplace.json` makes the repository its own Codex marketplace, so `codex plugin marketplace add` then `codex plugin add pipeline@trinity-ai-labs` installs it.
+- **Skill prose names capabilities, not one host's tools.** The sub-agent tool, backgrounding a dispatch, the banned auto-provisioner, invoking a skill and the model tier are all stated vendor-neutrally; `skills/decompose` now emits a **standard tier** / **top tier** rather than a model id. The concrete mappings — tools, models, manifests, and the `reasoning_effort` that must ride with every Codex spawn — live in one new reference, `skills/execute/references/platforms.md`.
+- **Helper resolution is per-host, and that is the load-bearing difference.** Claude Code puts an enabled plugin's `bin/` on PATH, so helpers are bare commands; Codex installs the same `bin/` but puts nothing on PATH, so they are called by absolute path from the installed plugin root. Stated at every seat that invokes one.
+- **Check 2 validates both manifests and asserts they agree on `version`.** Each host pins an install to its own manifest's string, so one bumped alone ships a different release to each. It also enforces Codex's 13-key top-level allowlist, where a field copied across out of symmetry is a failed install rather than a harmless extra.
+- **Corpus 52,709 → 52,624 words**, ratchet lowered to match. Going vendor-neutral paid for the new reference: the `.sh`/`.ps1` extension rule folded into it, and `worktrees-and-branches.md`'s config-lookup paragraph went 605 → 328 words with every rule kept.
 
 ## 4.1.0
 

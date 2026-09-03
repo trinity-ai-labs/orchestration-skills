@@ -109,6 +109,8 @@ Only where Step 0 picked the queue tier. The queue is what lets implementers nev
 
 The arrow is reversed from Step 1's: the project is not onboarding but possibly *behind a reference that moved*. Read the scripts against the invariants in `skills/setup/references/gate-queue.md` and hand back a **per-invariant delta** — implemented, absent, or not determinable by reading, that third with the command that would settle it. **Report, never rewrite**, an overwrite being unable to tell a deliberate divergence from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
+**Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.** The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so every already-scaffolded queue reports one absence. Report it like any other, with what the runner would have to add, and leave the adopting to the project.
+
 ## Step 4 — Verify it, don't assert it
 
 A config that parses is not a config that works. Prove each layer. ⚠️ Every helper ships as `<name>.sh` and `<name>.ps1`; use the one your shell tool runs.

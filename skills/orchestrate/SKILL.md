@@ -7,7 +7,7 @@ description: >-
   the next dispatchable increment — via /pipeline:decompose, dispatch it via /pipeline:execute, then
   RECONCILE what is still outstanding against the tree that increment produced, rewrite what remains, and
   repeat until the plan is empty and the close-out is green. Everything past the horizon stays at SHAPE
-  depth. You never write implementation code and you never ground beyond the horizon.
+  depth.
 argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan already in chat]"
 ---
 

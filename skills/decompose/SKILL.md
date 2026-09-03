@@ -9,8 +9,7 @@ description: >-
   the actual codebase and VALIDATE it against what the code really does, surfacing wrong assumptions,
   unspecified behavior and defects in the plan before an implementer builds on them. The horizon emits at
   SLICE depth (owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar);
-  everything past it at SHAPE depth (goal, area, dependency — no file:line). You NEVER ground beyond the
-  horizon, and you do NOT write code, make worktrees, dispatch implementers or merge. On the GitHub path
+  everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
   you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
 ---

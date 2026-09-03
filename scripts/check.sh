@@ -772,176 +772,39 @@ else
 	fi
 fi
 
-# --- 9. every tracker coordinate in shipped prose names its repository --------
+# --- 9. shipped prose carries no tracker coordinates ------------------------
 
-# Only skills/ ships, so only skills/ is scanned — a bare #N in a contributor doc
-# is read from this checkout and already resolves. Tracked files for the same
-# reason check 8 gives: a scratch note left in a worktree is not prose this repo
-# ships, and a gate that reds on one is a gate a contributor stops trusting.
-skill_prose=''
-for f in $(git ls-files 'skills/*.md' 2>/dev/null); do
-	[ -f "$f" ] || continue
-	skill_prose="$skill_prose $f"
-done
-if [ -z "$skill_prose" ]; then
+# A `#123` in a skill is an instruction to go read an issue mid-task. Obeyed it
+# derails the run; ignored it leaves an agent acting on a rule it does not
+# understand. The war story and its link both live in the PR that fixed it, so
+# this check bans the coordinate outright rather than validating how it is
+# written. AGENTS.md owns the rule; this half enforces it.
+#
+# Scoped to skills/ because that is what ships: AGENTS.md, README.md and
+# CHANGELOG.md are only ever read from this checkout, where a bare number is
+# already right and links are the point.
+
+tracker_files="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
+if [ -z "$tracker_files" ]; then
 	fail "tracker-citations: git listed no tracked *.md under skills/ — this check scanned nothing"
 else
-	# A temp file rather than $( ), for the reason check 7 gives: a here-doc nested
-	# inside a command substitution is still scanned for quotes, and the qualifier
-	# this scanner looks for is spelled with an apostrophe in it.
-	tracker_out="$(mktemp)" || exit 2
-	python3 - $skill_prose >"$tracker_out" 2>&1 <<'PY'
-import pathlib
-import re
-import sys
-
-# A tracker coordinate. Anchored on the digit, so `<pkg>#test` and a markdown
-# heading are both out of reach without needing a rule of their own.
-CITATION = re.compile(r"#[0-9]+")
-# The two forms the corpus uses to say whose tracker it is. The qualifier is a
-# fixed house phrase rather than a family of paraphrases: the check has to be
-# predictable enough that an author can satisfy it on the first try, and the
-# failure message below names the exact wording.
-QUALIFIER = re.compile(r"this repo(?:sitory)?'s own", re.IGNORECASE)
-# The attribution is deliberately ADJACENT rather than paragraph-wide, which the
-# qualifier is not. An owner/repo slug is the shape of half the paths in this
-# corpus - `scripts/check.sh`, `examples/worktree.json`, `bin/setup-worktree.sh`
-# - so a paragraph-wide match on that shape would green almost anything and the
-# check would assert nothing. Requiring the slug to sit immediately before the
-# number is what separates naming a repository from mentioning a file, and it is
-# how the corpus already writes it. Backticks are required for the same reason:
-# unquoted, `2>/dev/null` and `release/x.y.z` are slugs too.
-ATTRIBUTION = re.compile(
-    r"`[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*`[^#`]{0,24}#[0-9]+"
-)
-CODE_SPAN = re.compile(r"`[^`]*`")
-FENCE = re.compile(r"^[ \t]*(?:```|~~~)")
-# A list marker, which is where a blank-line block is cut into passages. The
-# trailing \s is what keeps prose out: `*The failure this prevents` opens an
-# italic run and `3.19.0 shipped` opens a sentence, and neither is a bullet.
-MARKER = re.compile(r"^[ \t]*(?:[-*+]|[0-9]+\.)\s")
-
-problems = []
-coordinates = 0
-passages = 0
-
-for name in sys.argv[1:]:
-    text = pathlib.Path(name).read_text(encoding="utf-8", errors="replace")
-    # Fenced lines are emptied rather than dropped, so a fence sitting inside a
-    # list item neither splits that item nor opens a new one - an emptied line
-    # matches no marker, so it joins whatever passage it is already in.
-    fenced = False
-    lines = []
-    for number, raw in enumerate(text.splitlines(), 1):
-        blank = not raw.strip()
-        if FENCE.match(raw):
-            fenced = not fenced
-            lines.append((number, blank, ""))
-            continue
-        lines.append((number, blank, "" if fenced else raw))
-    if fenced:
-        # An unclosed fence swallows the rest of the file, and a scan that saw
-        # nothing prints the same green as one that found nothing wrong.
-        problems.append(
-            f"{name}: ends inside an unclosed code fence - everything after it "
-            "was skipped, so this file was not actually scanned"
-        )
-
-    blocks = []
-    current = []
-    for entry in lines:
-        if entry[1]:
-            if current:
-                blocks.append(current)
-                current = []
-        else:
-            current.append(entry)
-    if current:
-        blocks.append(current)
-
-    # Then cut each block at its list markers. The passage - a whole paragraph,
-    # or ONE list item within one - is the span a qualifier is taken to govern,
-    # and a bullet run is not that: a qualifier in one bullet has nothing to do
-    # with a coordinate in the next. A marker opens a passage and every later
-    # line joins it, so a multi-line item stays whole - which decompose's
-    # umbrella-disambiguation example needs, its qualifier and one of the
-    # coordinates it covers being nine lines and two code fences apart. Lines
-    # before a block's first marker are a passage of their own.
-    passages_in_block = []
-    for block in blocks:
-        current = []
-        for entry in block:
-            if MARKER.match(entry[2]) and current:
-                passages_in_block.append(current)
-                current = []
-            current.append(entry)
-        if current:
-            passages_in_block.append(current)
-
-    for block in passages_in_block:
-        joined = " ".join(line for _, _, line in block)
-        # Citations are read from the code-span-stripped text and attributions
-        # from the raw text, because the attributed form puts the repository
-        # INSIDE a code span and the number outside it. One strip would lose the
-        # thing being looked for.
-        prose = CODE_SPAN.sub(" ", joined)
-        hits = CITATION.findall(prose)
-        if not hits:
-            continue
-        passages += 1
-        coordinates += len(hits)
-        if QUALIFIER.search(prose) or ATTRIBUTION.search(joined):
-            continue
-        sites = ", ".join(
-            f"{name}:{number}"
-            for number, _, line in block
-            if CITATION.search(CODE_SPAN.sub(" ", line))
-        )
-        problems.append(
-            f"{sites}: {' '.join(hits)} names no repository - a bare coordinate "
-            "resolves against the READER's tracker, where it is some unrelated "
-            "issue. Write it as \"this repo's own #N\", or attribute it as "
-            "`owner/repo` immediately before the number."
-        )
-
-if coordinates == 0:
-    problems.append(
-        "no #<number> matched in any tracked skills/ doc - the pattern found "
-        "nothing, so this check scanned nothing"
-    )
-
-# Counts first, on one line, so the shell can report what was examined without
-# re-deriving it: a green naming no total is indistinguishable from a green over
-# an empty scan.
-print(f"{coordinates} {passages} {len(problems)}")
-for problem in problems:
-    print(problem)
-PY
-	tracker_status=$?
-	tracker_coords=''
-	tracker_passages=''
-	tracker_problems=''
-	{ read -r tracker_coords tracker_passages tracker_problems; } <"$tracker_out"
-	if [ "$tracker_status" -ne 0 ] || [ -z "$tracker_problems" ]; then
-		sed 's/^/      /' "$tracker_out" >&2
-		fail "tracker-citations: the scanner crashed — shipped prose could not be examined"
-	elif [ "$tracker_problems" -gt 0 ]; then
-		# Each problem printed as its own line rather than summarised, because they
-		# are not all the same failure: a bare coordinate, an unclosed fence that
-		# hid the rest of a file, and a pattern that matched nothing at all each
-		# need naming as themselves. One summary sentence would have to pick one
-		# and misdescribe the others.
-		sed -n '2,$p' "$tracker_out" | while IFS= read -r problem; do
-			printf 'FAIL  tracker-citations: %s\n' "$problem" >&2
+	# Strip fenced code and inline spans first: a `#1` inside a command or a
+	# colour literal is not a tracker coordinate.
+	tracker_hits="$(
+		for f in $tracker_files; do
+			sed -e '/^```/,/^```/d' -e 's/`[^`]*`//g' "$f" |
+				grep -nE '(^|[^A-Za-z0-9_&])#[0-9]+([^0-9]|$)' |
+				sed "s|^|$f:|"
 		done
-		# Counted here rather than in the loop above: a `while` fed by a pipe runs
-		# in a subshell, so an increment inside it is discarded and the script
-		# would exit 0 having just printed failures.
-		fails=$((fails + 1))
+	)"
+	if [ -n "$tracker_hits" ]; then
+		printf '%s\n' "$tracker_hits" | while IFS= read -r line; do
+			printf 'FAIL  tracker-citations: %s\n' "$line" >&2
+		done
+		fail "tracker-citations: shipped prose must carry no issue numbers — a coordinate here sends a reader to a tracker mid-task. Move the reference, and the reasoning behind it, into the PR that makes the change"
 	else
-		ok "tracker-citations: $tracker_coords coordinate(s) across $tracker_passages passage(s) in shipped prose name the tracker they resolve in"
+		ok "tracker-citations: no issue numbers in shipped prose ($(printf '%s\n' $tracker_files | wc -l | tr -d ' ') file(s) scanned)"
 	fi
-	rm -f "$tracker_out"
 fi
 
 # --- 10. skills/ within the per-file ceiling AND the corpus ratchet ----------
@@ -1047,7 +910,7 @@ fi
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository, shipped prose within the per-file ceiling and the corpus ratchet\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, shipped prose carries no issue numbers, shipped prose within the per-file ceiling and the corpus ratchet\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

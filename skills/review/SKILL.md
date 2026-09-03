@@ -76,9 +76,7 @@ decide what gets edited.
 lands.** Reuse and Simplification below both push a change toward the established pattern — and a rule
 this diff has just changed still reads as established in the copy you were handed, so *converge on
 what is already there* comes out as an edit dragging the new wording back to the old one. That is a
-revert, and it arrives in your Applied list wearing the word convergence. *The failure this prevents:
-an older installed copy of this file said a flagged item becomes a filed, linked issue and nothing
-else, where the tree says it becomes that **or** a comment on the issue already carrying that failure
+revert, and it arrives in your Applied list wearing the word convergence. a comment on the issue already carrying that failure
 — so a pass reading the older bar flags the item correctly and hands the caller the wrong disposition,
 the duplicate `skills/write-issue/SKILL.md`'s* Before you file, search what is already filed *exists
 to stop.*
@@ -172,14 +170,6 @@ pass ends at its report, never at a wait. It reaches checks and commands and not
 reaches nothing else by construction, since the closing ban on sub-agents leaves this pass none to
 wait on.
 
-*The failure this prevents, observed on `trinity-ai-labs/trinity` PR #4798, at exactly the moment
-this pass runs: an agent had finished its change and was about to commit, backgrounded the project's
-`pnpm check` — its `scopedCheck`, permitted here, and re-run by the pre-commit hook on `git commit`
-anyway — and ended its turn on it. The change was complete, correct and uncommitted: no commit, no
-push, no PR. The wait bought nothing the commit would not have enforced one step later. The gate
-runner claimed the ticket and spent the claim refusing a dirty tree, which is the queue detecting the
-symptom while nothing anywhere had a rule against the cause.*
-
 ---
 
 ## 4. Report — Applied, Rejected, Flagged, Verification
@@ -198,10 +188,7 @@ Report to the caller in prose, covering four things. Keep it short enough to rea
   already has a sanctioned path, the out-of-scope fix isolated in its own commit, and that path
   is preferred over deferring. What is genuinely left is the **caller's** to file — as a linked
   issue, or as a comment on the one already carrying that failure; this pass reports it and files
-  nothing, exactly as it dispatches, commits and pushes nothing. *The failure this prevents: a
-  flagged list reads as diligence, so a bucket with a loose admission test quietly absorbs the work
-  the pass was called in to do — and every item in it dies with the turn unless the caller makes it
-  tracked.*
+  nothing, exactly as it dispatches, commits and pushes nothing.
 - **Verification** — which scoped check you ran and its result, and which single test file if any.
 
 Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, and whatever

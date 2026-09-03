@@ -199,6 +199,35 @@
 #      passage is unbalanced today, so it would buy a case that has not
 #      occurred, and it would red the gate on a markdown defect that has nothing
 #      to do with trackers, under a message about them.
+#  10. No tracked file under skills/ exceeds the ATTENTION BUDGET: 30,000 words,
+#      measured with `wc -w`. skills/ ships, and a rule only binds the agent that
+#      actually reads it — so past some total the corpus stops being a set of
+#      rules and becomes a document its reader is compacted out of. That failure
+#      is observed rather than theoretical, and it is the one nothing else here
+#      can see: no diff contains it, and which rule gets dropped is settled by
+#      file size and position rather than by anyone.
+#      AGENTS.md is the prose that OWNS this rule; this is the half that
+#      enforces it, and the two are a pair that has to be changed together. The
+#      number and the instrument are copied from there deliberately rather than
+#      parsed out of it — a scanner over that bullet would make a reword change
+#      what the gate enforces, silently — and the same house pattern check 7
+#      uses for the contract env vars it borrows from the same file. **The unit
+#      is the part that has to match, not just the number**: bytes, lines and
+#      characters are all plausible readings of "how long is this file", they
+#      all disagree with `wc -w`, and picking a different one leaves BOTH halves
+#      green while the pair says two different things. So: `wc -w`, tracked
+#      files under skills/, 30,000.
+#      It reports the largest file and its count on success, not just a verdict.
+#      A ceiling check that prints only "ok" tells an author nothing about how
+#      much room is left, which is the number they need before adding prose —
+#      and this is a rule an author is expected to plan against rather than
+#      discover by going red.
+#      What it does NOT do: judge whether an extraction was the RIGHT one. Which
+#      bodies may move behind a pointer is the discriminator AGENTS.md states,
+#      and it turns on whether a reader would NOTICE the absence — which needs
+#      the prose read. A green here means the file is small enough, never that
+#      splitting it was done well; that judgement stays with the diff, which in
+#      a prose repo is the only review there is.
 #
 # Every check that scans a SET of files asserts the set is non-empty before it
 # scans: a check whose pattern stops matching prints the same green as a check
@@ -899,10 +928,90 @@ PY
 	rm -f "$tracker_out"
 fi
 
+# --- 10. no tracked file under skills/ exceeds the attention budget ----------
+
+# The ceiling and the instrument AGENTS.md states. Changing either here without
+# changing it there leaves the two halves of one rule disagreeing, with both of
+# them green — see the note at 10 above for why the unit matters as much as the
+# number.
+budget=30000
+
+# Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
+# is what ships, and a scratch note or a gate log left in a worktree is not prose
+# this repo ships.
+budget_files=''
+for f in $(git ls-files 'skills/*.md' 2>/dev/null); do
+	[ -f "$f" ] || continue
+	budget_files="$budget_files $f"
+done
+if [ -z "$budget_files" ]; then
+	fail "attention-budget: git listed no tracked *.md under skills/ — this check scanned nothing"
+else
+	budget_counted=0
+	budget_over=''
+	budget_largest=0
+	budget_largest_file=''
+	budget_broke=''
+	for f in $budget_files; do
+		# wc's OWN exit status, captured before anything else touches the value:
+		# the substitution runs wc alone, so a failure here is wc's and not some
+		# later formatting step's. A file that could not be measured is a failure
+		# in its own right — an unmeasured file prints the same green as a small
+		# one.
+		if ! budget_raw="$(wc -w <"$f")"; then
+			budget_broke="$budget_broke $f"
+			continue
+		fi
+		# wc pads its output on some platforms and not others; strip the padding
+		# so `test -gt` is comparing an integer. Nothing is asserted on this
+		# pipeline's status — the measurement already succeeded above.
+		words="$(printf '%s' "$budget_raw" | tr -d '[:space:]')"
+		# A measurement that is not a number is an unmeasured file, not a small
+		# one. Without this, `test` errors on the empty string and the file is
+		# reported with a blank count — a confusing red where the honest answer
+		# is that this file was never actually compared against anything.
+		case $words in
+		'' | *[!0-9]*)
+			budget_broke="$budget_broke $f"
+			continue
+			;;
+		esac
+		budget_counted=$((budget_counted + 1))
+		if [ "$words" -gt "$budget_largest" ]; then
+			budget_largest="$words"
+			budget_largest_file="$f"
+		fi
+		[ "$words" -le "$budget" ] || budget_over="$budget_over $f($words)"
+	done
+	# Three independent verdicts rather than a chain, for the reason stated at the
+	# top of this file: an unmeasurable file and an over-budget file are different
+	# failures, and an `elif` would report the first and hide the second in the one
+	# run where both are true.
+	budget_clean=1
+	if [ -n "$budget_broke" ]; then
+		fail "attention-budget: could not be measured, so these files were NOT checked:$budget_broke"
+		budget_clean=0
+	fi
+	if [ "$budget_counted" -eq 0 ]; then
+		fail "attention-budget: no tracked skills/ file was measured — this check scanned nothing"
+		budget_clean=0
+	fi
+	if [ -n "$budget_over" ]; then
+		# Named with its count, so the author can see how far over it is rather
+		# than only that it is: the remedy is to extract or delete to make room,
+		# and how much room is the first thing they need.
+		fail "attention-budget: over the ${budget}-word ceiling (wc -w):$budget_over — extract a whole role or subsystem body behind a pointer, or delete, to make room; AGENTS.md carries the discriminator for which is which"
+		budget_clean=0
+	fi
+	if [ "$budget_clean" -eq 1 ]; then
+		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word ceiling (wc -w; largest $budget_largest_file at $budget_largest)"
+	fi
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository, shipped prose within the attention budget\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

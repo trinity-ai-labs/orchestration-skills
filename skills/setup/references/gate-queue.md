@@ -35,13 +35,13 @@ Per-user, under the user's home, shared across the project's worktrees:
 
 **`mode` is a property of the ticket, set at enqueue — never inferred from the branch name**, or a rename silently changes how a PR is gated.
 
-**`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the dispatcher's mid-arc integration gate (`skills/execute/references/landing.md`), on a merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields leave that gate hand-run and unrecorded.
+**`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the dispatcher's mid-arc integration gate, on a merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields leave that gate hand-run and unrecorded.
 
 **Record the absence at enqueue as a fact ON the ticket — undeliverable by construction, never inferred from two missing fields.** Invariant 8's prune and *Reporting* both have to distinguish a ticket nobody will ever report from one whose report failed. It is not a fourth state: modelled as *delivery pending, forever* it fills the flagged pile with escalations nobody can act on.
 
-**A runner scaffolded before this change must REJECT a PR-less enqueue and exit non-zero naming the missing fields.** This design is scaffolded into a project and evolves there, so a field becoming optional does not reach runners already deployed; accepting one silently spends a full serialized gate and files the result as a delivery failure only a human can clear. The fallback is then a hand-run gate, sanctioned at `skills/execute/references/landing.md`'s *A runner scaffolded before the PR-less ticket REJECTS it*.
+**A runner scaffolded before this change must REJECT a PR-less enqueue and exit non-zero naming the missing fields.** This design is scaffolded into a project and evolves there, so a field becoming optional does not reach runners already deployed; accepting one silently spends a full serialized gate and files the result as a delivery failure only a human can clear. The fallback is then a hand-run gate on the dispatcher's side, whose verdict survives only as an exit status in one terminal — which is what the optional fields exist to avoid.
 
-**A consumer scopes on `branch` and treats `prNumber` as absent** — the PR fields are not on every ticket, so keying on one silently drops PR-less tickets. `skills/execute/references/dispatching.md`'s *Wait on your own tickets settling — one Monitor over the queue's ledger* is that consumer, and needs `branch` as its fallback handle.
+**A consumer scopes on `branch` and treats `prNumber` as absent** — the PR fields are not on every ticket, so keying on one silently drops PR-less tickets. The dispatcher's ledger watch is that consumer, and needs `branch` as its fallback handle.
 
 ## The invariants that make it correct
 
@@ -61,7 +61,7 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 
 **7. The report is a state transition too — a ticket is not done until its verdict is delivered.** The other invariants survive a process dying; this one survives the network — so record the verdict on the ticket *before* attempting to report it, so a failed post is a reconciliation problem, not an amnesia one (*Reporting*).
 
-It also makes `done/` the one place a **waiter** can watch: the verdict is on the ticket before the rename into it, so a dispatcher watches the ledger, not the PR, where the verdict arrives later and on a failed post not at all (`skills/execute/references/dispatching.md`'s *Wait on your own tickets settling*).
+It also makes `done/` the one place a **waiter** can watch: the verdict is on the ticket before the rename into it, so a dispatcher watches the ledger, not the PR, where the verdict arrives later and on a failed post not at all.
 
 **8. Prune a ticket only when its verdict was delivered.** The ledger would otherwise grow unboundedly, but the bound is delivery, not age: a ticket flagged for a human — retries exhausted, or the head moved off the gated SHA (*Reporting*) — holds a verdict nobody has seen. `reported` alone inverts it, since an abandoned ticket keeps `reported: false` forever, so age plus "not reported" deletes exactly the escalated records whose on-disk copy is the only one. The predicate is `delivered && older than the retention window`; anything flagged stays until a human resolves it, so a just-settled ticket is still there when a waiter wakes.
 

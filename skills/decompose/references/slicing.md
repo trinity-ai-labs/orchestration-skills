@@ -6,7 +6,7 @@ Reference for `skills/decompose/SKILL.md`, action 3. One slice = one worktree = 
 
 For **each horizon** slice, produce:
 
-- **Title** + **branch name** with the right prefix (`feat/…`, `fix/…`, `refactor/…`, `docs/…`). Flag a docs-only slice for `execute`'s ticket-scoped `--mode docs` gate (its *Gate mode*), which is set on the ticket at enqueue and never inferred from the branch name.
+- **Title** + **branch name** with the right prefix (`feat/…`, `fix/…`, `refactor/…`, `docs/…`). Flag a docs-only slice for the project's lighter gate, which is set on the ticket at enqueue and never inferred from the branch name.
 - **Owns (scope)** — the concrete files, globs and directories this slice may change, as real paths from your grounding.
   - **A predicate is not a scope until it has been evaluated**: *every caller of `<helper>`* names a file set that does not exist yet, so run the query while grounding and check what it returns against every sibling's `Owns`, or declare the slice **exclusive over the predicate's whole domain**.
   - **The docs the slice falsifies, named individually**, plus a one-line not-affected-because for any you left out — an implementer told a doc is out of scope will not revisit it. **A surface with NO doc is a scope entry too**: name the doc that should describe it, marked as needing **new prose**.

@@ -76,10 +76,7 @@ decide what gets edited.
 lands.** Reuse and Simplification below both push a change toward the established pattern — and a rule
 this diff has just changed still reads as established in the copy you were handed, so *converge on
 what is already there* comes out as an edit dragging the new wording back to the old one. That is a
-revert, and it arrives in your Applied list wearing the word convergence. a comment on the issue already carrying that failure
-— so a pass reading the older bar flags the item correctly and hands the caller the wrong disposition,
-the duplicate `skills/write-issue/SKILL.md`'s* Before you file, search what is already filed *exists
-to stop.*
+revert, and it arrives in your Applied list wearing the word convergence.
 
 ### Correctness
 
@@ -94,7 +91,7 @@ to stop.*
   asserting what other code does is prose against behavior — no checker compares the two, so this
   pass is one of the few places it can be caught. A claim that proves false is a finding to report,
   never a sentence to quietly correct: accurate prose over a real bug documents the bug as the design
-  (`skills/execute/references/implementer.md` carries the rule).
+  and removes the last thing that would have led anyone to look.
 
 ### Reuse
 
@@ -131,10 +128,11 @@ to stop.*
 mode immediately before committing. Nor **subjective style** that reduces neither reuse, complexity,
 nor cost.
 
-**The ceiling on all five lenses: anything whose reason you have not established, you leave.** That
-rule lives in `skills/orchestrate/SKILL.md` §4 — establish why a thing is the way it is before you
-disposition it, and where it has a valid reason and is idiomatic for its context, leave it and say you
-checked. Read it there; this skill does not carry a second copy. The case common enough to have earned
+**The ceiling on all five lenses: anything whose reason you have not established, you leave.**
+Establish why a thing is the way it is before you disposition it — trace what looks wrong to the
+constraint it satisfies, the consumer it exists for, or the commit that put it there — and where it
+has a valid reason and is idiomatic for its context, leave it and say you checked. The case common
+enough to have earned
 its own line is **an existing suppression** (`eslint-disable`, `@ts-expect-error`) the change did not
 add: it is the previous author's claim, already reviewed on the PR that introduced it, so removing it
 to look tidy is a behavior change nobody asked for. Flag it if you think it is wrong. *The failure

@@ -3,7 +3,7 @@
 Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you write a brief or spawn an implementer**: what a brief carries, and how you watch a wave.
 
 ## Dispatch
-Decompose the increment into independent tasks. For each: create + **verify** a worktree, then **dispatch a plain implementer sub-agent** (no `isolation`) at that path, in parallel where the tasks are independent. The gate doesn't bottleneck fan-out.
+Decompose the increment into independent tasks. For each: create + **verify** a worktree, then **dispatch a FRESH implementer sub-agent** (never a fork, no `isolation`) at that path, in parallel where the tasks are independent. The gate doesn't bottleneck fan-out.
 
 Rules from the other passes bind you even when you were invoked directly. Run these against the brief first:
 
@@ -41,7 +41,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   For a DEFAULT-mode slice paste the ban; it overrides the "verify by running the tests" instinct:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`). Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
-- **Review pass for this slice — your call.** `/pipeline:review` is the implementer's own quality + correctness pass over its uncommitted diff: worth it on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision sets the commit ordering below. ⚠️ **Name the pipeline skill, never a bare `/simplify`** — the bundled skill of that name forks its reviewers, and a fork inherits the implementer's whole brief — *commit, push, open a PR, enqueue the gate* — which they then execute; an implementer reporting that it waits on review sub-agents ran it, so go look at what its forks did to the worktree.
+- **Review pass for this slice — your call.** `/pipeline:review` is the implementer's own quality + correctness pass over its uncommitted diff: worth it on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision sets the commit ordering below. ⚠️ **Name the pipeline skill in the brief** — a pass that forks its reviewers hands them the implementer's whole brief, *commit, push, open a PR, enqueue the gate* included, which they then execute. An implementer reporting that it waits on review sub-agents ran one: go look at what its forks did to the worktree.
 - **The commit ordering — set by the review decision above.** A review slice commits LAST, since the pass acts only on the *uncommitted* diff; a skip-review slice commits in logical blocks as the work lands, and is told so. For a review slice paste:
 
   > **Review slice:** Do NOT commit as you go — write the ENTIRE change uncommitted (cheap checks while you work are fine). When the code is done run `/pipeline:review` over your full uncommitted diff: it is YOUR pass, inline, spawning nothing and committing nothing, and you decide which findings to apply. Then run the auto-formatter in WRITE mode, and THEN commit, in logical self-contained blocks.

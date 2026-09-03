@@ -85,7 +85,7 @@ Which puts one obligation on the *other* side of the flag: **a runner that does 
 
 **This invariant is about legibility, not correctness — it patches no race.** Invariants 1–8 already make concurrent drains safe, and in that incident they did: claims are atomic renames, and the slot holder is handed down per-spawn rather than exported into the session (invariant 5), so three stacked runners could neither double-gate a ticket nor inherit each other's slot. A real ledger of 399 gated tickets carries zero overlapping gate windows — two gates have never run concurrently on that box. Nothing was damaged and nothing was at risk. Safe and legible are simply different properties, and the queue had only the first.
 
-## The worktree is frozen while its ticket is in flight
+## The worktree is frozen from enqueue until the ticket settles
 
 The runner gates *inside the ticket's worktree*. Anything that mutates that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, then reports against whatever HEAD is current when it finishes.
 

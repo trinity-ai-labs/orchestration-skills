@@ -22,14 +22,14 @@
 #   7. bin/ ships each helper in both shells and the two agree on surface facts.
 #   8. every skills/ .md path cited in a tracked doc resolves.
 #   9. shipped prose carries no issue numbers.
-#  10. skills/ within the per-file ceiling AND the corpus ratchet.
+#  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. shipped prose carries no war stories.
 #  12. no skill cites another skill.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
-# actionable without opening anything else. 10 stops the corpus growing; these
-# three stop it growing the SHAPE that got it there — narrative, then citations
-# of narrative, then conventions for writing those citations.
+# actionable without opening anything else. 10 bounds what one agent loads;
+# these three stop that load growing the SHAPE that got it there — narrative,
+# then citations of narrative, then conventions for writing those citations.
 
 set -u
 
@@ -626,7 +626,7 @@ else
 	fi
 fi
 
-# --- 10. skills/ within the per-file ceiling AND the corpus ratchet ----------
+# --- 10. skills/ within the per-file AND per-sub-skill ceilings --------------
 
 # The per-file ceiling and the instrument AGENTS.md states. Changing either here
 # without changing it there leaves the two halves of one rule disagreeing, with
@@ -634,18 +634,21 @@ fi
 # as the number.
 budget=30000
 
-# The corpus-wide ceiling: the SUM of the same measurement over the same file
-# set. It is a RATCHET — lowered to the tree's measured total once a cut has
-# landed, never raised to fit new prose — so a change that adds net words to
-# skills/ goes red here even while every individual file stays comfortably under
-# the per-file number. The arc driving it down is this repo's own #298, whose
-# end state is under 40,000.
-corpus_ratchet=52608
+# The per-sub-skill ceiling: the SUM of the same measurement over one
+# skills/<slug>/ tree — a spine plus its own references, which is what one agent
+# loads, and the growth the per-file half misses when a sub-skill gains files
+# rather than grows one. AGENTS.md states this one too, with the same
+# both-green disagreement available. Both are BACKSTOPS, not budgets — the
+# largest sub-skill today sits a little over half of this number, so they catch
+# runaway growth rather than ration prose. There is deliberately no corpus-wide
+# ceiling: prose behind a pointer costs a reader nothing until it is followed,
+# so the corpus total is a quantity no reader ever pays.
+budget_per_skill=50000
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose
 # this repo ships. `--others --exclude-standard` adds files not yet staged: a new
-# skill is exactly what this ceiling exists to weigh, and it would otherwise be
+# skill is exactly what these ceilings exist to weigh, and it would otherwise be
 # invisible until `git add` — a false green on the run an author actually reads.
 budget_files=''
 for f in $(git ls-files --cached --others --exclude-standard 'skills/*.md' 2>/dev/null | sort -u); do
@@ -660,7 +663,8 @@ else
 	budget_largest=0
 	budget_largest_file=''
 	budget_broke=''
-	budget_total=0
+	budget_slugs=''
+	budget_pairs=''
 	for f in $budget_files; do
 		# wc's OWN exit status, captured before anything else touches the value:
 		# the substitution runs wc alone, so a failure here is wc's and not some
@@ -686,19 +690,46 @@ else
 			;;
 		esac
 		budget_counted=$((budget_counted + 1))
-		# The same measurement the per-file half tests, behind the same guards:
-		# an unmeasurable file has already `continue`d, so it is missing from
-		# this sum exactly as it is from the count — and it fails the check on
-		# its own, so a short sum is never what a green rests on.
-		budget_total=$((budget_total + words))
+		# Group by the path's second segment: skills/<slug>/ is one sub-skill.
+		# Recorded as a slug:words pair and summed after the loop, because POSIX
+		# sh has no arrays to hold one running total per slug. An unmeasurable
+		# file has already `continue`d, so it is missing from these pairs exactly
+		# as it is from the count — and it fails the check in its own right, so a
+		# short sum is never what a green rests on.
+		budget_slug="${f#skills/}"
+		budget_slug="${budget_slug%%/*}"
+		budget_pairs="$budget_pairs $budget_slug:$words"
+		case " $budget_slugs " in
+		*" $budget_slug "*) ;;
+		*) budget_slugs="$budget_slugs $budget_slug" ;;
+		esac
 		if [ "$words" -gt "$budget_largest" ]; then
 			budget_largest="$words"
 			budget_largest_file="$f"
 		fi
 		[ "$words" -le "$budget" ] || budget_over="$budget_over $f($words)"
 	done
-	# Three independent verdicts rather than a chain, for the reason stated at the
-	# top of this file: an unmeasurable file and an over-budget file are different
+	# One total per sub-skill, from the pairs recorded above. Every measured file
+	# contributed exactly one pair and every pair's slug is in this list, so the
+	# grouping cannot silently drop a file, sum short, and still read as green.
+	budget_skill_over=''
+	budget_skill_report=''
+	for budget_slug in $budget_slugs; do
+		budget_skill_words=0
+		for budget_pair in $budget_pairs; do
+			case $budget_pair in
+			"$budget_slug":*)
+				budget_pair_words="${budget_pair#*:}"
+				budget_skill_words=$((budget_skill_words + budget_pair_words))
+				;;
+			esac
+		done
+		budget_skill_report="$budget_skill_report $budget_slug($budget_skill_words)"
+		[ "$budget_skill_words" -le "$budget_per_skill" ] ||
+			budget_skill_over="$budget_skill_over $budget_slug($budget_skill_words)"
+	done
+	# Four independent verdicts rather than a chain, for the reason stated at the
+	# top of this file: an unmeasurable file and an over-ceiling file are different
 	# failures, and an `elif` would report the first and hide the second in the one
 	# run where both are true.
 	budget_clean=1
@@ -715,16 +746,16 @@ else
 		# than only that it is: the remedy is to extract or delete to make room,
 		# and how much room is the first thing they need. It also says which
 		# half extraction settles, since a reader who takes it as the whole
-		# remedy relocates words the corpus half counts wherever they sit.
-		fail "attention-budget: over the ${budget}-word PER-FILE ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests. Extraction settles this half only: the corpus ratchet counts the same words wherever they sit"
+		# remedy relocates words the sub-skill half counts wherever they sit.
+		fail "attention-budget: over the ${budget}-word PER-FILE ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests. Extraction settles this half only: the per-sub-skill ceiling counts the same words wherever they sit inside skills/<slug>/"
 		budget_clean=0
 	fi
-	if [ "$budget_total" -gt "$corpus_ratchet" ]; then
-		fail "attention-budget: the corpus is $budget_total words (wc -w across $budget_counted tracked skills/ file(s)), over the ${corpus_ratchet}-word ratchet — DELETE prose; extraction moves words between files and leaves this total untouched. The ratchet moves down when a cut lands. The one thing that raises it is a whole NEW pass, deliberately and on the record in the release that adds it — never prose added to a file that already exists"
+	if [ -n "$budget_skill_over" ]; then
+		fail "attention-budget: over the ${budget_per_skill}-word PER-SUB-SKILL ceiling (wc -w summed over skills/<slug>/):$budget_skill_over — a sub-skill is one spine plus its own references, so extraction inside it moves nothing: split a whole pass out of it, or delete. AGENTS.md carries both ceilings"
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then
-		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word per-file ceiling (wc -w; largest $budget_largest_file at $budget_largest); corpus $budget_total against the ${corpus_ratchet}-word ratchet"
+		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word per-file ceiling (wc -w; largest $budget_largest_file at $budget_largest), and each sub-skill within the ${budget_per_skill}-word ceiling:$budget_skill_report"
 	fi
 fi
 

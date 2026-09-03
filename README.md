@@ -409,11 +409,15 @@ claude plugin validate . --strict
     │   ├── SKILL.md
     │   └── references/gate-queue.md
     ├── write-issue/SKILL.md
-    ├── orchestrate/SKILL.md
-    ├── decompose/SKILL.md
+    ├── orchestrate/
+    │   ├── SKILL.md
+    │   └── references/reconciling.md
+    ├── decompose/
+    │   ├── SKILL.md
+    │   └── references/           # grounding, slicing, emitting
     ├── execute/
-    │   ├── SKILL.md              # a spine: the role decision, a quick-reference table, the hard rules
-    │   └── references/           # one file per procedure, loaded when you do that thing
+    │   ├── SKILL.md              # a spine: an ordered list of actions, each naming its reference
+    │   └── references/           # one file per phase, opened when you reach that phase
     └── review/SKILL.md
 ```
 

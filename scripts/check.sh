@@ -160,11 +160,10 @@ fi
 
 # --- 4. no skill prescribes gh api -f with an @file value -------------------
 
-skill_docs=''
-for f in skills/*/SKILL.md; do
-	[ -f "$f" ] || continue
-	skill_docs="$skill_docs $f"
-done
+# Every tracked .md under skills/, not just the spines: the gh api prose this
+# check exists for now lives in references/ (decompose's emitting.md), and a
+# check scoped to SKILL.md would go green over the passage it was written for.
+skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
 if [ -z "$skill_docs" ]; then
 	fail "gh-api: no SKILL.md files to scan — this check scanned nothing"
 elif at_file_hits="$(grep -nE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' $skill_docs)"; then
@@ -572,7 +571,7 @@ budget=30000
 # skills/ goes red here even while every individual file stays comfortably under
 # the per-file number. The arc driving it down is this repo's own #298, whose
 # end state is under 40,000.
-corpus_ratchet=53590
+corpus_ratchet=51376
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose

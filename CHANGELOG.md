@@ -2,6 +2,17 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 4.0.0
+
+- **Every skill is now an ordered list of actions.** Each action names the reference that says how and carries the rules that fire at that action; the topic tables and the detached blocks of hard rules are gone. `execute` 2,483 → 1,618 words with ten references grouped into six; `decompose` 8,250 → 1,537 plus three; `orchestrate` 4,836 → 2,533 plus one.
+- **A skill no longer cites another skill.** All 96 cross-skill references are deleted, not repointed — each is now the rule stated where its reader acts, or nothing. Nineteen of them were `§N` citations that had silently drifted onto real sections carrying different arguments.
+- **War stories, and their links, live in the PR that fixes them.** 25 failure-narrative paragraphs and every issue number leave shipped prose. `AGENTS.md` 7,885 → 2,580 words: its every-seat rule goes from 2,891 words to 69, and its anti-restatement convention — the thing that grew the citation web — is inverted to *state a rule where its reader acts.*
+- **Four checks enforce it.** `scripts/check.sh` 1,054 → ~680 lines: no issue numbers (9), the per-file ceiling and corpus ratchet (10), no war stories (11), no skill cites another skill (12). Check 4 now scans every tracked `skills/` doc rather than only the spines.
+- **A tenth gate-queue invariant: refuse to gate a worktree carrying uncommitted tracked changes**, settling the ticket *refused* rather than red. A refusal is delivered like any verdict — settling it silently leaves a bare PR, which tells a dispatcher to re-enqueue against a still-dirty tree.
+- **`bin/` helpers answer a failed `git` call the same way in both ports** — exit 1 with a helper-owned message, in 14 call sites across three helpers. One of them printed `HEAD: ` with an empty sha and exited 0.
+
+*The shipped corpus is 121,280 → 51,376 words across the day, a 58% cut, and the whole repo went from roughly 220,000 words to 74,000.*
+
 ## 3.61.0
 
 - `CHANGELOG.md` is a changelog again: 98,922 → 8,991 words, one to three lines per release. All 108 release headings survive in order; every issue and PR link is kept, and the reasoning lives there rather than in this file. It was nearly twice the size of the product it describes.

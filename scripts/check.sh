@@ -12,7 +12,8 @@
 #
 # What it enforces, and the failure each rule prevents:
 #   1. bin/*.sh and scripts/*.sh lint clean at their declared dialect.
-#   2. .claude-plugin/plugin.json parses and carries what Claude Code needs.
+#   2. both plugin manifests parse, carry their host's required fields, and
+#      agree on version (Claude Code and Codex each read their own).
 #   3. every skill has the frontmatter Claude Code dispatches on.
 #   4. no skill prescribes `gh api -f` with an @file value (it stores the
 #      literal string and exits 0 — the one failure here that looks like success).
@@ -72,25 +73,37 @@ else
 	fail "shellcheck: problems reported above"
 fi
 
-# --- 2. the plugin manifest parses and carries what Claude Code needs --------
+# --- 2. BOTH plugin manifests parse, carry what their host needs, and agree ---
 
-manifest='.claude-plugin/plugin.json'
-if [ ! -f "$manifest" ]; then
-	fail "manifest: $manifest is missing — this check had nothing to validate"
+# This plugin installs on two hosts, and each reads its own manifest: Claude Code
+# reads .claude-plugin/plugin.json, Codex reads .codex-plugin/plugin.json. The
+# skills/ tree is shared, so the manifests are the only per-host files, and the
+# version is the one field both must agree on — an install is pinned to that
+# string, so two manifests carrying different versions ship two different
+# releases under one tag, and nothing else here would notice.
+cc_manifest='.claude-plugin/plugin.json'
+codex_manifest='.codex-plugin/plugin.json'
+if [ ! -f "$cc_manifest" ] || [ ! -f "$codex_manifest" ]; then
+	fail "manifest: $cc_manifest and $codex_manifest must BOTH be present — this check had nothing to validate"
 else
 	manifest_problems="$(
-		python3 - "$manifest" <<'PY'
+		python3 - "$cc_manifest" "$codex_manifest" <<'PY'
 import json, pathlib, sys
 
-path = pathlib.Path(sys.argv[1])
-try:
-    plugin = json.loads(path.read_text())
-except ValueError as err:
-    print(f"does not parse as JSON: {err}")
-    sys.exit(0)
-if not isinstance(plugin, dict):
-    print("is not a JSON object")
-    sys.exit(0)
+def load(path):
+    try:
+        payload = json.loads(pathlib.Path(path).read_text())
+    except ValueError as err:
+        print(f"{path}: does not parse as JSON: {err}")
+        return None
+    if not isinstance(payload, dict):
+        print(f"{path}: is not a JSON object")
+        return None
+    return payload
+
+cc_path, codex_path = sys.argv[1], sys.argv[2]
+cc, codex = load(cc_path), load(codex_path)
+
 # repository is NOT here because Claude Code needs it to load the plugin — it does
 # not. It is here because skills/orchestrate/SKILL.md section 7 resolves the filing
 # target for a close-out finding from this field, in a rule whose whole point is
@@ -108,24 +121,80 @@ if not isinstance(plugin, dict):
 # as an unterminated string, and the gate dies with a syntax error at end of file,
 # hundreds of lines below the character that caused it. CI runs this the same way,
 # nested one substitution deeper.
-for field in ("name", "description", "author", "version", "license", "repository"):
-    if not plugin.get(field):
-        print(f"missing '{field}'")
+if cc is not None:
+    for field in ("name", "description", "author", "version", "license", "repository"):
+        if not cc.get(field):
+            print(f"{cc_path}: missing '{field}'")
+
+# Codex rejects any top-level key outside this allowlist and refuses to ingest the
+# plugin — so a field copied across from the Claude manifest out of symmetry
+# (schema, displayName) is not a harmless extra, it is a failed install. The list
+# mirrors the allowed_keys set in the Codex plugin validator.
+CODEX_ALLOWED = {
+    "id", "name", "version", "description", "skills", "apps", "mcpServers",
+    "interface", "author", "homepage", "repository", "license", "keywords",
+}
+if codex is not None:
+    for key in sorted(set(codex) - CODEX_ALLOWED):
+        print(f"{codex_path}: top-level key '{key}' is not accepted by Codex")
+    for field in ("name", "version", "description"):
+        if not codex.get(field):
+            print(f"{codex_path}: missing '{field}'")
+    author = codex.get("author")
+    if not isinstance(author, dict) or not author.get("name"):
+        print(f"{codex_path}: missing 'author.name'")
+    interface = codex.get("interface")
+    if not isinstance(interface, dict):
+        print(f"{codex_path}: missing 'interface' object")
+    else:
+        for field in ("displayName", "shortDescription", "longDescription",
+                      "developerName", "category"):
+            value = interface.get(field)
+            if not isinstance(value, str) or not value.strip():
+                print(f"{codex_path}: interface.{field} must be a non-empty string")
+        caps = interface.get("capabilities")
+        if not isinstance(caps, list) or not caps or not all(
+            isinstance(v, str) and v.strip() for v in caps
+        ):
+            print(f"{codex_path}: interface.capabilities must be an array of strings")
+        prompts = interface.get("defaultPrompt")
+        if not isinstance(prompts, list) or not prompts or not all(
+            isinstance(v, str) and v.strip() for v in prompts
+        ):
+            print(f"{codex_path}: interface.defaultPrompt must be an array of strings")
+        else:
+            if len(prompts) > 3:
+                print(f"{codex_path}: interface.defaultPrompt takes at most 3 entries")
+            for v in prompts:
+                if len(v) > 128:
+                    print(f"{codex_path}: interface.defaultPrompt entry over 128 chars")
+
+# The agreement. Read as strings, because a version is a string everywhere it is
+# consumed, and compared only once both parsed — an unparseable manifest has
+# already been reported and has no version to disagree with.
+if cc is not None and codex is not None:
+    cc_version, codex_version = cc.get("version"), codex.get("version")
+    if cc_version and codex_version and cc_version != codex_version:
+        print(
+            f"version mismatch: {cc_path} is {cc_version} but {codex_path} is "
+            f"{codex_version} -- both hosts pin an install to this string, so they "
+            "move together or one host ships the wrong release"
+        )
 PY
 	)" || {
-		fail "manifest: the reader crashed — $manifest could not be examined"
+		fail "manifest: the reader crashed — the manifests could not be examined"
 		manifest_problems=''
 	}
 	if [ -n "$manifest_problems" ]; then
 		printf '%s\n' "$manifest_problems" | while IFS= read -r problem; do
-			printf 'FAIL  manifest: %s: %s\n' "$manifest" "$problem" >&2
+			printf 'FAIL  manifest: %s\n' "$problem" >&2
 		done
 		# Counted here rather than in the loop above: a `while` fed by a pipe runs
 		# in a subshell, so an increment inside it is discarded and the script
 		# would exit 0 having just printed failures.
 		fails=$((fails + 1))
 	else
-		ok "manifest: $manifest parses and carries every required field"
+		ok "manifest: $cc_manifest and $codex_manifest each carry every required field, and agree on version"
 	fi
 fi
 
@@ -571,7 +640,7 @@ budget=30000
 # skills/ goes red here even while every individual file stays comfortably under
 # the per-file number. The arc driving it down is this repo's own #298, whose
 # end state is under 40,000.
-corpus_ratchet=52709
+corpus_ratchet=52608
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose

@@ -2,6 +2,12 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.62.0
+
+- `skills/execute/SKILL.md` becomes an ordered list of actions rather than a topic table plus a detached block of rules: four dispatcher phases and six implementer steps, each naming the reference that says how. Spine 2,483 → 1,618 words.
+- Ten reference files become six, grouped by the phase that opens them: `worktrees-and-branches.md`, `dispatching.md` (with the drain), `reviewing.md`, `landing.md`, plus `per-project-config.md` and `implementer.md`. 32 path citations repointed; the italic section-name citations were unaffected, since every cited section keeps its heading inside the file that now holds it.
+- Fourteen of the fifteen hard rules move onto the step where they would be broken. The `isolation: "worktree"` ban moves into `worktrees-and-branches.md`, which you cannot avoid opening to cut a worktree. Four rules that fire at no single action keep their own block.
+
 ## 3.61.0
 
 - `CHANGELOG.md` is a changelog again: 98,922 → 8,991 words, one to three lines per release. All 108 release headings survive in order; every issue and PR link is kept, and the reasoning lives there rather than in this file. It was nearly twice the size of the product it describes.

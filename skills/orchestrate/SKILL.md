@@ -83,7 +83,7 @@ Run all of them, every cycle, in this order. **Stated mechanically on purpose, s
 
 **2. Vocabulary drift — checked per SENSE, not per string.** For each rename the increment performed, write down the *senses* the old word carried and decide each separately: **a string match cannot tell two senses apart**, so a find-and-replace rewrites the surviving one and the next brief renames what was already correct.
 
-**3. Revealed forced work.** What does the merged tree now force that **no remaining item owns**? A helper taking a type this arc deletes is forced work the compiler hands to whichever slice hits it first, and **a merged change to `.agents/worktree.json` is the same question with the compiler taken out of it** — provisioning forced *silently*, every gate green while worktrees are still cut from the pre-change file (`skills/execute/references/worktree-creation.md` says which merge ends that window).
+**3. Revealed forced work.** What does the merged tree now force that **no remaining item owns**? A helper taking a type this arc deletes is forced work the compiler hands to whichever slice hits it first, and **a merged change to `.agents/worktree.json` is the same question with the compiler taken out of it** — provisioning forced *silently*, every gate green while worktrees are still cut from the pre-change file (`skills/execute/references/worktrees-and-branches.md` says which merge ends that window).
 
 **4. Falsified assumptions.** `/pipeline:decompose` writes `Assumes X (existing pattern in <file>); flag if wrong` into briefs; re-check every one still live against the merged tree, since **a falsified assumption is a plan defect fixed here, not an implementer's problem**.
 

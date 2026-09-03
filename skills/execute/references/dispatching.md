@@ -7,12 +7,12 @@ Decompose the increment into independent tasks. For each: create + **verify** a 
 
 Rules from the other passes bind you even when you were invoked directly. Run these against the brief first:
 
-- **Merge-surface ordering — `skills/orchestrate/SKILL.md` §5.** This wave is your last chance to place a wide-footprint change: nothing folded joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong, every gate green.
-- **The bare-string verify rider — `skills/orchestrate/SKILL.md` §8.** A rename crossing a string boundary — a table, a route, a cache key, an env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file are blind to a renamed literal.
-- **Grounding — `skills/decompose/SKILL.md` Step 1.** Open and read the file behind every sentence asserting something about the code as fact, or mark it an assumption to flag; nothing downstream checks a brief against the tree.
-- **Enumeration cardinality — `skills/decompose/SKILL.md` Step 1's *An enumeration is a claim*.** Does each list carry the unfiltered count, does that number say what it counts, and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
-- **The verify bar's property — `skills/decompose/SKILL.md` Step 3's `Verify` field.** Read each command against the sentence beside it, on the case the slice is *expected* to produce: an instrument with no instances on its target returns an uninformative green.
-- **Field reconciliation — `skills/decompose/SKILL.md` Step 3's closing check.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here rather than hand the implementer the judgement.
+- **Merge-surface ordering.** This wave is your last chance to place a wide-footprint change: nothing folded joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong, every gate green.
+- **The bare-string verify rider.** A rename crossing a string boundary — a table, a route, a cache key, an env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file are blind to a renamed literal.
+- **Grounding.** Open and read the file behind every sentence asserting something about the code as fact, or mark it an assumption to flag; nothing downstream checks a brief against the tree.
+- **Enumeration cardinality.** Does each list carry the unfiltered count, does that number say what it counts, and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
+- **The verify bar's property.** Read each command against the sentence beside it, on the case the slice is *expected* to produce: an instrument with no instances on its target returns an uninformative green.
+- **Field reconciliation.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here rather than hand the implementer the judgement.
 
 **Pick the model tier per task — match cost to difficulty.** `model: "sonnet"` for the *bulk* of dispatches: well-scoped, mechanical or moderate work — wiring, a route mirroring an existing one, a refactor with a known shape. `model: "opus"` for genuinely HARD slices: subtle algorithms, design-heavy work, tricky concurrency, security-sensitive or cross-cutting changes. When unsure, **start Sonnet**. The easier the model, the **more explicit the brief**: exact files, patterns to copy, hard boundaries.
 
@@ -33,7 +33,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover the repo's doc set (`README.md`, `AGENTS.md`/`CLAUDE.md`, any docs directory). Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 
-  **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two riders in `skills/execute/references/epic-branch.md` → *Docs land at the end* verbatim: a moved path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a second entry for what the change ADDED that no doc describes.
+  **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a second entry for what the change ADDED that no doc describes.
 - **Gate mode for this slice.** Gate mode decides **who runs the gate and when** — nothing else. The DEFAULT: the implementer runs only the scoped check, pushes, opens a draft PR and enqueues, and a runner gates it later. Override when the slice is foundational or cross-cutting, or when there is no dispatcher to drain: then tell the implementer to run the full `gate` itself, in the foreground, **post the result as a comment on its own PR**, and NOT enqueue. Both modes end in a draft PR carrying a gate comment: whether the diff was *read* is your call.
 
   ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge or tear down.** That covers override mode and any project with no queue (`skills/execute/references/per-project-config.md`). The sequence is: implementer gates → **hands back** → you review → you merge. The verdict arrives first and is the more visible artifact, yet it says only that a gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
@@ -60,7 +60,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 ## Dispatch in the background, then monitor for divergence
 **Default to dispatching implementers in the background** (the Agent tool's `run_in_background: true`). It notifies you on completion and lets you poll live worktrees mid-flight, catching a wandering agent *before* it burns a run. That flag is NOT the banned `isolation: "worktree"`.
 
-**Poll every ~10 minutes for divergence**, self-paced with `ScheduleWakeup` (≈600s; `skills/orchestrate/SKILL.md` §2 settles that it is accepted outside `/loop` and that the tick is required). Completion arrives as a notification anyway; the tick carries two more riders: (a) whether any slice opened a draft PR and enqueued, and (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you. Each tick, snapshot what each agent is touching against its scope:
+**Poll every ~10 minutes for divergence**, self-paced with `ScheduleWakeup` (≈600s — the tool is callable right here, not confined to `/loop`, and the tick is required rather than something you reach for once something looks wrong). Completion arrives as a notification anyway; the tick carries two more riders: (a) whether any slice opened a draft PR and enqueued, and (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you. Each tick, snapshot what each agent is touching against its scope:
 
 - **Snapshot against the FORK POINT (the merge-base), never HEAD and never the integration tip.** Compute it ONCE per tick — `FP=$(git -C <wt> merge-base HEAD origin/<integration>)`, re-`fetch` first because the tip moves — then `git -C <wt> --no-pager diff --stat $FP`, plus `git -C <wt> ls-files --others --exclude-standard` for untracked. That catches committed blocks AND uncommitted work at once — needed, because implementers **commit LAST**. `git diff --stat HEAD` shows only uncommitted changes, so HEAD goes clean the moment an agent commits; `git diff origin/<integration>..HEAD` turns another PR merging under an open worktree into **phantom additions and deletions**, which has `TaskStop`ped an in-scope agent.
 - **What counts as divergence:** editing another task's or phase's **core source files** — a "types only" task editing the resolver, a backend task building UI. **What does NOT count:** compile-driven ripples from the task's own change — exhaustive `switch`/enum/config entries a new member forces, `+1`-line fixture edits across many `*.test.ts` files. Spell this line out in the wakeup prompt so the check is mechanical.
@@ -71,3 +71,79 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 - **An INFRA stall — a task FAILING with "Agent stalled: no progress for Ns (stream watchdog did not recover)" — loses nothing.** The worktree including uncommitted work persists; one resume to the SAME agent, restating the remaining finish-order, recovers it. Never a redispatch.
 
 Carry each agent's last-known on-scope file set into the next wakeup prompt, so a jump in surface area is obvious tick-over-tick.
+
+Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once your implementers have enqueued** — how the drain runs, and how you wait on your own tickets.
+
+## Draining the gate queue
+On each `ScheduleWakeup` tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims queued tickets and, for each, runs the full `gate` in that ticket's worktree **behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick re-invokes it.
+
+**A wide fan-out stays safe because the slot, not the fan-out, decides how many gates run**, and implementers never gate at all.
+
+- **Size the drain to the fan-out.** A lone slice enqueues once and hands back, and **that hand-back is a free notification** — drain on it, leaving the tick's drain to cover only an agent that dies between `enqueue` and handing back. Keep it on the tick either way, but never let it stand in for the divergence check: a tick read as "the drain timer" stops diffing worktrees.
+- **A full drain can be long** — each ticket is one serialized gate — so bound a big queue with `drain --max N` per tick and background it. **Its completion is NOT a signal about your own tickets; never wait on it**: a pass loops until the *machine-wide* queue is empty, and your own ticket may be gated by another session's runner with no completion event of yours at all. The signal that IS yours is *Wait on your own tickets settling — one Monitor over the queue's ledger* below.
+- **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains from *different* dispatchers are safe by construction, so don't coordinate, just drain. To read the queue's state rather than work it, that is `drain --status`.
+- **`--status` answers OWNERSHIP, never MOVEMENT — and on a runner scaffolded before that flag existed it does not fail, it DRAINS.** It gives queue depth, who holds the slot, and which runner claimed which ticket; for **movement**, read the gate's child processes in that worktree — a clock cannot tell a gating runner from one blocked on a slot. An older runner, scaffolded before the flag existed, passes it straight through to a drain, so **read a `--status` whose output looks like a drain as evidence that it WAS one**; the portable instrument is `ls` over `<queue-root>/<project>/queue` and `.../processing`, which claims nothing.
+- **Don't hand-run `gate` on top of a live drain** — a concurrent gate re-creates the saturation the slot prevents. Both gates a dispatcher used to launch itself are enqueued now (*Gate the integrated whole*). ⚠️ **Except on a runner predating the PR-less ticket, which refuses it** (*Gate the integrated whole* → *A runner scaffolded before the PR-less ticket REJECTS it*): the mid-arc gate is hand-run there, so run it when nothing is draining — established by **reading the queue directory**, never `--status`, itself a drain on that vintage.
+- **A worktree whose ticket has not SETTLED is FROZEN — don't mutate it, don't remove it. The test is the ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running.** A claim is an atomic rename landing between your check and your agent's first edit, and **queued-and-unclaimed is the NORMAL state**, where a slice sits the moment its implementer hands back — so checking `processing/` is not checking anything. A tree changed mid-gate is judged against a HEAD no gate saw, under a SHA that may still match the PR's. Wait for the verdict comment, either direction, or the ticket's arrival in `done/` when there is no PR.
+- **A red ticket is dispatcher feedback, not lost work.** The PR stays draft with the failure commented: read it and dispatch a fix agent into that same worktree, which re-pushes and re-enqueues — safe precisely because the ticket has resolved.
+- **A REFUSED ticket means nothing was gated** — the runner found uncommitted tracked changes in that worktree and settled without gating, rather than judge a tree no commit holds. It is not a red: there is no failure in the diff to fix and no fix agent to dispatch. Find what left the tree dirty, get that work committed and pushed or reverted, and re-enqueue; a still-dirty tree only earns a second refusal.
+- **A PR with NO gate comment has not been gated — never treat it as red.** A pass comment is green, a failure comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before posting it reconciles undelivered ones before claiming anything, so **run the drain and look again**; still bare after that, re-enqueue.
+- **Reconcile the local integration branch on every tick.** A dropped sync leaves it behind the remote and the next worktree forks off a stale HEAD. One anchored fast-forward, idempotent and near-instant: `git -C <main-checkout> fetch origin && git -C <main-checkout> pull --prune --ff-only`.
+- **Sweep for outstanding parked work on the same tick — both places it can be**, the named ref first since it is authoritative:
+  ```sh
+  git for-each-ref --format='%(refname) %(contents:subject)' refs/pipeline-stash
+  git stash list --format='%gd %gs' | grep -F 'pipeline-stash/'
+  ```
+  **Run either against the main checkout and it covers every live worktree at once**: both namespaces live in the repo's common gitdir, not in a tree (*Hard rules* has the park/restore commands and the marker format). While agents are live a hit is context for the divergence check. **When the fleet is quiet a hit is a defect to chase, not noise** — an implementer ended its turn with work its teardown will not carry.
+- **Running an epic branch? Merge the integration branch into it on this same tick, in the epic's own worktree.** Nothing to do when there is none. When there is one:
+  ```
+  git -C <epic-worktree> fetch origin
+  git -C <epic-worktree> merge origin/<integration-branch>
+  git -C <epic-worktree> push origin <epic-branch>
+  ( cd <epic-worktree> && <install> )
+  ```
+  Merge, never rebase — the mandatory mitigation for the epic branch's deferred, concentrated conflicts (*The epic branch*), cheap only while the slice authors are live to resolve them. **The push is what puts the merged base where the slice worktrees fetch it from.** Resolve a conflict, commit, and push before you walk away.
+
+  **That fourth line is the project's own `install` (*Per-project config*), and it runs UNCONDITIONALLY** — a no-op where a project declares none. The epic worktree's dependencies fall behind the branch it holds, and the gate then reds on module resolution with no code defect. **Never condition it on the cadence merge's own diff**: a new package arrives through a *slice close-out*, whose fast-forward here sets `ORIG_HEAD` too. **The frozen rule above defers it**, since an install rewrites dependencies wholesale: a tree with an outstanding ticket installs next tick.
+
+## Wait on your own tickets settling — one Monitor over the queue's ledger
+The signal that belongs to you is **one persistent `Monitor`, armed once per wave, polling the gate queue's `done/` ledger and emitting one line per settlement belonging to that wave.** Arm it in the same breath as the dispatch, beside the divergence tick.
+
+**The wave is the unit — not the ticket.** A fix agent re-pushes and **re-enqueues**, so anything keyed to the tickets live at arm time is stale the moment the wave moves. Key on the wave's **branches**, the set the divergence tick already carries, and every re-enqueue is covered for free.
+
+**Scope on the fields the ticket is guaranteed to carry, and emit on SETTLED rather than on a verdict.** A ticket carries `{ branch, worktreePath, mode }`, plus `prNumber`/`prUrl` only where the gated tree has a PR; the verdict facts on it are spelled as each runner picks. Read `branch`, plus `prNumber` for the handle it prints, and nothing else: a watch that never fires is indistinguishable from a wave that has not settled.
+
+**Watch the ledger, not the PR.** A correct runner records the verdict on the ticket *before* it attempts to post, so a failed post leaves a settled ticket whose comment never landed. A watch on the comment sleeps through that; one on the ledger wakes on it, and waking is what runs the reconciling drain. *A PR with NO gate comment has not been gated* is the reading to apply once awake.
+
+**The shape** — poll the ledger, remember what you reported, print one line per new arrival in the wave:
+
+```sh
+DONE="<queue-root>/<project>/done"        # the queue's settled-ticket ledger
+SEEN=$(mktemp)                            # one ticket path per line
+find "$DONE" -name '*.json.*' > "$SEEN"   # prime: what is there is history
+while true; do
+  find "$DONE" -name '*.json.*' | while IFS= read -r t; do
+    if grep -qxF "$t" "$SEEN"; then continue; fi
+    b=$(jq -r '.branch' "$t" 2>/dev/null)   # unreadable now; retried next pass
+    if [ -z "$b" ]; then continue; fi
+    echo "$t" >> "$SEEN"
+    case "$b" in
+      feat/slice-a|feat/slice-b)            # this wave's branches, as enqueued
+        echo "settled: $b  PR $(jq -r '.prNumber // "none"' "$t")" ;;
+    esac
+  done
+  sleep 5
+done
+```
+
+Two things in that shape fail at arm time in **zsh**, the shell a `Monitor` runs in on macOS, leaving a dead watch indistinguishable from a quiet queue. **The seen set is a FILE, never a shell string the loop appends to**: a `[` right after a parameter expansion opens an array subscript, so a string accumulator has the shell evaluate a ticket path as a math expression — and a file survives the pipe's subshell, where a variable's writes would not. **Enumerate with `find`, never a bare glob**: zsh's `nomatch` makes an unmatched `"$DONE"/*.json.*` fatal, killing a watch armed while `done/` is empty.
+
+**Prime the seen set before the loop**: `done/` is a durable ledger, and an unprimed watch replays the whole archive as this wave's news. **Dedupe on the ticket file, never on the branch**: a branch that goes red, takes a fix and re-enqueues settles twice, and the second is what you want. (Read the JSON, not the filename — the claim suffix is a runner's PID.) And **read the ticket before you mark it seen**, since one caught mid-write is unreadable for a pass and marking it first retires it unreported.
+
+**A few seconds is the right interval, and it is not the tick's question**: each poll is a directory listing plus a small JSON read, where the ~10-minute cadence in *Dispatch in the background, then monitor for divergence* is for reading **worktrees**. **Do not put this on that tick or give it that period.**
+
+**Silence from this watch means nothing settled — never that the wave is healthy.** It fires on arrival in `done/` in both directions, since a red settles exactly as a green does. What it cannot see is a ticket that never settles: **a runner that dies mid-gate has its ticket reclaimed back to `queue/` and re-gated later** — not a settlement, so no event. It is a wake-up, not a liveness check: the divergence tick notices a wave that stopped moving, and the queue directory says where a ticket is.
+
+**⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer section's *Never background a check and end your turn on it* by nothing. An implementer has a **durable handoff**, push → draft PR → enqueue, so the wait is unnecessary there and the ticket is by design somebody else's to watch; a dispatcher has no handoff to end on and holds the merge decision the settlement feeds.
+
+**Tear it down at close-out with `TaskStop`.** The queue cannot tell you when your wave is over: a red settles too, and the wave ends when you merge, which nothing on disk can see. So the watch has no exit condition of its own and `persistent: true` is right. One left armed past its wave goes quiet, indistinguishable from a wave with nothing settling.

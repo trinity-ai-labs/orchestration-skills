@@ -9,7 +9,7 @@ Reference for Step 3 of `/pipeline:setup`. Author it *into the project* — the 
 | Script | Role |
 |---|---|
 | `enqueue-gate.mjs` | Drops a durable ticket for one gate — an implementer's, after it opens its draft PR, or a dispatcher's on a tree with no PR |
-| `gate-runner.mjs` | A one-shot drain pass: claim → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
+| `gate-runner.mjs` | A one-shot drain pass: claim → check the tree → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
 | `gate-slot.mjs` | A machine-wide mutex so only one heavy gate runs at a time |
 
 Wire them up as `gate:enqueue`, `gate:drain`, and (wrapping the gate) `gate`.
@@ -35,13 +35,13 @@ Per-user, under the user's home, shared across the project's worktrees:
 
 **`mode` is a property of the ticket, set at enqueue — never inferred from the branch name**, or a rename silently changes how a PR is gated.
 
-**`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the dispatcher's mid-arc integration gate (`skills/execute/references/integration-gate.md`), on a merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields leave that gate hand-run and unrecorded.
+**`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the dispatcher's mid-arc integration gate, on a merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields leave that gate hand-run and unrecorded.
 
 **Record the absence at enqueue as a fact ON the ticket — undeliverable by construction, never inferred from two missing fields.** Invariant 8's prune and *Reporting* both have to distinguish a ticket nobody will ever report from one whose report failed. It is not a fourth state: modelled as *delivery pending, forever* it fills the flagged pile with escalations nobody can act on.
 
-**A runner scaffolded before this change must REJECT a PR-less enqueue and exit non-zero naming the missing fields.** This design is scaffolded into a project and evolves there, so a field becoming optional does not reach runners already deployed; accepting one silently spends a full serialized gate and files the result as a delivery failure only a human can clear. The fallback is then a hand-run gate, sanctioned at `skills/execute/references/integration-gate.md`'s *A runner scaffolded before the PR-less ticket REJECTS it*.
+**A runner scaffolded before this change must REJECT a PR-less enqueue and exit non-zero naming the missing fields.** This design is scaffolded into a project and evolves there, so a field becoming optional does not reach runners already deployed; accepting one silently spends a full serialized gate and files the result as a delivery failure only a human can clear. The fallback is then a hand-run gate on the dispatcher's side, whose verdict survives only as an exit status in one terminal — which is what the optional fields exist to avoid.
 
-**A consumer scopes on `branch` and treats `prNumber` as absent** — the PR fields are not on every ticket, so keying on one silently drops PR-less tickets. `skills/execute/references/draining-the-gate.md`'s *Wait on your own tickets settling — one Monitor over the queue's ledger* is that consumer, and needs `branch` as its fallback handle.
+**A consumer scopes on `branch` and treats `prNumber` as absent** — the PR fields are not on every ticket, so keying on one silently drops PR-less tickets. The dispatcher's ledger watch is that consumer, and needs `branch` as its fallback handle.
 
 ## The invariants that make it correct
 
@@ -61,7 +61,7 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 
 **7. The report is a state transition too — a ticket is not done until its verdict is delivered.** The other invariants survive a process dying; this one survives the network — so record the verdict on the ticket *before* attempting to report it, so a failed post is a reconciliation problem, not an amnesia one (*Reporting*).
 
-It also makes `done/` the one place a **waiter** can watch: the verdict is on the ticket before the rename into it, so a dispatcher watches the ledger, not the PR, where the verdict arrives later and on a failed post not at all (`skills/execute/references/draining-the-gate.md`'s *Wait on your own tickets settling*).
+It also makes `done/` the one place a **waiter** can watch: the verdict is on the ticket before the rename into it, so a dispatcher watches the ledger, not the PR, where the verdict arrives later and on a failed post not at all.
 
 **8. Prune a ticket only when its verdict was delivered.** The ledger would otherwise grow unboundedly, but the bound is delivery, not age: a ticket flagged for a human — retries exhausted, or the head moved off the gated SHA (*Reporting*) — holds a verdict nobody has seen. `reported` alone inverts it, since an abandoned ticket keeps `reported: false` forever, so age plus "not reported" deletes exactly the escalated records whose on-disk copy is the only one. The predicate is `delivered && older than the retention window`; anything flagged stays until a human resolves it, so a just-settled ticket is still there when a waiter wakes.
 
@@ -77,13 +77,19 @@ Put the prune on the reconcile walk, which already reads every ticket in `done/`
 
 **A runner blocked on a held slot WAITS.** The queue is machine-wide, so the holder is routinely another session's runner; refusing would also decide off a PID liveness check inside the window invariant 4 documents as wrong. A wrong refusal drops a drain, where a wrong wait costs a sleeping process.
 
+**10. Refuse to gate a worktree carrying uncommitted tracked changes.** After the claim and *before* acquiring the slot, run `git status --porcelain` in the ticket's `worktreePath`; where any tracked path is modified, staged or deleted, settle the ticket **refused** — the reason, the count, and the head SHA it found — and run no gate. Untracked files alone are not the signal, a build artefact not being an edit. A gate there judges a tree no commit holds, under a SHA that may still match the PR's, so its verdict is indistinguishable from one about the pushed diff. Refusing before the slot also keeps a moving tree from spending a serialized gate.
+
+**Refused is a third outcome, not a red**, because the two say different things to the dispatcher reading them: red is feedback about the diff and is answered by dispatching a fix agent, where refused says nothing was gated and the tree moved under the ticket, and is answered by committing or reverting that tree and re-enqueueing. A refusal carries no failing tail — no gate ran to produce one.
+
+**A refusal is a verdict, so invariant 7 binds it unchanged: it is not done until it is delivered.** Comment it on the PR like any other and leave the PR draft. Settling it silently leaves the PR bare instead, and **a PR carrying no gate comment has not been gated** — which sends a dispatcher to re-enqueue a tree that is still dirty, one refusal per pass. On a PR-less ticket it is delivered the moment it settles, as any PR-less ticket is (invariant 8). The head SHA it recorded is also what *Reporting*'s moved-off-SHA rule reads for it, no SHA having been gated.
+
 ## The worktree is frozen from enqueue until the ticket settles
 
 The runner gates *inside the ticket's worktree*, so mutating that tree mid-gate makes the verdict meaningless — the gate tests a tree that no longer exists, and its comment is what a dispatcher reads before merging. Don't edit, and don't remove, a worktree whose ticket is in `queue/` or `processing/`; document this where the project's contributors will see it.
 
 ## Reporting
 
-**The verdict is a PR comment, in both directions, and the PR stays draft either way.** Green posts a passing comment; red posts the failing tail. Where the ticket has a PR that comment is the only channel, and the queue never touches the draft flag — which is what makes **a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
+**The verdict is a PR comment whichever way it went, and the PR stays draft.** Green posts a passing comment, red the failing tail, and a refusal the reason nothing was gated, plus the head SHA. Where the ticket has a PR that comment is the only channel, and the queue never touches the draft flag — which is what makes **a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
 
 **Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** The report is the one step depending on a machine you do not control. It also keeps apart states that must stay distinguishable: "in `done/`, no comment" is produced by a failed post, by a gate skipped because its worktree had vanished, by an exception mid-pass, and — benignly — by a PR-less ticket. Only the enqueue-time undeliverable flag tells the last from the first; on GitHub they look identical.
 

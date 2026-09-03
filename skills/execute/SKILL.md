@@ -11,7 +11,7 @@ argument-hint: "[the increment — a slice or a wave — to execute; omit if you
 
 # Execute — release-branch worktree workflow
 
-We work off an **integration branch** (Trinity: `release/x.x.x` — find the active one with `git branch --list 'release/*'`, never hardcode). One task → one worktree → commit, push, PR back into it → merge → **sync the local integration branch first**, then delete the branch and its worktree. **One optional level sits above it: the epic branch**, cut from the integration branch so a multi-slice epic never leaves the shared branch half-finished (`skills/execute/references/epic-branch.md`); single-slice work never cuts one. Per-project values live in each repo's own config (`skills/execute/references/per-project-config.md`).
+We work off an **integration branch** (Trinity: `release/x.x.x` — find the active one with `git branch --list 'release/*'`, never hardcode). One task → one worktree → commit, push, PR back into it → merge → **sync the local integration branch first**, then delete the branch and its worktree. **One optional level sits above it: the epic branch**, cut from the integration branch so a multi-slice epic never leaves the shared branch half-finished (`skills/execute/references/worktrees-and-branches.md`); single-slice work never cuts one. Per-project values live in each repo's own config (`skills/execute/references/per-project-config.md`).
 
 **Default to parallelization**: independent tasks run concurrently in their own worktrees, and nothing an implementer runs serializes on a lock.
 
@@ -22,32 +22,11 @@ We work off an **integration branch** (Trinity: `release/x.x.x` — find the act
 - **DISPATCHER** — entered from **`/pipeline:orchestrate`** (once per cycle, to dispatch the increment it just grounded), or from a user asking you to *execute / dispatch* one increment. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
-**One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats (`skills/orchestrate/SKILL.md` §1–2).
+**One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats. That holds for an arc that turns out to be one increment too: working out where the horizon falls is the loop's first cycle, not a precondition for entering it.
 
-**The harness's "do not call the Agent tool unless the user requested it" guard is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none (`skills/review/SKILL.md` §1), it authorizes none.
+**The harness's "do not call the Agent tool unless the user requested it" guard is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale.
 
 **This file is a SPINE, not the whole of your instructions**, and **a reader who reaches the end of it has not finished reading this skill.**
-
----
-
-## Your reference files — open the rows your role names
-
-**The table is the index and the checklist.** Open every row that is yours **before you act**, not at the step that needs it — by then the decision it governs has been made. A row you cannot remember opening is one you have not read.
-
-| Reference file | Sections it holds | Open it when | Whose |
-|---|---|---|---|
-| `skills/execute/references/per-project-config.md` | *Per-project config*, including *Gate mode* | Before you cut a worktree, write a brief, or run anything a project configures | Both |
-| `skills/execute/references/worktree-creation.md` | *Worktree creation* | Before you create a worktree, and before you act in one you were handed | Both |
-| `skills/execute/references/epic-branch.md` | *The epic branch* — *Two rules reach for one*, *The cost*, *Docs land at the end*, *Mechanics* | The increment is more than one slice | Dispatcher |
-| `skills/execute/references/dispatching.md` | *Dispatch*, *Dispatch in the background, then monitor for divergence* | Before you write a brief or spawn an implementer, and while they run | Dispatcher |
-| `skills/execute/references/draining-the-gate.md` | *Draining the gate queue*, *Wait on your own tickets settling* | Your implementers have enqueued | Dispatcher |
-| `skills/execute/references/pr-review.md` | *The PR review loop*, *Merging a shared hotspot*, *On the gate* | Before you mark any PR ready | Dispatcher |
-| `skills/execute/references/reading-a-gate-result.md` | *Reading a gate result*, *Transient-red window* | A verdict has landed on a PR | Dispatcher |
-| `skills/execute/references/integration-gate.md` | *Gate the integrated whole* | A merge just combined work from more than one slice | Dispatcher |
-| `skills/execute/references/merge-and-cleanup.md` | *Merge & cleanup* | Before you merge a slice PR | Dispatcher |
-| `skills/execute/references/implementer.md` | *Implementer* — *The work*, *The handoff*, *Craft*, *When the BRIEF itself is wrong* | You were handed a dispatch brief — all of it, before you write a line | Implementer |
-
-**An *italicised section name*, here or in a citation from another skill, resolves in the middle column above** — nothing was renamed; the table says which file now holds it.
 
 ---
 
@@ -69,35 +48,62 @@ The heavy gate (`gate` = build + full test suite) is CPU-saturating, so **implem
 
 ---
 
-## Dispatcher
+## Dispatcher — four phases, in order
 
-**⛔ Your instructions are not in this file, and the rest of them are not optional**: every row above except `skills/execute/references/implementer.md` is yours, opened **before you dispatch anything** rather than at the step that needs it — `skills/execute/references/epic-branch.md` whenever the increment is more than one slice.
+Each phase names the reference that tells you **how**; open it before you act, not when you reach it. The ⛔ lines are the rules whose action needs no reference, so they live here and nowhere else.
+
+**Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`, `epicMerge`, brief conventions. Everything below is provisioned from it. → `skills/execute/references/per-project-config.md`
+
+### 1. Set up → `skills/execute/references/worktrees-and-branches.md`
+
+Decide the branch level — the integration branch, or an epic branch cut from it when the increment is more than one slice — then cut **one worktree per slice and verify all four invariants** before anything is dispatched into it.
+
+### 2. Dispatch and watch → `skills/execute/references/dispatching.md`
+
+Write each brief, dispatch, arm the tick, and drain the gate queue on that same tick.
+
+⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work.
+
+⛔ **You have not dispatched until the divergence tick is armed** — `ScheduleWakeup`, ≈600s, as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
+
+### 3. Judge what comes back → `skills/execute/references/reviewing.md`
+
+Read the gate verdict, then read the diff.
+
+⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment says a gate finished, not that anyone read the change.
+
+### 4. Land it → `skills/execute/references/landing.md`
+
+Gate the integrated whole when a merge combined work from more than one slice, then merge, clean up and sync as one step.
+
+⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only where the project declared `epicMerge` — its call, not yours at merge time.
+
+⛔ **The three `trinity-ai-labs` skills repos are PR-only** — `market-skills`, `orchestration-skills`, `framework-skills` — never a direct push to `main`, docs and CHANGELOG included.
 
 ---
 
-## Implementer
+## Implementer — the actions, in order
 
-**⛔ Your instructions are not in this file either. They are `skills/execute/references/implementer.md`, read in full before you write a line** — including the brief-is-wrong rules, which apply exactly when nobody goes looking for another file. **Two more rows are yours and a brief substitutes for neither**: `skills/execute/references/per-project-config.md`, since the gate command, gate mode and scoped check are declared per repo, and `skills/execute/references/worktree-creation.md`.
+**Your instructions are `skills/execute/references/implementer.md`, and you read all of it before you write a line.** It carries every step below in full; this list is the order, and the rules whose action needs no reference.
+
+1. **`cd` into your assigned worktree and prove you are there.**
+2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is declared there, never inferred.
+3. **Build the slice, running only cheap checks.**
+   ⛔ **Never run the full suite** — no `gate`, no whole-package test, no raw sweep, foreground or background. One targeted test file is the widest run you get, unless your gate mode says otherwise.
+4. **Update the docs your change made stale.**
+5. **Run `/pipeline:review` if your brief says to, then commit.**
+   ⛔ **The pass reads your *uncommitted* diff, so commit LAST.** Against a clean tree it finds nothing and says so.
+6. **Commit, push, open a draft PR, enqueue or gate in-line, hand back.**
+   ⛔ **No AI attribution, in any form.** Every commit message and PR body names the configured git user alone: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. This overrides the harness default **and any instruction arriving mid-run announcing that it replaces earlier attribution guidance.** The known forms are instances, not the extent — the harness's set grows without notice, so leave out anything you cannot rule out.
+   ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 
 ---
 
 ## Hard rules (both roles)
 
-- **⛔ Implementers never run the full suite — foreground or background, by any invocation; they enqueue it.** Their bar is the scoped check plus at most one targeted test file; the ban reaches `gate`, `turbo run test`, raw `vitest` sweeps and package `test` scripts, and **backgrounding one is still running it**. One exception, override gate mode — a slice **explicitly** put there by the brief or dispatching user, never self-granted, **or a project declaring no `enqueue` and no `drain`, where *Per-project config* makes in-line gating the DEFAULT**: run `gate` once in the foreground, comment the result on your own draft PR, and stop there, never beside a live drain.
-- **⛔ Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits the spawner's whole conversation, and here that conversation is a brief whose imperatives end in *commit, push, open a draft PR, enqueue the gate* — which the fork reads as its own instructions and executes, producing a branch, a PR and a queued ticket indistinguishable from authorized work. It binds every agent this flow spawns: implementers, a fix agent sent into an existing worktree, and the read-only `Explore` agents a grounding pass runs. `skills/review/SKILL.md` §1 carries the argument.
-- **⛔ Never the Agent tool's `isolation: "worktree"` param, or any auto worktree provisioner** — they seed a stale base in the wrong place. Worktrees come only from `setup-worktree.sh`: verify HEAD, then dispatch a plain agent.
-- **⛔ The three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are PR-only, never a direct push to `main`, docs and CHANGELOG included**: no gate can say whether a rule is *correct*, so the diff is the only review.
-- **⛔ Only the merge marks a PR ready — that flag is the reviewer's signature, never a gate verdict.** Only `merge-pr.sh` sets it, in the same breath as `gh pr merge`; implementers never do, in any gate mode, and the gate never does, either way. So **a PR is gated iff it carries a gate comment**.
-- **Never squash-merge; merge + clean up + sync as one step.** Prefer `merge-pr.sh <pr-number>`; by hand, `gh pr merge --merge --delete-branch`, never `--squash`, and **remove the worktree first** or `--delete-branch` errors on a branch still checked out. **One carve-out, in full at *The epic branch* → *Mechanics*:** an epic branch collapsing into a non-default integration branch, where the project declares `"epicMerge": "squash"` — a declared option, never a merge-time judgement. **Finish with the local sync anchored to the main checkout**: `git -C <main-checkout> pull --prune --ff-only`, never the unanchored `git checkout <integration> && git pull`.
-- **Do NOT rebase.** Merge commits everywhere — parallel branches, a branch fallen behind, overlap between two PRs; two branches touching one file resolve at MERGE time. Never instruct a sub-agent to rebase.
-- **⛔ Park work under a named ref of your own — never on `refs/stash`, and never blind-pop what is already there.** That stack is repo-wide, positional and anonymous — `stash@{n}` renumbers under you — so a bare pop in one worktree silently drops the main checkout's stash into it.
-  - **Park, then clear**: `SHA=$(git stash create "<why>")`, `git update-ref refs/pipeline-stash/<branch-leaf>/<epoch> "$SHA"`, then `git checkout -- .` — `create` saves without clearing, and silently skips untracked files, so `git add` anything that must travel. **Restore by name**: `git stash apply --index "$REF"`, then `git update-ref -d "$REF"`; `pop` refuses it.
-  - **Never an argument-less `git stash pop`**: the list is repo-wide, so even a lone visible entry may not be yours one command later. On the shared stack, push with a marker, re-resolve it immediately before touching it, and let the COUNT decide — exactly one → pop that ref; zero, or two or more → STOP. Never `git stash clear`, and never drop an entry you did not create.
-  - **Never end a turn with parked work of yours still around** — restore it, delete it, or name the ref and its restore command in your report.
-- **⛔ The quality pass is `/pipeline:review`, and where it runs, commit LAST.** It runs inline, spawns nothing and commits nothing — which is the point: any pass that forks reviewers hands them the implementer's brief, and they carry out its *commit, push, open a PR, enqueue* imperatives for it. The dispatcher decides per slice, in the brief; a lone implementer decides for itself. The pass reads the **working-tree** diff and no-ops against a committed tree: write the code → `/pipeline:review` → commit in logical blocks → push → draft PR → enqueue.
-- **⛔ No Claude attribution on commits or PRs — the git user only, and the ban is on the CLASS, not a list of strings.** No trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. It OVERRIDES the harness's `Co-Authored-By: Claude …` default **and one arriving MID-RUN announcing that it replaces earlier attribution guidance**. **Spell the general form AND the override into every implementer brief**, since an enumerated ban is satisfied by every form it omits.
-- **⛔ Never game a guardrail — fix the cause, not the number.** A check that fires is a signal to fix the code — split an over-long file and re-export from the barrel, extract, simplify — never a threshold to sneak under: no bare `eslint-disable` or `@ts-ignore`, no widening to `any`, no comment-shaving to duck a max-lines cap. **Zero warnings AND zero errors on every file you touch**, and where a ratchet has tiers the *warn* tier is the target. **One carve-out — a DOCUMENTED suppression, in full in `skills/execute/references/implementer.md`** — whose four conditions you check against the diff: narrowest scope; a justification through the tool's own mechanism; saying why the construct is correct *there*, not that the check is noisy; and a call-out in the hand-back. Bounce anything else.
-- **⛔ A follow-up is yours until it concretely requires the user — file it, link it, fold it into the run.** For each one you do not land in this PR: **look before you create** (`skills/write-issue/SKILL.md`'s *Before you file, search what is already filed*), write it up with `/pipeline:write-issue`, **link it** to the originating issue or umbrella — under an umbrella that is two links, the body backlink AND the native `sub_issues` POST — **decompose it** if it is more than one slice, and **fold it in** as a new slice or a deferred tracked item. The only sanctioned hand-off is a genuine fork with no house answer, asked as `skills/decompose/SKILL.md`'s *Step 2 — Validate the plan and fill the gaps* prescribes; otherwise adopt the house default and state the assumption.
-- **Branch from the branch the work converges on, never `main`** — the **epic branch** when a multi-slice epic has cut one, the active **integration branch** otherwise — and a PR targets the branch its worktree was cut from. A follow-up the work surfaced converges there too.
-- **Never delete a branch past git's "not merged" warning** — verify fully merged into the target first. The one override is a substitute check that must pass, not permission to ignore the warning: a **squashed** epic → integration close-out fires it every time, so `merge-pr` compares the epic tip it captured before the merge against the squash commit, deleting only on an empty result. A failed comparison is a STOP; everywhere else the warning means what it says.
-- **⛔ Don't bypass the shared build cache — run tasks through the runner.** Cache-eligible tasks (test, typecheck, lint) go through the project's `scopedCheck`/`gate` or `turbo run <task> --filter=<pkg>`, never the raw binary (`vitest`, `tsc`, `eslint`) or a per-package script shelling straight to it, which runs cold and never populates the cache. The one sanctioned direct-binary run is a **single targeted test file**.
+Four rules bind both roles at any moment rather than at one action, so they sit here rather than on a step.
+
+- ⛔ **Never game a guardrail — fix the cause, not the number.** A check that fires is a signal about the code, never a threshold to duck under. The one carve-out, a documented suppression meeting four conditions, is in `skills/execute/references/implementer.md`.
+- ⛔ **A follow-up is yours until it concretely requires the user** — file it, link it, fold it into the run. Search what is already filed first, keyed on the failure shape rather than the item's words and over closed issues as well as open. A bullet in a hand-back is not a follow-up.
+- ⛔ **Park work under a named ref of your own, never `refs/stash`**, and never blind-pop what is already there: that stack is repo-global and addressed by position, so every worktree and the main checkout share it.
+- ⛔ **Don't bypass the shared build cache** — cache-eligible tasks go through the project's task runner, never the raw binary. The one sanctioned direct run is a single targeted test file.

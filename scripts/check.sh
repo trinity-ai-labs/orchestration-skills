@@ -11,255 +11,27 @@
 # required one would be a gate nobody could run before pushing.
 #
 # What it enforces, and the failure each rule prevents:
-#   1. Every shell script passes shellcheck at the dialect its own shebang
-#      declares. bin/ ships and lands on a user's PATH, so a bashism there is a
-#      runtime failure discovered at the moment of use. Reading the shebang
-#      keeps this correct if a script ever legitimately needs bash — the shebang
-#      is the contract, and this checks whatever it declares.
-#   2. .claude-plugin/plugin.json parses and carries what Claude Code needs —
-#      plus what the SKILLS need, which is not the same set. `claude plugin
-#      validate --strict` is the authoritative check and the one the
-#      community-marketplace review runs, but it needs the CLI installed and is
-#      not reproducible on a bare runner. This covers the failure modes that
-#      actually break a published plugin: unparseable JSON, a missing name, and
-#      the `author` field whose absence makes --strict fail at submission time.
-#      It also covers `repository`, which the loader does not need at all — see
-#      the field list below for why it is required here anyway.
-#      The catalogue that lists this plugin lives in trinity-ai-labs/claude-plugins
-#      and is validated there — this repo ships a plugin, not a marketplace.
-#   3. Every skill has the frontmatter Claude Code needs, with `name` matching
-#      its directory. A skill missing `name` or `description` silently fails to
-#      load, and a mismatched `name` registers the slash-command under the wrong
-#      word.
-#   4. No skill prescribes `gh api -f` with an `@file` value. `-f`/`--raw-field`
-#      sends its value verbatim; only `-F`/`--field` expands a leading `@` into
-#      the file's contents. A skill documenting `gh api … -f body=@file` teaches
-#      the agent to publish the literal path instead of the issue body — and `gh`
-#      exits 0 with a comment URL, so neither the agent nor anything downstream
-#      notices. Only a human opening the issue sees it.
-#      Anchored on `gh api` so that prose QUOTING the wrong flag to warn against
-#      it stays legal — the warning bullets in write-issue and decompose have to
-#      name `-f body=@file` to be about it, and a guard that cannot tell a
-#      prescription from a warning would force the next author to delete the
-#      warning to get green.
-#   5. examples/worktree.json parses AND the real reader agrees with it.
-#      setup-worktree.sh reads envFiles/env/install out of a project's
-#      .agents/worktree.json; if the example drifts from that shape, every repo
-#      copied from it gets a bare worktree with no env and no node_modules.
-#   6. Every bin/*.ps1 lints under PSScriptAnalyzer. bin/ ships on a user's PATH
-#      inside whichever shell Claude Code hands them, so a defect in a .ps1 is a
-#      runtime failure on a Windows user's machine at the moment of use, exactly
-#      as a bashism in a .sh is. This is the one check here that needs a tool the
-#      repo does not require, so it reports SKIPPED — never ok — when pwsh or the
-#      module is absent: a check that could not run has nothing to say, and green
-#      for it is a claim CI later contradicts.
-#   7. bin/ ships the same helper in BOTH shells, and the two agree: every
-#      bin/<name>.sh has a bin/<name>.ps1 sibling and vice versa, their usage
-#      lines carry the same argument spec, they consume the same CONTRACT
-#      environment variables (the ones a caller passes, which AGENTS.md freezes —
-#      not every variable each side internally touches, since the bash helpers
-#      need MSYS path-translation plumbing that has no PowerShell counterpart),
-#      and every .ps1 is printable ASCII terminated by LF.
-#      Two failures, both silent. A helper that exists in only one language works
-#      for part of the userbase and is simply missing for the rest, with no error
-#      until someone on the other shell finds nothing on PATH. And a non-ASCII
-#      byte in a .ps1 corrupts under Windows PowerShell 5.1, which decodes a
-#      BOM-less file as the system ANSI codepage — surfacing as a parse error
-#      nowhere near the character that caused it. AGENTS.md states both rules;
-#      only this check enforces them, because prose does not stop two
-#      hand-maintained copies of the same logic from drifting apart, it only
-#      makes the drift someone's fault after the fact.
-#      It also asserts one thing about each sibling ALONE, which the comparison
-#      cannot: a helper that consumes WORKTREE_HOME reads
-#      .agents/workspace.json. Comparing siblings is structurally blind to a
-#      SHARED omission — two ports that are identically wrong agree with each
-#      other perfectly — and that is exactly how remove-worktree shipped with no
-#      workspace branch in either language, resolving a path that never exists
-#      for every workspace member, printing "already removed" and exiting 0.
-#      A repo inside a workspace keeps its worktrees at
-#      $WORKTREE_HOME/<workspace>/<leaf>/<repo> rather than the bare
-#      $WORKTREE_HOME/<project>/<leaf>, so a helper that resolves paths under
-#      that home and never looks at the marker knows only half the layouts.
-#      This stays at the altitude the rest of 7 works at — a token in the
-#      comment-stripped source, exactly like the env-var scan — and it makes no
-#      claim that the branch it finds is CORRECT, only that the question was
-#      asked. That is the honest ceiling here: whether a workspace path is
-#      assembled right is semantics, and a checker that judged it would be a
-#      second implementation of the thing it checks.
-#   8. Every path under skills/ ending in .md that a tracked *.md cites resolves
-#      in the tree. The skills point at each other constantly instead of
-#      restating each other — two copies of a rule drift and nothing marks which
-#      one is stale — so a rename or a deletion leaves a citation pointing at
-#      nothing, and a dead path reads exactly as authoritative as a live one.
-#      Observed: a dispatch instruction named the wrong skill, survived a rename
-#      that swapped two skills' names wholesale, read perfectly across seven
-#      releases, and reached two live briefs. Scoped to git-tracked files, so an
-#      untracked scratch note or a gate log left in a worktree cannot turn the
-#      gate red.
-#      It follows the CORPUS rather than enumerating one filename. Scoped to
-#      SKILL.md — which is what shipped first — it missed a reference doc cited
-#      by path, skills/setup/references/gate-queue.md, which is the same
-#      coordinate with the same failure mode and was uncovered while the check
-#      read as complete. The character class admits the nested segment instead,
-#      so a reference doc added tomorrow is covered the day it is cited rather
-#      than the day someone remembers to widen a filename list.
-#      The citation shape stays PATH-shaped, and that is the boundary that keeps
-#      this check quiet: the pattern is anchored on skills/, so every match names
-#      a directory. A BARE filename is deliberately unreachable — this corpus
-#      writes README.md and AGENTS.md in running prose constantly, naming no
-#      directory and usually not even this repo, so a pattern over those would
-#      red the gate on every other project's README mentioned in passing. That
-#      is the noisy-check failure below, arriving through the widening instead of
-#      through italics.
-#      One false positive the nesting does admit, named here so a red on it is a
-#      diagnosis rather than a mystery: the match is unanchored on its LEFT, and
-#      every sibling repo is named <something>-skills, so a URL of the form
-#      github.com/<org>/<x>-skills/blob/main/<doc>.md matches from its own
-#      "skills/" onward and reports skills/blob/main/<doc>.md as dangling. No
-#      tracked doc carries one today, and the remedy is the house style anyway —
-#      a doc in THIS repo is cited by repo-relative path, which is the form this
-#      check exists to keep alive. A left-boundary guard was considered and
-#      rejected: it costs a second grep stage plus a boundary character class
-#      whose every member is a judgement call, to buy a case that has not
-#      occurred and that names itself in the failure output when it does.
-#      What it does NOT reach, deliberately: only the file-path form. A citation
-#      by prose phrase (decompose's Verify field cites "per execute's own note on
-#      backgrounding a banned run") and a count duplicated across two sentences
-#      ("five items" against "one of the four") go stale identically and are
-#      invisible here. Neither is mechanically checkable in this corpus: italics
-#      carry emphasis throughout, not just around section names, so a pattern
-#      over them is mostly false positives, and a noisy check is one the next
-#      author routes around. Both keep the prose rules already pointed at them.
-#      The line drawn is the corpus's own — if a checker can tell the reference
-#      is stale without reading the sentence, it is a coordinate.
-#      Unlike 4 there is no anchor separating a citation from prose SHOWING a
-#      dead path, because a dead path is a dead path either way. A doc that needs
-#      to display one writes it in the placeholder form the corpus already uses
-#      (this comment, or README.md's skills/<slug>/SKILL.md): angle brackets are
-#      not a path component, so the pattern does not match and nothing has to be
-#      suppressed. The widening preserves that exactly — < is outside the class,
-#      so skills/<slug>/ still fails at its first character — which is load-
-#      bearing rather than incidental, since this comment and the README both
-#      carry the form and a widening that reached it would red the gate on the
-#      check's own documentation. No per-line opt-out is offered, since one would
-#      be indistinguishable from a real stale citation claiming to be deliberate.
-#   9. Every tracker coordinate in shipped prose names the tracker it resolves
-#      in. skills/ SHIPS, and is read by agents working inside whatever repo the
-#      plugin is installed in — so a bare #123 there resolves against the
-#      READER's tracker, where it is some unrelated issue. True for the author,
-#      false everywhere it is actually read. That is the failure AGENTS.md's
-#      citation convention names for a bare README.md, arriving in a coordinate
-#      class check 8 structurally cannot reach: a path either resolves in the
-#      tree or it does not, while a number is a valid string in every repo and
-#      has nothing to be resolved against. What CAN be checked is whether the
-#      prose says WHOSE tracker it is — a token in the source, exactly as 8's
-#      paths are — and that is the whole of what this asserts.
-#      Two forms clear it, and they are the two the corpus already uses: the
-#      qualifier "this repo's own #N", and an attribution naming the owning
-#      repository as an `owner/repo` code span sitting immediately before the
-#      number (`trinity-ai-labs/trinity` (PR #4798)). Either one anywhere in the
-#      PASSAGE clears every coordinate in that passage, deliberately: a worked
-#      example carrying three coordinates would otherwise have to repeat the
-#      qualifier three times, which is worse prose than the defect it prevents.
-#      Code spans and fenced blocks are stripped from the text COORDINATES are
-#      read out of, so a worked invocation (`decompose #1042`) is not a citation
-#      and never was. They are not stripped from the text the attribution is
-#      matched against, because that form puts the repository inside a code span
-#      and the number outside it, so one strip would delete the thing being
-#      looked for. The PASSAGE is a whole paragraph, or ONE list item within
-#      one: a blank-line block cut again at its list markers, with a marker
-#      opening a passage and every later line joining it, so a multi-line item
-#      stays whole. That last part is load-bearing rather than incidental —
-#      decompose's umbrella-disambiguation example carries its qualifier and one
-#      of the coordinates it covers nine lines and two code fences apart, inside
-#      one item.
-#      The item rather than the blank-line block, because the unit has to be the
-#      smallest span a reader takes a qualifier as governing, and a bullet run is
-#      not that: the qualifier in one bullet has nothing to do with a coordinate
-#      in the next. The block unit shipped first and was measured — a bare
-#      coordinate injected into a bullet whose SIBLING carried a qualifier came
-#      back green, which is exactly the defect this check exists to catch,
-#      cleared by a sentence four bullets away. Tightening cost no false
-#      positives: all nine live coordinates still pass, and the only one needing
-#      more than its own line (decompose's continuation) is covered by its own
-#      item.
-#      Nesting is deliberately NOT containment: an indented sub-bullet is its own
-#      passage, not part of its parent. Treating it as part would reintroduce the
-#      same leak one level down, a parent's qualifier clearing every child.
-#      Scoped to skills/ because that is what ships. AGENTS.md, README.md and
-#      CHANGELOG.md are read only from this checkout, where a bare number is
-#      already correct and this rule would be pure noise.
-#      The honest ceiling, and it is the same one check 7 states about surface
-#      shape: this asserts the question was asked, never that the answer is
-#      right. A passage citing two repositories that qualifies only one of
-#      them passes, and separating those needs the sentence read.
-#      One narrower gap, considered and left open: an UNBALANCED backtick makes
-#      the code-span strip pair the wrong two, which can swallow a coordinate
-#      and green it. Asserting balance per passage was rejected — no tracked
-#      passage is unbalanced today, so it would buy a case that has not
-#      occurred, and it would red the gate on a markdown defect that has nothing
-#      to do with trackers, under a message about them.
-#  10. Tracked prose under skills/ is held to TWO ATTENTION BUDGETS, both
-#      measured with `wc -w` over the same file set: no single file over 30,000
-#      words, and the CORPUS — the sum across all of them — under a RATCHET.
-#      skills/ ships, and a rule only binds the agent that actually reads it —
-#      so past some total the corpus stops being a set of rules and becomes a
-#      document its reader is compacted out of. That failure is observed rather
-#      than theoretical, and it is the one nothing else here can see: no diff
-#      contains it, and which rule gets dropped is settled by file size and
-#      position rather than by anyone.
-#      It is also a property of the TOTAL, which is why the per-file half alone
-#      structurally could not see it: every one of the 17 tracked files was
-#      green while they summed to 121,280 words — 4x the per-file ceiling — and
-#      this check reported ok on that every release, where a green ceiling line
-#      is read as headroom.
-#      The ratchet is a RATCHET and not a target. It is set to the tree's
-#      measured total once a cut has landed, so it only ever moves DOWN, and
-#      raising it to fit new prose is the one edit this constant must never
-#      receive — guardrail gaming arriving as a one-character diff. Extraction
-#      is a remedy for the per-file half ALONE: it moves words between files,
-#      and the corpus half counts them wherever they sit.
-#      AGENTS.md is the prose that OWNS this rule; this is the half that
-#      enforces it, and the two are a pair that has to be changed together. Both
-#      numbers and the instrument are copied from there deliberately rather than
-#      parsed out of it — a scanner over that bullet would make a reword change
-#      what the gate enforces, silently — and the same house pattern check 7
-#      uses for the contract env vars it borrows from the same file. **The unit
-#      is the part that has to match, not just the number**: bytes, lines and
-#      characters are all plausible readings of "how long is this file", they
-#      all disagree with `wc -w`, and picking a different one leaves BOTH halves
-#      green while the pair says two different things. So: `wc -w`, tracked
-#      files under skills/, 30,000 per file and the ratchet across them.
-#      It reports BOTH numbers on success, not just a verdict — the largest file
-#      with its count, and the corpus total against the ratchet. A ceiling check
-#      that prints only "ok" tells an author nothing about how much room is
-#      left, which is the number they need before adding prose; and the corpus
-#      total is the number a green per-file line was being read as vouching for.
-#      What it does NOT do: judge whether an extraction was the RIGHT one. Which
-#      bodies may move behind a pointer is the discriminator AGENTS.md states,
-#      and it turns on TWO tests, both of which need the prose read: whether a
-#      reader would NOTICE the absence, and whether that reader reaches the body
-#      on the HAPPY PATH. An error-path body fails the second however cleanly it
-#      passes the first, so extracting one is not a way back under this ceiling.
-#      A green here means the file is small enough, never that splitting it was
-#      done well; that judgement stays with the diff, which in a prose repo is
-#      the only review there is.
+#   1. bin/*.sh and scripts/*.sh lint clean at their declared dialect.
+#   2. .claude-plugin/plugin.json parses and carries what Claude Code needs.
+#   3. every skill has the frontmatter Claude Code dispatches on.
+#   4. no skill prescribes `gh api -f` with an @file value (it stores the
+#      literal string and exits 0 — the one failure here that looks like success).
+#   5. examples/worktree.json is one the real reader can consume.
+#   6. bin/*.ps1 lint, or SKIP loudly — never a silent ok.
+#   7. bin/ ships each helper in both shells and the two agree on surface facts.
+#   8. every skills/ .md path cited in a tracked doc resolves.
+#   9. shipped prose carries no issue numbers.
+#  10. skills/ within the per-file ceiling AND the corpus ratchet.
+#  11. shipped prose carries no war stories.
+#  12. no skill cites another skill.
 #
-# Every check that scans a SET of files asserts the set is non-empty before it
-# scans: a check whose pattern stops matching prints the same green as a check
-# that passed, so an empty scan is a failure in its own right.
-#
-# NOT here, deliberately: the version-bump guard. It diffs against a PR base and
-# reads the manifest as it was at that commit, so it is meaningful only in CI —
-# a local copy would either not work or lie about what a merge would ship. It
-# stays inline in .github/workflows/ci.yml.
-#
-# Reports EVERY failure rather than stopping at the first, then exits 1.
+# Checks 9, 11 and 12 exist together and guard one thing: a skill must be
+# actionable without opening anything else. 10 stops the corpus growing; these
+# three stop it growing the SHAPE that got it there — narrative, then citations
+# of narrative, then conventions for writing those citations.
 
 set -u
 
-# Run from the repo root regardless of where the caller stood, so every relative
-# path below means the same thing whether CI or a contributor invoked it.
 root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)" || exit 2
 cd "$root" || exit 2
 
@@ -271,22 +43,10 @@ fail() {
 ok() {
 	printf 'ok    %s\n' "$1"
 }
-# Distinct from ok on purpose. A check that could not run must not print green —
-# so the one step below that needs an optional tool says SKIP and names what was
-# not examined, rather than passing silently and being contradicted by CI.
 skip() {
 	printf 'SKIP  %s\n' "$1"
 }
 
-# A missing tool must not read as green, and it cannot be reported per-check
-# either — a check that never ran has nothing to say. Refuse up front instead.
-#
-# `pwsh` is deliberately NOT on this list. The repo is zero-dependency by design,
-# and a gate that needs an install is a gate nobody can run before pushing — so
-# requiring pwsh to check a Windows helper would cost every contributor on macOS
-# and Linux the ability to run the gate at all. The parity check (7) needs no
-# pwsh and therefore always runs; only PSScriptAnalyzer (6) needs one, and it
-# skips loudly.
 missing=''
 for tool in shellcheck python3 bash; do
 	command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
@@ -400,11 +160,10 @@ fi
 
 # --- 4. no skill prescribes gh api -f with an @file value -------------------
 
-skill_docs=''
-for f in skills/*/SKILL.md; do
-	[ -f "$f" ] || continue
-	skill_docs="$skill_docs $f"
-done
+# Every tracked .md under skills/, not just the spines: the gh api prose this
+# check exists for now lives in references/ (decompose's emitting.md), and a
+# check scoped to SKILL.md would go green over the passage it was written for.
+skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
 if [ -z "$skill_docs" ]; then
 	fail "gh-api: no SKILL.md files to scan — this check scanned nothing"
 elif at_file_hits="$(grep -nE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' $skill_docs)"; then
@@ -772,176 +531,30 @@ else
 	fi
 fi
 
-# --- 9. every tracker coordinate in shipped prose names its repository --------
+# --- 9. shipped prose carries no issue numbers ------------------------------
 
-# Only skills/ ships, so only skills/ is scanned — a bare #N in a contributor doc
-# is read from this checkout and already resolves. Tracked files for the same
-# reason check 8 gives: a scratch note left in a worktree is not prose this repo
-# ships, and a gate that reds on one is a gate a contributor stops trusting.
-skill_prose=''
-for f in $(git ls-files 'skills/*.md' 2>/dev/null); do
-	[ -f "$f" ] || continue
-	skill_prose="$skill_prose $f"
-done
-if [ -z "$skill_prose" ]; then
+# A `#123` in a skill sends the reader to a tracker mid-task: obeyed it derails
+# the run, ignored it leaves them acting on a rule they do not understand. The
+# war story and its link both live in the PR that made the change.
+
+tracker_files="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
+if [ -z "$tracker_files" ]; then
 	fail "tracker-citations: git listed no tracked *.md under skills/ — this check scanned nothing"
 else
-	# A temp file rather than $( ), for the reason check 7 gives: a here-doc nested
-	# inside a command substitution is still scanned for quotes, and the qualifier
-	# this scanner looks for is spelled with an apostrophe in it.
-	tracker_out="$(mktemp)" || exit 2
-	python3 - $skill_prose >"$tracker_out" 2>&1 <<'PY'
-import pathlib
-import re
-import sys
-
-# A tracker coordinate. Anchored on the digit, so `<pkg>#test` and a markdown
-# heading are both out of reach without needing a rule of their own.
-CITATION = re.compile(r"#[0-9]+")
-# The two forms the corpus uses to say whose tracker it is. The qualifier is a
-# fixed house phrase rather than a family of paraphrases: the check has to be
-# predictable enough that an author can satisfy it on the first try, and the
-# failure message below names the exact wording.
-QUALIFIER = re.compile(r"this repo(?:sitory)?'s own", re.IGNORECASE)
-# The attribution is deliberately ADJACENT rather than paragraph-wide, which the
-# qualifier is not. An owner/repo slug is the shape of half the paths in this
-# corpus - `scripts/check.sh`, `examples/worktree.json`, `bin/setup-worktree.sh`
-# - so a paragraph-wide match on that shape would green almost anything and the
-# check would assert nothing. Requiring the slug to sit immediately before the
-# number is what separates naming a repository from mentioning a file, and it is
-# how the corpus already writes it. Backticks are required for the same reason:
-# unquoted, `2>/dev/null` and `release/x.y.z` are slugs too.
-ATTRIBUTION = re.compile(
-    r"`[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*`[^#`]{0,24}#[0-9]+"
-)
-CODE_SPAN = re.compile(r"`[^`]*`")
-FENCE = re.compile(r"^[ \t]*(?:```|~~~)")
-# A list marker, which is where a blank-line block is cut into passages. The
-# trailing \s is what keeps prose out: `*The failure this prevents` opens an
-# italic run and `3.19.0 shipped` opens a sentence, and neither is a bullet.
-MARKER = re.compile(r"^[ \t]*(?:[-*+]|[0-9]+\.)\s")
-
-problems = []
-coordinates = 0
-passages = 0
-
-for name in sys.argv[1:]:
-    text = pathlib.Path(name).read_text(encoding="utf-8", errors="replace")
-    # Fenced lines are emptied rather than dropped, so a fence sitting inside a
-    # list item neither splits that item nor opens a new one - an emptied line
-    # matches no marker, so it joins whatever passage it is already in.
-    fenced = False
-    lines = []
-    for number, raw in enumerate(text.splitlines(), 1):
-        blank = not raw.strip()
-        if FENCE.match(raw):
-            fenced = not fenced
-            lines.append((number, blank, ""))
-            continue
-        lines.append((number, blank, "" if fenced else raw))
-    if fenced:
-        # An unclosed fence swallows the rest of the file, and a scan that saw
-        # nothing prints the same green as one that found nothing wrong.
-        problems.append(
-            f"{name}: ends inside an unclosed code fence - everything after it "
-            "was skipped, so this file was not actually scanned"
-        )
-
-    blocks = []
-    current = []
-    for entry in lines:
-        if entry[1]:
-            if current:
-                blocks.append(current)
-                current = []
-        else:
-            current.append(entry)
-    if current:
-        blocks.append(current)
-
-    # Then cut each block at its list markers. The passage - a whole paragraph,
-    # or ONE list item within one - is the span a qualifier is taken to govern,
-    # and a bullet run is not that: a qualifier in one bullet has nothing to do
-    # with a coordinate in the next. A marker opens a passage and every later
-    # line joins it, so a multi-line item stays whole - which decompose's
-    # umbrella-disambiguation example needs, its qualifier and one of the
-    # coordinates it covers being nine lines and two code fences apart. Lines
-    # before a block's first marker are a passage of their own.
-    passages_in_block = []
-    for block in blocks:
-        current = []
-        for entry in block:
-            if MARKER.match(entry[2]) and current:
-                passages_in_block.append(current)
-                current = []
-            current.append(entry)
-        if current:
-            passages_in_block.append(current)
-
-    for block in passages_in_block:
-        joined = " ".join(line for _, _, line in block)
-        # Citations are read from the code-span-stripped text and attributions
-        # from the raw text, because the attributed form puts the repository
-        # INSIDE a code span and the number outside it. One strip would lose the
-        # thing being looked for.
-        prose = CODE_SPAN.sub(" ", joined)
-        hits = CITATION.findall(prose)
-        if not hits:
-            continue
-        passages += 1
-        coordinates += len(hits)
-        if QUALIFIER.search(prose) or ATTRIBUTION.search(joined):
-            continue
-        sites = ", ".join(
-            f"{name}:{number}"
-            for number, _, line in block
-            if CITATION.search(CODE_SPAN.sub(" ", line))
-        )
-        problems.append(
-            f"{sites}: {' '.join(hits)} names no repository - a bare coordinate "
-            "resolves against the READER's tracker, where it is some unrelated "
-            "issue. Write it as \"this repo's own #N\", or attribute it as "
-            "`owner/repo` immediately before the number."
-        )
-
-if coordinates == 0:
-    problems.append(
-        "no #<number> matched in any tracked skills/ doc - the pattern found "
-        "nothing, so this check scanned nothing"
-    )
-
-# Counts first, on one line, so the shell can report what was examined without
-# re-deriving it: a green naming no total is indistinguishable from a green over
-# an empty scan.
-print(f"{coordinates} {passages} {len(problems)}")
-for problem in problems:
-    print(problem)
-PY
-	tracker_status=$?
-	tracker_coords=''
-	tracker_passages=''
-	tracker_problems=''
-	{ read -r tracker_coords tracker_passages tracker_problems; } <"$tracker_out"
-	if [ "$tracker_status" -ne 0 ] || [ -z "$tracker_problems" ]; then
-		sed 's/^/      /' "$tracker_out" >&2
-		fail "tracker-citations: the scanner crashed — shipped prose could not be examined"
-	elif [ "$tracker_problems" -gt 0 ]; then
-		# Each problem printed as its own line rather than summarised, because they
-		# are not all the same failure: a bare coordinate, an unclosed fence that
-		# hid the rest of a file, and a pattern that matched nothing at all each
-		# need naming as themselves. One summary sentence would have to pick one
-		# and misdescribe the others.
-		sed -n '2,$p' "$tracker_out" | while IFS= read -r problem; do
-			printf 'FAIL  tracker-citations: %s\n' "$problem" >&2
+	# Code spans and fenced blocks are stripped first: a `#1` in a command or a
+	# colour literal is not a tracker coordinate.
+	tracker_hits="$(
+		for f in $tracker_files; do
+			sed -e '/^```/,/^```/d' -e 's/`[^`]*`//g' "$f" |
+				grep -nE '(^|[^A-Za-z0-9_&])#[0-9]+([^0-9]|$)' | sed "s|^|$f:|"
 		done
-		# Counted here rather than in the loop above: a `while` fed by a pipe runs
-		# in a subshell, so an increment inside it is discarded and the script
-		# would exit 0 having just printed failures.
-		fails=$((fails + 1))
+	)"
+	if [ -n "$tracker_hits" ]; then
+		printf '%s\n' "$tracker_hits" | while IFS= read -r l; do printf 'FAIL  no-issue-numbers: %s\n' "$l" >&2; done
+		fail "no-issue-numbers: move the reference, and the reasoning behind it, into the PR that makes the change"
 	else
-		ok "tracker-citations: $tracker_coords coordinate(s) across $tracker_passages passage(s) in shipped prose name the tracker they resolve in"
+		ok "no-issue-numbers: $(printf '%s\n' $tracker_files | wc -l | tr -d ' ') shipped file(s) carry none"
 	fi
-	rm -f "$tracker_out"
 fi
 
 # --- 10. skills/ within the per-file ceiling AND the corpus ratchet ----------
@@ -958,7 +571,7 @@ budget=30000
 # skills/ goes red here even while every individual file stays comfortably under
 # the per-file number. The arc driving it down is this repo's own #298, whose
 # end state is under 40,000.
-corpus_ratchet=53590
+corpus_ratchet=51376
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose
@@ -1044,10 +657,46 @@ else
 	fi
 fi
 
+# --- 11. shipped prose carries no war stories -------------------------------
+
+# The incident that motivated a rule belongs in the PR that fixed it, where it
+# stays attached to the diff. In a skill it is words a reader cannot act on, and
+# this corpus once carried 22,451 of them.
+
+story_hits="$(git grep -nE 'The failure this prevents|[Oo]bserved (on|in one|twice|three times|across|while dispatching)' -- 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
+if [ -n "$story_hits" ]; then
+	printf '%s\n' "$story_hits" | while IFS= read -r l; do printf 'FAIL  no-war-stories: %s\n' "$l" >&2; done
+	fail "no-war-stories: state the rule; put the incident in the PR that makes the change"
+else
+	ok "no-war-stories: shipped prose states rules, not incidents"
+fi
+
+# --- 12. no skill cites another skill ---------------------------------------
+
+# A spine pointing at its own references is the shape working. A skill reaching
+# into ANOTHER skill to explain itself is not finished: state what your reader
+# needs where they act. Cross-skill citation is what grew a 96-reference web, a
+# checker for it, and a convention for writing it.
+
+cross_hits="$(
+	for f in $(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null); do
+		own="$(printf '%s' "$f" | cut -d/ -f2)"
+		grep -oE '`skills/[a-z-]+/[^`]*\.md`' "$f" 2>/dev/null | tr -d '`' | while IFS= read -r p; do
+			[ "$(printf '%s' "$p" | cut -d/ -f2)" = "$own" ] || printf '%s: %s\n' "$f" "$p"
+		done
+	done
+)"
+if [ -n "$cross_hits" ]; then
+	printf '%s\n' "$cross_hits" | while IFS= read -r l; do printf 'FAIL  no-cross-skill-citations: %s\n' "$l" >&2; done
+	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it"
+else
+	ok "no-cross-skill-citations: every skill is readable on its own"
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, cross-skill citations resolve, tracker coordinates name their repository, shipped prose within the per-file ceiling and the corpus ratchet\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories and cross-skill citations\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

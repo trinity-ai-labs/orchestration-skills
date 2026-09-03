@@ -273,7 +273,15 @@ if [ ! -d "$WT" ]; then
   # Announced here rather than beside the message above, so a run that stops on the
   # stray check does not first claim it is about to prune and then not do it.
   echo "  running git worktree prune to clean stale refs..."
-  git -C "$MAIN" worktree prune
+  # Checked by hand rather than left to `set -e`, here and at the teardown at the
+  # bottom. Errexit does stop the run, but it stops it MUTE and with GIT's status
+  # — 128 for most git failures — where every other refusal in this file exits 1
+  # through die(). The PowerShell sibling has always checked $LASTEXITCODE at
+  # each of these three calls and exited 1 with exactly this message; two ports
+  # returning different codes for the same input is the drift the frozen contract
+  # exists to prevent, and nothing catches it, because the parity check reads
+  # surface shape rather than semantics.
+  git -C "$MAIN" worktree prune || die "git worktree prune failed (exit $?)"
   echo "remove-worktree: done (path was already absent)."
   exit 0
 fi
@@ -541,6 +549,8 @@ fi
 
 # --- Remove the worktree -------------------------------------------------------
 echo "remove-worktree: removing worktree $WT ..."
-git -C "$MAIN" worktree remove "$WT" --force
-git -C "$MAIN" worktree prune
+# Both checked by hand, for the reason the prune on the already-absent path above
+# gives: errexit would exit with git's status where every refusal here exits 1.
+git -C "$MAIN" worktree remove "$WT" --force || die "git worktree remove failed (exit $?)"
+git -C "$MAIN" worktree prune || die "git worktree prune failed (exit $?)"
 echo "remove-worktree: done — $WT removed."

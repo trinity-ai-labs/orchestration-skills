@@ -63,7 +63,7 @@ Write each brief, dispatch, arm the tick, and drain the gate queue on that same 
 
 ⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work.
 
-⛔ **You have not dispatched until the divergence tick is armed** — `ScheduleWakeup`, ≈600s, as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
+⛔ **You have not dispatched until the divergence tick is armed** — your host's self-paced timer at ≈600s (`skills/execute/references/platforms.md`), as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 

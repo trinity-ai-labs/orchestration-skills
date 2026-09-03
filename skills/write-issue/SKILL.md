@@ -1,22 +1,15 @@
 ---
 name: write-issue
 description: >-
-  Turn an idea or a rough plan into a clean, grounded, forward-facing GitHub issue (or an umbrella +
-  sub-issues) that feeds /pipeline:orchestrate. The FIRST of the pipeline's two user-facing legs:
+  Turn an idea or a rough plan into a grounded, forward-facing GitHub issue — or an umbrella +
+  sub-issues — feeding /pipeline:orchestrate. The FIRST of the pipeline's two legs:
   /pipeline:write-issue → /pipeline:orchestrate. Use whenever you're asked to WRITE UP / FILE / OPEN an
   issue, capture a plan as an issue, or turn a design discussion into trackable work. You GROUND the
-  plan in the real codebase — every load-bearing claim verified against the code, never a guess or a
-  half-remembered one — then write the issue as a PLAN TO EXECUTE: goal, approach, the surface it lands
-  on as real modules and files, type/interface sketch, phases, verify — stripped of exploration
-  narrative and history. Grounding is how you establish the plan is TRUE — not a file:line to-do list
-  across the whole arc, which decays as earlier phases move what later ones name and which
-  /pipeline:decompose re-derives at the horizon anyway. You do NOT
-  slice into dispatchable waves with do-not-touch boundaries and model tiers, run the arc, or dispatch
-  anything: /pipeline:orchestrate owns the loop that does, grounding each increment through
-  /pipeline:decompose and shipping it through /pipeline:execute. This skill is project-agnostic — it
-  reads each repo's own AGENTS.md / conventions rather than hardcoding one project. For large multi-area
-  work you write an umbrella + one sub-issue per slice; otherwise a single issue. Ends with the handoff
-  to /pipeline:orchestrate.
+  plan in the real codebase — every load-bearing claim verified against the code — then write it as a
+  PLAN TO EXECUTE: goal, approach, the surface it lands on as real modules and files, phases, seams,
+  verify — no exploration narrative, history or line numbers. You do NOT slice into dispatchable
+  waves, run the arc, or dispatch: /pipeline:orchestrate owns that loop.
+  Ends with the handoff to /pipeline:orchestrate.
 argument-hint: "[the idea or plan to write up — omit to write up the plan already in chat]"
 ---
 

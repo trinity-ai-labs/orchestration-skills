@@ -1,0 +1,37 @@
+{
+  "name": "pipeline",
+  "version": "4.2.0",
+  "description": "write-issue → orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop — ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
+  "author": {
+    "name": "Trinity AI Labs",
+    "url": "https://github.com/trinity-ai-labs"
+  },
+  "homepage": "https://github.com/trinity-ai-labs/orchestration-skills",
+  "repository": "https://github.com/trinity-ai-labs/orchestration-skills",
+  "license": "MIT",
+  "keywords": [
+    "worktree",
+    "orchestration",
+    "github-issues",
+    "parallel-agents",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Dev Pipeline",
+    "shortDescription": "Turn an idea into a grounded issue, then run the arc to merge.",
+    "longDescription": "A just-in-time development pipeline. Turn an idea into a grounded GitHub issue, then run it to completion as a loop: ground the next dispatchable increment against the code, ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents, gate it, merge it, then re-ground what remains against the tree that increment actually produced.",
+    "developerName": "Trinity AI Labs",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Write up this plan as a grounded GitHub issue.",
+      "Decompose this issue into slices I can dispatch in parallel.",
+      "Orchestrate this issue through to merge."
+    ]
+  }
+}

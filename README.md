@@ -3,19 +3,25 @@
 The Claude Code **dev pipeline**, packaged as one plugin: turn an idea into a grounded GitHub issue, then run it to completion as a just-in-time loop — ground the next dispatchable increment, ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents, then re-ground what remains against the tree that increment actually produced.
 
 ```
-idea / plan  ──/pipeline:write-issue──▶  grounded issue  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · repeat until empty
+rough idea ──/pipeline:co-think──▶ shaped work ──/pipeline:write-issue──▶ grounded issue ──/pipeline:orchestrate──▶ done
 ```
 
-Six skills in one plugin, and **two commands**. `setup` onboards a repo once; after that `/pipeline:write-issue` files the plan and `/pipeline:orchestrate` runs it. `decompose` and `execute` are the two passes the loop drives each cycle — still directly invocable when you want one increment grounded or one increment dispatched, but not where an arc starts. `review` is the one an implementer calls on itself mid-slice.
+**Seven skills, and you type three of them.** `/pipeline:setup` onboards a repo once. After that `/pipeline:co-think` is the front door — it works out the shape of the work and routes it. The rest are passes the loop invokes for you.
 
-| Skill | Does | Never does |
-|---|---|---|
-| [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if it wants one — and, where an artifact is already there, reconciles it against what it should be and reports the delta | Guess a command; write features; rewrite what the project already has |
-| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code — every load-bearing claim verified — and files it as a forward-facing issue (or umbrella + subs): goal, approach, the surface it lands on, phases, verify | Slice into waves; write a line-level to-do list; write code |
-| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Runs an arc to completion as a loop: grounds the horizon, dispatches it, reconciles everything still outstanding against the merged tree, rewrites the rest, repeats | Write code; ground beyond the horizon |
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The loop's **grounding** pass: turns the horizon into independent slices with owned files, do-not-touch boundaries, waves, conflict map, model tiers | Ground past the horizon; make worktrees; dispatch; merge |
-| [`/pipeline:execute`](skills/execute/SKILL.md) | The loop's **dispatch** pass: cuts a worktree per slice, dispatches implementers, reviews each PR's diff, merges, cleans up | Run the loop around itself; write the code it dispatches |
-| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality + correctness pass over its **uncommitted** diff, run inline right before it commits | Spawn sub-agents; commit; push; run the full suite |
+| You type | Does |
+|---|---|
+| [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo once: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if the project wants one, and verifies by cutting real worktrees. |
+| [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door. Classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. |
+| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code — every load-bearing claim verified — and files it as a forward-facing issue. |
+| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Runs an arc to completion as a loop: grounds the horizon, dispatches it, reconciles the rest against the tree that increment produced, repeats. |
+
+| The loop invokes | Does |
+|---|---|
+| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **grounding** pass: turns the horizon into independent slices with owned files, do-not-touch fences and a verify bar. |
+| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs and merges. |
+| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, run inline before it commits. |
+
+Both are directly invocable when you want one breakdown or one increment shipped — that is a side door, not the front one.
 
 The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — one CLI contract implemented twice. `scripts/check.sh` compares the two on every run, but everything it compares is **surface shape** — a missing sibling, a usage line or a contract environment variable the two sides disagree on, a byte a `.ps1` may not contain. **Semantics are out of its reach**, so two ports can pass all of it and still behave differently on the same input, which is not hypothetical: until 3.40.0 a failed install exited with the install tool's own status in bash and `1` in PowerShell, and nothing in the check could see it. What actually holds the pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; the check catches the drift that shows on the surface.
 
@@ -77,7 +83,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` — you should see `pipeline`, its six skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
+Verify with `/plugin list` — you should see `pipeline`, its seven skills, and eight executables (the four helpers, each shipped in bash and in PowerShell).
 
 ### Prerequisites
 

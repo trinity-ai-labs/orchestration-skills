@@ -2,6 +2,13 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 4.1.0
+
+- **`/pipeline:co-think` — a front door, and the pass nothing owned.** Every other pass is downstream of a decision none of them makes: is this the right shape of work? It classifies the request out loud so you can override it — spike, bounded or architectural, doubt taking the heavier one and the ratchet one-way — checks scope before refining detail, asks one question per message, takes a bug to a root cause before classifying it, shapes an arc's epics, sequence, seams and blast radius, and routes. 1,299 words.
+- **The README stops presenting seven skills as peers.** Two tables now — what you type, and what the loop invokes — because `orchestrate` encompasses `decompose` and `execute` and the flat list hid it.
+- **The corpus ratchet gains the exception it was missing.** It read *never raised to fit new prose*, which forbids the pipeline ever gaining a stage; it now forbids raising it for prose added to an **existing** file, and a whole new pass raises it deliberately, in the release that adds it. 51,376 → 52,709.
+- **Check 10 counts files that are not staged yet.** It used `git ls-files`, so a brand-new skill — the exact case a ceiling exists to weigh — was invisible until `git add`, printing a false green on the run an author actually reads.
+
 ## 4.0.0
 
 - **Every skill is now an ordered list of actions.** Each action names the reference that says how and carries the rules that fire at that action; the topic tables and the detached blocks of hard rules are gone. `execute` 2,483 → 1,618 words with ten references grouped into six; `decompose` 8,250 → 1,537 plus three; `orchestrate` 4,836 → 2,533 plus one.

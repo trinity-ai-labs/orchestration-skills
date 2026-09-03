@@ -2,6 +2,20 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.57.0
+
+The shipped corpus was 121,280 words — larger than the context window it has to be read in, which is a failure it had already suffered and could not measure. 3.56.0 gave `scripts/check.sh` check 10 a corpus-wide ratchet beside its per-file ceiling; this release is the first cut against it ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)).
+
+- **Four files rewritten to their instructions: 121,280 → 84,439 words, a 30% cut.** `skills/decompose/SKILL.md` 20,064 → 8,247, `skills/orchestrate/SKILL.md` 15,675 → 4,836, `skills/execute/references/implementer.md` 10,559 → 3,083, `skills/execute/references/dispatching.md` 9,707 → 2,999. Every procedure, command, field definition, ordering constraint and prohibition survives; what went is the apparatus — the observed-incident register, the paragraphs pre-answering misreadings before stating the rule, and the arguments for why a rule sits where it sits. No file has a bullet over 150 words; five were over 900 and one was 1,565.
+
+- **The ratchet is now 84,439**, set to the tree's own measured total. It only moves down.
+
+- **`skills/orchestrate/SKILL.md` §7 no longer says the per-file ceiling is this repo's whole answer to corpus volume.** It states both halves, and that extraction settles the per-file one alone.
+
+- **One rule dropped by a slice is restored, one is not** ([#303](https://github.com/trinity-ai-labs/orchestration-skills/issues/303)). *A comment claiming what other code does is re-asserted before you reword it* is back in `skills/execute/references/implementer.md`: it is the only statement anywhere of a defect class no check can scan for, since every class the checks catch is a disagreement between two artifacts a tool can compare. The countable-residual rule stays out — `skills/decompose/SKILL.md` carries the same instinct at planning scale.
+
+*Two files came in over target and both said why: at `decompose` 8,247 and `orchestrate` 4,836 the remaining words can only be removed by deleting rules rather than compressing prose. That is the next increment's question, and it is a different one.*
+
 ## 3.56.0
 
 `scripts/check.sh` check 10 capped each tracked `skills/` file at 30,000 words. All 17 were green while they summed to **121,280** — 4× the ceiling — and the gate printed `ok` on that every release ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)). A per-file ceiling structurally cannot see a failure that is a property of the total.

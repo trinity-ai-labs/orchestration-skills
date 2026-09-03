@@ -67,7 +67,7 @@ Before acting, decide whether you are the **dispatcher** or an **implementer**. 
 | `skills/execute/references/merge-and-cleanup.md` | *Merge & cleanup* | Before you merge a slice PR | Dispatcher |
 | `skills/execute/references/implementer.md` | *Implementer* — *The work*, *The handoff*, *Craft*, *When the BRIEF itself is wrong* | You were handed a dispatch brief — all of it, before you write a line | Implementer |
 
-**An *italicised section name* — anywhere in this file, or in a citation reaching in from another skill — resolves in the middle column above.** Much of this corpus cites this skill by SECTION rather than by file, and `skills/execute/SKILL.md` → *Gate the integrated whole* is the shape those citations take. They stay true: no section was renamed and none was dissolved, so the name still names a real section, and the table is what says which file now holds it.
+**An *italicised section name* — anywhere in this file, or in a citation reaching in from another skill — resolves in the middle column above.** These files cite each other by SECTION rather than by file, and a bare *Gate the integrated whole* is the shape those citations take. They stay true: no section was renamed and none was dissolved, so the name still names a real section, and the table is what says which file now holds it. **A citation arriving from ANOTHER skill names the reference file outright instead** — `skills/execute/references/integration-gate.md` → *Gate the integrated whole* — so it resolves in one hop without this table; the few that still name this file, like *First: which role are you?*, name a section that never left it and resolve here directly.
 
 ---
 

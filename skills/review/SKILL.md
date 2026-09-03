@@ -145,7 +145,7 @@ a simplification can expose a correctness problem.
   asserts what other code does is prose against behavior — no checker compares the two, so this pass
   is one of the few places it can be caught. A claim that proves false is a finding to report, never
   a sentence to quietly correct: accurate prose over a real bug documents the bug as the design.
-  `skills/execute/SKILL.md`'s implementer section carries the rule and the failure behind it.
+  `skills/execute/references/implementer.md` carries the rule and the failure behind it.
 
 ### Reuse
 

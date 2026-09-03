@@ -2,6 +2,18 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.56.0
+
+`scripts/check.sh` check 10 capped each tracked `skills/` file at 30,000 words. All 17 were green while they summed to **121,280** — 4× the ceiling — and the gate printed `ok` on that every release ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)). A per-file ceiling structurally cannot see a failure that is a property of the total.
+
+- **Check 10 gains a corpus-wide RATCHET beside the per-file ceiling.** Same file set, same `wc -w`: the sum is asserted against a constant set to the tree's measured total, so a change adding net prose goes red while every file stays comfortably under 30,000. It only ever moves down — each increment of this arc lowers it to its own new total, and the end state is under 40,000. Both numbers are reported on success, and the per-file `fail` now says what it had stopped saying: extraction settles that half alone, because the corpus half counts the same words wherever they sit. *Watched go red before it was relied on, each half separately — 600 words appended to a 2,666-word skill fired the corpus assertion with the per-file half silent, and a file pushed to 31,064 fired both — and each reversal was verified byte-identical before the green was taken.*
+
+- **`AGENTS.md`'s failure-mode rule gains a form constraint.** *Name the failure a rule prevents* is right and was unbounded: it has written 22,451 words, 17.4% of the shipped corpus, into italic *the failure this prevents / observed* spans. The failure is now named in a clause inside the rule — never its own italic paragraph, never a session anecdote, a release number, a commit SHA, or a count of how many times it was observed. Where an incident is the only thing making a counter-intuitive rule credible, it survives as at most one clause.
+
+- **The attention-budget bullet describes both halves and comes out 427 words shorter than the one it replaces** (826 → 399; `AGENTS.md` 8,262 → 7,917, a net 345 words down with the form constraint added). A bullet installing a length constraint that grows in its own diff is failing in it. The extraction discriminator is compressed rather than dropped: both tests, all three categories, and every path citation it carried still resolve.
+
+*No prose is cut from `skills/` here — that is a later increment. The shipped corpus is unchanged at 121,280 words, and the citation check goes from 438 resolving path citations to 435 across the same 17 distinct paths, the three being `AGENTS.md`'s own, dropped with the prose around them.*
+
 ## 3.55.0
 
 The attribution ban has four seats and every one of them is inside `pipeline:execute` ([#282](https://github.com/trinity-ai-labs/orchestration-skills/issues/282)). `AGENTS.md` stated neither half of it. That is a gap rather than the pointing convention working, because this repository's own ship-it close-out — the one `AGENTS.md` enumerates, and the one a maintainer's "ship it" triggers — runs with **no dispatcher and no brief**: the paste-verbatim block that carries the ban to an implementer is never written, and nothing in the sequence obliges that agent to load the skill at all. It authors the commit messages and the PR body, and it performs the merge that makes a commit trailer permanent.

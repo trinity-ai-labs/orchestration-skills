@@ -106,6 +106,35 @@ worktree_home_default() {
   fi
 }
 
+# --- git calls this script assumes will succeed --------------------------------
+# Run one through here and its stdout lands in GIT_OUT; a non-zero exit is this
+# script's own refusal instead of git's.
+#
+# Captured and tested rather than left to `set -e`, for the reason the install
+# guard near the bottom gives and for the same two extras. Errexit does stop the
+# script, but it stops it MUTE: git's own message is the only thing on stderr,
+# with nothing saying which helper died or which worktree it was working on. And
+# it exits with GIT's status — 128 for most git failures — where every other
+# refusal in this file exits 1. Two ports returning different codes for the same
+# input is the drift the frozen contract exists to prevent, and nothing catches
+# it: the parity check reads surface shape, not semantics. The message and the
+# code here are the PowerShell sibling's Get-GitOutput, word for word.
+#
+# The output goes to a variable rather than to stdout because `exit` inside a
+# command substitution only exits the SUBSHELL. `X=$(git_out …)` would report the
+# failure and then carry on running in the parent, and `echo "… $(git_out …)"`
+# would not even stop there: the echo itself succeeds, so errexit never fires and
+# the line prints with an empty value where the sha should be.
+GIT_OUT=""
+git_out() { # git_out <git-arg>… — sets GIT_OUT to git's stdout, or exits 1
+  local status=0
+  GIT_OUT=$(git "$@") || status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "git $* failed (exit $status)" >&2
+    exit 1
+  fi
+}
+
 WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 CONFIG_REL=".agents/worktree.json"
 
@@ -308,6 +337,11 @@ mkdir -p "$(dirname "$WT")"
 # that is a prefix of another registered worktree matched it.
 worktree_registered() { # worktree_registered <abs-path>
   local want="$1" line
+  # Read through git_out rather than straight from a process substitution: a
+  # failed listing there produces no lines and reads as "no worktree here", which
+  # sends the run on to `git worktree add` against a path that may well hold one.
+  # The registry either answers or the run stops, exactly as the sibling does.
+  git_out -C "$MAIN" worktree list --porcelain
   while IFS= read -r line; do
     case "$line" in
     "worktree "*) ;;
@@ -316,14 +350,21 @@ worktree_registered() { # worktree_registered <abs-path>
     if [ "$(norm_path "${line#worktree }")" = "$want" ]; then
       return 0
     fi
-  done < <(git -C "$MAIN" worktree list --porcelain)
+  done <<<"$GIT_OUT"
   return 1
 }
 
 if worktree_registered "$WT"; then
   echo "worktree already exists: $WT"
 else
-  git -C "$MAIN" worktree add "${ADD_ARGS[@]}"
+  # Checked by hand for the reason git_out gives, and inline rather than through
+  # it because this call's output is the caller's to see, not ours to capture.
+  ADD_STATUS=0
+  git -C "$MAIN" worktree add "${ADD_ARGS[@]}" || ADD_STATUS=$?
+  if [ "$ADD_STATUS" -ne 0 ]; then
+    echo "git worktree add failed (exit $ADD_STATUS)" >&2
+    exit 1
+  fi
 fi
 
 # The tree that exists now may not be on the branch that was asked for, and every
@@ -341,7 +382,8 @@ fi
 # the tree handed back is on the branch the caller asked to attach to.
 # `--abbrev-ref HEAD` prints the literal "HEAD" on a detached checkout, which
 # compares as its own value and needs no special case.
-ON_BRANCH=$(git -C "$WT" rev-parse --abbrev-ref HEAD)
+git_out -C "$WT" rev-parse --abbrev-ref HEAD
+ON_BRANCH="$GIT_OUT"
 if [ "$ON_BRANCH" != "$BRANCH" ]; then
   # What the skipped `git worktree add` would have done differs by mode. --existing
   # is only ever asked for a branch that already exists — the arms above stop or
@@ -377,8 +419,10 @@ fi
 if [ "$EXISTING" -eq 0 ]; then
   # Resolved here rather than reused from the pre-add check: the base tip that
   # matters is the one standing when the tree is handed back.
-  BASE_TIP=$(git -C "$MAIN" rev-parse --verify "$BASE^{commit}")
-  WT_HEAD=$(git -C "$WT" rev-parse HEAD)
+  git_out -C "$MAIN" rev-parse --verify "$BASE^{commit}"
+  BASE_TIP="$GIT_OUT"
+  git_out -C "$WT" rev-parse HEAD
+  WT_HEAD="$GIT_OUT"
   if ! git -C "$MAIN" merge-base --is-ancestor "$BASE_TIP" "$WT_HEAD"; then
     echo "refusing: $WT does not contain '$BASE'." >&2
     echo "  base tip:      $BASE_TIP" >&2
@@ -470,4 +514,11 @@ fi
 # Reading it back off the worktree rather than reporting what was asked for is the
 # point: an attached branch, a re-run against an existing tree, and a fresh fork
 # all report the commit that is really checked out.
-echo "HEAD: $(git -C "$WT" rev-parse HEAD)"
+# Resolved on its own line rather than inside the echo, because a command
+# substitution that fails inside a successful `echo` takes the whole line down
+# with it silently: errexit reads the echo's own status, which is 0, so the
+# script would print "HEAD: " with nothing after it and exit 0 — a caller
+# comparing that against the base tip is handed an empty string by a run that
+# reported success. git_out makes the same failure a refusal.
+git_out -C "$WT" rev-parse HEAD
+echo "HEAD: $GIT_OUT"

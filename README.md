@@ -11,8 +11,8 @@ rough idea ──/pipeline:co-think──▶ shaped work ──/pipeline:write-i
 | You type | Does |
 |---|---|
 | [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo once: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if the project wants one, and verifies by cutting real worktrees. |
-| [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door. Classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. |
-| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Grounds an idea in the real code — every load-bearing claim verified — and files it as a forward-facing issue. |
+| [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door. Writes the goal down as one testable sentence, classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. It shapes toward that goal rather than around the mechanisms it finds, so an existing check, ceiling or step is something it may propose changing or deleting. |
+| [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Takes a shape you have already settled, grounds it in the real code — every load-bearing claim verified — and files it as a forward-facing issue. Where the shape is not settled it hands back to `co-think` rather than filing. |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Runs an arc to completion as a loop: grounds the horizon, dispatches it, reconciles the rest against the tree that increment produced, repeats. |
 
 | The loop invokes | Does |

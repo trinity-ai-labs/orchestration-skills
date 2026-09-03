@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "pipeline",
   "displayName": "Dev Pipeline",
-  "description": "write-issue \u2192 orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop \u2014 ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
+  "description": "co-think \u2192 write-issue \u2192 orchestrate: turn an idea into a grounded issue, then run the arc as a just-in-time loop \u2014 ground the next increment, ship it through isolated git worktrees, reconcile the rest against the tree it produced.",
   "version": "4.2.0",
   "author": {
     "name": "Trinity AI Labs",

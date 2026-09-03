@@ -74,7 +74,8 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 | What you concluded | Where it goes |
 |---|---|
 | A spike | Answer it as cheaply as correctness allows, then **stop**. No issue; anything you built is labelled throwaway |
-| Bounded, and it is real work | `/pipeline:write-issue`, then `/pipeline:orchestrate` |
+| Bounded, and small enough that an issue would outweigh it | Say so, get the nod, then **build it yourself as the implementer** — you leave this pass rather than break its rule, and `/pipeline:execute` carries the implementer's flow |
+| Bounded, and real work | `/pipeline:write-issue`, then `/pipeline:orchestrate` |
 | Architectural | Shape the arc with the user first (5), then `/pipeline:write-issue` |
 | A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
 | It is already filed | Straight to `/pipeline:orchestrate` |

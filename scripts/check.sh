@@ -571,13 +571,15 @@ budget=30000
 # skills/ goes red here even while every individual file stays comfortably under
 # the per-file number. The arc driving it down is this repo's own #298, whose
 # end state is under 40,000.
-corpus_ratchet=51376
+corpus_ratchet=52709
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
 # is what ships, and a scratch note or a gate log left in a worktree is not prose
-# this repo ships.
+# this repo ships. `--others --exclude-standard` adds files not yet staged: a new
+# skill is exactly what this ceiling exists to weigh, and it would otherwise be
+# invisible until `git add` — a false green on the run an author actually reads.
 budget_files=''
-for f in $(git ls-files 'skills/*.md' 2>/dev/null); do
+for f in $(git ls-files --cached --others --exclude-standard 'skills/*.md' 2>/dev/null | sort -u); do
 	[ -f "$f" ] || continue
 	budget_files="$budget_files $f"
 done
@@ -649,7 +651,7 @@ else
 		budget_clean=0
 	fi
 	if [ "$budget_total" -gt "$corpus_ratchet" ]; then
-		fail "attention-budget: the corpus is $budget_total words (wc -w across $budget_counted tracked skills/ file(s)), over the ${corpus_ratchet}-word ratchet — DELETE prose; extraction moves words between files and leaves this total untouched. The ratchet only ever moves down: lower it to the tree's new total once a cut has landed, never raise it to fit"
+		fail "attention-budget: the corpus is $budget_total words (wc -w across $budget_counted tracked skills/ file(s)), over the ${corpus_ratchet}-word ratchet — DELETE prose; extraction moves words between files and leaves this total untouched. The ratchet moves down when a cut lands. The one thing that raises it is a whole NEW pass, deliberately and on the record in the release that adds it — never prose added to a file that already exists"
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then

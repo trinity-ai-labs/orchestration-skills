@@ -18,7 +18,7 @@ Reference for `skills/execute/SKILL.md`. **If you were handed a dispatch brief, 
 
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run it, do NOT commit as you go: hold the change uncommitted, run the pass over your *full uncommitted* diff, apply what you accept, and only then commit — against a clean tree it sees nothing and the review never happens. Otherwise commit in blocks as the work lands. **Park held work under your own named ref, never the shared stack** (*Hard rules* has the commands).
 
-⛔ **Never the bundled `/simplify`** — it forks reviewers that inherit this brief and carry out its *commit, push, PR, enqueue* imperatives for you.
+⛔ **Never a quality pass that forks reviewers** — a fork inherits this brief and carries out its *commit, push, PR, enqueue* imperatives for you, before you get your turn back. `/pipeline:review` runs inline and spawns nothing.
 
 **Format in write mode right before committing** — the scoped check only format-*checks*. **Formatter output is always committed, never reverted**: your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 

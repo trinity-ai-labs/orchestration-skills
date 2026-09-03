@@ -2,6 +2,16 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json`. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 3.59.0
+
+Two corrections to what the skills tell an agent about spawning other agents.
+
+- **`/simplify` is gone from shipped prose.** It was named only in warnings — *never the bundled `/simplify`* — and naming a command an agent should not use is how an agent learns it exists; agents were bringing it up unprompted while running these skills. The pass is `/pipeline:review`, stated positively, and the hazard those warnings carried survives as the rule below rather than as a fact about one dead command.
+
+- **Every sub-agent this flow spawns is a FRESH agent, never a fork**, stated at all six seats that spawn one: `skills/execute/SKILL.md`'s hard rules, the implementer's own rules, the dispatcher's dispatch step and its post-divergence redispatch, the fix agent in `skills/execute/references/pr-review.md`, and the read-only `Explore` agents in `skills/decompose/SKILL.md` and `skills/write-issue/SKILL.md`. A fork inherits the spawner's whole conversation, so a fork of an implementer reads that implementer's brief as its own instructions and executes it — commit, push, open a PR, enqueue — producing artifacts indistinguishable from authorized work. `skills/review/SKILL.md` §1 already carried the argument and the ban for its own pass; nothing generalised it to the other five.
+
+*The corpus went 125 words over the ratchet installed in 3.56.0, which is the first time that check has fired on real work. It was resolved the way the rule requires — by deleting to make room, never by raising the number: two standalone failure narratives came out of `skills/execute/references/pr-review.md`, the one file neither cutting wave touched. 53,762 → 53,658.*
+
 ## 3.58.0
 
 Wave 2 of the corpus cut ([#298](https://github.com/trinity-ai-labs/orchestration-skills/issues/298)). Seven files rewritten to their instructions: **84,439 → 53,762 words.** Across both waves the shipped corpus is down from 121,280 — a 56% cut — and the ratchet in check 10 drops to the tree's own measured total.

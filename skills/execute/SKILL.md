@@ -22,9 +22,9 @@ We work off an **integration branch** (Trinity: `release/x.x.x` — find the act
 - **DISPATCHER** — entered from **`/pipeline:orchestrate`** (once per cycle, to dispatch the increment it just grounded), or from a user asking you to *execute / dispatch* one increment. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
-**One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats (`skills/orchestrate/SKILL.md` §1–2).
+**One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats. That holds for an arc that turns out to be one increment too: working out where the horizon falls is the loop's first cycle, not a precondition for entering it.
 
-**The harness's "do not call the Agent tool unless the user requested it" guard is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none (`skills/review/SKILL.md` §1), it authorizes none.
+**The harness's "do not call the Agent tool unless the user requested it" guard is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale.
 
 **This file is a SPINE, not the whole of your instructions**, and **a reader who reaches the end of it has not finished reading this skill.**
 
@@ -62,7 +62,7 @@ Decide the branch level — the integration branch, or an epic branch cut from i
 
 Write each brief, dispatch, arm the tick, and drain the gate queue on that same tick.
 
-⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work. `skills/review/SKILL.md` §1 carries the argument.
+⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work.
 
 ⛔ **You have not dispatched until the divergence tick is armed** — `ScheduleWakeup`, ≈600s, as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
 
@@ -104,6 +104,6 @@ Gate the integrated whole when a merge combined work from more than one slice, t
 Four rules bind both roles at any moment rather than at one action, so they sit here rather than on a step.
 
 - ⛔ **Never game a guardrail — fix the cause, not the number.** A check that fires is a signal about the code, never a threshold to duck under. The one carve-out, a documented suppression meeting four conditions, is in `skills/execute/references/implementer.md`.
-- ⛔ **A follow-up is yours until it concretely requires the user** — file it, link it, fold it into the run. Search what is already filed first (`skills/write-issue/SKILL.md`). A bullet in a hand-back is not a follow-up.
+- ⛔ **A follow-up is yours until it concretely requires the user** — file it, link it, fold it into the run. Search what is already filed first, keyed on the failure shape rather than the item's words and over closed issues as well as open. A bullet in a hand-back is not a follow-up.
 - ⛔ **Park work under a named ref of your own, never `refs/stash`**, and never blind-pop what is already there: that stack is repo-global and addressed by position, so every worktree and the main checkout share it.
 - ⛔ **Don't bypass the shared build cache** — cache-eligible tasks go through the project's task runner, never the raw binary. The one sanctioned direct run is a single targeted test file.

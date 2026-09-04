@@ -2,6 +2,10 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 4.9.1
+
+- **Three places still said `merge-pr` reads `epicMerge`, full stop.** It reads `branchingModel` as well as of 4.9.0, and — a first for this helper — reads it from a workspace's `.agents/workspace.json` when there is one, which is the only key it looks for outside the repo's own config. A reader onboarding a project or reasoning about the config-read window would have had the wrong list. Documentation only; no behaviour changes.
+
 ## 4.9.0
 
 - **No project declared its branching model, so every rule that needed it guessed — with a different proxy each time.** `merge-pr` asked whether the PR's base was the repository's default branch; `decompose`'s grounding ran `git branch --list 'release/*'`; the same file told slices to target the integration branch "never `main`". Three guesses at one unstated fact, each wrong somewhere, and the third was flatly false for the repository that ships it. `branchingModel` — `"trunk"`, `"release"` or `"gitflow"` — is now declared in `.agents/worktree.json`, or once in `.agents/workspace.json` for members that share one branch and one model.

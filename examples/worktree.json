@@ -1,4 +1,5 @@
 {
+  "branchingModel": "trunk",
   "envFiles": ["app/.env.local", "worker/.dev.vars"],
   "install": "pnpm install --frozen-lockfile",
   "gate": "pnpm gate",

@@ -8,7 +8,7 @@ Lead with the parallelization plan (waves + critical path), then the horizon's s
 
 ```
 ## Decomposition: <plan title>
-Integration branch: release/x.x.x   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice)
+Integration branch: <resolved from the project's branchingModel>   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice)
 Horizon: Wave 1 — Slices 2, 3, 4
 
 ### Parallelization plan (the issue's phase order carried forward — dependency shape, not grounding)

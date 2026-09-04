@@ -51,31 +51,37 @@
 # slices PR'd into. `gh pr list --base <head> --state merged` answers exactly that,
 # and a slice branch and a single-slice branch both answer zero.
 #
-# That question alone would reach one merge it must never reach, because an
-# INTEGRATION branch answers it too — it is the branch every slice of every arc
-# PR'd into, so a long-lived `release/x.y.z` counts in the dozens. Under "squash"
-# a `release/0.4.0 -> dev` close-out would therefore collapse the entire release
+# That question alone would reach one merge it must never reach, because the branch
+# work LANDS ON answers it too — every slice of every arc PR'd into it, so a
+# long-lived `release/x.y.z` counts in the dozens. Under "squash" a
+# `release/0.4.0 -> dev` close-out would therefore collapse the entire release
 # branch, irreversibly, with the tree comparison passing and every signal reading
-# clean. So the squash additionally requires that the PR's BASE is not the
-# repository's default branch, which is the standing constraint — the squashes are
-# for epic buffers merging into integration/release branches, not into `main` or
-# `dev` — expressed as something the helper can check rather than as advice
-# someone has to remember.
+# clean. So the squash additionally requires that this head is NOT the branch work
+# lands on, which is a question about the branch's LEVEL — and answering it needs
+# one fact no repository carries: which branching model the project uses.
 #
-# That narrowing is deliberate and it has one consequence worth stating, because
-# the next reader will otherwise read it as a bug: in a project whose INTEGRATION
-# branch simply IS the default branch, the genuine `epic -> main` boundary is
-# skipped too, and `"epicMerge": "squash"` correctly does nothing there. Such a
-# project was already told to leave the setting at its default; this makes that
-# automatic instead of a thing anyone has to remember, and it is the only reading
-# under which the constraint can be enforced rather than advised — nothing
-# distinguishes an integration branch merging into `main` from an epic branch
-# merging into `main` except a prefix, and no prefix is ever the key here.
+#   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+#
+# Declared, that fact settles it directly: trunk means the integration branch is
+# the repository's default branch, release means the single live `release/*`, and
+# gitflow means `develop` — where `release/*` and `hotfix/*` heads are refused too,
+# being branches cut to carry a release rather than an arc.
+#
+# UNDECLARED, this helper falls back to what it did before: the PR's base is not the
+# repository's default branch. That test is a statement about the project's model
+# standing in for a question about the branch's level, and the two coincide only
+# where the integration branch is not also the default branch. That turns out to be
+# the uncommon case — a release-branch project routinely makes `release/x.y.z` its
+# default branch as well — so undeclared, the fallback declines the genuine epic
+# boundary in most projects and "squash" quietly does nothing. Declaring the model
+# is what makes the option reachable; the fallback exists so that upgrading changes
+# no behaviour until a project does.
 #
 # Every way either question can fail to produce a usable answer — a network error,
 # an empty response, a gh failure, a count of zero, a default branch that could not
-# be determined — falls back to a real merge commit. A missed squash is cosmetic; a
-# wrong squash is unrecoverable history.
+# be determined, a declared model naming a branch this repo does not have, more than
+# one live release branch — falls back to a real merge commit. A missed squash is
+# cosmetic; a wrong squash is unrecoverable history.
 #
 # Before any of that it REFUSES to run when the copy being executed, or the directory
 # it is being run from, sits inside the worktree step 3 tears down: that teardown
@@ -243,6 +249,101 @@ PY
   fi
 }
 
+# --- The branching model ---------------------------------------------------------
+# Which branch a project's work lands on is a fact about the PROJECT, and until a
+# project states it every rule that needs it has to guess. This helper's own guess
+# was "the PR's base is not the repository's default branch" - a statement about the
+# project's MODEL standing in for a question about the branch's LEVEL: is this head
+# an epic buffer, or the branch work lands on? The two coincide only where the
+# integration branch is not also the default branch, and that is the UNCOMMON case -
+# a release-branch project routinely makes `release/x.y.z` its default branch too,
+# at which point the guess declines every squash the option exists for.
+#
+#   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+#
+# A workspace declares it once for all its members, which share one branch name and
+# one model; a standalone repo declares it in its own worktree.json. The workspace
+# wins where both are present. ABSENT is a complete answer meaning "behave exactly
+# as before", so no existing project changes behaviour by upgrading.
+branching_model() {
+  local model=""
+  if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
+    model=$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)
+  fi
+  [ -n "$model" ] || model=$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)
+  case "$model" in
+  trunk | release | gitflow) printf '%s' "$model" ;;
+  esac
+}
+
+# The branch the declared model names as the one work lands on. It prints nothing
+# for every question it cannot answer - an unrecognised model, a `develop` this repo
+# does not have, more than one live release branch, a default branch gh would not
+# name - and the caller reads that silence as "not declared" and keeps the older
+# predicate. That is the direction everything on this path errs in, and it is why
+# this ambiguity is handled differently from the same ambiguity in the FLOW: cutting
+# a worktree off the wrong base poisons every tree forked from it, so the skills
+# stop and ask, while a wrong squash here is unrecoverable history, so this side
+# quietly falls back to a real merge commit.
+integration_branch_for() {
+  local default_branch matches count
+  case "$1" in
+  trunk)
+    default_branch=$(cd "$MAIN" && gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null) || default_branch=""
+    case "$default_branch" in
+    '' | null) default_branch='' ;;
+    esac
+    [ -z "$default_branch" ] || printf '%s' "$default_branch"
+    ;;
+  gitflow)
+    # `develop` by definition. Accept it under either ref namespace: a fresh clone
+    # of a gitflow repo carries origin/develop and no local branch until somebody
+    # asks for one, and a check that looked only locally would decline there.
+    if git -C "$MAIN" show-ref --verify --quiet refs/heads/develop ||
+      git -C "$MAIN" show-ref --verify --quiet refs/remotes/origin/develop; then
+      printf 'develop'
+    fi
+    ;;
+  release)
+    # Exactly one live release branch, or nothing. Mid-rollover two of them exist
+    # at once, and picking either is a guess this path never makes.
+    matches=$(git -C "$MAIN" for-each-ref --format='%(refname:short)' 'refs/heads/release/*' 2>/dev/null) || matches=""
+    count=$(printf '%s\n' "$matches" | grep -c . || true)
+    if [ "$count" = "1" ]; then printf '%s' "$matches"; fi
+    ;;
+  esac
+}
+
+# Is this head a buffer the squash is allowed to collapse? Answered from the
+# branch's LEVEL, never from its name. Prints nothing when it is not, and the
+# reason on stdout when a declared model is what refused it.
+#   squash_boundary_ok <resolved-integration-branch> <head> <base> <default>
+# With no resolved integration branch the older base-vs-default test stands, which
+# is what makes an undeclared project behave exactly as it did before.
+squash_boundary_ok() {
+  local integration="$1" head="$2" base="$3" default="$4"
+  if [ -n "$integration" ]; then
+    if [ "$head" = "$integration" ]; then return 1; fi
+    # A `release/*` or `hotfix/*` head is a branch cut to carry a RELEASE, and a
+    # release is an event this flow does not perform under any model. Under gitflow
+    # that is the definition; under the other two it is a belt against a project
+    # that has declared the wrong model — declare `trunk` while actually running a
+    # release branch and, without this, a `release/0.4.0 -> main` close-out clears
+    # every other test and collapses the whole release branch.
+    #
+    # This is the one place a branch NAME is consulted, and it is deliberately not
+    # the key for anything: the declared model is the key, and this only ever
+    # REFUSES. The cost of it firing wrongly — an epic branch somebody named
+    # `release/…` — is one missed squash, which is the cosmetic side of the
+    # asymmetry this whole path is built on.
+    case "$head" in
+    release/* | hotfix/*) return 1 ;;
+    esac
+    return 0
+  fi
+  [ -n "$default" ] && [ "$base" != "$default" ]
+}
+
 # printf '%b' rather than echo, so a message can carry the `\n` its recovery
 # instructions need: bash's builtin echo prints those two characters verbatim, so a
 # multi-line message written with it arrives as one line with a literal \n inside —
@@ -306,11 +407,11 @@ worktree_holding() {
 }
 
 STATE=$(pr_field state) || die "could not read PR #$PR (is the number right? is gh authed?)"
-INTEGRATION=$(pr_field baseRefName)
+BASE_BRANCH=$(pr_field baseRefName)
 HEAD_BRANCH=$(pr_field headRefName)
-[ -n "$INTEGRATION" ] || die "PR #$PR has no base branch"
+[ -n "$BASE_BRANCH" ] || die "PR #$PR has no base branch"
 
-echo "merge-pr: PR #$PR  state=$STATE  base=$INTEGRATION  head=$HEAD_BRANCH  main=$MAIN"
+echo "merge-pr: PR #$PR  state=$STATE  base=$BASE_BRANCH  head=$HEAD_BRANCH  main=$MAIN"
 
 # Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
@@ -334,7 +435,7 @@ START_HEAD="$GIT_OUT"
 assert_checkout_unmoved() {
   git_out -C "$MAIN" rev-parse --abbrev-ref HEAD
   NOW_BRANCH="$GIT_OUT"
-  [ "$NOW_BRANCH" = "$START_BRANCH" ] || die "the main checkout $MAIN was on '$START_BRANCH' when this run started and is on '$NOW_BRANCH' now — this helper never switches it, so another process moved it mid-run. PR #$PR IS merged, but the local sync of '$INTEGRATION' may be incomplete: check where '$START_BRANCH' and '$NOW_BRANCH' point before cutting any worktree off either."
+  [ "$NOW_BRANCH" = "$START_BRANCH" ] || die "the main checkout $MAIN was on '$START_BRANCH' when this run started and is on '$NOW_BRANCH' now — this helper never switches it, so another process moved it mid-run. PR #$PR IS merged, but the local sync of '$BASE_BRANCH' may be incomplete: check where '$START_BRANCH' and '$NOW_BRANCH' point before cutting any worktree off either."
 }
 
 # --- 0. Wrong-repo guard ---------------------------------------------------------
@@ -443,33 +544,38 @@ fi
 #
 #   1. Did the PROJECT declare it? Only the exact string "squash" counts. Absent,
 #      unreadable, misspelled, or any other value is "merge".
-#   2. Is this a boundary the squash is allowed to reach? The standing constraint
-#      is that the squashes are for an epic buffer collapsing into an
-#      integration/release branch — never for a release branch merging back into
-#      `main` or `dev`. The default branch is what tells those apart, so a base
-#      that IS the default branch never squashes. That is deliberately wider than
-#      the release-branch case it was added for: in a project whose integration
-#      branch is itself the default branch, the genuine `epic -> main` boundary is
-#      skipped too, and "squash" correctly does nothing. Such a project was already
-#      told to leave the setting at its default; this makes that automatic. The
-#      alternative — telling an integration branch from an epic branch when both
-#      merge into `main` — has no answer but a branch-name prefix, and no prefix is
-#      ever the key for anything in this flow.
+#   2. Is this a boundary the squash is allowed to reach? The squashes are for an
+#      epic buffer collapsing into the branch work lands on - never for that branch
+#      itself moving on, which is a release event this flow does not perform. So the
+#      question is the HEAD branch's LEVEL, and a declared branching model answers
+#      it: a head that IS the integration branch never squashes, and under gitflow
+#      neither does a `release/*` or `hotfix/*` head, both being branches cut to
+#      carry a release rather than an arc.
+#
+#      Where the project declares no model there is nothing to resolve and the older
+#      test stands unchanged: a base that IS the repository's default branch never
+#      squashes. That one reaches further than it means to - it declines the genuine
+#      epic boundary in every project whose integration branch is also its default
+#      branch, which is most of them - and declaring the model is how a project
+#      stops paying for it. What it cannot be replaced by is a branch-name prefix:
+#      no prefix is ever the key for anything in this flow, which is why the answer
+#      had to arrive as a declaration rather than as a smarter guess.
 #   3. Is this the epic boundary? An epic branch is the branch an epic's slices
 #      PR'd into, so asking GitHub how many merged PRs targeted the HEAD branch IS
 #      the definition rather than a proxy for it. A slice branch and a single-slice
 #      branch both answer 0, which is what keeps those two merges real without
 #      needing a rule of their own.
 #
-# Every way questions 2 and 3 can fail to produce a usable answer — gh missing,
+# Every way questions 2 and 3 can fail to produce a usable answer - gh missing,
 # unauthenticated, offline, rate-limited, a default branch that came back empty or
-# unresolvable, a branch nobody PR'd into, a reply that is not a number — lands on
-# "merge". The asymmetry is the whole design: a missed squash leaves a readable
-# history that merely has more commits in it, while a wrong squash flattens an
-# arc's commits off the integration branch irreversibly.
+# unresolvable, a declared model naming a branch this repo does not have, more than
+# one live release branch, a branch nobody PR'd into, a reply that is not a number -
+# lands on "merge". The asymmetry is the whole design: a missed squash leaves a
+# readable history that merely has more commits in it, while a wrong squash flattens
+# an arc's commits off the integration branch irreversibly.
 #
 # The epic tip is captured HERE, before the merge, because the squash close-out
-# below needs the commit that was gated in order to check what actually landed —
+# below needs the commit that was gated in order to check what actually landed -
 # and after the squash the PR no longer points at a branch that exists. Failing to
 # capture it therefore
 # falls back to "merge" as well: without that commit the squash path has no
@@ -478,6 +584,9 @@ fi
 MERGE_MODE="merge"
 EPIC_TIP=""
 if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge)" = "squash" ]; then
+  BRANCHING_MODEL=$(branching_model)
+  INTEGRATION_BRANCH=""
+  [ -z "$BRANCHING_MODEL" ] || INTEGRATION_BRANCH=$(integration_branch_for "$BRANCHING_MODEL")
   # An unknown default branch is not a licence to guess, and "not answered" has
   # two shapes rather than one. gh (2.92) renders a null field as an empty line —
   # which is also what a failed call and a repository with no default branch
@@ -485,15 +594,26 @@ if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerg
   # A gh that ever formatted it the second way would hand back a string that
   # compares unequal to every real base, i.e. it would read as "not the default
   # branch" and OPEN the squash path on the one answer that means the question
-  # went unanswered. Both shapes are normalised to empty so the single `-n` test
-  # below covers them, and a branch genuinely named `null` is normalised with
-  # them: on an answer this ambiguous, merge is the direction everything on this
-  # path errs in.
-  DEFAULT_BRANCH=$( cd "$MAIN" && gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null ) || DEFAULT_BRANCH=""
-  case "$DEFAULT_BRANCH" in
-  '' | null) DEFAULT_BRANCH='' ;;
-  esac
-  if [ -n "$DEFAULT_BRANCH" ] && [ "$INTEGRATION" != "$DEFAULT_BRANCH" ]; then
+  # went unanswered. Both shapes are normalised to empty so the test below covers
+  # them, and a branch genuinely named `null` is normalised with them: on an
+  # answer this ambiguous, merge is the direction everything on this path errs in.
+  # It is only consulted where no model was declared — the fallback's question.
+  DEFAULT_BRANCH=""
+  if [ -z "$INTEGRATION_BRANCH" ]; then
+    DEFAULT_BRANCH=$( cd "$MAIN" && gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null ) || DEFAULT_BRANCH=""
+    case "$DEFAULT_BRANCH" in
+    '' | null) DEFAULT_BRANCH='' ;;
+    esac
+  fi
+
+  BOUNDARY_OK=""
+  if squash_boundary_ok "$INTEGRATION_BRANCH" "$HEAD_BRANCH" "$BASE_BRANCH" "$DEFAULT_BRANCH"; then
+    BOUNDARY_OK=1
+  elif [ -n "$INTEGRATION_BRANCH" ]; then
+    echo "merge-pr: '$HEAD_BRANCH' is not an epic buffer under this project's declared '$BRANCHING_MODEL' model (its integration branch is '$INTEGRATION_BRANCH') — merging with a real merge commit."
+  fi
+
+  if [ -n "$BOUNDARY_OK" ]; then
     SLICE_PRS=$( cd "$MAIN" && gh pr list --base "$HEAD_BRANCH" --state merged --json number --jq 'length' 2>/dev/null ) || SLICE_PRS=""
     case "$SLICE_PRS" in
     '' | *[!0-9]*) SLICE_PRS=0 ;;
@@ -502,7 +622,7 @@ if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerg
       EPIC_TIP=$( pr_field headRefOid 2>/dev/null || true )
       if [ -n "$EPIC_TIP" ]; then
         MERGE_MODE="squash"
-        echo "merge-pr: '$HEAD_BRANCH' is an epic branch ($SLICE_PRS merged slice PR(s) targeted it) and this project declares epicMerge=squash — it collapses into one commit on '$INTEGRATION'."
+        echo "merge-pr: '$HEAD_BRANCH' is an epic branch ($SLICE_PRS merged slice PR(s) targeted it) and this project declares epicMerge=squash — it collapses into one commit on '$BASE_BRANCH'."
       fi
     fi
   fi
@@ -553,7 +673,7 @@ if [ "$STATE" != "MERGED" ]; then
     # Name the worktree the caller has to resolve it in — setup-worktree.sh puts it
     # at one of exactly two paths, decided by whether this repo sits in a workspace.
     CONFLICT_WT="${WORKSPACE_WT:-$WORKTREE_HOME/$PROJECT/$LEAF}"
-    die "PR #$PR conflicts with '$INTEGRATION' — nothing has been touched: the worktree is intact and the PR is still a draft.\n  Resolve it in the branch's own worktree, by merging the base IN (never rebase — these branches are never rewritten):\n    cd $CONFLICT_WT\n    git fetch origin && git merge origin/$INTEGRATION\n    <resolve, commit, push>\n  If that worktree is gone, re-attach one first: setup-worktree.sh --existing $HEAD_BRANCH\n  Then re-gate the PR and re-run: merge-pr.sh $PR"
+    die "PR #$PR conflicts with '$BASE_BRANCH' — nothing has been touched: the worktree is intact and the PR is still a draft.\n  Resolve it in the branch's own worktree, by merging the base IN (never rebase — these branches are never rewritten):\n    cd $CONFLICT_WT\n    git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>\n  If that worktree is gone, re-attach one first: setup-worktree.sh --existing $HEAD_BRANCH\n  Then re-gate the PR and re-run: merge-pr.sh $PR"
   fi
 fi
 
@@ -632,7 +752,7 @@ else
         DRAFT_NOTE="its draft flag could NOT be restored — put it back by hand: gh pr ready $PR --undo"
       fi
     fi
-    die "merging PR #$PR failed — $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$INTEGRATION\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
+    die "merging PR #$PR failed — $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
   fi
 fi
 
@@ -669,7 +789,7 @@ fi
 # entirely, and leaves nothing to switch back afterwards.
 ON_BASE=0
 BASE_WT=""
-if [ "$START_BRANCH" = "$INTEGRATION" ]; then ON_BASE=1; fi
+if [ "$START_BRANCH" = "$BASE_BRANCH" ]; then ON_BASE=1; fi
 
 # `gh pr merge` returns before GitHub is guaranteed to serve the new tip, so a sync
 # fired immediately can advance to nothing and silently leave the branch on the
@@ -679,7 +799,7 @@ if [ "$START_BRANCH" = "$INTEGRATION" ]; then ON_BASE=1; fi
 # branch truly reached the merged tip. The message is never proof; the ref-equality
 # check below is — and on failure we die loudly, never lie.
 MERGE_OID=$( cd "$MAIN" && gh pr view "$PR" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null || true )
-echo "merge-pr: syncing local '$INTEGRATION' to the merged tip ..."
+echo "merge-pr: syncing local '$BASE_BRANCH' to the merged tip ..."
 synced=""
 diverged=""
 ff_failed=""
@@ -688,9 +808,9 @@ for attempt in 1 2 3 4 5 6; do
   git -C "$MAIN" fetch --prune origin >/dev/null 2>&1 || true
   assert_checkout_unmoved
   if [ "$ON_BASE" -eq 1 ]; then
-    git -C "$MAIN" merge --ff-only "origin/$INTEGRATION" >/dev/null 2>&1 || true
-  elif git -C "$MAIN" show-ref --verify --quiet "refs/heads/$INTEGRATION" \
-    && ! git -C "$MAIN" merge-base --is-ancestor "$INTEGRATION" "origin/$INTEGRATION" 2>/dev/null; then
+    git -C "$MAIN" merge --ff-only "origin/$BASE_BRANCH" >/dev/null 2>&1 || true
+  elif git -C "$MAIN" show-ref --verify --quiet "refs/heads/$BASE_BRANCH" \
+    && ! git -C "$MAIN" merge-base --is-ancestor "$BASE_BRANCH" "origin/$BASE_BRANCH" 2>/dev/null; then
     # Checked FIRST, so it covers both off-base paths rather than only the ref one.
     # It is the precise instrument for one of the two ways a sync can be blocked —
     # the local branch carrying commits the remote does not — and answering it here,
@@ -710,14 +830,14 @@ for attempt in 1 2 3 4 5 6; do
     # fatal: a worktree removed mid-run, or switched to another branch, simply stops
     # holding the base, and the sync falls through to moving the ref — which is what
     # is now correct for that state.
-    BASE_WT=$(worktree_holding "$INTEGRATION")
+    BASE_WT=$(worktree_holding "$BASE_BRANCH")
     if [ -n "$BASE_WT" ]; then
       # A linked worktree is standing on the base, so its ref cannot be moved from
       # outside; advance it from inside that tree instead. Divergence was ruled out
       # above, so a failure here is the tree's STATE, not the refs' — keep git's own
       # message, which names the files that block the fast-forward and is the part a
       # caller cannot re-derive from "sync failed".
-      if ! ff_out=$(git -C "$BASE_WT" merge --ff-only "origin/$INTEGRATION" 2>&1); then
+      if ! ff_out=$(git -C "$BASE_WT" merge --ff-only "origin/$BASE_BRANCH" 2>&1); then
         ff_failed=1
         break
       fi
@@ -725,22 +845,22 @@ for attempt in 1 2 3 4 5 6; do
       # Creates the branch when the main checkout has no local copy of it, which is
       # the ordinary state for an epic branch whose own worktree has since been torn
       # down.
-      git -C "$MAIN" branch -f "$INTEGRATION" "origin/$INTEGRATION" >/dev/null 2>&1 || true
+      git -C "$MAIN" branch -f "$BASE_BRANCH" "origin/$BASE_BRANCH" >/dev/null 2>&1 || true
     fi
   fi
-  LOCAL=$(git -C "$MAIN" rev-parse --verify --quiet "refs/heads/$INTEGRATION" || true)
-  REMOTE=$(git -C "$MAIN" rev-parse --verify --quiet "refs/remotes/origin/$INTEGRATION" || true)
+  LOCAL=$(git -C "$MAIN" rev-parse --verify --quiet "refs/heads/$BASE_BRANCH" || true)
+  REMOTE=$(git -C "$MAIN" rev-parse --verify --quiet "refs/remotes/origin/$BASE_BRANCH" || true)
   if [ -n "$LOCAL" ] && [ "$LOCAL" = "$REMOTE" ] && { [ -z "$MERGE_OID" ] || \
-       git -C "$MAIN" merge-base --is-ancestor "$MERGE_OID" "$INTEGRATION" 2>/dev/null; }; then
+       git -C "$MAIN" merge-base --is-ancestor "$MERGE_OID" "$BASE_BRANCH" 2>/dev/null; }; then
     synced=1
     break
   fi
   echo "merge-pr: remote not serving the merge yet (attempt $attempt/6) — waiting ..."
   sleep 2
 done
-[ -z "$diverged" ] || die "local '$INTEGRATION' carries commits 'origin/$INTEGRATION' does not, so advancing it would discard them — REFUSED, and the local branch is untouched. PR #$PR IS merged; only the local sync is outstanding.\n  Inspect what is on it and reconcile it by hand:\n    git -C $MAIN log --oneline origin/$INTEGRATION..$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION'."
-[ -z "$ff_failed" ] || die "could not fast-forward '$INTEGRATION' inside the worktree $BASE_WT, so the local branch is still behind the merged tip. PR #$PR IS merged; only the local sync is outstanding.\n  '$INTEGRATION' is NOT diverged — that was checked first — so what blocks it is the state of that working tree: uncommitted changes over a file the fast-forward touches, or a merge left unfinished in it. git said:\n    ${ff_out:-(no output)}\n  Clear that tree and finish the sync from inside it:\n    git -C $BASE_WT status\n    git -C $BASE_WT merge --ff-only origin/$INTEGRATION\n  Until then do NOT cut new worktrees off '$INTEGRATION' — the local ref is behind the merged tip."
-[ -n "$synced" ] || die "local '$INTEGRATION' did NOT reach the merged tip (merge commit ${MERGE_OID:-unknown} still absent after retries) — SYNC FAILED; do NOT cut new worktrees off '$INTEGRATION' until this is resolved."
+[ -z "$diverged" ] || die "local '$BASE_BRANCH' carries commits 'origin/$BASE_BRANCH' does not, so advancing it would discard them — REFUSED, and the local branch is untouched. PR #$PR IS merged; only the local sync is outstanding.\n  Inspect what is on it and reconcile it by hand:\n    git -C $MAIN log --oneline origin/$BASE_BRANCH..$BASE_BRANCH\n  Until then do NOT cut new worktrees off '$BASE_BRANCH'."
+[ -z "$ff_failed" ] || die "could not fast-forward '$BASE_BRANCH' inside the worktree $BASE_WT, so the local branch is still behind the merged tip. PR #$PR IS merged; only the local sync is outstanding.\n  '$BASE_BRANCH' is NOT diverged — that was checked first — so what blocks it is the state of that working tree: uncommitted changes over a file the fast-forward touches, or a merge left unfinished in it. git said:\n    ${ff_out:-(no output)}\n  Clear that tree and finish the sync from inside it:\n    git -C $BASE_WT status\n    git -C $BASE_WT merge --ff-only origin/$BASE_BRANCH\n  Until then do NOT cut new worktrees off '$BASE_BRANCH' — the local ref is behind the merged tip."
+[ -n "$synced" ] || die "local '$BASE_BRANCH' did NOT reach the merged tip (merge commit ${MERGE_OID:-unknown} still absent after retries) — SYNC FAILED; do NOT cut new worktrees off '$BASE_BRANCH' until this is resolved."
 
 # --- 5. Squash close-out: verify the tree, THEN delete the branch ----------------
 # Nothing to do on the merge path — `--delete-branch` already removed both copies
@@ -791,7 +911,7 @@ if [ "$MERGE_MODE" = "squash" ]; then
     # not run must never stand in for one that passed. The epic tip survives in
     # the local branch or in origin/<head> — neither is pruned yet, because this
     # path is exactly the one that did not delete the branch — and the squash
-    # commit arrived with step 4's fetch, which already proved '$INTEGRATION'
+    # commit arrived with step 4's fetch, which already proved '$BASE_BRANCH'
     # carries it.
     VERIFY_FAILED=""
     if [ -z "$MERGE_OID" ]; then
@@ -801,9 +921,9 @@ if [ "$MERGE_MODE" = "squash" ]; then
     elif ! git -C "$MAIN" cat-file -e "$MERGE_OID^{commit}" 2>/dev/null; then
       VERIFY_FAILED="the squash commit $MERGE_OID is not an object this repo holds, so the comparison could not be made"
     elif ! git -C "$MAIN" diff --quiet "$EPIC_TIP" "$MERGE_OID"; then
-      VERIFY_FAILED="the tree on '$INTEGRATION' after the squash is NOT the tree that was gated"
+      VERIFY_FAILED="the tree on '$BASE_BRANCH' after the squash is NOT the tree that was gated"
     fi
-    [ -z "$VERIFY_FAILED" ] || die "PR #$PR was squashed onto '$INTEGRATION', but $VERIFY_FAILED — so '$HEAD_BRANCH' has NOT been deleted and is intact, locally and on origin.\n  On this path that comparison REPLACES git's \"not fully merged\" warning: a squash breaks ancestry by construction, so the warning says nothing, and the tree check is the only thing standing between the delete and losing work. It did not pass, so nothing was deleted.\n  See for yourself:\n    git -C $MAIN diff $EPIC_TIP ${MERGE_OID:-<squash commit>}\n  The usual cause is the close-out cadence being skipped — '$INTEGRATION' moved while the epic ran and was never merged back INTO '$HEAD_BRANCH', so what landed is not what the close-out gate ran on.\n  Everything else is done: the merge is complete and local '$INTEGRATION' is synced. Re-running merge-pr.sh $PR resumes from this check."
+    [ -z "$VERIFY_FAILED" ] || die "PR #$PR was squashed onto '$BASE_BRANCH', but $VERIFY_FAILED — so '$HEAD_BRANCH' has NOT been deleted and is intact, locally and on origin.\n  On this path that comparison REPLACES git's \"not fully merged\" warning: a squash breaks ancestry by construction, so the warning says nothing, and the tree check is the only thing standing between the delete and losing work. It did not pass, so nothing was deleted.\n  See for yourself:\n    git -C $MAIN diff $EPIC_TIP ${MERGE_OID:-<squash commit>}\n  The usual cause is the close-out cadence being skipped — '$BASE_BRANCH' moved while the epic ran and was never merged back INTO '$HEAD_BRANCH', so what landed is not what the close-out gate ran on.\n  Everything else is done: the merge is complete and local '$BASE_BRANCH' is synced. Re-running merge-pr.sh $PR resumes from this check."
     # `-D`, not `-d`. This is the one place in this flow where git's "not fully
     # merged" refusal is overridden, and that refusal is precisely the one the
     # standing rule says never to force past — so the two conditions below are
@@ -838,7 +958,7 @@ if [ "$MERGE_MODE" = "squash" ]; then
       git -C "$MAIN" branch -D "$HEAD_BRANCH" >/dev/null 2>&1 \
         || DELETE_FAILED="${DELETE_FAILED:+$DELETE_FAILED\n    }git -C $MAIN branch -D $HEAD_BRANCH"
     fi
-    [ -z "$DELETE_FAILED" ] || die "PR #$PR is squashed onto '$INTEGRATION' and the tree was VERIFIED against the gated epic tip, but deleting '$HEAD_BRANCH' failed.\n  Nothing is at risk — the work is on '$INTEGRATION' and the local sync is done; only the branch is left behind. Finish it by hand:\n    $DELETE_FAILED"
+    [ -z "$DELETE_FAILED" ] || die "PR #$PR is squashed onto '$BASE_BRANCH' and the tree was VERIFIED against the gated epic tip, but deleting '$HEAD_BRANCH' failed.\n  Nothing is at risk — the work is on '$BASE_BRANCH' and the local sync is done; only the branch is left behind. Finish it by hand:\n    $DELETE_FAILED"
   fi
 fi
 
@@ -858,12 +978,12 @@ assert_checkout_unmoved
 if [ "$ON_BASE" -eq 0 ]; then
   git_out -C "$MAIN" rev-parse HEAD
   NOW_HEAD="$GIT_OUT"
-  [ "$NOW_HEAD" = "$START_HEAD" ] || die "the main checkout $MAIN is still on '$START_BRANCH' but its HEAD moved from $START_HEAD to $NOW_HEAD — this run only advanced '$INTEGRATION', which is a different branch, so another process moved '$START_BRANCH' mid-run. Check where it points before cutting any worktree off it."
+  [ "$NOW_HEAD" = "$START_HEAD" ] || die "the main checkout $MAIN is still on '$START_BRANCH' but its HEAD moved from $START_HEAD to $NOW_HEAD — this run only advanced '$BASE_BRANCH', which is a different branch, so another process moved '$START_BRANCH' mid-run. Check where it points before cutting any worktree off it."
 fi
 
 # Resolved on its own line rather than inside the echo, because a command
 # substitution that fails inside a successful `echo` takes nothing down with it:
 # errexit reads the echo's own status, which is 0, so the run would announce a
 # close-out with an empty sha where the synced tip should be and exit 0.
-git_out -C "$MAIN" rev-parse --short "$INTEGRATION"
-echo "merge-pr: done — PR #$PR merged, worktree removed, local '$INTEGRATION' synced to $GIT_OUT, main checkout still on '$START_BRANCH'."
+git_out -C "$MAIN" rev-parse --short "$BASE_BRANCH"
+echo "merge-pr: done — PR #$PR merged, worktree removed, local '$BASE_BRANCH' synced to $GIT_OUT, main checkout still on '$START_BRANCH'."

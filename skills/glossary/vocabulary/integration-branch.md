@@ -2,9 +2,9 @@
 
 The **integration branch** is the shared branch this flow works off: worktrees are cut from it, slice PRs
 merge back into it, and it is the branch a release is cut from. In one project it is `main`; in another a
-long-lived `release/x.y.z`. It is discovered from the repository rather than assumed, because a project
-that rolls its release branch leaves any hardcoded name pointing at a branch that has been merged and
-deleted.
+long-lived `release/x.y.z`; under gitflow, `develop`. **It is DECLARED by the project, never derived** —
+nothing in a repository states it, and a project that rolls its release branch restates it when it rolls,
+in the same change that cuts the new branch.
 
 **The term names the shared branch and never anything else.** An epic branch
 (`skills/glossary/vocabulary/epic-branch.md`) sits above it and is cut from it, and slice branches sit
@@ -17,10 +17,7 @@ that announces itself.
 
 **Whether it is also the repository's DEFAULT branch is a separate question with real consequences.** The
 two coincide in some projects and not others, and several behaviours turn on the default branch rather
-than on this one — see `skills/glossary/mechanics/closing-keyword.md`. **The relationship does not run
-backwards**: the two coinciding says nothing about which branching model
-(`skills/glossary/vocabulary/branching-model.md`) a project uses, because a release project commonly makes
-its release branch the default branch as well.
-
-**Which branch this IS comes from the declared branching model, not from a search.** `trunk` names the
-repository's default branch, `release` the single live `release/x.y.z`, `gitflow` names `develop`.
+than on this one — see `skills/glossary/mechanics/closing-keyword.md`. **Neither can be read off the
+other**, in either direction: a project whose work lands on its default branch and one whose default
+branch is a release branch it does not work on are both ordinary, and a local ref recording the default
+can be stale, so an inference from it is wrong without erroring.

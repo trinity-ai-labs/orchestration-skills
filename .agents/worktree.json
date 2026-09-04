@@ -1,5 +1,5 @@
 {
-  "branchingModel": "trunk",
+  "integrationBranch": "main",
   "envFiles": [],
   "sharedResources": [],
   "gate": "sh scripts/check.sh",

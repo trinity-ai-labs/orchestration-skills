@@ -58,24 +58,22 @@
 # branch, irreversibly, with the tree comparison passing and every signal reading
 # clean. So the squash additionally requires that this head is NOT the branch work
 # lands on, which is a question about the branch's LEVEL — and answering it needs
-# one fact no repository carries: which branching model the project uses.
+# one fact no repository carries: which branch that is.
 #
-#   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+#   { "integrationBranch": "main" }
 #
-# Declared, that fact settles it directly: trunk means the integration branch is
-# the repository's default branch, release means the single live `release/*`, and
-# gitflow means `develop` — where `release/*` and `hotfix/*` heads are refused too,
-# being branches cut to carry a release rather than an arc.
+# Declared, it settles directly: an epic branch sits ABOVE the integration branch, so
+# a head that IS the integration branch is never a buffer to collapse. Nothing here
+# is inferred from the repository's DEFAULT branch, which is a DIFFERENT fact — the
+# two coincide in some projects and not in others, and reading either off the other
+# is wrong in whichever direction it is tried.
 #
 # UNDECLARED, this helper falls back to what it did before: the PR's base is not the
-# repository's default branch. That test is a statement about the project's model
-# standing in for a question about the branch's level, and the two coincide only
-# where the integration branch is not also the default branch. That turns out to be
-# the uncommon case — a release-branch project routinely makes `release/x.y.z` its
-# default branch as well — so undeclared, the fallback declines the genuine epic
-# boundary in most projects and "squash" quietly does nothing. Declaring the model
-# is what makes the option reachable; the fallback exists so that upgrading changes
-# no behaviour until a project does.
+# repository's default branch. That test stands in for the real question and holds
+# only where the integration branch is not also the default branch, so undeclared it
+# declines the genuine epic boundary in a project whose work lands on its default
+# branch. Declaring the branch is what makes the option reachable there; the fallback
+# exists so that upgrading changes no behaviour until a project does.
 #
 # Every way either question can fail to produce a usable answer — a network error,
 # an empty response, a gh failure, a count of zero, a default branch that could not
@@ -249,97 +247,41 @@ PY
   fi
 }
 
-# --- The branching model ---------------------------------------------------------
-# Which branch a project's work lands on is a fact about the PROJECT, and until a
-# project states it every rule that needs it has to guess. This helper's own guess
-# was "the PR's base is not the repository's default branch" - a statement about the
-# project's MODEL standing in for a question about the branch's LEVEL: is this head
-# an epic buffer, or the branch work lands on? The two coincide only where the
-# integration branch is not also the default branch, and that is the UNCOMMON case -
-# a release-branch project routinely makes `release/x.y.z` its default branch too,
-# at which point the guess declines every squash the option exists for.
+# --- The integration branch ------------------------------------------------------
+# Work ends on the INTEGRATION branch: it is what worktrees are cut from, what slice
+# PRs merge into, and what an epic branch collapses back onto. Which branch that is
+# is the project's own fact and nothing here can derive it -- a repository's DEFAULT
+# branch is a different fact that happens to coincide in some projects and not in
+# others, and reading one off the other is wrong in whichever direction it is tried.
 #
-#   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+#   { "integrationBranch": "main" }
 #
-# A workspace declares it once for all its members, which share one branch name and
-# one model; a standalone repo declares it in its own worktree.json. The workspace
-# wins where both are present. ABSENT is a complete answer meaning "behave exactly
-# as before", so no existing project changes behaviour by upgrading.
-branching_model() {
-  local model=""
+# A workspace declares it once for members that share one branch, and that answer
+# wins. ABSENT, nothing keyed on it fires and this helper behaves exactly as before.
+integration_branch() {
+  local branch=""
   if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
-    model=$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)
+    branch=$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" integrationBranch)
   fi
-  [ -n "$model" ] || model=$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)
-  case "$model" in
-  trunk | release | gitflow) printf '%s' "$model" ;;
-  esac
+  [ -n "$branch" ] || branch=$(read_config_scalar "$MAIN/$CONFIG_REL" integrationBranch)
+  # A declared branch this repository does not have is a typo or a stale config, and
+  # reading it anyway makes the comparison below a tautology that says yes to every
+  # head. Unverifiable reads as undeclared, which is the direction this whole path
+  # errs in.
+  [ -z "$branch" ] || git -C "$MAIN" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || branch=""
+  printf '%s' "$branch"
 }
 
-# The branch the declared model names as the one work lands on. It prints nothing
-# for every question it cannot answer - an unrecognised model, a `develop` this repo
-# does not have, more than one live release branch, a default branch gh would not
-# name - and the caller reads that silence as "not declared" and keeps the older
-# predicate. That is the direction everything on this path errs in, and it is why
-# this ambiguity is handled differently from the same ambiguity in the FLOW: cutting
-# a worktree off the wrong base poisons every tree forked from it, so the skills
-# stop and ask, while a wrong squash here is unrecoverable history, so this side
-# quietly falls back to a real merge commit.
-integration_branch_for() {
-  local default_branch matches count
-  case "$1" in
-  trunk)
-    default_branch=$(cd "$MAIN" && gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null) || default_branch=""
-    case "$default_branch" in
-    '' | null) default_branch='' ;;
-    esac
-    [ -z "$default_branch" ] || printf '%s' "$default_branch"
-    ;;
-  gitflow)
-    # `develop` by definition. Accept it under either ref namespace: a fresh clone
-    # of a gitflow repo carries origin/develop and no local branch until somebody
-    # asks for one, and a check that looked only locally would decline there.
-    if git -C "$MAIN" show-ref --verify --quiet refs/heads/develop ||
-      git -C "$MAIN" show-ref --verify --quiet refs/remotes/origin/develop; then
-      printf 'develop'
-    fi
-    ;;
-  release)
-    # Exactly one live release branch, or nothing. Mid-rollover two of them exist
-    # at once, and picking either is a guess this path never makes.
-    matches=$(git -C "$MAIN" for-each-ref --format='%(refname:short)' 'refs/heads/release/*' 2>/dev/null) || matches=""
-    count=$(printf '%s\n' "$matches" | grep -c . || true)
-    if [ "$count" = "1" ]; then printf '%s' "$matches"; fi
-    ;;
-  esac
-}
-
-# Is this head a buffer the squash is allowed to collapse? Answered from the
-# branch's LEVEL, never from its name. Prints nothing when it is not, and the
-# reason on stdout when a declared model is what refused it.
-#   squash_boundary_ok <resolved-integration-branch> <head> <base> <default>
-# With no resolved integration branch the older base-vs-default test stands, which
-# is what makes an undeclared project behave exactly as it did before.
+# Is this head a buffer the squash is allowed to collapse? One question, asked of
+# the branch's LEVEL: an epic branch sits ABOVE the integration branch, so the head
+# is never the integration branch itself. With none declared the older test stands,
+# which is what leaves an undeclared project behaving exactly as it did.
+#   squash_boundary_ok <integration-branch> <head> <base> <default-branch>
 squash_boundary_ok() {
   local integration="$1" head="$2" base="$3" default="$4"
   if [ -n "$integration" ]; then
-    if [ "$head" = "$integration" ]; then return 1; fi
-    # A `release/*` or `hotfix/*` head is a branch cut to carry a RELEASE, and a
-    # release is an event this flow does not perform under any model. Under gitflow
-    # that is the definition; under the other two it is a belt against a project
-    # that has declared the wrong model — declare `trunk` while actually running a
-    # release branch and, without this, a `release/0.4.0 -> main` close-out clears
-    # every other test and collapses the whole release branch.
-    #
-    # This is the one place a branch NAME is consulted, and it is deliberately not
-    # the key for anything: the declared model is the key, and this only ever
-    # REFUSES. The cost of it firing wrongly — an epic branch somebody named
-    # `release/…` — is one missed squash, which is the cosmetic side of the
-    # asymmetry this whole path is built on.
-    case "$head" in
-    release/* | hotfix/*) return 1 ;;
-    esac
-    return 0
+    [ "$head" != "$integration" ]
+    return
   fi
   [ -n "$default" ] && [ "$base" != "$default" ]
 }
@@ -412,6 +354,21 @@ HEAD_BRANCH=$(pr_field headRefName)
 [ -n "$BASE_BRANCH" ] || die "PR #$PR has no base branch"
 
 echo "merge-pr: PR #$PR  state=$STATE  base=$BASE_BRANCH  head=$HEAD_BRANCH  main=$MAIN"
+
+# A retired key is worse than an absent one: the project stated an intent and this
+# version silently does not read it. Said HERE rather than left to a changelog,
+# because the only reader who needs it is the one whose config has it, at the moment
+# the merge is about to behave differently from what they declared.
+RETIRED_IN=""
+if [ -n "$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)" ]; then
+  RETIRED_IN=".agents/workspace.json"
+elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
+  RETIRED_IN="$CONFIG_REL"
+fi
+if [ -n "$RETIRED_IN" ]; then
+  echo "merge-pr: note: $RETIRED_IN declares 'branchingModel', which this version no longer reads." >&2
+  echo "  Declare 'integrationBranch' instead — the branch this project's work lands on." >&2
+fi
 
 # Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
@@ -547,19 +504,15 @@ fi
 #   2. Is this a boundary the squash is allowed to reach? The squashes are for an
 #      epic buffer collapsing into the branch work lands on - never for that branch
 #      itself moving on, which is a release event this flow does not perform. So the
-#      question is the HEAD branch's LEVEL, and a declared branching model answers
-#      it: a head that IS the integration branch never squashes, and under gitflow
-#      neither does a `release/*` or `hotfix/*` head, both being branches cut to
-#      carry a release rather than an arc.
+#      question is the HEAD branch's LEVEL, and the declared integration branch
+#      answers it: an epic branch sits above it, so a head that IS the integration
+#      branch is never one.
 #
-#      Where the project declares no model there is nothing to resolve and the older
-#      test stands unchanged: a base that IS the repository's default branch never
-#      squashes. That one reaches further than it means to - it declines the genuine
-#      epic boundary in every project whose integration branch is also its default
-#      branch, which is most of them - and declaring the model is how a project
-#      stops paying for it. What it cannot be replaced by is a branch-name prefix:
-#      no prefix is ever the key for anything in this flow, which is why the answer
-#      had to arrive as a declaration rather than as a smarter guess.
+#      Where the project declares none there is nothing to compare against and the
+#      older test stands unchanged: a base that IS the repository's default branch
+#      never squashes. That one reaches further than it means to, declining the
+#      genuine epic boundary wherever work lands on the default branch, and
+#      declaring the integration branch is how a project stops paying for it.
 #   3. Is this the epic boundary? An epic branch is the branch an epic's slices
 #      PR'd into, so asking GitHub how many merged PRs targeted the HEAD branch IS
 #      the definition rather than a proxy for it. A slice branch and a single-slice
@@ -584,20 +537,14 @@ fi
 MERGE_MODE="merge"
 EPIC_TIP=""
 if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge)" = "squash" ]; then
-  BRANCHING_MODEL=$(branching_model)
-  INTEGRATION_BRANCH=""
-  [ -z "$BRANCHING_MODEL" ] || INTEGRATION_BRANCH=$(integration_branch_for "$BRANCHING_MODEL")
-  # An unknown default branch is not a licence to guess, and "not answered" has
-  # two shapes rather than one. gh (2.92) renders a null field as an empty line —
-  # which is also what a failed call and a repository with no default branch
-  # produce — while a raw `jq -r` prints the literal "null" for that same input.
-  # A gh that ever formatted it the second way would hand back a string that
-  # compares unequal to every real base, i.e. it would read as "not the default
-  # branch" and OPEN the squash path on the one answer that means the question
-  # went unanswered. Both shapes are normalised to empty so the test below covers
-  # them, and a branch genuinely named `null` is normalised with them: on an
-  # answer this ambiguous, merge is the direction everything on this path errs in.
-  # It is only consulted where no model was declared — the fallback's question.
+  INTEGRATION_BRANCH=$(integration_branch)
+  # The repository's DEFAULT branch is only consulted where no integration branch is
+  # declared -- it is the fallback's question, and asking it otherwise spends a gh
+  # call on an answer nothing reads. gh (2.92) renders a null field as an empty line,
+  # which is also what a failed call and a repository with no default branch produce,
+  # while a raw `jq -r` prints the literal "null"; both are normalised to empty so a
+  # single test covers them, and a branch genuinely named `null` is normalised with
+  # them. On an answer that ambiguous, merge is the direction this path errs in.
   DEFAULT_BRANCH=""
   if [ -z "$INTEGRATION_BRANCH" ]; then
     DEFAULT_BRANCH=$( cd "$MAIN" && gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null ) || DEFAULT_BRANCH=""
@@ -610,7 +557,7 @@ if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerg
   if squash_boundary_ok "$INTEGRATION_BRANCH" "$HEAD_BRANCH" "$BASE_BRANCH" "$DEFAULT_BRANCH"; then
     BOUNDARY_OK=1
   elif [ -n "$INTEGRATION_BRANCH" ]; then
-    echo "merge-pr: '$HEAD_BRANCH' is not an epic buffer under this project's declared '$BRANCHING_MODEL' model (its integration branch is '$INTEGRATION_BRANCH') — merging with a real merge commit."
+    echo "merge-pr: '$HEAD_BRANCH' IS this project's integration branch — a branch work lands on never collapses into one commit. Merging with a real merge commit."
   fi
 
   if [ -n "$BOUNDARY_OK" ]; then

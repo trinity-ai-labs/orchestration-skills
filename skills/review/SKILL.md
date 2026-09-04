@@ -4,10 +4,11 @@ argument-hint: "[file or path to narrow the pass]"
 description: >-
   The implementer's own quality + correctness pass over its UNCOMMITTED work, before it commits.
   Use when an implementer in the worktree flow has finished writing a change and is about to commit
-  it, whenever an `orchestrate` brief says to run a review pass for the slice, and whenever you are
-  asked to review, tighten, simplify, or clean up a change you just wrote and have not committed.
-  Reviews reuse, simplification, efficiency, altitude AND correctness in one pass over the working
-  tree, then applies what it judges right and reports what it rejected.
+  it, whenever the brief you were dispatched with says to run a review pass for the slice, and
+  whenever you are asked to review, tighten, simplify, or clean up a change you just wrote and have
+  not committed. Reviews whether the slice's GOAL is met, plus reuse, simplification, efficiency,
+  altitude AND correctness, in one pass over the working tree, then applies what it judges right and
+  reports what it rejected.
 ---
 
 # Review — the implement-time pass
@@ -54,9 +55,12 @@ What is in scope, once you have it:
 
 ## 2. Run the lenses, in this order
 
-**The order is load-bearing:** a correctness fix can introduce something to simplify, and a
-simplification can expose a correctness problem. Reversed, the pass spends its budget tidying code the
-correctness fix is about to rewrite.
+**The order is load-bearing:** the goal goes first because every lens under it asks whether the code
+is good and none of them asks whether it achieved anything, so a diff aimed at the wrong thing passes
+all five while getting steadily tidier. Then a correctness fix can introduce something to simplify,
+and a simplification can expose a correctness problem. Reversed, the pass spends its budget polishing
+a change the goal check is about to send back, or tidying code the correctness fix is about to
+rewrite.
 
 **And when the diff in front of you IS this corpus, the bar you are judging by has two copies — the
 worktree's is the one that counts.** You were loaded from the **installed** plugin, at whatever
@@ -74,6 +78,22 @@ lands.** Reuse and Simplification below both push a change toward the establishe
 this diff has just changed still reads as established in the copy you were handed, so *converge on
 what is already there* comes out as an edit dragging the new wording back to the old one. That is a
 revert, and it arrives in your Applied list wearing the word convergence.
+
+### Goal met
+
+- **The slice's `Goal` says in outcome terms what this work is FOR. Ask whether the diff in front of
+  you achieves it** — a different question from whether it matches the brief, which is the next lens
+  down and which a wrongly-aimed brief passes.
+- **You are the first party positioned to ask it.** You hold the intent and the real diff at the same
+  moment, while the change is still uncommitted and a correction costs nothing. The gate runs
+  commands and cannot read a goal; the reader at the PR gets here only after the work is done.
+- **A brief is a route to the goal, and a route can be wrong.** Where following it literally would
+  miss the point, that is a finding you report — with what you did instead, or with what you would
+  need — never a silent reinterpretation of the slice, and never a step you carry out anyway on the
+  grounds that it was written down.
+- **Where the slice carries no goal, say so and judge nothing against an inferred one.** A goal you
+  reconstruct from the brief is the brief scored against itself, which passes by construction and
+  reads afterwards exactly like a goal that was checked.
 
 ### Correctness
 
@@ -125,7 +145,7 @@ revert, and it arrives in your Applied list wearing the word convergence.
 mode immediately before committing. Nor **subjective style** that reduces neither reuse, complexity,
 nor cost.
 
-**The ceiling on all five lenses: anything whose reason you have not established, you leave.**
+**The ceiling on all six lenses: anything whose reason you have not established, you leave.**
 Establish why a thing is the way it is before you disposition it — trace what looks wrong to the
 constraint it satisfies, the consumer it exists for, or the commit that put it there — and where it
 has a valid reason and is idiomatic for its context, leave it and say you checked. The case common
@@ -165,10 +185,15 @@ wait on.
 
 ---
 
-## 4. Report — Applied, Rejected, Flagged, Verification
+## 4. Report — Goal, Applied, Rejected, Flagged, Verification
 
-Report to the caller in prose, covering four things. Keep it short enough to read at a glance:
+Report to the caller in prose, covering five things. Keep it short enough to read at a glance:
 
+- **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice
+  carried none, say that rather than supplying one. **This report is the only route that verdict has
+  to the reader of your PR**, who is told to anchor the right-problem judgement to it and otherwise
+  has the brief and the diff — two artifacts that agree with each other whether or not the work was
+  aimed correctly.
 - **Applied** — each change you made and the one-line reason.
 - **Rejected** — each finding you considered and deliberately did not act on, and why. This is not
   filler. A finding you silently dropped is indistinguishable from one you never saw, and the

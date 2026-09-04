@@ -27,6 +27,7 @@
 #  12. no skill cites another skill — the glossary excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
 #  14. the glossary stays tied to the tree.
+#  15. both bin/ ports answer the predicates they share identically.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -1012,10 +1013,116 @@ $e: names '$term_words' without linking $other — an unlinked mention is where 
 	fi
 fi
 
+# --- 15. the two ports answer the shared predicates the same way -------------
+
+# The parity check above reads SURFACE: a sibling exists, the usage lines match,
+# the contract env vars match, the .ps1 is ASCII. It makes no claim about what the
+# two implementations DO, and cannot: comparing behaviour needs the behaviour run.
+# So a predicate written twice can diverge and stay green on everything else, and
+# the divergence surfaces as the same PR merging differently depending on which
+# shell the user's platform handed them.
+#
+# One table, asked of both. Extraction is by function name and a MISSING function
+# is a failure rather than a skip: renaming one silently is exactly how the pair
+# would stop being compared while this check kept reporting ok.
+
+pc_cases=scripts/port-cases/squash-boundary.tsv
+pc_sh=bin/merge-pr.sh
+pc_ps1=bin/merge-pr.ps1
+
+if [ ! -f "$pc_cases" ]; then
+	fail "port-cases: $pc_cases is missing — the shared table is what makes this a comparison"
+else
+	pc_n=$(grep -cv '^#' "$pc_cases" || true)
+	pc_tmp="$(mktemp -d)" || exit 2
+
+	python3 - "$pc_sh" "$pc_ps1" "$pc_tmp" <<'PY'
+import re, sys
+sh_path, ps1_path, out = sys.argv[1], sys.argv[2], sys.argv[3]
+src = open(sh_path, encoding="utf-8").read()
+i = src.find("squash_boundary_ok() {")
+j = src.find("\n}\n", i)
+if i < 0 or j < 0:
+    sys.exit("squash_boundary_ok not found in " + sh_path)
+open(out + "/fn.sh", "w", encoding="utf-8").write(src[i:j + 3])
+src = open(ps1_path, encoding="utf-8").read()
+i = src.find("function Test-SquashBoundary {")
+j = src.find("\n}\n", i)
+if i < 0 or j < 0:
+    sys.exit("Test-SquashBoundary not found in " + ps1_path)
+open(out + "/fn.ps1", "w", encoding="utf-8").write(src[i:j + 3])
+PY
+	pc_extract=$?
+
+	if [ "$pc_extract" -ne 0 ]; then
+		fail "port-cases: could not extract both predicates — a rename leaves the pair uncompared while this check still reports ok"
+	else
+		# bash side
+		{
+			echo "set -u"
+			echo ". $pc_tmp/fn.sh"
+			echo 'while IFS="	" read -r i h b d e; do'
+			echo '  case "$i" in "#"*) continue ;; esac'
+			echo '  [ "$i" = - ] && i=""; [ "$b" = - ] && b=""; [ "$d" = - ] && d=""; [ "$h" = - ] && h=""'
+			echo '  if squash_boundary_ok "$i" "$h" "$b" "$d"; then g=squash; else g=merge; fi'
+			echo '  printf "%s\t%s\n" "$e" "$g"'
+			echo "done < $pc_cases"
+		} > "$pc_tmp/run.sh"
+		bash "$pc_tmp/run.sh" > "$pc_tmp/out.sh" 2>"$pc_tmp/err.sh" || true
+
+		pc_bad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": bash said " $2 ", the table says " $1 }' "$pc_tmp/out.sh")"
+		pc_rows=$(grep -c . "$pc_tmp/out.sh" || true)
+
+		if [ "$pc_rows" != "$pc_n" ]; then
+			fail "port-cases: bash answered $pc_rows of $pc_n case(s) — the driver did not read the whole table"
+		elif [ -n "$pc_bad" ]; then
+			printf '%s\n' "$pc_bad" >&2
+			fail "port-cases: bin/merge-pr.sh disagrees with the table"
+		elif ! command -v pwsh >/dev/null 2>&1; then
+			skip "port-cases: bash agrees with all $pc_n case(s), but pwsh is not on PATH so bin/merge-pr.ps1 was NOT compared here; the check job on ubuntu-latest ships pwsh and does compare it"
+		else
+			# Quoted heredoc: the driver is PowerShell, and an unquoted one lets the
+			# shell expand $line and $f before pwsh ever sees them. Paths arrive as
+			# arguments for the same reason.
+			cat > "$pc_tmp/run.ps1" <<'PS'
+param([string] $Fn, [string] $Cases)
+. $Fn
+foreach ($line in Get-Content $Cases) {
+    if ($line.StartsWith('#')) { continue }
+    $f = $line -split "`t"
+    $v = @('', '', '', '')
+    for ($k = 0; $k -lt 4; $k++) { if ($f[$k] -ne '-') { $v[$k] = $f[$k] } }
+    $verdict = if (Test-SquashBoundary -IntegrationBranch $v[0] -Head $v[1] -Base $v[2] -DefaultBranch $v[3]) { 'squash' } else { 'merge' }
+    "$($f[4])`t$verdict"
+}
+PS
+			pwsh -NoProfile -NonInteractive -File "$pc_tmp/run.ps1" "$pc_tmp/fn.ps1" "$pc_cases" > "$pc_tmp/out.ps1" 2>"$pc_tmp/err.ps1" || true
+			pc_prows=$(grep -c . "$pc_tmp/out.ps1" || true)
+			if [ "$pc_prows" != "$pc_n" ]; then
+				sed 's/^/      /' "$pc_tmp/err.ps1" >&2
+				fail "port-cases: pwsh answered $pc_prows of $pc_n case(s) — the driver did not read the whole table"
+			else
+				pc_pbad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": pwsh said " $2 ", the table says " $1 }' "$pc_tmp/out.ps1")"
+				pc_diff="$(paste "$pc_tmp/out.sh" "$pc_tmp/out.ps1" | awk -F'\t' '$2 != $4 { print "    row " NR ": bash said " $2 ", pwsh said " $4 }')"
+				if [ -n "$pc_pbad" ]; then
+					printf '%s\n' "$pc_pbad" >&2
+					fail "port-cases: bin/merge-pr.ps1 disagrees with the table"
+				elif [ -n "$pc_diff" ]; then
+					printf '%s\n' "$pc_diff" >&2
+					fail "port-cases: the two ports disagree — surface parity cannot see this"
+				else
+					ok "port-cases: both ports answer all $pc_n shared case(s) identically, and as the table says"
+				fi
+			fi
+		fi
+	fi
+	rm -rf "$pc_tmp"
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, and the glossary is tied to the tree\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, and the two bin/ ports answer their shared predicates identically\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

@@ -93,22 +93,22 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 **Then settle the shape — one issue, or umbrella + subs.**
 
 - **Single issue** (the default) — small-to-medium work, one release effort. One body, filed; `/pipeline:decompose` grounds it, enriches it with what an executor needs, and comments its breakdown on it or fans out then.
-- **Umbrella + sub-issues** — large AND multi-area AND each piece a PR someone would want to track/close alone. The umbrella is the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is one phase, a self-contained forward-facing spec titled with it (`[P0]`, `[P1]`). Author them at Step 4, or let `/pipeline:orchestrate`'s first cycle convert a single issue.
+- **Umbrella + sub-issues** (`skills/glossary/vocabulary/umbrella.md`) — large AND multi-area AND each piece a PR someone would want to track/close alone. The umbrella is the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is one phase, a self-contained forward-facing spec titled with it (`[P0]`, `[P1]`). Author them at Step 4, or let `/pipeline:orchestrate`'s first cycle convert a single issue.
 - Don't reflexively shard — an umbrella for two small phases is overhead with no payoff; `skills/write-issue/references/arc-planning.md`'s *Sizing a phase* carries that test.
-- **An umbrella is not an epic branch, and filing one settles nothing about the other.** An umbrella is a *tracking shape*; an epic branch is a *branch lifecycle*, answered here on the two rules and carried out by `/pipeline:execute`, never read off how the issue was filed. "Epic" names both, so reading them as one takes the branch question for answered and leaves the facts unwritten.
+- **An umbrella is not an epic branch, and filing one settles nothing about the other** (`skills/glossary/vocabulary/epic-branch.md` separates them). The branch question is answered here on the two rules and carried out by `/pipeline:execute`, never read off how the issue was filed — taking it for answered leaves the facts unwritten.
 
 ---
 
 ## Step 4 — Write it (GitHub mechanics)
 
 - **Use `gh api` (REST), not `gh issue create`/`edit`** — the high-level write commands go through GraphQL and hit rate limits in batches; REST doesn't.
-- **Write the body to a file and reference it with `-F` (not `-f`)**: `-f body=@file` silently stores the literal string `@file`, `-F body=@file` reads it. **Verify after** — refetch the body and confirm it is the markdown, not `@path`.
+- **Write the body to a file and reference it with `-F` (not `-f`)** — `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0. **Verify after**: refetch the body and confirm it is the markdown, not `@path`.
   - Create: `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>" -F "milestone=<n>" --jq '.number'`
   - Edit body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`
   - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"`
 - **Milestone** takes a number, not a title — resolve it first (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass `-F "milestone=<n>"`.
 - **Umbrella linking**: create the subs, capture their numbers, then PATCH the umbrella body with the `- [ ] #<sub>` checklist. **Each sub also carries `Part of #<umbrella>` in its body, and that backlink is a rule rather than a formatting nicety**: only it is readable from the child's own body, all an agent arriving there directly has. A backlink-less child reads as complete, so an agent arriving at it grounds the slice without the frame it was written inside.
-- **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>` where the originating work sits under one, which is containment and takes the **native `sub_issues` link** too. That native link is `gh api -X POST repos/{owner}/{repo}/issues/<umbrella>/sub_issues -F sub_issue_id=<child's DATABASE id>`; ⚠️ the field takes the child's `.id`, **never** its issue number, which returns a bare `404` reading as *this endpoint does not exist*. A bare `Follows #<N>` is provenance, not containment, and takes the backlink alone. **PATCH the umbrella's body to add the follow-up to its checklist**, or it reads as finished work that is not.
+- **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>` where the originating work sits under one, which is containment and takes the **native `sub_issues` link** too. That native link is `skills/glossary/mechanics/sub-issue-link.md`. A bare `Follows #<N>` is provenance, not containment, and takes the backlink alone. **PATCH the umbrella's body to add the follow-up to its checklist**, or it reads as finished work that is not.
 - **Labels**: apply an existing `epic`/`umbrella` label where the repo has one; don't invent exotic ones. It names the **tracking shape**, never a branch decision, though it reads as the verdict it shares a word with.
 
 Then tell the user what you filed (issue #, or umbrella # + sub #s).

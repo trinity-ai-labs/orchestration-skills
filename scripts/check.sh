@@ -24,8 +24,9 @@
 #   9. shipped prose carries no issue numbers.
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. shipped prose carries no war stories.
-#  12. no skill cites another skill.
+#  12. no skill cites another skill — the glossary excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
+#  14. the glossary stays tied to the tree.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -874,26 +875,39 @@ PY
 	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"
 fi
 
-# --- 12. no skill cites another skill ---------------------------------------
+# --- 12. no skill cites another skill, the concept map excepted --------------
 
 # A spine pointing at its own references is the shape working. A skill reaching
 # into ANOTHER skill to explain itself is not finished: state what your reader
-# needs where they act. Cross-skill citation is what grew a 96-reference web, a
-# checker for it, and a convention for writing it.
+# needs where they act. Unbounded cross-skill citation is what grew a
+# 96-reference web, a checker for it, and a convention for writing it.
+#
+# skills/glossary/ is the one permitted target, and it is a different edge
+# rather than a hole in this one. An entry there is a DEFINITION — what a thing
+# is — which every pass needs identically and none of them owns, so the copies
+# drift with nothing able to make them agree. A RULE is the opposite: it is what
+# one stance does about that thing, it differs per stance, and it is restated
+# where its reader acts. So the map is cited and never cites back: the ban still
+# holds in the direction that grew the web, and an entry reaching into a pass
+# fails this check exactly as any other cross-skill citation does.
 
 cross_hits="$(
 	for f in $(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null); do
 		own="$(printf '%s' "$f" | cut -d/ -f2)"
 		grep -oE '`skills/[a-z-]+/[^`]*\.md`' "$f" 2>/dev/null | tr -d '`' | while IFS= read -r p; do
-			[ "$(printf '%s' "$p" | cut -d/ -f2)" = "$own" ] || printf '%s: %s\n' "$f" "$p"
+			tgt="$(printf '%s' "$p" | cut -d/ -f2)"
+			# Own references: the shape working. The concept map: the one other
+			# legal target, and only as a target — a file INSIDE the map whose own
+			# slug is `concepts` cites nothing else and still fails here.
+			[ "$tgt" = "$own" ] || [ "$tgt" = glossary ] || printf '%s: %s\n' "$f" "$p"
 		done
 	done
 )"
 if [ -n "$cross_hits" ]; then
 	printf '%s\n' "$cross_hits" | while IFS= read -r l; do printf 'FAIL  no-cross-skill-citations: %s\n' "$l" >&2; done
-	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it"
+	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/glossary/ may be cited across skills, and only for a DEFINITION"
 else
-	ok "no-cross-skill-citations: every skill is readable on its own"
+	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references and the glossary"
 fi
 
 # --- 13. no sentence has had its front removed --------------------------------
@@ -925,10 +939,83 @@ else
 	ok "no-half-deleted-prose: $orphan_n shipped file(s) carry no sentence whose front was removed"
 fi
 
+# --- 14. the glossary stays tied to the tree -------------------------------
+
+# A map of definitions treats drift, so a map that has itself gone stale is the
+# disease one level up: an entry nobody cites, or a definition nobody can find,
+# reads exactly like a live one. Three properties, each mechanical.
+#
+#   findable  every entry has a row in the index. check 8 catches a row pointing
+#             at a missing entry; the reverse is silent, so it is checked here.
+#   used      every entry is cited by at least one pass. An entry nothing points
+#             at is prose no reader reaches, which is what the map exists to stop.
+#   a definition, not an instruction
+#             an entry never ADDRESSES the reader. "you"/"your" is the mechanical
+#             tell: a definition describes a thing, an instruction addresses a
+#             person, and an entry that starts instructing has become a stance
+#             nobody acting will read. Banning modal words instead does not work
+#             -- "decided by dependency, never by understanding" is a fact, and a
+#             check that reds on it would be turned off within a week.
+#
+# NOT checked, deliberately: whether a term is defined somewhere OUTSIDE the map.
+# Every instrument tried for it reds on legitimate USE -- a pass naming four slice
+# fields is using them, not redefining them -- and a guard that fails correct work
+# is one everybody learns to wave through.
+
+map_dir=skills/glossary
+map_index="$map_dir/SKILL.md"
+if [ ! -f "$map_index" ]; then
+	fail "glossary: $map_index is missing — the map's index is what every pointer resolves through"
+else
+	map_entries="$(git ls-files "$map_dir/vocabulary/*.md" "$map_dir/mechanics/*.md" 2>/dev/null || true)"
+	if [ -z "$map_entries" ]; then
+		fail "glossary: no tracked entries under $map_dir/vocabulary or $map_dir/mechanics — this check scanned nothing"
+	else
+		map_problems=''
+		map_n=0
+		for e in $map_entries; do
+			map_n=$((map_n + 1))
+			grep -qF "$e" "$map_index" || map_problems="$map_problems
+$e: no row in the index — unfindable for a reader who cannot already name it"
+			# Cited by a pass: any tracked skills/ file outside the map itself.
+			cited=$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null \
+				| grep -v "^$map_dir/" \
+				| while IFS= read -r f; do grep -qF "$e" "$f" && echo x; done | wc -l | tr -d ' ')
+			[ "${cited:-0}" -gt 0 ] || map_problems="$map_problems
+$e: cited by no pass — an entry nothing points at is prose no reader reaches"
+			if grep -qniE '\b(you|your|yours)\b' "$e"; then
+				map_problems="$map_problems
+$e: addresses the reader — an entry carries a definition, and what to DO about it belongs to the stance that acts"
+			fi
+			# Naming another entry's term without linking to it is how a second,
+			# drifting definition starts. The term set is DERIVED from the entry
+			# filenames rather than listed here, so it grows with the glossary and
+			# cannot go stale against it. Both spellings, since prose hyphenates.
+			for other in $map_entries; do
+				[ "$other" = "$e" ] && continue
+				term_slug="$(basename "$other" .md)"
+				term_words="$(printf '%s' "$term_slug" | tr '-' ' ')"
+				if grep -qiF "$term_words" "$e" || grep -qiF "$term_slug" "$e"; then
+					grep -qF "$other" "$e" || map_problems="$map_problems
+$e: names '$term_words' without linking $other — an unlinked mention is where a second definition starts"
+				fi
+			done
+		done
+		if [ -n "$map_problems" ]; then
+			printf '%s\n' "$map_problems" | while IFS= read -r l; do
+				[ -n "$l" ] && printf 'FAIL  glossary: %s\n' "$l" >&2
+			done
+			fail "glossary: an entry must be indexed, cited, and free of instruction"
+		else
+			ok "glossary: $map_n entr(y/ies) each indexed, cited by a pass, and stating a definition rather than an instruction"
+		fi
+	fi
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, and the glossary is tied to the tree\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

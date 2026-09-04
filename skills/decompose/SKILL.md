@@ -10,7 +10,7 @@ description: >-
   splitting can still be wrong. You ground the HORIZON — the next dispatchable increment — in the actual
   codebase at the depth an executor acts on, and VALIDATE it against what the code really does, surfacing
   wrong assumptions, unspecified behavior and defects in the plan before an implementer builds on them. The
-  horizon emits at SLICE depth (owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar);
+  horizon emits at SLICE depth (goal, owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar);
   everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
   you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
@@ -56,7 +56,7 @@ Grounding almost always surfaces holes: unspecified behavior, an open design for
 
 ### 3. Slice the horizon, and size the wave → `skills/decompose/references/slicing.md`
 
-One slice = one worktree = one PR. Produce each horizon slice's fields — `Owns`, `Do NOT touch`, `Derives`, depends-on, skill to invoke, model tier, brief, verify bar — read them against each other, size the wave against the gate, then lay the waves out inside the issue's phase order, with the conflict map and the contract seams.
+One slice = one worktree = one PR. Produce each horizon slice's fields — `Goal`, `Owns`, `Do NOT touch`, `Derives`, depends-on, skill to invoke, model tier, brief, verify bar — read them against each other, size the wave against the gate, then lay the waves out inside the issue's phase order, with the conflict map and the contract seams.
 
 ⛔ **Everything this action produces is *slice depth*, and slice depth is for the horizon only.** Both errors are silent: an item past the horizon at slice depth carries coordinates a later wave invalidates, and a horizon item left at shape depth is dispatched with no scope, so the implementer invents its own.
 

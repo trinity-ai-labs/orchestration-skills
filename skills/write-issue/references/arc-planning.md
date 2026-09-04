@@ -19,7 +19,7 @@ Reference for `skills/write-issue/SKILL.md`, Step 3. Nothing downstream re-deriv
 
 ## Epic or one slice — answer it in one line, every time
 
-An **epic branch** is a convergence branch cut from the integration branch that an epic's work forks from and PRs into, so the shared branch never carries the arc half-finished. `/pipeline:execute` owns its lifecycle; the verdict is yours, because you are the pass that sets the phases it exists to hold.
+`skills/concepts/references/epic-branch.md` defines an **epic branch**. `/pipeline:execute` owns its lifecycle; the verdict is yours, because you are the pass that sets the phases it exists to hold.
 
 - **Two rules reach for one, and they answer different questions.** *Would a partial state on the shared branch be broken?* — where any intermediate state leaves the integration branch unshippable, say so at any width from two phases up and name that state: a foundational change every consumer must follow, or a seam whose halves land in different phases. *What does landing one change as N separate merges cost, whether or not each state would ship?* — **multi-phase work defaults to an epic**, because N merges into the shared branch cost base churn under every live worktree, an integration signal that reds on every sibling merge, N-way revert granularity and one release per merge. Answer the first even where the second has already fired: it is what decides whether the epic is **knowingly red**.
 - **Neither rule is a count of phases, and neither is a busy integration branch** — counting measures how long a partial state sits on the branch rather than whether it is broken, and the second rule keys on **one change decomposed into phases**, so unrelated one-off fixes side by side are not an epic.

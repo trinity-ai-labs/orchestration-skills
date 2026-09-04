@@ -95,7 +95,7 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 - **Single issue** (the default) — small-to-medium work, one release effort. One body, filed; `/pipeline:decompose` grounds it, enriches it with what an executor needs, and comments its breakdown on it or fans out then.
 - **Umbrella + sub-issues** — large AND multi-area AND each piece a PR someone would want to track/close alone. The umbrella is the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is one phase, a self-contained forward-facing spec titled with it (`[P0]`, `[P1]`). Author them at Step 4, or let `/pipeline:orchestrate`'s first cycle convert a single issue.
 - Don't reflexively shard — an umbrella for two small phases is overhead with no payoff; `skills/write-issue/references/arc-planning.md`'s *Sizing a phase* carries that test.
-- **An umbrella is not an epic branch, and filing one settles nothing about the other.** An umbrella is a *tracking shape*; an epic branch is a *branch lifecycle*, answered here on the two rules and carried out by `/pipeline:execute`, never read off how the issue was filed. "Epic" names both, so reading them as one takes the branch question for answered and leaves the facts unwritten.
+- **An umbrella is not an epic branch, and filing one settles nothing about the other** (`skills/concepts/references/epic-branch.md` separates them). The branch question is answered here on the two rules and carried out by `/pipeline:execute`, never read off how the issue was filed — taking it for answered leaves the facts unwritten.
 
 ---
 

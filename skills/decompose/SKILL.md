@@ -30,7 +30,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 - **In-chat plan** — decompose it and emit the breakdown **in chat**, ending with the handoff line.
 - **GitHub issue** (`decompose #<issue>`) — read it with `gh issue view <N>`, ground it, then write the breakdown back to GitHub. Ask once if it's ambiguous between this and the in-chat path.
 
-**All three paths ground the horizon and nothing else — only *who names it* changes.** On the direct paths you work it out from the plan's dependency order, as the loop's first cycle does. The horizon (`skills/concepts/references/grounding-depth.md`) alone emits at **slice depth**; everything past it emits at **shape depth**. `skills/concepts/references/grounding-depth.md` carries both, and the slice-field list it names is the canonical one.
+**All three paths ground the horizon and nothing else — only *who names it* changes.** On the direct paths you work it out from the plan's dependency order, as the loop's first cycle does. The horizon (`skills/glossary/vocabulary/grounding-depth.md`) alone emits at **slice depth**; everything past it emits at **shape depth**. `skills/glossary/vocabulary/grounding-depth.md` carries both, and the slice-field list it names is the canonical one.
 
 ---
 

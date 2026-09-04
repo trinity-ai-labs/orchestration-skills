@@ -55,7 +55,7 @@ Run it in the arc's direction — "can it ship without this?" — never the item
 
 Two riders:
 
-- **"Filed" means filed — and *linked* is one act or two.** **The relation decides which: `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership rule binds this loop as it binds an implementer — **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native call is `skills/concepts/references/sub-issue-link.md`.
+- **"Filed" means filed — and *linked* is one act or two.** **The relation decides which: `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership rule binds this loop as it binds an implementer — **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native call is `skills/glossary/mechanics/sub-issue-link.md`.
 - **A fold is a new slice, never a widening of a live one**, since growing a dispatched slice's scope mid-flight is indistinguishable from the divergence the dispatcher polls for.
 - **That rule is about SCOPE, and reading it as *a live brief cannot be touched* is how a one-line correction turns into a killed agent.** A live slice whose brief states a wrong **fact** — a number, a path, a name — has not grown and is not diverging; it is working correctly to a premise that is wrong, and the answer is a message to the agent carrying the corrected value. Reserve the stop for the case this rule actually describes, where the scope itself has moved.
 
@@ -69,7 +69,7 @@ One ordered criterion, ordered rather than balanced: **merge surface first, slic
 
 ## Rewriting the plan
 
-**The umbrella issue body carries the live remaining plan, rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite. **One comment per completed increment records what landed and what it invalidated**: comments the history, the body the state.
+**The umbrella (`skills/glossary/vocabulary/umbrella.md`) issue body carries the live remaining plan, rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite. **One comment per completed increment records what landed and what it invalidated**: comments the history, the body the state.
 
 **The body carries one more piece of arc state, and the loop is the only pass positioned to hold it: the arc's contract-seam map, a running union rather than a per-cycle re-derivation.** Seed it from the issue body's `Seams` field, grow it with each cycle's decomposition, keep it in the **body** beside the plan, never assembled from the comment thread; a closed seam leaves it and *The seam map* records why.
 

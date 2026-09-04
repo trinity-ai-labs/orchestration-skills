@@ -10,7 +10,7 @@ argument-hint: "[the increment — a slice or a wave — to execute; omit if you
 
 # Execute — release-branch worktree workflow
 
-We work off an **integration branch** (Trinity: `release/x.x.x` — find the active one with `git branch --list 'release/*'`, never hardcode). One task → one worktree → commit, push, PR back into it → merge → **sync the local integration branch first**, then delete the branch and its worktree. **One optional level sits above it: the epic branch** (`skills/concepts/references/epic-branch.md` defines one; `skills/execute/references/worktrees-and-branches.md` carries its mechanics); single-slice work never cuts one. Per-project values live in each repo's own config (`skills/execute/references/per-project-config.md`).
+We work off an **integration branch** (`skills/glossary/vocabulary/integration-branch.md`; Trinity: `release/x.x.x` — find the active one with `git branch --list 'release/*'`, never hardcode). One task → one worktree → commit, push, PR back into it → merge → **sync the local integration branch first**, then delete the branch and its worktree. **One optional level sits above it: the epic branch** (`skills/glossary/vocabulary/epic-branch.md` defines one; `skills/execute/references/worktrees-and-branches.md` carries its mechanics); single-slice work never cuts one. Per-project values live in each repo's own config (`skills/execute/references/per-project-config.md`).
 
 **Default to parallelization**: independent tasks run concurrently in their own worktrees, and nothing an implementer runs serializes on a lock.
 

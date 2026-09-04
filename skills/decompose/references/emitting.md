@@ -4,20 +4,20 @@ Reference for `skills/decompose/SKILL.md`, action 4. In chat, or back onto the i
 
 ## In-chat path — output format
 
-Lead with the parallelization plan (waves + critical path), then the horizon's slices at slice depth, then the remainder at shape depth. Use this shape (the arc here is mid-flight, Wave 0 already merged; on a first cycle the horizon is usually Wave 0 alone and every later wave is shape):
+Lead with the parallelization plan (waves + critical path), then the horizon's slices at slice depth, then the remainder at shape depth. **The phase order in it comes from the issue; what you produce is the horizon's wave and its slices.** Use this shape (the arc here is mid-flight, Wave 0 already merged; on a first cycle the horizon is usually Wave 0 alone and every later wave is shape):
 
 ```
 ## Decomposition: <plan title>
-Integration branch: release/x.x.x   ·   Epic branch: <epic-branch> (or: not needed — <why>)
+Integration branch: release/x.x.x   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice)
 Horizon: Wave 1 — Slices 2, 3, 4
 
-### Parallelization plan (whole arc — dependency shape, not grounding)
+### Parallelization plan (the issue's phase order carried forward — dependency shape, not grounding)
 - Wave 0 (landed): Slice 1
 - Wave 1 — THE HORIZON, grounded below, dispatch now: Slices 2, 3, 4
 - Wave 2 (after W1 — shape depth, grounded next cycle): Slice 5
 - Wave 3 (last — the closing docs slice; consumes the falsification ledger, and derives from what the epic added): Slice 6
 - Transient-red: Slices 2–4 run against the W0 schema change (gate read per execute's transient-red rules)
-- Epic branch: yes — the W0 schema change leaves the branch half-migrated until Slices 2-4 land; slices fork from and PR into it
+- Epic branch: yes, per the issue — the W0 schema change leaves the branch half-migrated until Slices 2-4 land; slices fork from and PR into it
 - Conflicts to merge-resolve: Slice 3 & 4 both edit src/routes/registry.ts
 - Critical path: Slice 1 → Slice 4 → Slice 5 → Slice 6
 
@@ -52,9 +52,11 @@ Horizon: Wave 1 — Slices 2, 3, 4
 
 **The epic branch's *prefix* carries no mechanical meaning; its *leaf* does**, so that slot takes the real branch name. **It should not read like a slice branch**, or it is indistinguishable in a PR list from the `feat/<leaf>` slices merging into it. **And its leaf must be one no slice branch you name reuses** — `setup-worktree.sh` derives a worktree's directory from the leaf and refuses a second branch resolving to the same one, and the likeliest collider is the closing docs slice. Check it every cycle against the slices you are grounding now.
 
-End with the handoff line, verbatim intent:
+End with the handoff line, and **which one depends on the path the issue is on, not on who invoked you** — verbatim intent:
 
-> **Horizon ready to dispatch.** `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon. Say that whether the loop invoked you or a user did; the next step is the same either way.
+> **Horizon ready to dispatch.** *(one slice)* `/pipeline:execute` takes it from here: a worktree, an implementer, the gate, a draft PR, review, merge. There is no remainder to reconcile and no loop to enter.
+>
+> **Horizon ready to dispatch.** *(an epic)* `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon.
 
 ## Writing it back to GitHub
 

@@ -20,7 +20,7 @@ Reference for `skills/decompose/SKILL.md`, action 1. A breakdown built from the 
      ```
      Use `([^0-9]|$)` rather than `\b`, for portability across BSD and GNU grep. That checklist line is the artifact `skills/decompose/references/emitting.md`'s *Umbrella + sub-issues* mandates writing at its first step.
 
-  Then read the parent with `gh issue view <umbrella> --comments` **before** you ground the child: it carries the wave map, the epic-branch answer, the seam list and the constraints the child was written inside, none of it restated in the child.
+  Then read the parent with `gh issue view <umbrella> --comments` **before** you ground the child: it carries the phase map, the epic verdict, the seam list and the constraints the child was written inside, none of it restated in the child.
 
 ## Anchor each horizon slice in the tree
 
@@ -37,7 +37,7 @@ Reference for `skills/decompose/SKILL.md`, action 1. A breakdown built from the 
 - **Then sweep for the artifacts a REGENERATOR owns, so `Derives` (`skills/decompose/references/slicing.md`) is filled from the repo rather than from memory.** Half is mechanical: a `package.json` script writing a file **into the tree** rather than a build directory; a checker with a `--write`/`--update` mode; a gate or pre-commit chain entry that regenerates something; a generated file `.gitignore` does **not** list. The other half is the falsification question pointed at checkers, which catches the generated file whose regenerator is a test.
 - **Read `AGENTS.md` and the per-project config** (`<repo>/.agents/worktree.json`, the same config `/pipeline:execute` reads) for the **framework skills** per area, the **gate**, the **compat policy** and the style conventions, and bake them into each slice. **No config is a hard stop, not a note**: the helper cuts a *bare* worktree instead of failing — no env symlinks, no dependencies — so the implementer dispatched into it fails its checks for reasons shaped exactly like code defects. Say the project is not set up, and get it onboarded before you ground anything.
 - **Grounding an arc inside the repository that SHIPS these skills? Your own rules are a coordinate too.** You were loaded from the installed plugin, not the tree you are grounding against, and the rules an arc has just shipped are the ones most likely missing from your copy. Read a governing rule out of that repo's own `skills/` before grounding by it; where one looks wrong, `diff` the copies and trust the tree. Say which copy you read your rules from, and **put the same sentence into the briefs you emit**: *the worktree's copy of these skills is authoritative — read the rule there, and where one looks wrong or missing, `diff` the installed copy against the worktree's and trust the worktree.*
-- **Discover the integration branch**, don't assume it: `git branch --list 'release/*'` / the current branch. Slices target the active integration branch, never `main`, never a hardcoded version — or the **epic branch** if the wave map in `skills/decompose/references/slicing.md` warrants one, which is cut from it.
+- **Discover the integration branch**, don't assume it: `git branch --list 'release/*'` / the current branch. Slices target the active integration branch, never `main`, never a hardcoded version — or the **epic branch** cut from it, where the issue's verdict calls for one.
 
 ## An enumeration is a claim
 

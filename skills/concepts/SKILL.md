@@ -28,9 +28,14 @@ belong here.
   thing it is confused with, and nothing about when to reach for it. An entry that starts telling a reader
   what to do has become a fifth pass, and the rule it states is one nobody acting will see, because the
   reader who needed the rule was in a stance file and never came here.
-- **One hop, one direction.** A pass cites an entry **directly**, so meeting an unfamiliar term costs one
-  read rather than a walk through this index. Nothing here cites a pass, and no entry cites another entry
-  — a map that points back at its readers is the citation web this replaces, wearing a different name.
+- **One hop, and no entry ever cites a pass.** A pass cites an entry **directly**, so meeting an unfamiliar
+  term costs one read rather than a walk through this index. **The banned direction is back out**: an entry
+  reaching into a pass makes the map a fifth stance and rebuilds the citation web it replaces, and the gate
+  fails it like any other cross-skill citation. **Entries may cross-link each other** — a glossary whose
+  terms cannot name each other is worse, not safer, and a dozen shallow definitions are not a web. The bar
+  is that **each entry stands alone**: a reader must be able to act on it without following the link, so a
+  cross-link is a *see also* and never a missing half. Where two entries only make sense together, they were
+  one concept and belong in one entry.
 
 **This index is for finding an entry you cannot name**, and for an author checking whether a term already
 has a home before writing a definition into a pass. It is not the route a citation takes.
@@ -41,6 +46,8 @@ has a home before writing a definition into a pass. It is not the route a citati
 |---|---|
 | branch leaf | `skills/concepts/references/branch-leaf.md` |
 | closing keyword | `skills/concepts/references/closing-keyword.md` |
+| grounding depth — shape / slice | `skills/concepts/references/grounding-depth.md` |
+| horizon | `skills/concepts/references/grounding-depth.md` |
 | epic branch | `skills/concepts/references/epic-branch.md` |
 | `gh api` body from a file | `skills/concepts/references/gh-api-file-body.md` |
 | sub-issue link | `skills/concepts/references/sub-issue-link.md` |

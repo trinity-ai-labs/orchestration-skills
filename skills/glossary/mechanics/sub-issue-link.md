@@ -18,6 +18,6 @@ sends the id as a **string**, which the endpoint rejects with `422 Invalid prope
 type integer`; only `-F` types a bare number as a JSON integer. Two flags, two different errors, neither
 saying *use the other one*.
 
-**A markdown backlink is a different artifact from the native link, not a rendering of it.** `Part of
-#<umbrella>` in the child's body, and a `- [ ] #<sub>` checklist row in the parent's, are text; the call
+**A markdown backlink is a different artifact from the native link, not a rendering of it.** A backlink in the child's body, and a checklist row in the parent's, are text (this flow's shape for that
+is `skills/glossary/vocabulary/umbrella.md`); the call
 above is a relationship the API can be queried for. A repository can have either without the other.

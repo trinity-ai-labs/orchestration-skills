@@ -1,5 +1,5 @@
 ---
-name: concepts
+name: glossary
 description: >-
   The pipeline's concept map — one definition per shared term, and nothing else. Read an entry when you
   meet a term the pipeline uses as though you already know it, or when you are writing a pass and need the
@@ -9,7 +9,7 @@ description: >-
 argument-hint: "[the term to look up — omit to read the index]"
 ---
 
-# Concepts — one definition per shared term
+# Glossary — one definition per shared term
 
 **A "term" here is anything with an invariant definition — a noun the passes share, and equally a FACT about a tool or an artifact.** How `gh` treats a flag, or when GitHub acts on a closing keyword, is one fact every pass needs identically and none of them owns, which is the same shape as a noun and the same drift.
 
@@ -44,14 +44,33 @@ belong here.
 **This index is for finding an entry you cannot name**, and for an author checking whether a term already
 has a home before writing a definition into a pass. It is not the route a citation takes.
 
-## The map
+## The glossary
+
+**Two kinds, and the difference is who owns the truth.**
+
+**Vocabulary** — words this pipeline invented. They mean nothing outside this flow, and what they mean is
+ours to decide, so they go wrong by **drifting**: two copies worded differently, both looking correct.
 
 | term | entry |
 |---|---|
-| branch leaf | `skills/concepts/references/branch-leaf.md` |
-| closing keyword | `skills/concepts/references/closing-keyword.md` |
-| grounding depth — shape / slice | `skills/concepts/references/grounding-depth.md` |
-| horizon | `skills/concepts/references/grounding-depth.md` |
-| epic branch | `skills/concepts/references/epic-branch.md` |
-| `gh api` body from a file | `skills/concepts/references/gh-api-file-body.md` |
-| sub-issue link | `skills/concepts/references/sub-issue-link.md` |
+| epic branch | `skills/glossary/vocabulary/epic-branch.md` |
+| grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |
+| horizon | `skills/glossary/vocabulary/grounding-depth.md` |
+| integration branch | `skills/glossary/vocabulary/integration-branch.md` |
+| umbrella | `skills/glossary/vocabulary/umbrella.md` |
+
+**Mechanics** — how something this pipeline does not own behaves: git, GitHub, the `gh` CLI. They are true
+whether or not this pipeline exists, so we can only be right or wrong about them — and they go wrong by
+going **stale**, when the tool changes and nobody here touches a file. A citation naming `mechanics/` is
+telling its reader that before they open it.
+
+| fact | entry |
+|---|---|
+| branch leaf | `skills/glossary/mechanics/branch-leaf.md` |
+| closing keyword | `skills/glossary/mechanics/closing-keyword.md` |
+| `gh api` body from a file | `skills/glossary/mechanics/gh-api-file-body.md` |
+| sub-issue link | `skills/glossary/mechanics/sub-issue-link.md` |
+
+**An entry may name another entry's term, and when it does it links to it.** A mechanic naming a piece of
+this pipeline's vocabulary is the ordinary case — a closing keyword's predicate is about branches this flow
+has names for — and the link is what stops that mention from becoming a second, drifting definition.

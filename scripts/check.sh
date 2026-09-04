@@ -26,6 +26,7 @@
 #  11. shipped prose carries no war stories.
 #  12. no skill cites another skill — the concept map excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
+#  14. the concept map stays tied to the tree.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -938,10 +939,70 @@ else
 	ok "no-half-deleted-prose: $orphan_n shipped file(s) carry no sentence whose front was removed"
 fi
 
+# --- 14. the concept map stays tied to the tree -------------------------------
+
+# A map of definitions treats drift, so a map that has itself gone stale is the
+# disease one level up: an entry nobody cites, or a definition nobody can find,
+# reads exactly like a live one. Three properties, each mechanical.
+#
+#   findable  every entry has a row in the index. check 8 catches a row pointing
+#             at a missing entry; the reverse is silent, so it is checked here.
+#   used      every entry is cited by at least one pass. An entry nothing points
+#             at is prose no reader reaches, which is what the map exists to stop.
+#   a definition, not an instruction
+#             an entry never ADDRESSES the reader. "you"/"your" is the mechanical
+#             tell: a definition describes a thing, an instruction addresses a
+#             person, and an entry that starts instructing has become a stance
+#             nobody acting will read. Banning modal words instead does not work
+#             -- "decided by dependency, never by understanding" is a fact, and a
+#             check that reds on it would be turned off within a week.
+#
+# NOT checked, deliberately: whether a term is defined somewhere OUTSIDE the map.
+# Every instrument tried for it reds on legitimate USE -- a pass naming four slice
+# fields is using them, not redefining them -- and a guard that fails correct work
+# is one everybody learns to wave through.
+
+map_dir=skills/concepts
+map_index="$map_dir/SKILL.md"
+if [ ! -f "$map_index" ]; then
+	fail "concept-map: $map_index is missing — the map's index is what every pointer resolves through"
+else
+	map_entries="$(git ls-files "$map_dir/references/*.md" 2>/dev/null || true)"
+	if [ -z "$map_entries" ]; then
+		fail "concept-map: no tracked entries under $map_dir/references — this check scanned nothing"
+	else
+		map_problems=''
+		map_n=0
+		for e in $map_entries; do
+			map_n=$((map_n + 1))
+			grep -qF "$e" "$map_index" || map_problems="$map_problems
+$e: no row in the index — unfindable for a reader who cannot already name it"
+			# Cited by a pass: any tracked skills/ file outside the map itself.
+			cited=$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null \
+				| grep -v "^$map_dir/" \
+				| while IFS= read -r f; do grep -qF "$e" "$f" && echo x; done | wc -l | tr -d ' ')
+			[ "${cited:-0}" -gt 0 ] || map_problems="$map_problems
+$e: cited by no pass — an entry nothing points at is prose no reader reaches"
+			if grep -qniE '\b(you|your|yours)\b' "$e"; then
+				map_problems="$map_problems
+$e: addresses the reader — an entry carries a definition, and what to DO about it belongs to the stance that acts"
+			fi
+		done
+		if [ -n "$map_problems" ]; then
+			printf '%s\n' "$map_problems" | while IFS= read -r l; do
+				[ -n "$l" ] && printf 'FAIL  concept-map: %s\n' "$l" >&2
+			done
+			fail "concept-map: an entry must be indexed, cited, and free of instruction"
+		else
+			ok "concept-map: $map_n entr(y/ies) each indexed, cited by a pass, and stating a definition rather than an instruction"
+		fi
+	fi
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, and the concept map is tied to the tree\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

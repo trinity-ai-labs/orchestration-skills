@@ -1,10 +1,12 @@
 ---
 name: orchestrate
 description: >-
-  Run an arc of work to completion as a just-in-time loop — the pipeline's last leg, after /pipeline:co-think and /pipeline:write-issue, and the one command you type to take a body of work end to end. Use whenever
-  you're asked to ORCHESTRATE or coordinate an arc, an epic, an issue or a batch of tasks, to EXECUTE or RUN
-  a plan, to WORK or COMPLETE a GitHub issue, or to SHIP one through to merge. You ground only the HORIZON —
-  the next dispatchable increment — via /pipeline:decompose, dispatch it via /pipeline:execute, then
+  Run a MULTI-PHASE arc to completion as a just-in-time loop — the epic path's last leg, after
+  /pipeline:co-think and /pipeline:write-issue, and the one command you type to take an epic end to end. Use
+  whenever you're asked to ORCHESTRATE or coordinate an arc, an epic, an umbrella or a batch of tasks, to
+  EXECUTE or RUN a plan that runs to several phases, to WORK or COMPLETE such a GitHub issue, or to SHIP
+  one through to merge. You ground only the HORIZON — the next dispatchable increment — via
+  /pipeline:decompose, dispatch it via /pipeline:execute, then
   RECONCILE what is still outstanding against the tree that increment produced, rewrite what remains, and
   repeat until the plan is empty and the close-out is green. Everything past the horizon stays at SHAPE
   depth.
@@ -13,7 +15,7 @@ argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan a
 
 # Orchestrate — the just-in-time arc loop
 
-The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns everything after the issue, running the arc to completion one increment at a time.
+**This loop is the epic path's last leg** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate` — running a multi-phase arc to completion one increment at a time. **Work the issue settled as one slice does not come here**: that path is `/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, with no loop around it.
 
 ```
 issue / plan  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · rewrite the rest  ──▶  repeat until empty
@@ -48,13 +50,13 @@ Check for `<repo>/.agents/worktree.json` before step 1 grounds anything. **Missi
 
 ## 1. Ground the horizon → `/pipeline:decompose`
 
-On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out where the horizon falls: **establishing the horizon is the first cycle's work, not a precondition for starting**. Then invoke `/pipeline:decompose` against that horizon and nothing else, telling it the rest stays at shape depth.
+On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out where the horizon falls **from the issue's phase map**: the earliest phase whose dependencies have all landed. **Establishing the horizon is the first cycle's work, not a precondition for starting.** Then invoke `/pipeline:decompose` against that horizon and nothing else, telling it the rest stays at shape depth.
 
 **Read UP before you read DEEP: establish whether the issue is a sub-issue and read the parent before grounding the child.** `/pipeline:decompose` runs that check for you; what you owe it is the instruction to, because step 4 makes an umbrella's body the arc's live remaining plan and missing the parent starts a second plan for one arc.
 
 ## 2. Dispatch it → `/pipeline:execute`
 
-Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic-branch decision, model tiers, the gate, PR review and merge-not-squash are its mechanics.
+Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic branch's mechanics, model tiers, the gate, PR review and merge-not-squash are its own. **The epic verdict itself arrived with the issue** — carry it down, never re-decide it here.
 
 ⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are launched.**
 
@@ -72,7 +74,7 @@ Everything the checklist produced is dispositioned by that file's *Fold vs. file
 
 ## 5. Repeat, or close out
 
-Back to step 1 with the horizon moved. **A one-increment arc runs one cycle**: ground, dispatch, close out — no umbrella, no rewrite, no reconcile against an empty plan. **Grounding is the one step it does not trim**, because a one-slice plan can still carry a false premise nothing downstream re-checks.
+Back to step 1 with the horizon moved. **This loop is for a multi-phase arc**, so there is no one-cycle case left to carve out: work settled as one slice reaches `/pipeline:decompose` and `/pipeline:execute` without passing through here, and where such an issue arrives here anyway, say so and route it rather than wrapping a loop around a single increment.
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the integration gate plus the epic → integration PR. **And the arc's issues are closed — the tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's closing keywords, which fire only where that PR's base is the repository's **default** branch and never fire later.
 

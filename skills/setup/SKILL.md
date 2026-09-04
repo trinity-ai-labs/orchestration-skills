@@ -38,7 +38,7 @@ Machinery a project doesn't need is a cost. Pick the tier, and say which one and
 
 ### The polyrepo case
 
-A **containing folder of sibling repos** — no `.git` at the root, several children that each have one — gets `.agents/workspace.json` there plus a `.agents/worktree.json` per member, and every step below runs per member. That manifest is **derived and regenerated** per machine, never tracked: `members` from the children holding a `.git`, `integrationBranch` from the branch they are on, the rest from the workspace's docs — **never inferring a contract from resemblance**, which silently switches off contract closure. Verify with `setup-workspace.sh --dry-run <branch>`: the member set, and whether naming a contract's owner pulls its consumers in.
+A **containing folder of sibling repos** — no `.git` at the root, several children that each have one — gets `.agents/workspace.json` there plus a `.agents/worktree.json` per member, and every step below runs per member. **`integrationBranch` there is DECLARED and belongs under review** — it names the branch every member's work lands on, `merge-pr` reads it, and a value regenerated from whatever branch a machine happened to be on gives two engineers different merges for the same repos. The rest of the manifest is **derived and regenerated** per machine: `members` from the children holding a `.git`, and the remainder from the workspace's docs — **never inferring a contract from resemblance**, which silently switches off contract closure. Verify with `setup-workspace.sh --dry-run <branch>`: the member set, and whether naming a contract's owner pulls its consumers in.
 
 ## Step 1 — Ground the repo
 
@@ -52,7 +52,8 @@ Every value must trace to a file you read.
 - **The scoped check** — the cheap subset with no build and no test suite (format-check + lint + typecheck), composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm they exist in the main checkout. **Record paths only**, since the config is committed.
 - **Conventions** — `AGENTS.md` / `CONTRIBUTING.md`, and only what lives nowhere else; what is already there gets pointed at, not copied.
-- **The branching model** (`skills/glossary/vocabulary/branching-model.md`) — a **candidate**, confirmed rather than written. The branches are evidence and not proof: a `develop` branch suggests `gitflow`, a long-lived `release/x.y.z` suggests `release`, neither suggests `trunk` — but a `release/0.4.0` fits `release` and `gitflow` both, and only the maintainer knows which. Put the candidate and the evidence, and take the answer. **Getting it wrong is not symmetric**: a wrong model resolves a wrong integration branch, and every worktree of every later arc forks off it.
+- **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another. **A project whose version comes from tags or commit messages declares none of it**: the tooling owns the version there, and a hand-edited file fights it.
+- **The integration branch** (`skills/glossary/vocabulary/integration-branch.md`) — a **candidate**, confirmed rather than written. The branches are evidence and not proof: a long-lived `release/x.y.z` or a `develop` suggests one answer and the repository's default branch suggests another, and those are different facts of which either can be right. Put the candidate and the evidence, take the answer, and **write a literal name, never a pattern**. **Getting it wrong is not symmetric**: every worktree of every later arc forks from this branch, so a wrong one is a base nobody notices until a close-out.
 
 In a monorepo, note which commands are **root** and which per-package: a root-only script run from a subpackage reports "no such script", which agents misread as a missing feature.
 
@@ -66,6 +67,8 @@ Here the **repo** moved and the config did not: a renamed gate script, a changed
 
 **Surface a candidate; never write an entry** — put what you saw as a question, an inferred entry looking checked when that is precisely what it was not.
 
+**One drift IS cheaply detectable, and in a project that rolls its branch it is the normal case.** The main checkout holds the integration branch and nothing else, so a `HEAD` naming a different branch than `integrationBranch` declares means the project rolled and the config did not follow — report both names. It happens because **cutting a release branch is outside the arc flow entirely**, so nothing in the pipeline is present at that moment to update the config.
+
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a stop-and-report — the natural repair is the edit that freeze exists to forbid. **Nothing detects this kind of staleness for you**: re-grounding every script is what it costs, so this direction is **asked for**.
 
 ### Behind the PLUGIN? Report which keys it now reads that this config does not declare
@@ -76,11 +79,11 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 
 **This one is cheap enough to have a trigger, and that is the whole difference.** Comparing against the repo means re-deriving every script; comparing against the plugin is a set difference over key names, so a pass that has the config open can run it without doing a reconcile. **It reports and routes — it never stops**, because every such key ships with a working fallback and halting an arc over a value that has one costs more than it saves.
 
-⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and `envFiles` are all omitted deliberately by projects that mean it, and `branchingModel` is omitted honestly by a project nobody has confirmed a model for. Report what is undeclared and what declaring it would change; the decision is the project's.
+⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and `envFiles` are all omitted deliberately by projects that mean it, and `integrationBranch` is omitted honestly by a project nobody has confirmed a branch for. Report what is undeclared and what declaring it would change; the decision is the project's.
 
 ## Step 2 — Write `.agents/worktree.json`
 
-`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge` and `branchingModel`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
+`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge` and `integrationBranch`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
 
 ### First, ask for the three values no file in the repo holds
 
@@ -104,8 +107,11 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 | `frameworkSkills` | `{skill, when}` per area, from the deps imported |
 | `briefConventions` | Only what `AGENTS.md` doesn't already say — point at it, and state only the gotchas that would cost a run |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
-| `branchingModel` | The confirmed candidate from Step 1 — `trunk`, `release` or `gitflow`. **Omit** where the maintainer will not confirm one: absence keeps the old inference, and a guessed model is the one value here whose error is silent and durable |
-| `epicMerge` | History policy — **omit** unless the project wants one commit per arc. Note that without `branchingModel` it does nothing in most projects |
+| `integrationBranch` | The branch this project's work lands on — a literal name the maintainer confirms, never a pattern and never read off the default branch. **Omit** where they will not confirm one: absence keeps the older behaviour, and a guessed branch is the value here whose error is silent and durable, since every worktree of every later arc forks from it |
+| `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |
+| `changelog` | The one file a new section is prepended to. Not a member of `bumpFiles` — a different operation |
+| `docsPaths` | `{path, when}` per doc tree: where it lives, and what kind of change makes it stale |
+| `epicMerge` | History policy — **omit** unless the project wants one commit per arc. Note that without `integrationBranch` it does nothing wherever work lands on the default branch |
 
 **`sharedResources` is a claim Step 4 has to falsify, which is what fixes its shape.** Each entry is `{resource, isolatedBy}`: `resource` names the thing; `isolatedBy` names the project's mechanism *and the entry point it sits at* — one **every** invocation reaches, since a mechanism hung off `gate` misses the test files implementers run directly — or an explicit `null`, shared and staying shared.
 

@@ -1,0 +1,20 @@
+# One table, read by BOTH ports. A case added here is asked of each implementation,
+# which is the whole point: two hand-maintained copies of one predicate cannot be
+# held together by a checker that reads only their surface.
+#
+# integration	head	base	default	expect
+# "-" means an empty string.
+main	main	main	main	merge
+main	epic/x	main	main	squash
+main	feat/y	main	main	squash
+release/0.4.0	epic/x	release/0.4.0	dev	squash
+release/0.4.0	release/0.4.0	dev	dev	merge
+release/0.4.0	epic/x	epic/outer	dev	squash
+develop	epic/x	develop	main	squash
+develop	develop	main	main	merge
+main	Main	main	main	squash
+main	main	main	-	merge
+-	epic/x	release/0.4.0	dev	squash
+-	epic/x	main	main	merge
+-	epic/x	main	-	merge
+-	epic/x	-	main	squash

@@ -71,24 +71,22 @@
 # branch, irreversibly, with the tree comparison passing and every signal reading
 # clean. So the squash additionally requires that this head is NOT the branch work
 # lands on, which is a question about the branch's LEVEL - and answering it needs
-# one fact no repository carries: which branching model the project uses.
+# one fact no repository carries: which branch that is.
 #
-#   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+#   { "integrationBranch": "main" }
 #
-# Declared, that fact settles it directly: trunk means the integration branch is
-# the repository's default branch, release means the single live `release/*`, and
-# gitflow means `develop`. A `release/*` or `hotfix/*` head is refused under every
-# model, being a branch cut to carry a release rather than an arc.
+# Declared, it settles directly: an epic branch sits ABOVE the integration branch, so
+# a head that IS the integration branch is never a buffer to collapse. Nothing here
+# is inferred from the repository's DEFAULT branch, which is a DIFFERENT fact - the
+# two coincide in some projects and not in others, and reading either off the other
+# is wrong in whichever direction it is tried.
 #
 # UNDECLARED, this helper falls back to what it did before: the PR's base is not the
-# repository's default branch. That test is a statement about the project's model
-# standing in for a question about the branch's level, and the two coincide only
-# where the integration branch is not also the default branch. That turns out to be
-# the uncommon case - a release-branch project routinely makes `release/x.y.z` its
-# default branch as well - so undeclared, the fallback declines the genuine epic
-# boundary in most projects and "squash" quietly does nothing. Declaring the model
-# is what makes the option reachable; the fallback exists so that upgrading changes
-# no behaviour until a project does.
+# repository's default branch. That test stands in for the real question and holds
+# only where the integration branch is not also the default branch, so undeclared it
+# declines the genuine epic boundary in a project whose work lands on its default
+# branch. Declaring the branch is what makes the option reachable there; the fallback
+# exists so that upgrading changes no behaviour until a project does.
 #
 # Every way either question can fail to produce a usable answer - a network error,
 # an empty response, a gh failure, a count of zero, a default branch that could not
@@ -315,114 +313,52 @@ if (-not $Main) {
     Exit-WithError "not inside a git repo: $Repo`n  run from inside the target repo, or set REPO=/path/to/repo"
 }
 
-function Get-BranchingModel {
-    # Which branch a project's work lands on is a fact about the PROJECT, and until
-    # a project states it every rule that needs it has to guess. This helper's own
-    # guess was "the PR's base is not the repository's default branch" - a statement
-    # about the project's MODEL standing in for a question about the branch's LEVEL:
-    # is this head an epic buffer, or the branch work lands on? The two coincide
-    # only where the integration branch is not also the default branch, and that is
-    # the UNCOMMON case - a release-branch project routinely makes `release/x.y.z`
-    # its default branch too, at which point the guess declines every squash the
-    # option exists for.
+function Get-IntegrationBranch {
+    # Work ends on the INTEGRATION branch: it is what worktrees are cut from, what
+    # slice PRs merge into, and what an epic branch collapses back onto. Which branch
+    # that is, is the project's own fact and nothing here can derive it - a
+    # repository's DEFAULT branch is a different fact that happens to coincide in some
+    # projects and not in others, and reading one off the other is wrong in whichever
+    # direction it is tried.
     #
-    #   { "branchingModel": "trunk" }   // "trunk" | "release" | "gitflow"
+    #   { "integrationBranch": "main" }
     #
-    # A workspace declares it once for all its members, which share one branch name
-    # and one model; a standalone repo declares it in its own worktree.json. The
-    # workspace wins where both are present. ABSENT is a complete answer meaning
-    # "behave exactly as before", so no existing project changes behaviour.
-    #
-    # `-ceq` for the same reason epicMerge uses it: only the exact lowercase
-    # spelling counts, and it has to count identically in both ports.
+    # A workspace declares it once for members that share one branch, and that answer
+    # wins. ABSENT, nothing keyed on it fires and this helper behaves as it did.
     param(
         [Parameter(Mandatory = $true)] [AllowEmptyString()] [string] $WorkspaceManifest,
         [Parameter(Mandatory = $true)] [string] $ProjectConfig
     )
-    $model = ''
+    $branch = ''
     if ($WorkspaceManifest -and (Test-Path -LiteralPath $WorkspaceManifest)) {
-        $model = Get-ConfigScalar -Path $WorkspaceManifest -Name 'branchingModel'
+        $branch = Get-ConfigScalar -Path $WorkspaceManifest -Name 'integrationBranch'
     }
-    if (-not $model) { $model = Get-ConfigScalar -Path $ProjectConfig -Name 'branchingModel' }
-    if ($model -ceq 'trunk' -or $model -ceq 'release' -or $model -ceq 'gitflow') { return $model }
-    return ''
-}
-
-function Get-IntegrationBranchFor {
-    # The branch the declared model names as the one work lands on. Returns an empty
-    # string for every question it cannot answer - an unrecognised model, a
-    # `develop` this repo does not have, more than one live release branch, a
-    # default branch gh would not name - and the caller reads that as "not declared"
-    # and keeps the older predicate. That is the direction everything on this path
-    # errs in, and it is why this ambiguity is handled differently from the same
-    # ambiguity in the FLOW: cutting a worktree off the wrong base poisons every
-    # tree forked from it, so the skills stop and ask, while a wrong squash here is
-    # unrecoverable history, so this side falls back to a real merge commit.
-    param([Parameter(Mandatory = $true)] [AllowEmptyString()] [string] $Model)
-    if ($Model -ceq 'trunk') {
-        $value = Invoke-InMainCheckout -Body {
-            $v = (& gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>$null | Out-String).Trim()
-            if ($LASTEXITCODE -ne 0) { return '' }
-            return $v
-        }
-        if ($value -ceq 'null') { $value = '' }
-        return $value
-    }
-    if ($Model -ceq 'gitflow') {
-        # `develop` by definition. Accept it under either ref namespace: a fresh
-        # clone of a gitflow repo carries origin/develop and no local branch until
-        # somebody asks for one, and a check that looked only locally would decline.
-        if ((Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', 'refs/heads/develop')) -or
-            (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', 'refs/remotes/origin/develop'))) {
-            return 'develop'
-        }
-        return ''
-    }
-    if ($Model -ceq 'release') {
-        # Exactly one live release branch, or nothing. Mid-rollover two of them
-        # exist at once, and picking either is a guess this path never makes.
-        # Not $matches: that name is an automatic variable PowerShell overwrites on
-        # every -match, so a local of that name is a bug waiting for the next one.
-        $refs = (& git -C $Main for-each-ref --format='%(refname:short)' 'refs/heads/release/*' 2>$null | Out-String)
-        if ($LASTEXITCODE -ne 0) { return '' }
-        $names = @($refs -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-        if ($names.Count -eq 1) { return $names[0] }
-        return ''
-    }
-    return ''
+    if (-not $branch) { $branch = Get-ConfigScalar -Path $ProjectConfig -Name 'integrationBranch' }
+    # A declared branch this repository does not have is a typo or a stale config, and
+    # reading it anyway makes the comparison a tautology that says yes to every head.
+    # Unverifiable reads as undeclared, the direction this whole path errs in. Applied
+    # to BOTH sources: an early return on the workspace value would skip it there, and
+    # the bash sibling verifies whichever source answered.
+    if ($branch -and -not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $branch))) { return '' }
+    return $branch
 }
 
 function Test-SquashBoundary {
-    # Is this head a buffer the squash is allowed to collapse? Answered from the
-    # branch's LEVEL, never from its name. With no resolved integration branch the
-    # older base-vs-default test stands, which is what makes an undeclared project
-    # behave exactly as it did before.
+    # Is this head a buffer the squash is allowed to collapse? One question, asked of
+    # the branch's LEVEL: an epic branch sits ABOVE the integration branch, so the
+    # head is never the integration branch itself. With none declared the older test
+    # stands, which leaves an undeclared project behaving exactly as it did.
+    #
+    # `-cne`/`-ceq`, not the case-insensitive forms: git refs are case-SENSITIVE, so a
+    # head literally named `Main` in a project whose integration branch is `main` is a
+    # different branch, and the insensitive form would call them the same one.
     param(
         [AllowEmptyString()] [string] $IntegrationBranch,
         [AllowEmptyString()] [string] $Head,
         [AllowEmptyString()] [string] $Base,
         [AllowEmptyString()] [string] $DefaultBranch
     )
-    if ($IntegrationBranch) {
-        if ($Head -ceq $IntegrationBranch) { return $false }
-        # A `release/*` or `hotfix/*` head is a branch cut to carry a RELEASE, and a
-        # release is an event this flow does not perform under any model. Under
-        # gitflow that is the definition; under the other two it is a belt against a
-        # project that has declared the wrong model - declare `trunk` while actually
-        # running a release branch and, without this, a `release/0.4.0 -> main`
-        # close-out clears every other test and collapses the whole release branch.
-        #
-        # This is the one place a branch NAME is consulted, and it is deliberately
-        # not the key for anything: the declared model is the key, and this only
-        # ever REFUSES. The cost of it firing wrongly - an epic branch somebody
-        # named `release/...` - is one missed squash, the cosmetic side of the
-        # asymmetry this whole path is built on.
-        #
-        # `-clike`, not `-like`: git refs are case-sensitive, matching the `-cne`
-        # and `-ceq` comparisons elsewhere on this path.
-        if ($Head -clike 'release/*' -or $Head -clike 'hotfix/*') { return $false }
-        return $true
-    }
+    if ($IntegrationBranch) { return ($Head -cne $IntegrationBranch) }
     return [bool]($DefaultBranch -and ($Base -cne $DefaultBranch))
 }
 
@@ -522,6 +458,11 @@ if (-not $BaseBranch) { Exit-WithError "PR #$Pr has no base branch" }
 
 Write-Output "merge-pr: PR #$Pr  state=$State  base=$BaseBranch  head=$HeadBranch  main=$Main"
 
+# A retired key is worse than an absent one: the project stated an intent and this
+# version silently does not read it. Said HERE rather than left to a changelog,
+# because the only reader who needs it is the one whose config has it, at the moment
+# the merge is about to behave differently from what they declared.
+
 # Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
 # movement came from another session, and step 4's verification cannot see it -
@@ -558,6 +499,17 @@ $Project = Split-Path -Path $Main -Leaf
 # the existence check below must accept either, or it misfires "wrong repo" for
 # every workspace member even when its worktree is exactly where setup-worktree put it.
 $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
+
+$retiredIn = ''
+if (Get-ConfigScalar -Path (Join-Path $WorkspaceRoot '.agents/workspace.json') -Name 'branchingModel') {
+    $retiredIn = '.agents/workspace.json'
+} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
+    $retiredIn = $ConfigRel
+}
+if ($retiredIn) {
+    Write-Stderr "merge-pr: note: $retiredIn declares 'branchingModel', which this version no longer reads."
+    Write-Stderr "  Declare 'integrationBranch' instead - the branch this project's work lands on."
+}
 $WorkspaceWt = ''
 if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
     $WorkspaceWt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
@@ -707,23 +659,16 @@ $EpicTip = ''
 # Observed on this very pair before the fix - the .ps1 squashed a config the .sh
 # merged, from the same file. Only the exact string counts, on both sides.
 if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge') -ceq 'squash') {
-    $branchingModel = Get-BranchingModel -WorkspaceManifest (Join-Path $WorkspaceRoot '.agents/workspace.json') -ProjectConfig "$Main/$ConfigRel"
-    $integrationBranch = ''
-    if ($branchingModel) { $integrationBranch = Get-IntegrationBranchFor -Model $branchingModel }
+    $integrationBranch = Get-IntegrationBranch -WorkspaceManifest (Join-Path $WorkspaceRoot '.agents/workspace.json') -ProjectConfig "$Main/$ConfigRel"
 
-    # An unknown default branch is not a licence to guess, and "not answered" has
-    # two shapes rather than one. gh (2.92) renders a null field as an empty line -
-    # which is also what a failed call and a repository with no default branch
-    # produce - while a raw `jq -r` prints the literal "null" for that same input.
-    # A gh that ever formatted it the second way would hand back a string that
-    # compares unequal to every real base, i.e. it would read as "not the default
-    # branch" and OPEN the squash path on the one answer that means the question
-    # went unanswered. Both shapes are normalised to empty so the single truthiness
-    # test covers them, and a branch genuinely named `null` is normalised with
-    # them: on an answer this ambiguous, merge is the direction everything on this
-    # path errs in. It is only consulted where no model was declared - it is the
-    # fallback's question, and asking it otherwise would spend a gh call on an
-    # answer nothing reads.
+    # The repository's DEFAULT branch is only consulted where no integration branch is
+    # declared - it is the fallback's question, and asking it otherwise spends a gh
+    # call on an answer nothing reads. gh (2.92) renders a null field as an empty line,
+    # which is also what a failed call and a repository with no default branch produce,
+    # while a raw `jq -r` prints the literal "null"; both are normalised to empty so a
+    # single truthiness test covers them, and a branch genuinely named `null` is
+    # normalised with them. On an answer that ambiguous, merge is the direction
+    # everything on this path errs in.
     $defaultBranch = ''
     if (-not $integrationBranch) {
         $defaultBranch = Invoke-InMainCheckout -Body {
@@ -736,7 +681,7 @@ if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge
 
     $boundaryOk = Test-SquashBoundary -IntegrationBranch $integrationBranch -Head $HeadBranch -Base $BaseBranch -DefaultBranch $defaultBranch
     if (-not $boundaryOk -and $integrationBranch) {
-        Write-Output "merge-pr: '$HeadBranch' is not an epic buffer under this project's declared '$branchingModel' model (its integration branch is '$integrationBranch') - merging with a real merge commit."
+        Write-Output "merge-pr: '$HeadBranch' IS this project's integration branch - a branch work lands on never collapses into one commit. Merging with a real merge commit."
     }
 
     if ($boundaryOk) {

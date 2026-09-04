@@ -1,8 +1,23 @@
 {
-  "branchingModel": "trunk",
+  "integrationBranch": "main",
+  "bumpFiles": [
+    ".claude-plugin/plugin.json",
+    ".codex-plugin/plugin.json"
+  ],
+  "changelog": "CHANGELOG.md",
+  "docsPaths": [
+    {
+      "path": "README.md",
+      "when": "the flow, a helper's behaviour, or a config key changes"
+    },
+    {
+      "path": "AGENTS.md",
+      "when": "a repo convention, the frozen helper contract, or the bin/ parity rule changes"
+    }
+  ],
   "envFiles": [],
   "sharedResources": [],
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
-  "briefConventions": "See AGENTS.md at the repo root — it carries the full conventions plus the frozen helper contract and the bin/ parity rule."
+  "briefConventions": "See AGENTS.md at the repo root \u2014 it carries the full conventions plus the frozen helper contract and the bin/ parity rule."
 }

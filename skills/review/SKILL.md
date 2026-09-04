@@ -87,6 +87,15 @@ revert, and it arrives in your Applied list wearing the word convergence.
 - **You are the first party positioned to ask it.** You hold the intent and the real diff at the same
   moment, while the change is still uncommitted and a correction costs nothing. The gate runs
   commands and cannot read a goal; the reader at the PR gets here only after the work is done.
+- **Then the other half of the same question: what does this leave BEHIND, and does the goal need it?**
+  Goal-met asks whether the diff reaches the goal; this asks what it strands on the way. A rename with
+  three call sites migrated and a fourth left, a helper the change makes dead, a doc the behaviour just
+  falsified, a test asserting the old shape. **You are the only reader who sees the whole diff while it
+  is still uncommitted**, so a straggler caught here is one edit and caught later is its own task.
+- **Where the goal needs it, it belongs in THIS diff, not in a list.** Say so and do it. What the goal
+  genuinely does not need is a finding you report, in the same breath, so the dispatcher dispositions it
+  rather than discovering it — and **a straggler you neither fixed nor reported is the one shape of
+  finding that reaches nobody**, since the diff will read as complete to everyone downstream.
 - **A brief is a route to the goal, and a route can be wrong.** Where following it literally would
   miss the point, that is a finding you report — with what you did instead, or with what you would
   need — never a silent reinterpretation of the slice, and never a step you carry out anyway on the

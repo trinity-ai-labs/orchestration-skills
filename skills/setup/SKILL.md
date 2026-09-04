@@ -80,7 +80,7 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 
 ## Step 2 — Write `.agents/worktree.json`
 
-`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge`; the skills read the rest.
+`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge` and `branchingModel`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
 
 ### First, ask for the three values no file in the repo holds
 

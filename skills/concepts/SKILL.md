@@ -41,6 +41,8 @@ has a home before writing a definition into a pass. It is not the route a citati
 |---|---|
 | branch leaf | `skills/concepts/references/branch-leaf.md` |
 | closing keyword | `skills/concepts/references/closing-keyword.md` |
+| grounding depth — shape / slice | `skills/concepts/references/grounding-depth.md` |
+| horizon | `skills/concepts/references/grounding-depth.md` |
 | epic branch | `skills/concepts/references/epic-branch.md` |
 | `gh api` body from a file | `skills/concepts/references/gh-api-file-body.md` |
 | sub-issue link | `skills/concepts/references/sub-issue-link.md` |

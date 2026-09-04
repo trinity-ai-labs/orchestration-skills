@@ -1,6 +1,6 @@
 # Slicing the horizon, and sizing the wave
 
-Reference for `skills/decompose/SKILL.md`, action 3. One slice = one worktree = one PR. **Optimize for independence**: slices that are *cohesive* (one logical change) and *isolated* (a disjoint set of files) are the ones a dispatcher can run concurrently. Every field below is *slice depth* and belongs to the horizon alone; an item past it carries goal, area, what it depends on and why it comes after the thing before it, and **none of the grounded fields**.
+Reference for `skills/decompose/SKILL.md`, action 3. One slice = one worktree = one PR. **Optimize for independence**: slices that are *cohesive* (one logical change) and *isolated* (a disjoint set of files) are the ones a dispatcher can run concurrently. Every field below is *slice depth* and belongs to the horizon alone (`skills/concepts/references/grounding-depth.md`).
 
 ## The slice fields
 

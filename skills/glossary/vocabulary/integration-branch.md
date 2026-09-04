@@ -17,4 +17,10 @@ that announces itself.
 
 **Whether it is also the repository's DEFAULT branch is a separate question with real consequences.** The
 two coincide in some projects and not others, and several behaviours turn on the default branch rather
-than on this one — see `skills/glossary/mechanics/closing-keyword.md`.
+than on this one — see `skills/glossary/mechanics/closing-keyword.md`. **The relationship does not run
+backwards**: the two coinciding says nothing about which branching model
+(`skills/glossary/vocabulary/branching-model.md`) a project uses, because a release project commonly makes
+its release branch the default branch as well.
+
+**Which branch this IS comes from the declared branching model, not from a search.** `trunk` names the
+repository's default branch, `release` the single live `release/x.y.z`, `gitflow` names `develop`.

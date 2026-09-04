@@ -4,8 +4,9 @@ description: >-
   Onboard a repo onto the /pipeline:co-think → /pipeline:write-issue pipeline and the passes that run off
   it. Use when a repo has no `.agents/worktree.json`, when `setup-worktree.sh` warns "no config", when
   someone asks to SET UP or ONBOARD the pipeline (or a gate queue) for a project, when a dispatcher
-  refuses to dispatch because the project is unconfigured, or to RECONCILE a config or a scaffolded queue
-  that has gone stale against its repo.
+  refuses to dispatch because the project is unconfigured, when a pass reports that a project's config
+  declares none of a key this plugin now reads, or to RECONCILE a config or a scaffolded queue that has
+  gone stale — against its repo, or against this plugin.
 argument-hint: "[path to the repo to onboard — omit to onboard the current one]"
 ---
 
@@ -51,6 +52,7 @@ Every value must trace to a file you read.
 - **The scoped check** — the cheap subset with no build and no test suite (format-check + lint + typecheck), composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm they exist in the main checkout. **Record paths only**, since the config is committed.
 - **Conventions** — `AGENTS.md` / `CONTRIBUTING.md`, and only what lives nowhere else; what is already there gets pointed at, not copied.
+- **The branching model** (`skills/glossary/vocabulary/branching-model.md`) — a **candidate**, confirmed rather than written. The branches are evidence and not proof: a `develop` branch suggests `gitflow`, a long-lived `release/x.y.z` suggests `release`, neither suggests `trunk` — but a `release/0.4.0` fits `release` and `gitflow` both, and only the maintainer knows which. Put the candidate and the evidence, and take the answer. **Getting it wrong is not symmetric**: a wrong model resolves a wrong integration branch, and every worktree of every later arc forks off it.
 
 In a monorepo, note which commands are **root** and which per-package: a root-only script run from a subpackage reports "no such script", which agents misread as a missing feature.
 
@@ -64,7 +66,17 @@ Here the **repo** moved and the config did not: a renamed gate script, a changed
 
 **Surface a candidate; never write an entry** — put what you saw as a question, an inferred entry looking checked when that is precisely what it was not.
 
-⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a stop-and-report — the natural repair is the edit that freeze exists to forbid. **Nothing detects staleness for you**: this pass is **asked for**.
+⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a stop-and-report — the natural repair is the edit that freeze exists to forbid. **Nothing detects this kind of staleness for you**: re-grounding every script is what it costs, so this direction is **asked for**.
+
+### Behind the PLUGIN? Report which keys it now reads that this config does not declare
+
+A third arrow, and the cheap one. The two above compare a project against its own repo and a queue against the reference; neither notices that **this plugin has started reading a key the config predates**. A project onboarded before a key existed never learns it exists, so a key that ships optional-with-a-fallback reaches nobody already running.
+
+**Read the key set from `examples/worktree.json`** — the one machine-readable copy of it, and the one the gate already parses — and report the keys it carries that the project's config does not. **Same posture as the other two, cited rather than restated: report the delta, never rewrite, and read the structure rather than a version stamp.**
+
+**This one is cheap enough to have a trigger, and that is the whole difference.** Comparing against the repo means re-deriving every script; comparing against the plugin is a set difference over key names, so a pass that has the config open can run it without doing a reconcile. **It reports and routes — it never stops**, because every such key ships with a working fallback and halting an arc over a value that has one costs more than it saves.
+
+⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and `envFiles` are all omitted deliberately by projects that mean it, and `branchingModel` is omitted honestly by a project nobody has confirmed a model for. Report what is undeclared and what declaring it would change; the decision is the project's.
 
 ## Step 2 — Write `.agents/worktree.json`
 
@@ -92,7 +104,8 @@ Here the **repo** moved and the config did not: a renamed gate script, a changed
 | `frameworkSkills` | `{skill, when}` per area, from the deps imported |
 | `briefConventions` | Only what `AGENTS.md` doesn't already say — point at it, and state only the gotchas that would cost a run |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
-| `epicMerge` | History policy — **omit** unless a release branch wants one commit per arc |
+| `branchingModel` | The confirmed candidate from Step 1 — `trunk`, `release` or `gitflow`. **Omit** where the maintainer will not confirm one: absence keeps the old inference, and a guessed model is the one value here whose error is silent and durable |
+| `epicMerge` | History policy — **omit** unless the project wants one commit per arc. Note that without `branchingModel` it does nothing in most projects |
 
 **`sharedResources` is a claim Step 4 has to falsify, which is what fixes its shape.** Each entry is `{resource, isolatedBy}`: `resource` names the thing; `isolatedBy` names the project's mechanism *and the entry point it sits at* — one **every** invocation reaches, since a mechanism hung off `gate` misses the test files implementers run directly — or an explicit `null`, shared and staying shared.
 

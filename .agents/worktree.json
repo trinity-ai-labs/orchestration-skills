@@ -1,4 +1,5 @@
 {
+  "branchingModel": "trunk",
   "envFiles": [],
   "sharedResources": [],
   "gate": "sh scripts/check.sh",

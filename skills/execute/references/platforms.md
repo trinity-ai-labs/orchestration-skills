@@ -8,7 +8,7 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | Skill discovery | `skills/<slug>/SKILL.md`, `name` + `description` frontmatter | identical |
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
-| Resume, list, or stop one | `SendMessage` / `TaskStop` | `followup_task` / `list_agents` |
+| Correct, resume, list, or stop one | `SendMessage` / `TaskStop` | `followup_task` / `list_agents` |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |

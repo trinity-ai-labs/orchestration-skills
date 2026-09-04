@@ -2,6 +2,15 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 4.6.0
+
+- **Correcting a live agent is a lever the flow never named, so the only one it named was the destructive one.** The monitoring rules offered exactly one response to *something is wrong with a running implementer* — stop it and re-dispatch — while the capability to message a live agent sat in the platform table labelled only *resume, list, or stop*. Faced with a brief carrying one wrong number, a dispatcher reaching for the documented move kills an agent that was otherwise on track.
+- **The test is what actually changed.** A wrong **fact** — a number, a path, a name, a bar set at the wrong value — is a *correction*, and it goes to the live agent as one message carrying the old value, the new one and why. A changed **scope** — different files, a moved boundary, a slice to re-cut — is the only thing warranting a stop, because that is a brief the agent can no longer be working to.
+- **A stop is not the safe default it feels like.** Killing an implementer discards everything it has established — files read, consumers resolved, questions settled — and the successor re-pays all of it. The loss is invisible, because nothing reports what an agent knew at the moment it was killed.
+- **The misreading this closes is a real rule applied to the wrong object.** *Once worktrees are live the config is frozen; drift is stop-and-report, never repair* is about shared mutable state other sessions cut worktrees from. A brief is neither shared nor re-read, so nothing carries that rule across — but *once live, never repair* is memorable enough to get applied to one anyway. The reconcile pass's *a fold is a new slice, never a widening of a live one* takes the same treatment: it is about scope, and it is not a ban on correcting a premise.
+- **What a message loses against a re-dispatch, and how to get it back.** A fresh brief is durable by construction; a message dies with the agent's context. So the correction is written onto the issue or PR the brief points at, as a comment that explicitly supersedes what it replaces, with the live agent pointed at it.
+- **The infra-stall rule already had the principle** — *one resume to the SAME agent; never a redispatch* — scoped to one case. It now says it is the same preference, in the case where it is least ambiguous.
+
 ## 4.5.0
 
 - **A slice carries a `Goal`, and it is a carry rather than a new field.** An item *beyond* the horizon already stated one — shape depth carries goal, area and dependency — and promoting it to slice depth grounded everything else and dropped the goal, so the version of that item which actually reached an implementer was the first in the whole arc with no statement of what it was for. `Goal` now sits beside `Verify` in the slice fields, in the emit template, and in all three places that enumerate what slice depth carries.

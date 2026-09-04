@@ -264,6 +264,11 @@ integration_branch() {
     branch=$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" integrationBranch)
   fi
   [ -n "$branch" ] || branch=$(read_config_scalar "$MAIN/$CONFIG_REL" integrationBranch)
+  # A declared branch this repository does not have is a typo or a stale config, and
+  # reading it anyway makes the comparison below a tautology that says yes to every
+  # head. Unverifiable reads as undeclared, which is the direction this whole path
+  # errs in.
+  [ -z "$branch" ] || git -C "$MAIN" rev-parse --verify --quiet "$branch" >/dev/null 2>&1 || branch=""
   printf '%s' "$branch"
 }
 
@@ -354,8 +359,14 @@ echo "merge-pr: PR #$PR  state=$STATE  base=$BASE_BRANCH  head=$HEAD_BRANCH  mai
 # version silently does not read it. Said HERE rather than left to a changelog,
 # because the only reader who needs it is the one whose config has it, at the moment
 # the merge is about to behave differently from what they declared.
-if [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
-  echo "merge-pr: note: $CONFIG_REL declares 'branchingModel', which this version no longer reads." >&2
+RETIRED_IN=""
+if [ -n "$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)" ]; then
+  RETIRED_IN=".agents/workspace.json"
+elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
+  RETIRED_IN="$CONFIG_REL"
+fi
+if [ -n "$RETIRED_IN" ]; then
+  echo "merge-pr: note: $RETIRED_IN declares 'branchingModel', which this version no longer reads." >&2
   echo "  Declare 'integrationBranch' instead — the branch this project's work lands on." >&2
 fi
 

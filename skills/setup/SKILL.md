@@ -38,7 +38,7 @@ Machinery a project doesn't need is a cost. Pick the tier, and say which one and
 
 ### The polyrepo case
 
-A **containing folder of sibling repos** — no `.git` at the root, several children that each have one — gets `.agents/workspace.json` there plus a `.agents/worktree.json` per member, and every step below runs per member. That manifest is **derived and regenerated** per machine, never tracked: `members` from the children holding a `.git`, `integrationBranch` from the branch they are on, the rest from the workspace's docs — **never inferring a contract from resemblance**, which silently switches off contract closure. Verify with `setup-workspace.sh --dry-run <branch>`: the member set, and whether naming a contract's owner pulls its consumers in.
+A **containing folder of sibling repos** — no `.git` at the root, several children that each have one — gets `.agents/workspace.json` there plus a `.agents/worktree.json` per member, and every step below runs per member. **`integrationBranch` there is DECLARED and belongs under review** — it names the branch every member's work lands on, `merge-pr` reads it, and a value regenerated from whatever branch a machine happened to be on gives two engineers different merges for the same repos. The rest of the manifest is **derived and regenerated** per machine: `members` from the children holding a `.git`, and the remainder from the workspace's docs — **never inferring a contract from resemblance**, which silently switches off contract closure. Verify with `setup-workspace.sh --dry-run <branch>`: the member set, and whether naming a contract's owner pulls its consumers in.
 
 ## Step 1 — Ground the repo
 
@@ -80,7 +80,7 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 
 ## Step 2 — Write `.agents/worktree.json`
 
-`setup-worktree` reads `envFiles`, `env`, `install` and `integrationBranch`; `merge-pr` reads `epicMerge` and `integrationBranch`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
+`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge` and `integrationBranch`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
 
 ### First, ask for the three values no file in the repo holds
 

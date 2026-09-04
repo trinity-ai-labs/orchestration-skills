@@ -181,30 +181,6 @@ function Get-RepoRoot {
     return (Get-NormalPath (Split-Path -Path $common -Parent))
 }
 
-function Test-BaseContainsIntegration {
-    # One question, and it is about CONTAINMENT rather than about a name: is the branch
-    # work lands on already IN the base being forked from? An epic branch cut from the
-    # integration branch contains it; the integration branch contains itself; a branch
-    # the project has moved past does not, and neither does a commit behind the tip.
-    # That is the failure worth catching - a tree cut from a base nobody is releasing
-    # from gates clean, reviews clean and merges clean, and nothing downstream says so.
-    if ($Existing) { return }
-    if (-not $IntegrationBranch) { return }
-    # An integration branch this clone has never heard of is a question, not an answer:
-    # say nothing rather than refuse on a ref that may simply need fetching.
-    if (-not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $IntegrationBranch))) { return }
-    if (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $IntegrationBranch, $Base)) { return }
-
-    Write-Stderr "refusing: '$Base' does not contain '$IntegrationBranch', this project's integration branch."
-    Write-Stderr "  Work cut from it forks off a base the project has moved past - it will gate clean,"
-    Write-Stderr "  review clean and merge clean against a branch nobody is releasing from, and nothing"
-    Write-Stderr "  downstream reports that."
-    Write-Stderr "  Either fork from the integration branch itself, or from a branch cut off it:"
-    Write-Stderr "    setup-worktree.ps1 $Branch $IntegrationBranch"
-    Write-Stderr "  If '$Base' is right and simply behind, bring it up first:"
-    Exit-WithError "    git -C `"$Main`" fetch origin; git -C `"$Main`" branch -f $Base origin/$Base"
-}
-
 function Get-JsonValue {
     # Reads a property that may be absent from a ConvertFrom-Json object, which
     # carries only the keys the file actually had. A plain $cfg.missing is $null by
@@ -379,22 +355,6 @@ if ($env:WORKTREE_DEST) {
 # Per-project config (optional).
 $EnvFiles = @()
 $InstallCmd = ''
-# Work ends on the INTEGRATION branch, and which branch that is, is the project's own
-# fact - nothing here derives it. A workspace declares it once for members sharing one
-# branch and that answer wins, so it is read first. Undeclared, nothing keyed on it
-# fires and this helper behaves exactly as it did.
-$IntegrationBranch = ''
-$WsManifest = Join-Path (Split-Path -Path $Main -Parent) '.agents/workspace.json'
-if (Test-Path -LiteralPath $WsManifest) {
-    try {
-        $wsBranch = Get-JsonValue -Object (Get-Content -LiteralPath $WsManifest -Raw | ConvertFrom-Json) -Name 'integrationBranch'
-        if ($wsBranch) { $IntegrationBranch = [string]$wsBranch }
-    } catch {
-        # An unreadable workspace manifest is not this helper's to report: the member's
-        # own config still answers, and the fallback is today's behaviour either way.
-        $IntegrationBranch = ''
-    }
-}
 $Config = "$Main/$ConfigRel"
 if (Test-Path -LiteralPath $Config) {
     try {
@@ -413,11 +373,6 @@ if (Test-Path -LiteralPath $Config) {
         foreach ($prop in $declaredEnv.PSObject.Properties) {
             [Environment]::SetEnvironmentVariable($prop.Name, (Expand-ShellValue ([string]$prop.Value)))
         }
-    }
-
-    if (-not $IntegrationBranch) {
-        $declaredIntegration = Get-JsonValue -Object $cfg -Name 'integrationBranch'
-        if ($declaredIntegration) { $IntegrationBranch = [string]$declaredIntegration }
     }
 } else {
     Write-Stderr "note: no config at $Config - creating a bare worktree (no env symlinks, no install)."
@@ -456,7 +411,6 @@ if ($Existing) {
         Write-Stderr "base branch not found locally: $Base"
         Exit-WithError "  try: git -C `"$Main`" fetch origin   (or pass origin/$Base)"
     }
-    Test-BaseContainsIntegration
     $AddArgs = @('-b', $Branch, $Wt, $Base)
 }
 

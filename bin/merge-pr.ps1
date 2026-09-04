@@ -329,11 +329,18 @@ function Get-IntegrationBranch {
         [Parameter(Mandatory = $true)] [AllowEmptyString()] [string] $WorkspaceManifest,
         [Parameter(Mandatory = $true)] [string] $ProjectConfig
     )
+    $branch = ''
     if ($WorkspaceManifest -and (Test-Path -LiteralPath $WorkspaceManifest)) {
-        $fromWorkspace = Get-ConfigScalar -Path $WorkspaceManifest -Name 'integrationBranch'
-        if ($fromWorkspace) { return $fromWorkspace }
+        $branch = Get-ConfigScalar -Path $WorkspaceManifest -Name 'integrationBranch'
     }
-    return (Get-ConfigScalar -Path $ProjectConfig -Name 'integrationBranch')
+    if (-not $branch) { $branch = Get-ConfigScalar -Path $ProjectConfig -Name 'integrationBranch' }
+    # A declared branch this repository does not have is a typo or a stale config, and
+    # reading it anyway makes the comparison a tautology that says yes to every head.
+    # Unverifiable reads as undeclared, the direction this whole path errs in. Applied
+    # to BOTH sources: an early return on the workspace value would skip it there, and
+    # the bash sibling verifies whichever source answered.
+    if ($branch -and -not (Test-GitSuccess @('-C', $Main, 'rev-parse', '--verify', '--quiet', $branch))) { return '' }
+    return $branch
 }
 
 function Test-SquashBoundary {
@@ -455,8 +462,14 @@ Write-Output "merge-pr: PR #$Pr  state=$State  base=$BaseBranch  head=$HeadBranc
 # version silently does not read it. Said HERE rather than left to a changelog,
 # because the only reader who needs it is the one whose config has it, at the moment
 # the merge is about to behave differently from what they declared.
-if (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
-    Write-Stderr "merge-pr: note: $ConfigRel declares 'branchingModel', which this version no longer reads."
+$retiredIn = ''
+if (Get-ConfigScalar -Path (Join-Path $WorkspaceRoot '.agents/workspace.json') -Name 'branchingModel') {
+    $retiredIn = '.agents/workspace.json'
+} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
+    $retiredIn = $ConfigRel
+}
+if ($retiredIn) {
+    Write-Stderr "merge-pr: note: $retiredIn declares 'branchingModel', which this version no longer reads."
     Write-Stderr "  Declare 'integrationBranch' instead - the branch this project's work lands on."
 }
 

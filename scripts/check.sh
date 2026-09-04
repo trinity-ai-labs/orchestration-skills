@@ -24,7 +24,7 @@
 #   9. shipped prose carries no issue numbers.
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. shipped prose carries no war stories.
-#  12. no skill cites another skill.
+#  12. no skill cites another skill — the concept map excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
@@ -874,26 +874,39 @@ PY
 	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"
 fi
 
-# --- 12. no skill cites another skill ---------------------------------------
+# --- 12. no skill cites another skill, the concept map excepted --------------
 
 # A spine pointing at its own references is the shape working. A skill reaching
 # into ANOTHER skill to explain itself is not finished: state what your reader
-# needs where they act. Cross-skill citation is what grew a 96-reference web, a
-# checker for it, and a convention for writing it.
+# needs where they act. Unbounded cross-skill citation is what grew a
+# 96-reference web, a checker for it, and a convention for writing it.
+#
+# skills/concepts/ is the one permitted target, and it is a different edge
+# rather than a hole in this one. An entry there is a DEFINITION — what a thing
+# is — which every pass needs identically and none of them owns, so the copies
+# drift with nothing able to make them agree. A RULE is the opposite: it is what
+# one stance does about that thing, it differs per stance, and it is restated
+# where its reader acts. So the map is cited and never cites back: the ban still
+# holds in the direction that grew the web, and an entry reaching into a pass
+# fails this check exactly as any other cross-skill citation does.
 
 cross_hits="$(
 	for f in $(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null); do
 		own="$(printf '%s' "$f" | cut -d/ -f2)"
 		grep -oE '`skills/[a-z-]+/[^`]*\.md`' "$f" 2>/dev/null | tr -d '`' | while IFS= read -r p; do
-			[ "$(printf '%s' "$p" | cut -d/ -f2)" = "$own" ] || printf '%s: %s\n' "$f" "$p"
+			tgt="$(printf '%s' "$p" | cut -d/ -f2)"
+			# Own references: the shape working. The concept map: the one other
+			# legal target, and only as a target — a file INSIDE the map whose own
+			# slug is `concepts` cites nothing else and still fails here.
+			[ "$tgt" = "$own" ] || [ "$tgt" = concepts ] || printf '%s: %s\n' "$f" "$p"
 		done
 	done
 )"
 if [ -n "$cross_hits" ]; then
 	printf '%s\n' "$cross_hits" | while IFS= read -r l; do printf 'FAIL  no-cross-skill-citations: %s\n' "$l" >&2; done
-	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it"
+	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/concepts/ may be cited across skills, and only for a DEFINITION"
 else
-	ok "no-cross-skill-citations: every skill is readable on its own"
+	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references and the concept map"
 fi
 
 # --- 13. no sentence has had its front removed --------------------------------

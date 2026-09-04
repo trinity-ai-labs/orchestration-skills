@@ -44,7 +44,7 @@ It creates the worktree at `$WORKTREE_HOME/<project>/<branch-leaf>`, symlinks th
 
 Reference for `skills/execute/SKILL.md`. **Read it when the increment is more than one slice** — when to cut it, what it costs, where the docs go, the mechanics.
 
-An **epic branch** is cut from the integration branch; the epic's slices fork from it and PR into it, it is gated as a whole once they have all landed, then merged back in one PR. The shared branch therefore only ever sees the epic finished. Single-slice work never cuts one, and the rest of the playbook reads the same when there isn't one.
+`skills/concepts/references/epic-branch.md` defines an **epic branch**. Single-slice work never cuts one, and the rest of the playbook reads the same when there isn't one.
 
 ## Two rules reach for one
 

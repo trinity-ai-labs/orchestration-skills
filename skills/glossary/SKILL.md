@@ -53,7 +53,6 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 
 | term | entry |
 |---|---|
-| branching model — trunk / release / gitflow | `skills/glossary/vocabulary/branching-model.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
 | grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |
 | horizon | `skills/glossary/vocabulary/grounding-depth.md` |

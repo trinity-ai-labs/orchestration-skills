@@ -1,5 +1,4 @@
 {
-  "branchingModel": "release",
   "integrationBranch": "release/0.1.0",
   "branchPrefixes": [
     "feature",

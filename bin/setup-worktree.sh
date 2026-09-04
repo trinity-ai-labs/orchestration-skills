@@ -290,6 +290,71 @@ else
   echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
 fi
 
+# --- The integration branch, and the base it vouches for -----------------------
+# Work ends on the INTEGRATION branch, and which branch that is, is the project's
+# own fact -- nothing here derives it. Undeclared, nothing below fires and this
+# helper behaves exactly as it did.
+read_scalar() { # read_scalar <json-path> <key>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node) runner=(node); probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    py) runner=(py -3); probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    *) runner=("$cand"); probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    esac
+    [ "$probe" = ok ] && break
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 0
+  if [ "${runner[0]}" = node ]; then
+    node -e 'const fs=require("fs");try{const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))[process.argv[2]];if(typeof v==="string")process.stdout.write(v)}catch(e){}' "$1" "$2" 2>/dev/null || true
+  else
+    "${runner[@]}" -c 'import json,sys
+try:
+    v = json.load(open(sys.argv[1])).get(sys.argv[2])
+except Exception:
+    v = None
+sys.stdout.write(v if isinstance(v, str) else "")' "$1" "$2" 2>/dev/null || true
+  fi
+}
+
+INTEGRATION_BRANCH=""
+WS_MANIFEST="$(dirname "$MAIN")/.agents/workspace.json"
+[ ! -f "$WS_MANIFEST" ] || INTEGRATION_BRANCH="$(read_scalar "$WS_MANIFEST" integrationBranch)"
+[ -n "$INTEGRATION_BRANCH" ] || INTEGRATION_BRANCH="$(read_scalar "$CONFIG" integrationBranch)"
+
+# One question, and it is about CONTAINMENT rather than about a name: is the branch
+# work lands on already IN the base being forked from? An epic branch cut from the
+# integration branch contains it; the integration branch contains itself; a branch
+# the project has moved past does not, and neither does a commit behind the tip.
+# That is the failure worth catching here -- a tree cut from a base nobody is
+# releasing from gates clean, reviews clean and merges clean, and nothing
+# downstream says otherwise.
+#
+# Held until AFTER the ref check below: "this base is stale" is a worse message
+# than "this base does not exist" for a caller who mistyped, and would mask it.
+check_base_contains_integration() {
+  [ "$EXISTING" -ne 1 ] || return 0
+  [ -n "$INTEGRATION_BRANCH" ] || return 0
+  # An integration branch this clone has never heard of is a question, not an
+  # answer: say nothing rather than refuse on a ref that may simply need fetching.
+  git -C "$MAIN" rev-parse --verify --quiet "$INTEGRATION_BRANCH" >/dev/null 2>&1 || return 0
+  git -C "$MAIN" merge-base --is-ancestor "$INTEGRATION_BRANCH" "$BASE" 2>/dev/null && return 0
+
+  echo "refusing: '$BASE' does not contain '$INTEGRATION_BRANCH', this project's integration branch." >&2
+  echo "  Work cut from it forks off a base the project has moved past -- it will gate clean," >&2
+  echo "  review clean and merge clean against a branch nobody is releasing from, and nothing" >&2
+  echo "  downstream reports that." >&2
+  echo "  Either fork from the integration branch itself, or from a branch cut off it:" >&2
+  echo "    setup-worktree.sh $BRANCH $INTEGRATION_BRANCH" >&2
+  echo "  If '$BASE' is right and simply behind, bring it up first:" >&2
+  echo "    git -C \"$MAIN\" fetch origin && git -C \"$MAIN\" branch -f $BASE origin/$BASE" >&2
+  exit 1
+}
+
 # Decide what `git worktree add` is asked for, and fail before creating anything if
 # the ref it needs isn't there. Both modes fail with a fetch hint for the same
 # reason: a ref that only exists on a remote nobody has fetched looks exactly like
@@ -324,6 +389,7 @@ else
     echo "  try: git -C \"$MAIN\" fetch origin   (or pass origin/$BASE)" >&2
     exit 1
   fi
+  check_base_contains_integration
   ADD_ARGS=(-b "$BRANCH" "$WT" "$BASE")
 fi
 

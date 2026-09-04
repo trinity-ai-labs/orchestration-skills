@@ -764,13 +764,113 @@ fi
 # The incident that motivated a rule belongs in the PR that fixed it, where it
 # stays attached to the diff. In a skill it is words a reader cannot act on, and
 # this corpus once carried 22,451 of them.
+#
+# Matched per PARAGRAPH, not per line. `git grep` is line-oriented and shipped
+# prose here is hard-wrapped, so a banned phrase routinely straddles the break
+# an editor happened to choose — skills/review/SKILL.md once carried a live
+# instance split as "The failure" / "this prevents:" across a newline, invisible
+# to a single-line grep while the check reported green. Each paragraph (lines
+# separated by a blank line — where hard-wrapping in this corpus actually stops)
+# is folded to single-space-joined tokens before matching, so the phrase reads
+# the same whether or not an editor wrapped it. The reported line is recovered
+# from the matched token's own original line, never guessed: a match spanning a
+# wrap is reported at the line the match STARTS on, exactly as a single-line
+# match already was.
 
-story_hits="$(git grep -nE 'The failure this prevents|[Oo]bserved (on|in one|twice|three times|across|while dispatching)' -- 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
-if [ -n "$story_hits" ]; then
-	printf '%s\n' "$story_hits" | while IFS= read -r l; do printf 'FAIL  no-war-stories: %s\n' "$l" >&2; done
-	fail "no-war-stories: state the rule; put the incident in the PR that makes the change"
+story_files="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
+if [ -z "$story_files" ]; then
+	fail "no-war-stories: git listed no tracked *.md under skills/ — this check scanned nothing"
 else
-	ok "no-war-stories: shipped prose states rules, not incidents"
+	story_hits_out="$(mktemp)" || exit 2
+	story_broken_out="$(mktemp)" || exit 2
+	story_err_out="$(mktemp)" || exit 2
+	python3 - "$story_hits_out" "$story_broken_out" $story_files <<'PY' 2>"$story_err_out"
+import bisect
+import re
+import sys
+
+PATTERN = re.compile(
+    r"The failure this prevents|[Oo]bserved (on|in one|twice|three times|across|while dispatching)"
+)
+
+
+def paragraphs(text):
+    """Runs of consecutive non-blank lines, as [(line_no, line_text), ...].
+
+    A blank line is where hard-wrapping stops in this corpus, so it is also
+    where a wrap-spanning search stops: joining across it would match words
+    that were never actually adjacent on an editor's screen.
+    """
+    para = []
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        if line.strip():
+            para.append((line_no, line))
+        elif para:
+            yield para
+            para = []
+    if para:
+        yield para
+
+
+hits_path, broken_path, *files = sys.argv[1:]
+with open(hits_path, "w") as hits_f, open(broken_path, "w") as broken_f:
+    for path in files:
+        try:
+            text = open(path, encoding="utf-8").read()
+        except (OSError, UnicodeDecodeError) as err:
+            broken_f.write(f"{path}: could not be read: {err}\n")
+            continue
+        for para in paragraphs(text):
+            # Whitespace-delimited tokens, each carrying the line it came from,
+            # rejoined with a single space. A run of leading spaces on an
+            # indented continuation line collapses the same as a bare newline
+            # does — both are "the wrap", and the pattern requires exactly one
+            # space between words either way.
+            tokens = [(tok, ln) for ln, line in para for tok in line.split()]
+            pieces, starts, pos = [], [], 0
+            for tok, _ in tokens:
+                starts.append(pos)
+                pieces.append(tok)
+                pos += len(tok) + 1
+            norm = " ".join(pieces)
+            for m in PATTERN.finditer(norm):
+                # The token whose span covers the match's start: bisect finds
+                # the last token starting at or before it.
+                idx = bisect.bisect_right(starts, m.start()) - 1
+                line_no = tokens[idx][1]
+                hits_f.write(f"{path}:{line_no}: {m.group(0)!r}\n")
+PY
+	story_status=$?
+	if [ "$story_status" -ne 0 ]; then
+		sed 's/^/      /' "$story_err_out" >&2
+		fail "no-war-stories: the reader crashed — shipped prose could not be examined"
+	else
+		story_clean=1
+		if [ -s "$story_broken_out" ]; then
+			sed 's/^/      /' "$story_broken_out" >&2
+			fail "no-war-stories: could not be read, so these files were NOT checked — see above"
+			story_clean=0
+		fi
+		# Derived rather than round-tripped through the reader: every file in
+		# $story_files ends up either scanned or in story_broken_out, never both
+		# and never neither, so the difference is exact.
+		story_total="$(printf '%s\n' $story_files | wc -l | tr -d ' ')"
+		story_broken_count="$(wc -l <"$story_broken_out" | tr -d ' ')"
+		story_scanned=$((story_total - story_broken_count))
+		if [ "$story_scanned" -le 0 ]; then
+			fail "no-war-stories: no tracked skills/ file could be read — this check scanned nothing"
+			story_clean=0
+		fi
+		if [ -s "$story_hits_out" ]; then
+			sed 's/^/FAIL  no-war-stories: /' "$story_hits_out" >&2
+			fail "no-war-stories: state the rule; put the incident in the PR that makes the change"
+			story_clean=0
+		fi
+		if [ "$story_clean" -eq 1 ]; then
+			ok "no-war-stories: $story_scanned shipped file(s) state rules, not incidents"
+		fi
+	fi
+	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"
 fi
 
 # --- 12. no skill cites another skill ---------------------------------------

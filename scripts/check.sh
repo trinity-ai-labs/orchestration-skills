@@ -1032,6 +1032,10 @@ pc_ps1=bin/merge-pr.ps1
 
 if [ ! -f "$pc_cases" ]; then
 	fail "port-cases: $pc_cases is missing — the shared table is what makes this a comparison"
+elif [ "$(grep -cv '^#' "$pc_cases" || true)" -lt 1 ]; then
+	# A table gutted to comments answers every comparison with silence, and silence
+	# compares equal to silence. That is the vacuous pass this check exists to deny.
+	fail "port-cases: $pc_cases holds no cases — an empty table agrees with itself"
 else
 	pc_n=$(grep -cv '^#' "$pc_cases" || true)
 	pc_tmp="$(mktemp -d)" || exit 2

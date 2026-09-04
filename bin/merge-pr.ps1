@@ -462,16 +462,6 @@ Write-Output "merge-pr: PR #$Pr  state=$State  base=$BaseBranch  head=$HeadBranc
 # version silently does not read it. Said HERE rather than left to a changelog,
 # because the only reader who needs it is the one whose config has it, at the moment
 # the merge is about to behave differently from what they declared.
-$retiredIn = ''
-if (Get-ConfigScalar -Path (Join-Path $WorkspaceRoot '.agents/workspace.json') -Name 'branchingModel') {
-    $retiredIn = '.agents/workspace.json'
-} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
-    $retiredIn = $ConfigRel
-}
-if ($retiredIn) {
-    Write-Stderr "merge-pr: note: $retiredIn declares 'branchingModel', which this version no longer reads."
-    Write-Stderr "  Declare 'integrationBranch' instead - the branch this project's work lands on."
-}
 
 # Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
@@ -509,6 +499,17 @@ $Project = Split-Path -Path $Main -Leaf
 # the existence check below must accept either, or it misfires "wrong repo" for
 # every workspace member even when its worktree is exactly where setup-worktree put it.
 $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
+
+$retiredIn = ''
+if (Get-ConfigScalar -Path (Join-Path $WorkspaceRoot '.agents/workspace.json') -Name 'branchingModel') {
+    $retiredIn = '.agents/workspace.json'
+} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
+    $retiredIn = $ConfigRel
+}
+if ($retiredIn) {
+    Write-Stderr "merge-pr: note: $retiredIn declares 'branchingModel', which this version no longer reads."
+    Write-Stderr "  Declare 'integrationBranch' instead - the branch this project's work lands on."
+}
 $WorkspaceWt = ''
 if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
     $WorkspaceWt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"

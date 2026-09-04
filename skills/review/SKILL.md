@@ -129,14 +129,12 @@ nor cost.
 Establish why a thing is the way it is before you disposition it — trace what looks wrong to the
 constraint it satisfies, the consumer it exists for, or the commit that put it there — and where it
 has a valid reason and is idiomatic for its context, leave it and say you checked. The case common
-enough to have earned
-its own line is **an existing suppression** (`eslint-disable`, `@ts-expect-error`) the change did not
-add: it is the previous author's claim, already reviewed on the PR that introduced it, so removing it
-to look tidy is a behavior change nobody asked for. Flag it if you think it is wrong. *The failure
-this prevents: this pass edits the working tree directly, so a construct tidied away before it was
-understood is gone by the time anyone could have asked why it was there — and in a diff, removing
-something load-bearing looks exactly like removing something redundant. The odd-looking guard, the
-redundant check and the narrower type fail the same way.*
+enough to have earned its own line is **an existing suppression** (`eslint-disable`, `@ts-expect-error`)
+the change did not add: it is the previous author's claim, already reviewed on the PR that introduced
+it, so removing it to look tidy is a behavior change nobody asked for — flag it if you think it is
+wrong rather than deleting it, since this pass edits the working tree directly and a construct removed
+before it is understood is gone before anyone could ask why it was there. The odd-looking guard, the
+redundant check and the narrower type fail the same way.
 
 ---
 

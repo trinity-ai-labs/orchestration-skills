@@ -4,8 +4,7 @@ description: >-
   Execute ONE increment off an integration branch using isolated git worktrees. Use when you are asked to
   EXECUTE, dispatch or ship one increment — a slice or a wave — in which case you are the DISPATCHER; and
   when you are dispatched as an implementer sub-agent, or told directly to build, implement or fix a
-  specific thing in a repo that uses this flow, in which case you are the IMPLEMENTER. Running a whole
-  arc, epic or issue to completion is /pipeline:orchestrate's job, not this one.
+  specific thing in a repo that uses this flow, in which case you are the IMPLEMENTER.
 argument-hint: "[the increment — a slice or a wave — to execute; omit if you're implementing directly]"
 ---
 
@@ -22,7 +21,7 @@ We work off an **integration branch** (Trinity: `release/x.x.x` — find the act
 - **DISPATCHER** — entered from **`/pipeline:orchestrate`** (once per cycle, to dispatch the increment it just grounded), or from a user asking you to *execute / dispatch* one increment. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
-**One increment is the unit here** — an arc, epic or whole issue enters at **`/pipeline:orchestrate`** instead, which grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats. That holds for an arc that turns out to be one increment too: working out where the horizon falls is the loop's first cycle, not a precondition for entering it.
+**One increment is the unit here, and running a whole arc, epic or issue to completion is `/pipeline:orchestrate`'s job, not this one** — an arc, epic or whole issue enters there instead, and it grounds the **horizon**, dispatches it through this skill, reconciles what remains, and repeats. That holds for an arc that turns out to be one increment too: working out where the horizon falls is the loop's first cycle, not a precondition for entering it.
 
 **A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale. `skills/execute/references/platforms.md` names your host's spawn tool.
 
@@ -64,7 +63,7 @@ Write each brief, dispatch, arm the tick, and drain the gate queue on that same 
 
 ⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work.
 
-⛔ **You have not dispatched until the divergence tick is armed** — `ScheduleWakeup`, ≈600s, as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
+⛔ **You have not dispatched until the divergence tick is armed** — your host's self-paced timer at ≈600s (`skills/execute/references/platforms.md`), as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 

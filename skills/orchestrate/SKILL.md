@@ -1,19 +1,21 @@
 ---
 name: orchestrate
 description: >-
-  Run an arc of work to completion as a just-in-time loop — the pipeline's last leg, after /pipeline:co-think and /pipeline:write-issue, and the one command you type to take a body of work end to end. Use whenever
-  you're asked to ORCHESTRATE or coordinate an arc, an epic, an issue or a batch of tasks, to EXECUTE or RUN
-  a plan, to WORK or COMPLETE a GitHub issue, or to SHIP one through to merge. You ground only the HORIZON —
-  the next dispatchable increment — via /pipeline:decompose, dispatch it via /pipeline:execute, then
+  Run a MULTI-PHASE arc to completion as a just-in-time loop — the epic path's last leg, after
+  /pipeline:co-think and /pipeline:write-issue, and the one command you type to take an epic end to end. Use
+  whenever you're asked to ORCHESTRATE or coordinate an arc, an epic, an umbrella or a batch of tasks, to
+  EXECUTE or RUN a plan that runs to several phases, to WORK or COMPLETE such a GitHub issue, or to SHIP
+  one through to merge. You ground only the HORIZON — the next dispatchable increment — via
+  /pipeline:decompose, dispatch it via /pipeline:execute, then
   RECONCILE what is still outstanding against the tree that increment produced, rewrite what remains, and
   repeat until the plan is empty and the close-out is green. Everything past the horizon stays at SHAPE
-  depth. You never write implementation code and you never ground beyond the horizon.
+  depth.
 argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan already in chat]"
 ---
 
 # Orchestrate — the just-in-time arc loop
 
-The pipeline is **`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`**. This skill owns everything after the issue, running the arc to completion one increment at a time.
+**This loop is the epic path's last leg** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate` — running a multi-phase arc to completion one increment at a time. **Work the issue settled as one slice does not come here**: that path is `/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, with no loop around it.
 
 ```
 issue / plan  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · rewrite the rest  ──▶  repeat until empty
@@ -48,17 +50,17 @@ Check for `<repo>/.agents/worktree.json` before step 1 grounds anything. **Missi
 
 ## 1. Ground the horizon → `/pipeline:decompose`
 
-On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out where the horizon falls: **establishing the horizon is the first cycle's work, not a precondition for starting**. Then invoke `/pipeline:decompose` against that horizon and nothing else, telling it the rest stays at shape depth.
+On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out where the horizon falls **from the issue's phase map**: the earliest phase whose dependencies have all landed. **Establishing the horizon is the first cycle's work, not a precondition for starting.** Then invoke `/pipeline:decompose` against that horizon and nothing else, telling it the rest stays at shape depth.
 
 **Read UP before you read DEEP: establish whether the issue is a sub-issue and read the parent before grounding the child.** `/pipeline:decompose` runs that check for you; what you owe it is the instruction to, because step 4 makes an umbrella's body the arc's live remaining plan and missing the parent starts a second plan for one arc.
 
 ## 2. Dispatch it → `/pipeline:execute`
 
-Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic-branch decision, model tiers, the gate, PR review and merge-not-squash are its mechanics.
+Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic branch's mechanics, model tiers, the gate, PR review and merge-not-squash are its own. **The epic verdict itself arrived with the issue** — carry it down, never re-decide it here.
 
-⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you owe a divergence tick roughly every 10 minutes in between.** Arm it with `ScheduleWakeup` at ≈600s, callable right here: the tool is not confined to `/loop`. **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are launched.**
+⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are launched.**
 
-**The tick is NOT how you learn an agent finished**, which arrives as a harness notification; it catches a wandering agent mid-flight, and **no reading of `ScheduleWakeup`'s own tool description reaches this requirement**, its polling warning being about polling for completion. Interval, purpose and requirement are settled **here**, because an instruction reached only by a pointer is one a reader can skip while satisfying every step in front of them; each tick you snapshot every live worktree's diff against its **fork point**, drain the gate queue, fast-forward the local integration branch, sweep for parked work, and — where an epic branch is live — merge the integration branch into it in the **epic's own worktree**, never the main checkout.
+**The tick is NOT how you learn an agent finished**, which arrives as a notification anyway; it catches a wandering agent mid-flight, and **no reading of the timer tool's own description reaches this requirement**, its polling warning being about polling for completion. Interval, purpose and requirement are settled **here**, because an instruction reached only by a pointer is one a reader can skip while satisfying every step in front of them; each tick you snapshot every live worktree's diff against its **fork point**, drain the gate queue, fast-forward the local integration branch, sweep for parked work, and — where an epic branch is live — merge the integration branch into it in the **epic's own worktree**, never the main checkout.
 
 ⛔ **What the tick's prompt may carry: handles, never conclusions** — anything *derived* at arming time is grounding written for a later moment. Carry what you look a fact up **with** (branch, worktree path, PR number) and re-derive what you looked **up**: the file list, whether a revision is outstanding, above all the next action. **The fork-point SHA reads as identity and is not**; recompute it each tick after a fetch.
 
@@ -72,7 +74,7 @@ Everything the checklist produced is dispositioned by that file's *Fold vs. file
 
 ## 5. Repeat, or close out
 
-Back to step 1 with the horizon moved. **A one-increment arc runs one cycle**: ground, dispatch, close out — no umbrella, no rewrite, no reconcile against an empty plan. **Grounding is the one step it does not trim**, because a one-slice plan can still carry a false premise nothing downstream re-checks.
+Back to step 1 with the horizon moved. **This loop is for a multi-phase arc**, so there is no one-cycle case left to carve out: work settled as one slice reaches `/pipeline:decompose` and `/pipeline:execute` without passing through here, and where such an issue arrives here anyway, say so and route it rather than wrapping a loop around a single increment.
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the integration gate plus the epic → integration PR. **And the arc's issues are closed — the tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's closing keywords, which fire only where that PR's base is the repository's **default** branch and never fire later.
 
@@ -80,7 +82,7 @@ Back to step 1 with the horizon moved. **A one-increment arc runs one cycle**: g
 
 **And one question the close-out answers in writing: did this arc surface a defect or a gap in the pipeline itself?** Exactly one of three — **filed**, naming the issue; **none found**; or **not enabled here**. "None found" is cheap but must still be written, since an arc that surfaced nothing and one where nobody asked look identical afterwards.
 
-- **The bar is an observed failure the finding can name** — a run that broke, a rule read and not followed, a check green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one per arc is worse than never asking. **That bar rations filing; two `wc -w` ceilings ration what a filed rule costs to read** — no shipped file over 30,000 words, and a corpus total under a ratchet lowered once a cut lands and never raised, which extraction cannot buy back because it counts the same words wherever they sit.
+- **The bar is an observed failure the finding can name** — a run that broke, a rule read and not followed, a check green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one per arc is worse than never asking. **That bar rations filing; two `wc -w` ceilings bound what a filed rule costs to read** — no shipped file over 30,000 words, and no sub-skill, one spine plus its own references, over 50,000. Both are backstops rather than budgets, and extraction settles only the per-file half: the sub-skill half counts the same words wherever they sit inside its directory.
 - **A finding that clears it is FILED — an artifact with a number, "recorded" is not a second disposition, and the report is never where a finding lives** (*"none found"* needs no artifact). Run *Fold vs. file*'s already-filed search first: an open issue carrying that failure takes the observation as a comment, which **satisfies** filing rather than excepting it, and a version-skew reading — **the ordinary case being an observer who is behind** — takes the *"none found"* route.
 - **Where it goes is RESOLVED, never remembered** — the **plugin's own repository**, from `repository` in `.claude-plugin/plugin.json`; never the consuming tracker unless the finding is about that project, and never the version-pinned plugin cache, which is not a git repository at all.
 - **Filing upstream is OFF unless the project turned it on, and a MISSING KEY IS A NO** — `.agents/worktree.json`'s `upstreamFindings`, where only exactly `true` enables it. **Not enabled, the question is still asked and answered in writing** — *not enabled here* — and the finding goes to the maintainer in the run's report in full, the one place a report may house one. **Where the resolved target IS the repository the arc is running in the key does not apply and the finding is FILED**, since the key gates a crossing and nothing crosses: compare the manifest's `repository` against the arc's origin by owner and name, never as URL strings, and treat an unreadable origin as different.

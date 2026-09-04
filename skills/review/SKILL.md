@@ -7,10 +7,7 @@ description: >-
   it, whenever an `orchestrate` brief says to run a review pass for the slice, and whenever you are
   asked to review, tighten, simplify, or clean up a change you just wrote and have not committed.
   Reviews reuse, simplification, efficiency, altitude AND correctness in one pass over the working
-  tree, then applies what it judges right and reports what it rejected. It NEVER dispatches
-  sub-agents and NEVER commits — the agent running the slice is the one that decides what goes in,
-  and the commit step belongs to the flow that called this. Not for reviewing a committed range or
-  someone else's PR (that's the dispatcher reading the diff, plus the gate).
+  tree, then applies what it judges right and reports what it rejected.
 ---
 
 # Review — the implement-time pass
@@ -21,8 +18,8 @@ belongs, and report what you deliberately left alone.
 
 This is the **narrow, early** tier. The broad tier is not yours: the dispatcher reads your PR's diff,
 and the drained gate runs the full build and suite over the committed result. So this is neither a
-second gate nor a PR review — it is the last thing that happens while the change is still entirely
-yours.
+second gate nor a PR review, and it is not for a committed range or someone else's PR — it is the last
+thing that happens while the change is still entirely yours.
 
 **Four actions, in order; each carries the rules that fire at it.** Two more fire at no single action
 and so bind at all four — they close the file, and they are why this skill exists rather than a
@@ -132,14 +129,12 @@ nor cost.
 Establish why a thing is the way it is before you disposition it — trace what looks wrong to the
 constraint it satisfies, the consumer it exists for, or the commit that put it there — and where it
 has a valid reason and is idiomatic for its context, leave it and say you checked. The case common
-enough to have earned
-its own line is **an existing suppression** (`eslint-disable`, `@ts-expect-error`) the change did not
-add: it is the previous author's claim, already reviewed on the PR that introduced it, so removing it
-to look tidy is a behavior change nobody asked for. Flag it if you think it is wrong. *The failure
-this prevents: this pass edits the working tree directly, so a construct tidied away before it was
-understood is gone by the time anyone could have asked why it was there — and in a diff, removing
-something load-bearing looks exactly like removing something redundant. The odd-looking guard, the
-redundant check and the narrower type fail the same way.*
+enough to have earned its own line is **an existing suppression** (`eslint-disable`, `@ts-expect-error`)
+the change did not add: it is the previous author's claim, already reviewed on the PR that introduced
+it, so removing it to look tidy is a behavior change nobody asked for — flag it if you think it is
+wrong rather than deleting it, since this pass edits the working tree directly and a construct removed
+before it is understood is gone before anyone could ask why it was there. The odd-looking guard, the
+redundant check and the narrower type fail the same way.
 
 ---
 

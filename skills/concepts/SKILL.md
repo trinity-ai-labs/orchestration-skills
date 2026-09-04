@@ -34,8 +34,12 @@ belong here.
   fails it like any other cross-skill citation. **Entries may cross-link each other** — a glossary whose
   terms cannot name each other is worse, not safer, and a dozen shallow definitions are not a web. The bar
   is that **each entry stands alone**: a reader must be able to act on it without following the link, so a
-  cross-link is a *see also* and never a missing half. Where two entries only make sense together, they were
-  one concept and belong in one entry.
+  cross-link is a *see also* and never a missing half.
+
+- **Two entries that only make sense together were one concept.** The tell is a cross-link neither side can
+  be read without following — at which point it is not a *see also*, it is a definition split in half. Merge
+  them and give the index two rows onto the one entry, rather than keeping the halves and relaxing the rule
+  that caught them: a term can have several names and still be one thing.
 
 **This index is for finding an entry you cannot name**, and for an author checking whether a term already
 has a home before writing a definition into a pass. It is not the route a citation takes.

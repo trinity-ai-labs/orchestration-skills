@@ -88,6 +88,7 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 | A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
 | It is already filed | `/pipeline:orchestrate` where the issue is an epic; `/pipeline:decompose`, then `/pipeline:execute`, where it is one slice |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
+| Cutting the next release, or rolling the branch work lands on | `/pipeline:cut-release` — a project pass, not an arc; it is not shaped work and does not want an issue |
 
 Name the route out loud with its command in it, so the user can take it themselves.
 

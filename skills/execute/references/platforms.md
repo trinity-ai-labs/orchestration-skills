@@ -8,12 +8,16 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | Skill discovery | `skills/<slug>/SKILL.md`, `name` + `description` frontmatter | identical |
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
-| Correct, resume, list, or stop one | `SendMessage` / `TaskStop` | `followup_task` / `list_agents` |
+| Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
+| List the live ones | `ListAgents` | `list_agents` |
+| Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |
 | `bin/` on `PATH` | yes, while enabled | **no** |
+
+⚠️ **Correcting a live agent, listing the live ones and killing one are three rows because they are three acts with different costs.** Merged into one label they read as a single capability, and a reader reaches for whichever tool it recognises — which on this table was the destructive one. **And a cell naming a stop your host may not have is worse than a blank one**, since the flow sends you here *for* that tool: where a row says the tool is not established, the sentence above is the whole instruction — read your own tool list, and say in your report what you found.
 
 ⛔ **On Codex set `model` AND `reasoning_effort` on every spawn** — `model` alone silently resets effort to that model's default, so a top-tier slice runs at a tier nobody chose. Spawning needs `features.multi_agent = true` in the host config; without it there is no spawn tool at all.
 

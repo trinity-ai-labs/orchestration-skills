@@ -25,6 +25,7 @@
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. shipped prose carries no war stories.
 #  12. no skill cites another skill.
+#  13. no sentence has had its front removed (a partial prose deletion).
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -895,10 +896,39 @@ else
 	ok "no-cross-skill-citations: every skill is readable on its own"
 fi
 
+# --- 13. no sentence has had its front removed --------------------------------
+
+# Check 11 bans a war story by its OPENING words, so a pass that strips the
+# opening and leaves the rest passes it — and what survives is a sentence
+# starting mid-clause, which reads as damage a reader routes around rather than
+# as a rule. Two of them sat green in this corpus for four releases.
+#
+# The tell is mechanical: in markdown an emphasis run opens after whitespace, so
+# `*` glued to the end of the preceding word means the text that used to sit in
+# front of it is gone. Anchored on that, not on any phrase, because the phrase
+# is exactly what the deletion took.
+
+orphan_hits="$(
+	git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null \
+		| while IFS= read -r f; do
+			grep -nE '[A-Za-z0-9][.,;:!?]\*[A-Za-z]' "$f" 2>/dev/null \
+				| sed "s|^|$f:|"
+		done
+)"
+if [ -n "$orphan_hits" ]; then
+	printf '%s\n' "$orphan_hits" | cut -c1-160 | while IFS= read -r l; do
+		printf 'FAIL  no-half-deleted-prose: %s\n' "$l" >&2
+	done
+	fail "no-half-deleted-prose: an emphasis run opens mid-word — finish the deletion, keeping any RULE the removed sentence carried"
+else
+	orphan_n="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | wc -l | tr -d ' ')"
+	ok "no-half-deleted-prose: $orphan_n shipped file(s) carry no sentence whose front was removed"
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories and cross-skill citations\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

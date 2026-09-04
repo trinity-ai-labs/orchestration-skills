@@ -32,7 +32,7 @@ You are a **loop, not a builder**: you ground an increment, dispatch it, read th
 Every item in the plan sits at exactly one of two depths, decided by where the horizon is — never by how important it is or how well you understand it.
 
 - **Shape depth** — everything *beyond* the horizon: goal, area, dependency, one line on why it comes after the thing before it. **No `file:line`, no owned files, no do-not-touch boundaries, no framework skill, no model tier, no verify bar.** An item at shape depth is not unfinished.
-- **Slice depth** — the horizon *only*: everything `/pipeline:decompose` emits — owned files as real paths, do-not-touch boundaries, artifacts derived, depends-on, framework skill, model tier, brief, verify bar — grounded against the tree **right now** and dispatched in the same cycle.
+- **Slice depth** — the horizon *only*: everything `/pipeline:decompose` emits — the slice's goal, owned files as real paths, do-not-touch boundaries, artifacts derived, depends-on, framework skill, model tier, brief, verify bar — grounded against the tree **right now** and dispatched in the same cycle.
 
 **The horizon is the next dispatchable set: every remaining item whose dependencies have already landed** — usually a wave, or the dispatchable subset of one whose rest still waits on something unmerged. **It is whatever you are about to ground and dispatch in THIS cycle — it moves outward only as increments land, and it is the only thing that promotes an item to slice depth**: not a well-understood item, not one a user asked about, not a small one. Both errors are silent — grounding early writes coordinates that stop existing, dispatching at shape depth leaves an implementer to invent its scope.
 

@@ -26,6 +26,7 @@ Horizon: Wave 1 — Slices 2, 3, 4
 #### Slice 2 — <title>
 - Branch: `feat/<leaf>`   ·   Wave: 1   ·   Depends on: Slice 1 (merged)   ·   Model: top tier (subtle migration)
 - Skill to invoke first: effect
+- Goal: a retention window a user sets is still honoured after a restart
 - Owns: sidecar/services/foo.ts   ·   docs/foo.md: repoint the moved path (coordinate fix, ships here); §"Retention" prose → ledger entry; the new eviction hook has no prose anywhere → ledger entry marked needs-new-prose
 - Do NOT touch: any UI under app/ (Wave 2 owns those)
 - Derives: reports/unimported.json — regenerated from the whole tree; report the delta, don't hand-edit

@@ -290,6 +290,94 @@ else
   echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
 fi
 
+# --- The declared branching model, and the base it vouches for ----------------
+# A project states which branch its work lands on (`branchingModel`: "trunk" |
+# "release" | "gitflow"); undeclared, nothing here fires and this helper behaves
+# exactly as it did. A workspace declares it once for members that share one
+# branch and one model, and that answer wins.
+#
+# What it is used for here is NARROW on purpose. The caller passes <base>
+# explicitly, so there is no guess for this helper to prevent and no licence to
+# override an instruction with an inference. It refuses exactly one thing it can
+# actually KNOW — a release-model project with one live release branch, handed a
+# different one — and otherwise only says out loud what it can see, because the
+# failure being guarded is not that a wrong branch was chosen but that nothing
+# afterwards said which one it was.
+read_scalar() { # read_scalar <json-path> <key>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node) runner=(node); probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    py) runner=(py -3); probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    *) runner=("$cand"); probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe='' ;;
+    esac
+    [ "$probe" = "ok" ] && break
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 0
+  if [ "${runner[0]}" = node ]; then
+    node -e 'const fs=require("fs");try{const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8"))[process.argv[2]];if(typeof v==="string")process.stdout.write(v)}catch(e){}' "$1" "$2" 2>/dev/null || true
+  else
+    "${runner[@]}" -c 'import json,sys
+try:
+    v = json.load(open(sys.argv[1])).get(sys.argv[2])
+except Exception:
+    v = None
+sys.stdout.write(v if isinstance(v, str) else "")' "$1" "$2" 2>/dev/null || true
+  fi
+}
+
+BRANCHING_MODEL=""
+WS_MANIFEST="$(dirname "$MAIN")/.agents/workspace.json"
+[ ! -f "$WS_MANIFEST" ] || BRANCHING_MODEL="$(read_scalar "$WS_MANIFEST" branchingModel)"
+[ -n "$BRANCHING_MODEL" ] || BRANCHING_MODEL="$(read_scalar "$CONFIG" branchingModel)"
+case "$BRANCHING_MODEL" in
+trunk | release | gitflow) ;;
+*) BRANCHING_MODEL="" ;;
+esac
+
+# Held until AFTER the ref check below, because "this branch is the wrong one" is
+# a worse message than "this branch does not exist" for a caller who fat-fingered
+# a version, and the wrong one would mask the right one.
+check_release_base() {
+  [ "$EXISTING" -ne 1 ] || return 0
+  [ "$BRANCHING_MODEL" = release ] || return 0
+  case "$BASE" in
+  release/*) ;;
+  *) return 0 ;;
+  esac
+
+  # A release branch that has already landed on the default branch has SHIPPED,
+  # and forking new work off it is the failure this guards: every check passes,
+  # against a base the project moved past, and nothing downstream says so. The
+  # base being the default branch itself is the ordinary release-model shape --
+  # it is trivially its own ancestor -- so it is excluded first or this refuses
+  # every legitimate cut in exactly the projects the model was declared for.
+  local default_ref default_branch
+  default_ref=$(git -C "$MAIN" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null) || default_ref=""
+  default_branch="${default_ref#refs/remotes/origin/}"
+  [ -n "$default_branch" ] || return 0
+  [ "$BASE" != "$default_branch" ] || return 0
+  git -C "$MAIN" merge-base --is-ancestor "$BASE" "origin/$default_branch" 2>/dev/null || return 0
+
+  echo "refusing: '$BASE' has already landed on '$default_branch' — it is a shipped release branch." >&2
+  echo "  This project declares branchingModel=release, so a release branch that is fully merged" >&2
+  echo "  into the default branch is one the project has moved past. Work cut from it is gated," >&2
+  echo "  reviewed and merged against a base nobody is releasing from, and nothing downstream" >&2
+  echo "  reports that." >&2
+  echo "  Release branches still ahead of '$default_branch':" >&2
+  git -C "$MAIN" for-each-ref --format='%(refname:short)' 'refs/heads/release/*' 2>/dev/null \
+    | while IFS= read -r r; do
+      [ -n "$r" ] || continue
+      git -C "$MAIN" merge-base --is-ancestor "$r" "origin/$default_branch" 2>/dev/null || echo "    $r" >&2
+    done
+  echo "  Pass one of those, or --existing to re-attach to a branch already cut from '$BASE'." >&2
+  exit 1
+}
+
 # Decide what `git worktree add` is asked for, and fail before creating anything if
 # the ref it needs isn't there. Both modes fail with a fetch hint for the same
 # reason: a ref that only exists on a remote nobody has fetched looks exactly like
@@ -324,6 +412,7 @@ else
     echo "  try: git -C \"$MAIN\" fetch origin   (or pass origin/$BASE)" >&2
     exit 1
   fi
+  check_release_base
   ADD_ARGS=(-b "$BRANCH" "$WT" "$BASE")
 fi
 

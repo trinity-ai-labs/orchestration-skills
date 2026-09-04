@@ -181,6 +181,45 @@ function Get-RepoRoot {
     return (Get-NormalPath (Split-Path -Path $common -Parent))
 }
 
+function Test-ReleaseBase {
+    # A release branch already merged into the default branch has SHIPPED, and forking
+    # new work off it is the failure this guards: every check passes, against a base
+    # the project has moved past, and nothing downstream reports it. The base BEING
+    # the default branch is the ordinary release-model shape - it is trivially its own
+    # ancestor - so it is excluded first, or this refuses every legitimate cut in
+    # exactly the projects the model was declared for.
+    #
+    # Deliberately narrow. The caller passed <base> explicitly, so there is no guess
+    # here to prevent and no licence to override an instruction with an inference;
+    # this refuses only what it can actually establish.
+    if ($Existing) { return }
+    if ($BranchingModel -cne 'release') { return }
+    if ($Base -cnotlike 'release/*') { return }
+
+    $ref = (& git -C $Main symbolic-ref --quiet refs/remotes/origin/HEAD 2>$null | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $ref) { return }
+    $defaultBranch = $ref -replace '^refs/remotes/origin/', ''
+    if (-not $defaultBranch) { return }
+    if ($Base -ceq $defaultBranch) { return }
+    if (-not (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $Base, "origin/$defaultBranch"))) { return }
+
+    Write-Stderr "refusing: '$Base' has already landed on '$defaultBranch' - it is a shipped release branch."
+    Write-Stderr "  This project declares branchingModel=release, so a release branch fully merged into"
+    Write-Stderr "  the default branch is one the project has moved past. Work cut from it is gated,"
+    Write-Stderr "  reviewed and merged against a base nobody is releasing from, and nothing downstream"
+    Write-Stderr "  reports that."
+    Write-Stderr "  Release branches still ahead of '$defaultBranch':"
+    $refs = (& git -C $Main for-each-ref --format='%(refname:short)' 'refs/heads/release/*' 2>$null | Out-String)
+    foreach ($r in ($refs -split "`n")) {
+        $name = $r.Trim()
+        if (-not $name) { continue }
+        if (-not (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', $name, "origin/$defaultBranch"))) {
+            Write-Stderr "    $name"
+        }
+    }
+    Exit-WithError "  Pass one of those, or --existing to re-attach to a branch already cut from '$Base'."
+}
+
 function Get-JsonValue {
     # Reads a property that may be absent from a ConvertFrom-Json object, which
     # carries only the keys the file actually had. A plain $cfg.missing is $null by
@@ -355,6 +394,22 @@ if ($env:WORKTREE_DEST) {
 # Per-project config (optional).
 $EnvFiles = @()
 $InstallCmd = ''
+# Which branch a project's work lands on ("trunk" | "release" | "gitflow").
+# Undeclared, nothing keyed on it fires and this helper behaves exactly as before.
+# A workspace declares it once for members sharing one branch and one model, and
+# that answer wins over a member's own - read first, so the member cannot narrow it.
+$BranchingModel = ''
+$WsManifest = Join-Path (Split-Path -Path $Main -Parent) '.agents/workspace.json'
+if (Test-Path -LiteralPath $WsManifest) {
+    try {
+        $wsModel = Get-JsonValue -Object (Get-Content -LiteralPath $WsManifest -Raw | ConvertFrom-Json) -Name 'branchingModel'
+        if ($wsModel) { $BranchingModel = [string]$wsModel }
+    } catch {
+        # An unreadable workspace manifest is not this helper's to report: the member's
+        # own config still answers, and the fallback is today's behaviour either way.
+        $BranchingModel = ''
+    }
+}
 $Config = "$Main/$ConfigRel"
 if (Test-Path -LiteralPath $Config) {
     try {
@@ -374,6 +429,9 @@ if (Test-Path -LiteralPath $Config) {
             [Environment]::SetEnvironmentVariable($prop.Name, (Expand-ShellValue ([string]$prop.Value)))
         }
     }
+
+    $declaredModel = Get-JsonValue -Object $cfg -Name 'branchingModel'
+    if ($declaredModel) { $BranchingModel = [string]$declaredModel }
 } else {
     Write-Stderr "note: no config at $Config - creating a bare worktree (no env symlinks, no install)."
     Write-Stderr "  add $ConfigRel to '$Project' to declare envFiles / install."
@@ -411,6 +469,7 @@ if ($Existing) {
         Write-Stderr "base branch not found locally: $Base"
         Exit-WithError "  try: git -C `"$Main`" fetch origin   (or pass origin/$Base)"
     }
+    Test-ReleaseBase
     $AddArgs = @('-b', $Branch, $Wt, $Base)
 }
 

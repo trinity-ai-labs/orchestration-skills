@@ -3,9 +3,11 @@ name: co-think
 description: >-
   The pipeline's front door. Use whenever someone arrives with a rough idea, a half-formed plan or a
   question about what to build — "should we…", "how would we…", "I want to build…", "can we…", "is it
-  possible…" — whenever they report a bug that has not been filed or diagnosed, whenever a request
-  sounds bigger than one change, and whenever they do not know which pipeline command they want. Use it
-  BEFORE /pipeline:write-issue on anything whose shape is not already settled, and before any creative
+  possible…" — and whenever they ask for your JUDGMENT on a shape rather than for a change to make:
+  "what do you think…", "what do you suggest…", "what would you do…", "does this make sense…", "is this
+  the right approach…". Also whenever they report a bug that has not been filed or diagnosed, whenever a
+  request sounds bigger than one change, and whenever they do not know which pipeline command they want.
+  Use it BEFORE /pipeline:write-issue on anything whose shape is not already settled, and before any creative
   work — a new feature, a new subsystem, a change to how the parts fit together.
 argument-hint: "[the idea, question or bug to think through — omit to work on what's already in chat]"
 ---
@@ -63,7 +65,7 @@ Help split it instead: name the independent pieces, say how they relate, and set
 
 A design is not done when the parts are named. Work these four out with the user, and get the answers into the design before any issue is written:
 
-- **The epic breakdown and its sequence** — what the phases are, and what order they must land in.
+- **The epic breakdown and its sequence** — what the phases are, and what order they must land in; `/pipeline:write-issue` is what writes them down.
 - **The blast radius of each phase** — what it disturbs, and what has to be re-read, re-generated or re-agreed once it lands.
 - **The seams** — every place a producer and its consumer end up in different phases. Name them: that is where an arc breaks.
 - **The plumbing the work implies** — the config, migration, generated artifact or wiring nobody asked for and everybody needs.
@@ -80,10 +82,10 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 |---|---|
 | A spike | Answer it as cheaply as correctness allows, then **stop**. No issue; anything you built is labelled throwaway |
 | Bounded, and small enough that an issue would outweigh it | Say so, get the nod, then **build it yourself as the implementer** — you leave this pass rather than break its rule, and `/pipeline:execute` carries the implementer's flow |
-| Bounded, and real work | `/pipeline:write-issue`, then `/pipeline:orchestrate` |
+| Bounded, and real work | `/pipeline:write-issue` — it sets the phases and routes from there: `/pipeline:decompose` then `/pipeline:execute` for one slice, `/pipeline:orchestrate` for an epic |
 | Architectural | Shape the arc with the user first (5), then `/pipeline:write-issue` |
 | A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
-| It is already filed | Straight to `/pipeline:orchestrate` |
+| It is already filed | `/pipeline:orchestrate` where the issue is an epic; `/pipeline:decompose`, then `/pipeline:execute`, where it is one slice |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
 
 Name the route out loud with its command in it, so the user can take it themselves.

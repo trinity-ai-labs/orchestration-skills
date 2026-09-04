@@ -1,11 +1,11 @@
 ---
 name: setup
 description: >-
-  Onboard a repo onto the /pipeline:write-issue → /pipeline:orchestrate pipeline. Use when a repo has no
-  `.agents/worktree.json`, when `setup-worktree.sh` warns "no config", when someone asks to SET UP or
-  ONBOARD the pipeline (or a gate queue) for a project, when a dispatcher refuses to dispatch because the
-  project is unconfigured, or to RECONCILE a config or a scaffolded queue that has gone stale against its
-  repo.
+  Onboard a repo onto the /pipeline:co-think → /pipeline:write-issue pipeline and the passes that run off
+  it. Use when a repo has no `.agents/worktree.json`, when `setup-worktree.sh` warns "no config", when
+  someone asks to SET UP or ONBOARD the pipeline (or a gate queue) for a project, when a dispatcher
+  refuses to dispatch because the project is unconfigured, or to RECONCILE a config or a scaffolded queue
+  that has gone stale against its repo.
 argument-hint: "[path to the repo to onboard — omit to onboard the current one]"
 ---
 
@@ -130,4 +130,4 @@ Commit the config (and the queue scripts) and open a PR the way that repo normal
 
 **Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
-> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:write-issue` to file it, or hand a plan you already have straight to `/pipeline:orchestrate`.
+> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and names the next command: `/pipeline:decompose` then `/pipeline:execute` for one slice, `/pipeline:orchestrate` for an epic.

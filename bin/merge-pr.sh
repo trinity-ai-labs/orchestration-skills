@@ -359,16 +359,6 @@ echo "merge-pr: PR #$PR  state=$STATE  base=$BASE_BRANCH  head=$HEAD_BRANCH  mai
 # version silently does not read it. Said HERE rather than left to a changelog,
 # because the only reader who needs it is the one whose config has it, at the moment
 # the merge is about to behave differently from what they declared.
-RETIRED_IN=""
-if [ -n "$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)" ]; then
-  RETIRED_IN=".agents/workspace.json"
-elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
-  RETIRED_IN="$CONFIG_REL"
-fi
-if [ -n "$RETIRED_IN" ]; then
-  echo "merge-pr: note: $RETIRED_IN declares 'branchingModel', which this version no longer reads." >&2
-  echo "  Declare 'integrationBranch' instead — the branch this project's work lands on." >&2
-fi
 
 # Where the main checkout stands BEFORE this run touches anything. Step 6 checks it
 # is still here at the end: nothing in this helper switches the checkout, so any
@@ -408,6 +398,17 @@ PROJECT=$(basename "$MAIN")
 # misfires "wrong repo" for every workspace member even when its worktree is
 # exactly where setup-worktree.sh put it.
 WORKSPACE_ROOT="$(dirname "$MAIN")"
+
+RETIRED_IN=""
+if [ -n "$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)" ]; then
+  RETIRED_IN=".agents/workspace.json"
+elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
+  RETIRED_IN="$CONFIG_REL"
+fi
+if [ -n "$RETIRED_IN" ]; then
+  echo "merge-pr: note: $RETIRED_IN declares 'branchingModel', which this version no longer reads." >&2
+  echo "  Declare 'integrationBranch' instead — the branch this project's work lands on." >&2
+fi
 WORKSPACE_WT=""
 if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
   WORKSPACE_WT="$WORKTREE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"

@@ -52,6 +52,7 @@ Every value must trace to a file you read.
 - **The scoped check** — the cheap subset with no build and no test suite (format-check + lint + typecheck), composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm they exist in the main checkout. **Record paths only**, since the config is committed.
 - **Conventions** — `AGENTS.md` / `CONTRIBUTING.md`, and only what lives nowhere else; what is already there gets pointed at, not copied.
+- **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another. **A project whose version comes from tags or commit messages declares none of it**: the tooling owns the version there, and a hand-edited file fights it.
 - **The integration branch** (`skills/glossary/vocabulary/integration-branch.md`) — a **candidate**, confirmed rather than written. The branches are evidence and not proof: a long-lived `release/x.y.z` or a `develop` suggests one answer and the repository's default branch suggests another, and those are different facts of which either can be right. Put the candidate and the evidence, take the answer, and **write a literal name, never a pattern**. **Getting it wrong is not symmetric**: every worktree of every later arc forks from this branch, so a wrong one is a base nobody notices until a close-out.
 
 In a monorepo, note which commands are **root** and which per-package: a root-only script run from a subpackage reports "no such script", which agents misread as a missing feature.
@@ -65,6 +66,8 @@ Here the **repo** moved and the config did not: a renamed gate script, a changed
 **Re-ground, don't re-ask.** Run this step against the tree as it stands and compare key by key (a workspace's `.agents/workspace.json` is regenerated, not reconciled). One verdict per key: **agrees**; **drifted**, saying what the repo now says rather than that it differs; or **declared, unverified** for `sharedResources`, `reclaim`, `upstreamFindings` and `epicMerge` — `upstreamFindings` most carefully, consent being attached to whoever gave it.
 
 **Surface a candidate; never write an entry** — put what you saw as a question, an inferred entry looking checked when that is precisely what it was not.
+
+**One drift IS cheaply detectable, and in a project that rolls its branch it is the normal case.** The main checkout holds the integration branch and nothing else, so a `HEAD` naming a different branch than `integrationBranch` declares means the project rolled and the config did not follow — report both names. It happens because **cutting a release branch is outside the arc flow entirely**, so nothing in the pipeline is present at that moment to update the config.
 
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a stop-and-report — the natural repair is the edit that freeze exists to forbid. **Nothing detects this kind of staleness for you**: re-grounding every script is what it costs, so this direction is **asked for**.
 
@@ -105,6 +108,9 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 | `briefConventions` | Only what `AGENTS.md` doesn't already say — point at it, and state only the gotchas that would cost a run |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
 | `integrationBranch` | The branch this project's work lands on — a literal name the maintainer confirms, never a pattern and never read off the default branch. **Omit** where they will not confirm one: absence keeps the older behaviour, and a guessed branch is the value here whose error is silent and durable, since every worktree of every later arc forks from it |
+| `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |
+| `changelog` | The one file a new section is prepended to. Not a member of `bumpFiles` — a different operation |
+| `docsPaths` | `{path, when}` per doc tree: where it lives, and what kind of change makes it stale |
 | `epicMerge` | History policy — **omit** unless the project wants one commit per arc. Note that without `integrationBranch` it does nothing wherever work lands on the default branch |
 
 **`sharedResources` is a claim Step 4 has to falsify, which is what fixes its shape.** Each entry is `{resource, isolatedBy}`: `resource` names the thing; `isolatedBy` names the project's mechanism *and the entry point it sits at* — one **every** invocation reaches, since a mechanism hung off `gate` misses the test files implementers run directly — or an explicit `null`, shared and staying shared.

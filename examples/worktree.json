@@ -2,6 +2,18 @@
   "integrationBranch": "main",
   "envFiles": ["app/.env.local", "worker/.dev.vars"],
   "install": "pnpm install --frozen-lockfile",
+  "bumpFiles": ["package.json", "apps/web/package.json"],
+  "changelog": "CHANGELOG.md",
+  "docsPaths": [
+    {
+      "path": "docs/user",
+      "when": "user-visible behaviour changes — a flow, a screen, copy someone reads"
+    },
+    {
+      "path": "docs/architecture",
+      "when": "a service boundary, the data model, or a contract between packages changes"
+    }
+  ],
   "gate": "pnpm gate",
   "scopedCheck": "pnpm check",
   "enqueue": "pnpm gate:enqueue",

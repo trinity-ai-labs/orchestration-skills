@@ -523,16 +523,33 @@ fi
 # would make this helper flaky on exactly the PRs that just arrived, and the merge
 # in step 3 is a truthful authority for the case the poll could not resolve.
 if [ "$STATE" != "MERGED" ]; then
+  # CONFLICTING is provisional in exactly the same window as UNKNOWN, so it gets
+  # the same treatment: confirmed across two consecutive reads before it is acted
+  # on. Trusting the first one sends the caller to resolve a conflict that does not
+  # exist — which costs a merge commit nobody needed, and teaches them that this
+  # message does not mean what it says, on the one message that is the only warning
+  # when the conflict IS real. An unconfirmed CONFLICTING falls through like an
+  # unresolved UNKNOWN: step 3's merge is the truthful authority for both.
   MERGEABLE=$(pr_field mergeable 2>/dev/null || true)
-  for attempt in 1 2 3; do
-    if [ "$MERGEABLE" = "MERGEABLE" ] || [ "$MERGEABLE" = "CONFLICTING" ]; then
+  CONFLICT_READS=0
+  for attempt in 1 2 3 4; do
+    if [ "$MERGEABLE" = "MERGEABLE" ]; then
       break
     fi
-    echo "merge-pr: mergeability not computed yet (attempt $attempt/3) — waiting ..."
+    if [ "$MERGEABLE" = "CONFLICTING" ]; then
+      CONFLICT_READS=$((CONFLICT_READS + 1))
+      if [ "$CONFLICT_READS" -ge 2 ]; then
+        break
+      fi
+      echo "merge-pr: GitHub reports CONFLICTING (read 1 of 2) — confirming, since a PR pushed seconds ago can answer from a test merge that has not finished ..."
+    else
+      CONFLICT_READS=0
+      echo "merge-pr: mergeability not computed yet (attempt $attempt/4) — waiting ..."
+    fi
     sleep 2
     MERGEABLE=$(pr_field mergeable 2>/dev/null || true)
   done
-  if [ "$MERGEABLE" = "CONFLICTING" ]; then
+  if [ "$MERGEABLE" = "CONFLICTING" ] && [ "$CONFLICT_READS" -ge 2 ]; then
     # Name the worktree the caller has to resolve it in — setup-worktree.sh puts it
     # at one of exactly two paths, decided by whether this repo sits in a workspace.
     CONFLICT_WT="${WORKSPACE_WT:-$WORKTREE_HOME/$PROJECT/$LEAF}"

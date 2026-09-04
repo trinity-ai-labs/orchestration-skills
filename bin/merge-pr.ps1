@@ -651,14 +651,29 @@ if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge
 # would make this helper flaky on exactly the PRs that just arrived, and the merge
 # in step 3 is a truthful authority for the case the poll could not resolve.
 if ($State -ne 'MERGED') {
+    # CONFLICTING is provisional in exactly the same window as UNKNOWN, so it gets
+    # the same treatment: confirmed across two consecutive reads before it is acted
+    # on. Trusting the first one sends the caller to resolve a conflict that does
+    # not exist - which costs a merge commit nobody needed, and teaches them that
+    # this message does not mean what it says, on the one message that is the only
+    # warning when the conflict IS real. An unconfirmed CONFLICTING falls through
+    # like an unresolved UNKNOWN: step 3's merge is the truthful authority for both.
     $Mergeable = [string]$PrView.mergeable
-    foreach ($attempt in 1..3) {
-        if ($Mergeable -eq 'MERGEABLE' -or $Mergeable -eq 'CONFLICTING') { break }
-        Write-Output "merge-pr: mergeability not computed yet (attempt $attempt/3) - waiting ..."
+    $ConflictReads = 0
+    foreach ($attempt in 1..4) {
+        if ($Mergeable -eq 'MERGEABLE') { break }
+        if ($Mergeable -eq 'CONFLICTING') {
+            $ConflictReads++
+            if ($ConflictReads -ge 2) { break }
+            Write-Output "merge-pr: GitHub reports CONFLICTING (read 1 of 2) - confirming, since a PR pushed seconds ago can answer from a test merge that has not finished ..."
+        } else {
+            $ConflictReads = 0
+            Write-Output "merge-pr: mergeability not computed yet (attempt $attempt/4) - waiting ..."
+        }
         Start-Sleep -Seconds 2
         $Mergeable = Get-PrField 'mergeable'
     }
-    if ($Mergeable -eq 'CONFLICTING') {
+    if ($Mergeable -eq 'CONFLICTING' -and $ConflictReads -ge 2) {
         # Name the worktree the caller has to resolve it in - setup-worktree.ps1 puts
         # it at one of exactly two paths, decided by whether this repo sits in a
         # workspace.

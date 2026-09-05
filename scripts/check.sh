@@ -20,7 +20,8 @@
 #   5. examples/worktree.json is one the real reader can consume.
 #   6. bin/*.ps1 lint, or SKIP loudly — never a silent ok.
 #   7. bin/ ships each helper in both shells and the two agree on surface facts.
-#   8. every skills/ .md path cited in a tracked doc resolves.
+#   8. every cited path in a tracked doc resolves — a bare skills/ .md path
+#      from the repo root, a markdown link from the CITING FILE, as read.
 #   9. shipped prose carries no issue numbers.
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. prose that states rules carries no war stories (a BACKSTOP: the rule
@@ -557,7 +558,29 @@ else
 fi
 rm -f "$parity_out"
 
-# --- 8. every skills/ .md path cited in a tracked doc resolves ----------------
+# --- 8. every cited path in a tracked doc resolves ---------------------------
+
+# TWO CLASSES, RESOLVED TWO DIFFERENT WAYS, because two readers resolve them
+# two different ways.
+#
+#   (a) A bare skills/… .md path written in prose. AGENTS.md's convention is
+#       that this is the one citation form resolving in the repo the prose is
+#       READ in, so it is resolved from the repository ROOT.
+#   (b) A markdown LINK target — ](…). A renderer resolves it relative to the
+#       DIRECTORY OF THE CITING FILE, so that is how it is resolved here.
+#
+# Resolving (b) from the root is the trap this half exists for, and it is
+# silent in the direction that matters: a link written `skills/<x>.md` from a
+# file in docs/ resolves from the root, passes an existence test, and renders
+# dead, while the same link written `../skills/<x>.md` is correct for both.
+# Testing existence from the root cannot tell those apart — which is how a
+# `](examples/worktree.json)` moved into docs/ came to point at nothing with
+# the gate green. Any cross-directory relative link that is not a skills/*.md
+# path was invisible to (a) entirely.
+#
+# Out of scope, deliberately: an external URL (nothing here can reach it) and
+# a #fragment (this resolves the PATH; an anchor is a different claim, and a
+# checker for it would have to reimplement every renderer's slug rules).
 
 # The set is what git tracks, not what the glob finds: a scratch note, a gate log
 # or a stray copy sitting in a worktree is not a doc this repo ships, and a gate
@@ -602,6 +625,83 @@ else
 			ok "citations: $cite_count skills/ .md path citation(s) across tracked docs resolve ($distinct distinct path(s))"
 		fi
 	fi
+
+	# (b) markdown link targets, resolved the way a renderer resolves them.
+	link_out="$(mktemp)" || exit 2
+	link_err="$(mktemp)" || exit 2
+	python3 - "$link_out" $md_files <<'LINKPY' 2>"$link_err"
+import os
+import re
+import sys
+
+# ](target) or ](target "title"), plus the angle-bracket form ](<target>).
+LINK = re.compile(r"\]\(\s*(<[^>]*>|[^)\s]+)(?:\s+\"[^\"]*\")?\s*\)")
+EXTERNAL = re.compile(r"\A(?:[A-Za-z][A-Za-z0-9+.-]*:|//)")
+
+# A ](…) inside a code span or a fenced block is link SYNTAX being written
+# about, not a link: no renderer resolves it, so neither does this. Half (a)
+# above deliberately does the opposite, because a bare skills/… path in
+# backticks IS a citation a reader follows — the two halves differ here
+# because their readers do. Stripped per line so reported line numbers hold.
+CODE_SPAN = re.compile(r"`[^`]*`")
+
+out_path, *files = sys.argv[1:]
+checked = 0
+with open(out_path, "w") as out:
+    for path in files:
+        base = os.path.dirname(path)
+        text = open(path, encoding="utf-8").read()
+        fenced = False
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if line.lstrip().startswith("```"):
+                fenced = not fenced
+                continue
+            if fenced:
+                continue
+            line = CODE_SPAN.sub("", line)
+            for m in LINK.finditer(line):
+                target = m.group(1)
+                if target.startswith("<") and target.endswith(">"):
+                    target = target[1:-1]
+                # A pure anchor addresses this same file; an external scheme
+                # (or a protocol-relative //host) addresses another machine.
+                if not target or target.startswith("#") or EXTERNAL.match(target):
+                    continue
+                target = target.split("#", 1)[0]
+                if not target:
+                    continue
+                # The corpus writes a deliberately dangling example inside < >;
+                # anything still carrying one is a placeholder, not a path.
+                if "<" in target or ">" in target:
+                    continue
+                resolved = os.path.normpath(os.path.join(base, target))
+                checked += 1
+                # normpath keeps a leading ../ when a link climbs past the root,
+                # which is dead for the same reason a missing file is.
+                if resolved.startswith("..") or not os.path.exists(resolved):
+                    out.write("%s:%d: [%s] -> %s\n" % (path, line_no, target, resolved))
+    # The count rides in the hits file so an empty result can be told apart
+    # from a run that resolved nothing at all — otherwise the two are one
+    # empty file, and the second reads as green.
+    out.write("# checked %d\n" % checked)
+LINKPY
+	link_status=$?
+	if [ "$link_status" -ne 0 ]; then
+		sed 's/^/      /' "$link_err" >&2
+		fail "links: the reader crashed — link targets could not be resolved"
+	else
+		link_checked="$(sed -n 's/^# checked //p' "$link_out")"
+		link_bad="$(grep -v '^# checked ' "$link_out" || true)"
+		if [ -z "$link_checked" ] || [ "$link_checked" -eq 0 ]; then
+			fail "links: no in-repo markdown link resolved in any tracked *.md — this check scanned nothing"
+		elif [ -n "$link_bad" ]; then
+			printf '%s\n' "$link_bad" | sed 's/^/FAIL  links: /' >&2
+			fail "links: resolved from the CITING FILE, as a renderer does, and landed on nothing — a link from a subdirectory needs ../ to reach the repo root"
+		else
+			ok "links: $link_checked in-repo markdown link(s) resolve from their citing file"
+		fi
+	fi
+	rm -f "$link_out" "$link_err"
 fi
 
 # --- 9. shipped prose carries no issue numbers ------------------------------

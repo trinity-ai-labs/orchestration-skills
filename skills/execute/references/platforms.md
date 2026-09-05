@@ -12,6 +12,7 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | List the live ones | `ListAgents` | `list_agents` |
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
+| Persistent watch over a ledger directory | `Monitor` | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |

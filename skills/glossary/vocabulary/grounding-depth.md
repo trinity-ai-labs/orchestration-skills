@@ -20,8 +20,8 @@ ungrounded, because grounding it now is what goes stale.
 verify bar** — grounded against the tree as it stands now.
 
 **That slice-field list is the canonical one.** An enumeration of it written anywhere else is a copy, and
-copies of it have drifted: a field added to one and not the others is invisible to every check, because
-each copy is internally consistent and nothing compares them.
+copies of it have drifted, because each copy is internally consistent and no skill may cite another to
+compare them — which is why the gate now derives this list from here and holds every copy to it.
 
 **Both depths carry a failure and both are silent.** Grounding beyond the horizon writes coordinates that
 stop existing — a path renamed by earlier work still reads as prose, so the reader builds against the

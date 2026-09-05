@@ -10,7 +10,8 @@ description: >-
   splitting can still be wrong. You ground the HORIZON — the next dispatchable increment — in the actual
   codebase at the depth an executor acts on, and VALIDATE it against what the code really does, surfacing
   wrong assumptions, unspecified behavior and defects in the plan before an implementer builds on them. The
-  horizon emits at SLICE depth (goal, owned files, boundaries, depends-on, framework skill, model tier, brief, verify bar);
+  horizon emits at SLICE depth (goal, owned files, boundaries, derived artifacts, depends-on, framework skill, model
+  tier, brief, verify bar);
   everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
   you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"

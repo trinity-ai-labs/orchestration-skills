@@ -1110,9 +1110,14 @@ fi
 #             check that reds on it would be turned off within a week.
 #
 # NOT checked, deliberately: whether a term is defined somewhere OUTSIDE the map.
-# Every instrument tried for it reds on legitimate USE -- a pass naming four slice
-# fields is using them, not redefining them -- and a guard that fails correct work
-# is one everybody learns to wave through.
+# Every instrument tried FOR THAT PROPERTY reds on legitimate USE, because using a
+# term and redefining it are the same shape at a distance and only a reader can
+# separate them -- and a guard that fails correct work is one everybody learns to
+# wave through. That is a claim about this property, not about instruments in
+# general: the slice-fields check below reds on a genuine disagreement and not on
+# use, because it compares only at declaration positions inside a named passage,
+# where a bare mention cannot reach. An instrument is possible wherever the
+# scope can be narrowed that far; here it cannot.
 
 map_dir=skills/glossary
 map_index="$map_dir/SKILL.md"

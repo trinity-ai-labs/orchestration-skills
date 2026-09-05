@@ -2,6 +2,19 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 4.14.1
+
+- The glossary check's note claimed every instrument tried for defining-outside-the-map reds on
+  legitimate use. That is true of the property it names and not of instruments in general — the
+  slice-fields check added a release earlier reds only on a genuine disagreement, because it compares
+  at declaration positions inside a named passage where a bare mention cannot reach. Narrowed to the
+  claim that holds, with what makes an instrument possible said beside it.
+- The config example showed only two `isolatedBy` forms — a mechanism, and an explicit `null` — one
+  release after a non-null value was widened to name why a resource does not contend. An author
+  grounding a config against the example could still infer the third form was disallowed, which is
+  the inference that widening set out to remove. Added a shared-and-safe entry that says in the value
+  itself that it is not the `null` case.
+
 ## 4.14.0
 
 - **The dispatcher's review verdict now survives the conversation that produced it.** It was the only artifact in this flow that could judge whether a change is CORRECT, and it was discarded at the moment it was acted on: formed in a dispatcher conversation, reaching the PR as a draft flag flipped ready, and ending there. **This adds no review pass** — the dispatcher already reads the diff, judges it against the slice's `Goal`, reads the review pass's `Rejected` list and checks the docs. What changes is that the verdict it forms is EMITTED rather than evaporating: the same reasoning, written to the PR, by the same agent, at the same point in the flow.

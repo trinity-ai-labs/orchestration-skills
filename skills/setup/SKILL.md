@@ -67,7 +67,7 @@ Here the **repo** moved and the config did not: a renamed gate script, a changed
 
 **Surface a candidate; never write an entry** — put what you saw as a question, an inferred entry looking checked when that is precisely what it was not.
 
-**One drift IS cheaply detectable, and in a project that rolls its branch it is the normal case.** The main checkout holds the integration branch and nothing else, so a `HEAD` naming a different branch than `integrationBranch` declares means the project rolled and the config did not follow — report both names. It happens because **cutting a release branch is outside the arc flow entirely**, so nothing in the pipeline is present at that moment to update the config.
+**One drift IS cheaply detectable, and in a project that rolls its branch it is the normal case.** The main checkout holds the integration branch and nothing else, so a `HEAD` naming a different branch than `integrationBranch` declares means the project rolled and the config did not follow — report both names. **It happens where a roll was made without `/pipeline:cut-release`**, the pass that stands at that moment and moves the version, the changelog and this field in one commit — so say which of the two you are looking at: a roll already made, where this config is what is stale, or a roll not yet cut, where that pass owns the moment and a field written now records a branch on its way out.
 
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a stop-and-report — the natural repair is the edit that freeze exists to forbid. **Nothing detects this kind of staleness for you**: re-grounding every script is what it costs, so this direction is **asked for**.
 

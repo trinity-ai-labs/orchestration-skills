@@ -30,6 +30,7 @@
 #  13. no sentence has had its front removed (a partial prose deletion).
 #  14. the glossary stays tied to the tree.
 #  15. both bin/ ports answer the predicates they share identically.
+#  16. every slice-field enumeration names every field.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -238,9 +239,36 @@ fi
 # check exists for now lives in references/ (decompose's emitting.md), and a
 # check scoped to SKILL.md would go green over the passage it was written for.
 skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
+# A `gh api` invocation is ONE command however many lines it is written across,
+# so the continuations are joined before the pattern is applied. Read line by
+# line, a long invocation puts `gh api` on one line and the offending `-f` with
+# its @file value on the next, and the pattern matches neither — the check goes
+# green over exactly the form a long invocation is written in, which is the same
+# silent success the flag itself produces. Each joined command is reported at the
+# line it STARTS on, prefixed with its file, so the hits read as grep -n's did.
 if [ -z "$skill_docs" ]; then
 	fail "gh-api: no SKILL.md files to scan — this check scanned nothing"
-elif at_file_hits="$(grep -nE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' $skill_docs)"; then
+elif ! joined_docs="$(awk '
+	FNR == 1 && pending { print fname ":" start ":" buf; pending = 0 }
+	{
+		line = $0
+		continued = (line ~ /\\[[:space:]]*$/)
+		sub(/\\[[:space:]]*$/, "", line)
+		if (pending) {
+			buf = buf " " line
+		} else {
+			buf = line
+			fname = FILENAME
+			start = FNR
+		}
+		pending = continued
+		if (!pending) { print fname ":" start ":" buf }
+	}
+	END { if (pending) print fname ":" start ":" buf }
+' $skill_docs)"; then
+	fail "gh-api: the joiner crashed — the skills could not be scanned"
+elif at_file_hits="$(printf '%s\n' "$joined_docs" |
+	grep -E 'gh api.*(-f|--raw-field) +"?[a-z_]+=@')"; then
 	printf '%s\n' "$at_file_hits" | sed 's/^/      /' >&2
 	fail "gh-api: a skill prescribes gh api -f with an @file value; use -F, which reads the file"
 else
@@ -1246,10 +1274,220 @@ PS
 	rm -rf "$pc_tmp"
 fi
 
+# --- 16. the slice-field enumerations agree -----------------------------------
+
+# A field enumerated in N places has nothing keeping the N in sync, and check 12
+# is what makes that drift invisible: a skill may not cite another skill, so each
+# copy of an enumeration is internally consistent and structurally forbidden from
+# pointing at its siblings. Two copies disagreeing is unreachable by every other
+# check here, by design. This is what check 12 costs, paid back.
+#
+# THE FIELD SET IS DERIVED, NOT LISTED. skills/glossary/vocabulary/grounding-depth.md
+# declares itself the canonical list, so a second hand-written copy here would be
+# one more enumeration with nothing comparing it -- the disease one level up, in
+# the checker for it. The names are read out of that entry's own bold run, which
+# means a field ADDED there reds every copy that lacks it on the next run. The
+# entry is the SOURCE and so is not itself compared: it would be compared against
+# itself and pass whatever it said.
+#
+# What genuinely cannot be derived is the ALIASES table -- one seat writes
+# `Derives` and another "artifacts derived", and a checker admitting one spelling
+# would be a spelling rule wearing a consistency rule's clothes. Each derived
+# name is its own default spelling, so a new field arrives already matchable.
+#
+# PASSAGES is listed, and that half is not derivable: it names one enumerating
+# passage per entry as (path, start, end, mode). The scope is the PASSAGE and
+# never the file, because every one of these files says "goal", "brief" and
+# "verify" in ordinary prose many lines away -- a whole-file search returns green
+# whatever the enumeration says. Anchors are matched against whitespace-collapsed
+# text so re-wrapping a paragraph cannot truncate a scope.
+#
+#   prose     the enumeration is one sentence; a spelling anywhere in it counts.
+#   declared  the enumeration is a bullet list or a template, where the same word
+#             recurs in the surrounding prose ("Wave 2 owns those" sits inside the
+#             emit template). A spelling counts only at a DECLARATION position --
+#             after a list marker or a bold run, or followed by a colon.
+#
+# Deliberately NOT every file naming a field: a seat naming `Owns` and
+# `Do NOT touch` where a fence is adjudicated is USING two fields rather than
+# listing nine, and holding it to the whole set would red on correct prose.
+#
+# An anchor that no longer resolves is a FAILURE and never a skip, because
+# rewording one is exactly how a passage would stop being compared while this
+# check kept printing ok.
+
+enum_out="$(mktemp)" || exit 2
+python3 - >"$enum_out" 2>&1 <<'ENUMPY'
+import pathlib
+import re
+
+# The canonical entry, and the bold run inside it that lists the fields.
+CANON = (
+    "skills/glossary/vocabulary/grounding-depth.md",
+    "The full set a dispatchable slice carries",
+    "**That slice-field list is the canonical one.**",
+)
+
+# Extra spellings per derived field name. The derived name is always a spelling
+# in its own right, so a field absent from this table is still matched.
+ALIASES = {
+    "owns": ("owned file", "owned-file"),
+    "do not touch": ("do-not-touch", "boundaries"),
+    "derives": ("artifacts derived", "derived artifact"),
+    "depends-on": ("depends on",),
+    "framework skill to open with": ("framework skill", "skill to invoke"),
+    "model tier": ("model", "model hint", "standard tier", "top tier"),
+    "verify bar": ("verify",),
+}
+
+PASSAGES = (
+    ("skills/decompose/SKILL.md",
+     "horizon emits at SLICE depth", "everything past it at SHAPE depth", "prose"),
+    ("skills/decompose/SKILL.md",
+     "Produce each horizon slice's fields", "read them against each other", "prose"),
+    ("skills/decompose/references/slicing.md",
+     "## The slice fields", "## Sizing", "declared"),
+    ("skills/decompose/references/emitting.md",
+     "#### Slice 2 — <title>", "#### Slice 3", "declared"),
+    ("skills/orchestrate/SKILL.md",
+     "**Slice depth** — the horizon *only*",
+     "**The horizon is the next dispatchable set", "prose"),
+    ("docs/mental-model.md",
+     "| **Slice depth** |", "| **Shape depth** |", "prose"),
+)
+
+
+def collapse(s):
+    return re.sub(r"\s+", " ", s)
+
+
+def read(path, cache={}):
+    if path not in cache:
+        cache[path] = pathlib.Path(path).read_text(encoding="utf-8", errors="replace")
+    return cache[path]
+
+
+def scope(path, start, end):
+    """The passage between two anchors, whitespace-collapsed and lowercased."""
+    text = collapse(read(path))
+    i = text.find(collapse(start))
+    if i < 0:
+        return None, "no longer starts with %r" % start
+    j = text.find(collapse(end), i + len(collapse(start)))
+    if j < 0:
+        return None, "no longer ends before %r" % end
+    return text[i:j].lower(), None
+
+
+def names_at(passage):
+    """Field names from the canonical entry's own bold run."""
+    run = re.search(r"\*\*(.+?)\*\*", passage)
+    if not run:
+        return []
+    out = []
+    for part in run.group(1).replace("`", "").split(","):
+        part = part.strip()
+        for prefix in ("and ", "the "):
+            if part.startswith(prefix):
+                part = part[len(prefix):]
+        if part:
+            out.append(part)
+    return out
+
+
+def names_it(passage, spelling, mode):
+    if mode == "prose":
+        return spelling in passage
+    return (
+        ("- " + spelling) in passage
+        or ("**" + spelling) in passage
+        or (spelling + ":") in passage
+    )
+
+
+problems = []
+canonical, err = scope(*CANON)
+fields = names_at(canonical) if canonical else []
+
+if err:
+    problems.append(
+        "%s: the canonical slice-field list %s - every comparison below derives "
+        "its field names from that passage, so this check compared nothing"
+        % (CANON[0], err)
+    )
+elif not fields:
+    problems.append(
+        "%s: the canonical slice-field list yielded no field names - this check "
+        "compared nothing" % CANON[0]
+    )
+if not PASSAGES:
+    problems.append("the passage registry is empty - this check compared nothing")
+
+compared = 0
+if fields:
+    for path, start, end, mode in PASSAGES:
+        if not pathlib.Path(path).is_file():
+            problems.append(
+                "%s: registered as enumerating the slice fields but absent from "
+                "the tree - a rename here retires the comparison instead of "
+                "failing it" % path
+            )
+            continue
+        passage, err = scope(path, start, end)
+        if err:
+            problems.append(
+                "%s: the enumerating passage %s - re-anchor it here, or this "
+                "passage stops being compared while the check keeps reporting ok"
+                % (path, err)
+            )
+            continue
+        compared += 1
+        for field in fields:
+            spellings = (field,) + ALIASES.get(field, ())
+            if not any(names_it(passage, s, mode) for s in spellings):
+                problems.append(
+                    "%s: the slice-field enumeration at %r never names '%s' - a "
+                    "list short by one member reads as complete, and nothing else "
+                    "in this gate can see the copies disagree"
+                    % (path, start, field)
+                )
+
+print("%d %d" % (compared, len(fields)))
+for problem in problems:
+    print(problem)
+ENUMPY
+enum_status=$?
+
+if [ "$enum_status" -ne 0 ]; then
+	sed 's/^/      /' "$enum_out" >&2
+	fail "slice-fields: the reader crashed — the enumerations could not be compared"
+else
+	enum_counts="$(sed -n '1p' "$enum_out")"
+	enum_passages="${enum_counts% *}"
+	enum_fields="${enum_counts#* }"
+	enum_bad="$(sed '1d' "$enum_out")"
+	case ${enum_passages:-x}${enum_fields:-x} in
+	*[!0-9]*)
+		fail "slice-fields: the reader printed no counts — this check compared nothing"
+		;;
+	*)
+		if [ "$enum_passages" -eq 0 ] || [ "$enum_fields" -eq 0 ]; then
+			fail "slice-fields: $enum_passages passage(s) against $enum_fields field(s) — this check compared nothing"
+		elif [ -n "$enum_bad" ]; then
+			printf '%s\n' "$enum_bad" | sed 's/^/FAIL  slice-fields: /' >&2
+			fail "slice-fields: name the missing field where its enumeration lives — the canonical set is derived from skills/glossary/vocabulary/grounding-depth.md, so a field added there is one every copy now owes"
+		else
+			ok "slice-fields: $enum_passages passage(s) against the $enum_fields field(s) derived from the canonical entry, every field named in every one"
+		fi
+		;;
+	esac
+fi
+rm -f "$enum_out"
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, and the two bin/ ports answer their shared predicates identically\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the two bin/ ports answer their shared predicates identically, and every slice-field enumeration names every field\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

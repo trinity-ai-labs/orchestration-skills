@@ -83,6 +83,7 @@ Warrant the umbrella; don't reflexively shard a 3-slice issue into 3 issues. Rul
 ### GitHub write mechanics (important)
 
 - **Use `gh api` (REST), not `gh issue create`/`gh issue edit` for the writes** — the high-level `gh issue` write commands go through GraphQL and hit rate limits in batches; the REST endpoints don't. Read with `gh issue view` is fine.
+- ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — the issue body, its title, and every comment on it name the configured git user alone: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. The named forms and the named artifacts are both instances rather than the extent, since an enumeration of either is satisfied by every member it omits, so leave out anything you cannot rule out.
 - **Write the body to a file and reference it with `-F` (not `-f`)** — `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0. **Verify after**: refetch the body and confirm it's the markdown, not the literal path.
   - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"` (a temp file also spares you quoting hell with long markdown).
   - New sub-issue: `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>"`, then capture the returned number. The title stays `-f` — a genuine literal; only the `@file` value needs `-F`.

@@ -154,7 +154,7 @@ if ($rest.Count -ge 1 -and $rest[0] -eq '--dry-run') {
 }
 
 if ($rest.Count -lt 1) {
-    Exit-WithError "usage: setup-workspace.ps1 [--dry-run] <branch> [repo ...]"
+    Exit-WithError "usage: setup-workspace.ps1 [--dry-run] <branch> [repo ... | --exclude <repo,repo>]"
 }
 $Branch = [string]$rest[0]
 $rest = Get-ArgTail -Items $rest -Skip 1

@@ -81,7 +81,7 @@ die() { echo "setup-workspace: error: $*" >&2; exit 1; }
 DRY_RUN=0
 if [ "${1:-}" = "--dry-run" ]; then DRY_RUN=1; shift; fi
 
-[ $# -ge 1 ] || die "usage: setup-workspace.sh [--dry-run] <branch> [repo ...]"
+[ $# -ge 1 ] || die "usage: setup-workspace.sh [--dry-run] <branch> [repo ... | --exclude <repo,repo>]"
 BRANCH="$1"; shift
 SLUG="${BRANCH##*/}"
 

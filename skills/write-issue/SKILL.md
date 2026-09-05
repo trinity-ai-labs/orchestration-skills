@@ -102,6 +102,7 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 ## Step 4 — Write it (GitHub mechanics)
 
 - **Use `gh api` (REST), not `gh issue create`/`edit`** — the high-level write commands go through GraphQL and hit rate limits in batches; REST doesn't.
+- ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — the issue body, its title, and every comment on it name the configured git user alone: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. The named forms and the named artifacts are both instances rather than the extent, since an enumeration of either is satisfied by every member it omits, so leave out anything you cannot rule out.
 - **Write the body to a file and reference it with `-F` (not `-f`)** — `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0. **Verify after**: refetch the body and confirm it is the markdown, not `@path`.
   - Create: `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>" -F "milestone=<n>" --jq '.number'`
   - Edit body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`

@@ -58,12 +58,14 @@ Route B moves no branch, so its sentence promises none:
 In that worktree, as a **single commit** — the version, its changelog section and the config naming the branch are one fact, and a reader landing on a commit carrying two of the three cannot tell which is authoritative.
 
 1. **Every path in `bumpFiles`.** All of them: the key is a claim of completeness precisely because a repository can carry a version in more than one place and ship a different one to each consumer.
-2. **A new section in `changelog`**, at the top, headed with the version, written from what has landed since the last section — the merged history is the source, never recollection.
+2. **A new section in `changelog`**, at the top, headed with the version, written from what has landed since the last section — the merged history is the source, never recollection. **Read which of that key's two forms you were handed**: a path to a FILE takes the section prepended to it, a path to a DIRECTORY takes the version's own file created there, since a project keeping one changelog file per release declares the directory.
 3. **Route A only: `integrationBranch`**, in `.agents/worktree.json` or the workspace manifest that declares it, pointed at the new branch. **In this same commit**: it is the field that stops the two facts drifting, so moving one without the other rebuilds the drift this pass exists to end.
 
 ⛔ **Whether the branch you cut FROM also moves its version is the project's habit, not this pass's policy — read it, then ask.** Find the last commit that moved these files and see whether the branch you are standing on carried a version change too. Do the same. **Where there is no previous rollover to read, ask once**, and say you are asking because there is no precedent.
 
 ## 4. Hand it over
+
+⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — this pass's commit message and its PR body name the configured git user alone: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. The named forms and the named artifacts are both instances rather than the extent, since an enumeration of either is satisfied by every member it omits, so leave out anything you cannot rule out.
 
 Push, open the PR against the base its route names, and stop. **You do not merge it** — this changes how every later worktree is provisioned, and the diff is the only review that fact gets.
 

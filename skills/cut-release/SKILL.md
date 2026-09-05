@@ -29,14 +29,19 @@ argument-hint: "[the version to cut, e.g. 0.5.0 — omit and it will work one ou
 
 **Observe rather than configure.** The branch the main checkout is standing on is what a release is cut *from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog` and `integrationBranch`, and the current version out of the first `bumpFiles` entry.
 
-Put it in one sentence and stop:
+- **No `bumpFiles` declared** means nothing here hand-edits a version — tooling owns it, or the project does not version. Say so and stop, rather than editing a file the project's own tooling maintains.
+- **`HEAD` against `integrationBranch` is the DRIFT test, not the route test, and which of the two is stale decides what you do.** The main checkout holds the integration branch and nothing else, so the two naming different branches means one moved without the other — `git rev-parse --verify <declared>` answers which. **The declared branch does not exist**: the config was pointed at the next release and nobody cut it, which is this pass's own moment — take route A with the branch already named. **It exists**: the roll was made without this pass, so report both names and stop, since a further branch cut on top writes that drift into the history rather than ending it, and `/pipeline:setup` owns that repair.
+- **The route is one question about the branch's NAME: does moving the version make it wrong?** `release/0.4.0` going to `0.5.0` stops being true, so the branch rolls with the version — **route A**. `main`, `develop`, `release/0.4.x` are each as true at the new version as at the old, so the version moves in place and nothing is cut — **route B**, which still takes a worktree and still lands as a PR. **Never route on whether you are standing on the integration branch**: you are, in every project that is not drifting, so that test sends all of them to route B and strands the project that rolls a branch — the one this pass was written for.
+
+Put it in one sentence and stop. Route A:
 
 > *You are on `<branch>`, at version `<current>`. I will cut `<new-branch>` from it, bump `<the bumpFiles>`, open a `## <version>` section in `<changelog>`, and point `integrationBranch` at the new branch — one commit, in its own worktree. Right?*
 
-⛔ **Nothing below happens without that yes.** The version is a product decision and the branch name outlives the arc; both are cheap to correct now and expensive later.
+Route B moves no branch, so its sentence promises none:
 
-- **No `bumpFiles` declared** means nothing here hand-edits a version — tooling owns it, or the project does not version. Say so and stop, rather than editing a file the project's own tooling maintains.
-- **Standing on the integration branch itself** means work lands where releases are cut, so there is no branch to roll: this is a **version bump only**. It still takes a worktree and still lands as a PR — take route B below.
+> *You are on `<branch>`, at version `<current>`. I will bump `<the bumpFiles>` to `<new>` and open a `## <new>` section in `<changelog>` — one commit, in its own worktree, PR'd back into `<branch>`. Right?*
+
+⛔ **Nothing below happens without that yes.** The version is a product decision and the branch name outlives the arc; both are cheap to correct now and expensive later.
 
 ## 2. Route A — there is a branch to cut
 

@@ -25,7 +25,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 |---|---|
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then turns the horizon into independent slices with owned files, do-not-touch fences and a verify bar. |
 | [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs and merges. |
-| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, run inline before it commits. |
+| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension, weighed by the implementer. |
 
 On the one-slice path those first two are the whole of the run and you invoke them yourself — that is the path, not a side door. On an epic the loop invokes both for you.
 

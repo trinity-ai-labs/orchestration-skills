@@ -18,7 +18,7 @@ Reference for `skills/execute/SKILL.md`. **If you were handed a dispatch brief, 
 
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run it, do NOT commit as you go: hold the change uncommitted, run the pass over your *full uncommitted* diff, apply what you accept, and only then commit — against a clean tree it sees nothing and the review never happens. Otherwise commit in blocks as the work lands. **Park held work under your own named ref, never the shared stack** (*Hard rules* has the commands).
 
-⛔ **Never a quality pass that forks reviewers** — a fork inherits this brief and carries out its *commit, push, PR, enqueue* imperatives for you, before you get your turn back. `/pipeline:review` runs inline and spawns nothing.
+⛔ **Never a quality pass that FORKS its reviewers, and never one that hands a reviewer this brief** — a fork inherits it and carries out its *commit, push, PR, enqueue* imperatives for you before you get your turn back, and a fresh agent handed those same imperatives does it too. `/pipeline:review` dispatches one FRESH reviewer per dimension, hands each the slice's goal, the fork point, the diff and its dimension and none of those imperatives, and stays the only party that edits your tree — every reviewer reports and does nothing else, so a commit, a push or a PR that appears while it runs is a runaway to revert before you read a finding.
 
 **Format in write mode right before committing** — the scoped check only format-*checks*. **Formatter output is always committed, never reverted**: your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 

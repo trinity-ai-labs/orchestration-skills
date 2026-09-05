@@ -29,36 +29,30 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 
 On the one-slice path those first two are the whole of the run and you invoke them yourself — that is the path, not a side door. On an epic the loop invokes both for you.
 
-The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. **Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get). Same arguments, same environment variables, same output, same exit codes — one CLI contract implemented twice. `scripts/check.sh` compares the two on every run, but everything it compares is **surface shape** — a missing sibling, a usage line or a contract environment variable the two sides disagree on, a byte a `.ps1` may not contain. **Most semantics are out of its reach**, so two ports can pass all of that and still behave differently on the same input, which is not hypothetical: until 3.40.0 a failed install exited with the install tool's own status in bash and `1` in PowerShell, and nothing in the check could see it. The exception is `scripts/port-cases/` — one table of inputs asked of BOTH implementations and compared, so a predicate written twice cannot diverge quietly; a renamed predicate fails there rather than skipping, since a silent rename is how the pair would stop being compared while the check kept reporting ok. What actually holds the pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; the check catches the drift that shows on the surface.
+The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. **Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get) — same arguments, same environment variables, same output, same exit codes, one CLI contract implemented twice. What holds that pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; what the repo's own gate can and cannot see of it is in [Adding a skill](docs/adding-a-skill.md).
 
 | Command | What it does |
 |---|---|
 | `setup-worktree.sh` · `.ps1` | Creates a worktree — or attaches one to an existing branch with `--existing` — symlinks the project's env files, exports its env, installs deps |
-| `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each |
+| `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each — the members named outright, or the default set less `--exclude <repo,repo>`, with `--dry-run` printing the resolved member set and creating nothing |
 | `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local base branch — and, at the epic boundary only and only where the project opted in, squash instead and verify the landed tree against the gated one before deleting the branch |
 | `remove-worktree.sh` · `.ps1` | Safely tear down a worktree — found by branch leaf in either layout, bare or workspace member, or named outright by absolute path — killing processes rooted in it first, and stopping loudly rather than reporting a clean no-op when the tree it was asked for is registered somewhere it did not look |
 
 ---
 
-## Filing findings upstream (off by default)
+## Reference
 
-> **Read this before you install.** This plugin can write into **this repository, which is public** — opening a GitHub issue, or adding a comment to an issue already here — from inside whatever repository you are running it in. It does that only when you have switched it on, and it is **off unless you switch it on** — but it is a thing the plugin can do, so it is stated here rather than buried in a config table.
+The detail lives in [`docs/`](docs/), one page per topic:
 
-**What it is.** At the end of an arc, `/pipeline:orchestrate` answers one question in writing: did this run surface a defect or a gap in *the pipeline itself* — not in your code, in these skills. Where you have enabled it, an answer that names a real observed failure is filed **in this repository**, so the same gap stops costing every other install the same way. Where you have not, it goes to you in the run's own report and nowhere else. Either way the question is asked and answered; the key decides only where the answer can go.
-
-**Filed is not always a new issue, it is sometimes nothing at all, and whatever does get written is equally public.** Before anything is created, the tracker here is searched by the *shape* of the failure — open issues and closed alike. Where an open issue already describes it, the finding goes on **that** issue as a comment saying what is new about this observation. Where a **closed** one does, the run checks your install before it concludes anything: a closed issue says a fix shipped in some release, which is a fact about this tracker and not about the copy of these skills you are running. If that fix is in your copy and the failure happened anyway, it is a regression — a new issue, plus a comment on the closed one pointing at it. If it is not in your copy, you are simply on a version older than the release that fixed it: **nothing is filed**, you are told that in the run's own report, and the tracker here is left alone. If the run cannot establish which, it says so rather than picking. A comment on a public issue is exactly as visible as an issue, so everything below — what a finding may contain, what enabling the key does and does not consent to, and what the close-out tells you afterwards — binds a comment exactly as it binds a new issue.
-
-**It is opt-in, per project, and absence is a no.** Set `"upstreamFindings": true` in that project's own `.agents/worktree.json` (**[Per-project config](#per-project-config)**, below) and the close-out may file — by hand, or by letting `/pipeline:setup` write that line for you. Leave the key out, set it to `false`, or set it to anything that is not exactly `true`, and it may not — a missing key is a decided **no**, not an unanswered question, and that is the opposite of how the `sharedResources` key in the same file reads its own absence.
-
-**Onboarding will put the question to you once, and a yes is the only answer that writes anything.** `/pipeline:setup` asks it flat — naming this repository, saying it is public, saying that a yes covers a comment on an issue already here as well as a new one, and saying what a finding may and may not contain — and it makes no case for it, because a no is a complete answer needing no reason. Answer anything but yes, including nothing at all, and the key is left out entirely, which is byte-for-byte the same **no** as never having been asked. So: nothing turns this on but your own yes — not a flag, not a default, not the plugin updating itself, and not a question you decline.
-
-**The one case the key does not cover cannot be your repository.** An arc run inside *this* plugin's own repository files its finding without the key: there the target and the tree are the same repository, so the finding leaves nothing and there is no disclosure for an opt-in to gate. Whether that holds is decided by comparing the plugin's manifest against the origin of the repository the run is in, so it can only ever come out true in this repository — from your tree, absence stays a decided no and nothing is filed.
-
-**What a filed finding contains.** The *shape* of the failure, the counts, and the conclusion — written for a reader who has never seen your repository. It does **not** contain a file path, a symbol, a route, a branch name, a client or engagement name, or a home directory. Enabling the key is consent to **file**; it is not consent to **disclose**, and the two are independent: the person who sets the key sets it once and is frequently not the person whose code a later finding is about, so the rule against carrying identifiers holds on an opted-in project exactly as it does everywhere else.
-
-**And it tells you.** When a run files something, the close-out names where the finding went and the repository it went to — the issue it opened, or the issue it commented on — so a filing is visible in the run's own output rather than something you discover later in a public tracker.
-
-**If you are unsure, do nothing.** The default is off, and every other part of this plugin works identically with the key absent.
+| Page | Covers |
+|---|---|
+| [Filing findings upstream](docs/filing-findings-upstream.md) | **Read this before you install** — what this plugin can write into its own public repository, and the per-project key that is off unless you switch it on |
+| [Troubleshooting](docs/troubleshooting.md) | The three causes behind a git error while installing, and the fix for each |
+| [Per-project config](docs/per-project-config.md) | Every key in `.agents/worktree.json`, what reads it, and what its absence means |
+| [The mental model](docs/mental-model.md) | The loop, the two grounding depths, the branch levels, and why the shape is this shape |
+| [Onboarding a new project](docs/onboarding-a-project.md) | What `/pipeline:setup` grounds, what it asks you, and how it reconciles a config that has drifted |
+| [The hard rules](docs/hard-rules.md) | The rules the agent follows, stated so you can check its work |
+| [Adding a skill](docs/adding-a-skill.md) | The gate, the checks worth understanding before you push, and the validator |
 
 ---
 
@@ -125,180 +119,6 @@ The PowerShell tool is rolling out progressively *alongside* the Bash tool rathe
 
 ---
 
-## Troubleshooting
-
-**A git error while installing this plugin is not evidence of an auth or permissions problem.** Every repository behind this plugin is public, clones clean (no illegal Windows filename characters, no case collisions, no reserved DOS names), and needs no credentials — so when a clone or fetch fails, the cause lives in *your* environment or in how a marketplace declared its source, never in a broken or private repo. It is never a permissions problem with the plugin itself.
-
-All three causes below present as the same undifferentiated "git error," and their fixes have nothing in common — match your error text to a cause before changing anything:
-
-| Your error names... | Cause |
-|---|---|
-| `Host key verification failed`, `No ED25519 host key is known for github.com` | The marketplace declared its source with the GitHub `owner/repo` shorthand, which clones over SSH by default |
-| `SSL certificate problem: unable to get local issuer certificate` | Corporate TLS interception |
-| `detected dubious ownership in repository` | Git's dubious-ownership check |
-
-### Cause 1: the GitHub shorthand source clones over SSH by default
-
-The literal error:
-
-```
-Failed to install: Failed to clone repository: Cloning into 'C:\Users\...\.claude\plugins\cache\temp_github_...'...
-No ED25519 host key is known for github.com and you have requested strict checking.
-Host key verification failed.
-fatal: Could not read from remote repository.
-```
-
-Per Claude Code's own documentation: a marketplace entry that declares its source as `{"source": "github", "repo": "owner/repo"}` — the GitHub `owner/repo` shorthand — clones over **SSH** by default, not HTTPS; set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` to make it clone over HTTPS instead. This marketplace's entries used exactly that shorthand for three fully public repositories that need no credentials at all, so Claude Code silently chose SSH for a request that had no reason to need it. With no `github.com` entry in `known_hosts` — normal for anyone who has never pushed over SSH from that machine — strict host-key checking rejects the clone before it starts.
-
-This reads as a broken plugin rather than as a protocol choice, because nothing about installing a public plugin suggests SSH is involved: the reader never typed `git@github.com`, never touched their own git config, and the failure has the same "clone failed" shape a real permissions problem produces. The actual decision — HTTPS vs. SSH — was made by the marketplace entry's source type, on the reader's behalf, before git ever looked at anything on their machine.
-
-**This is fixed in the marketplace as of now.** `trinity-ai-labs/claude-plugins` declares all three plugins with an explicit `{"source": "url", "url": "https://github.com/....git"}`, which Claude Code takes verbatim and clones over HTTPS — so a current install will not hit this. If you're pinned to an older marketplace entry, or you hit this same error shape installing from a *different* marketplace that still uses the `github` shorthand, set the escape hatch in your Claude Code settings:
-
-```json
-{
-  "env": {
-    "CLAUDE_CODE_PLUGIN_PREFER_HTTPS": "1"
-  }
-}
-```
-
-> **If you publish a marketplace:** prefer an explicit `{"source": "url", "url": "https://github.com/owner/repo.git"}` over the GitHub `owner/repo` shorthand for public plugins. The shorthand clones over SSH by default, which silently requires an SSH key and a trusted host key your users have no reason to have for a repo that needs neither — turning a working public install into a "broken plugin" report that traces back to the marketplace manifest, not their machine.
-
-### Cause 2: corporate TLS interception
-
-Presents as:
-
-```
-SSL certificate problem: unable to get local issuer certificate
-```
-
-Your network is intercepting TLS and presenting a certificate signed by a corporate CA that git doesn't trust. Point git at that CA bundle instead of rejecting it:
-
-```
-git config --global http.sslCAInfo /path/to/corporate-ca-bundle.pem
-```
-
-**Never** `git config --global http.sslVerify false`. Disabling verification to get one clone through leaves it disabled for every fetch afterward, silently — the fix for today's clone becomes a standing hole that makes every future fetch on that machine interceptable without warning.
-
-### Cause 3: dubious ownership
-
-Presents as:
-
-```
-fatal: detected dubious ownership in repository at 'C:/...'
-```
-
-Fix:
-
-```
-git config --global --add safe.directory <path>
-```
-
----
-
-## Per-project config
-
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads `epicMerge`. The skills read the rest — and `install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it. Both scripts read the **main checkout's working copy** of the file, never the branch they are acting on, so a change to this config is exercised by no worktree at all until it reaches that copy — not the one that writes it, and not any cut after it either, which on a multi-slice arc is the rest of the arc: [`skills/execute/references/worktrees-and-branches.md`](skills/execute/references/worktrees-and-branches.md) carries why neither pushing the branch nor cutting a second worktree gets round it, which merge ends the window, and how to verify such a change in the meantime.
-
-```json
-{
-  "envFiles": ["app/.env.local", "worker/.dev.vars"],
-  "install": "pnpm install --frozen-lockfile",
-  "gate": "pnpm gate",
-  "scopedCheck": "pnpm check",
-  "enqueue": "pnpm gate:enqueue",
-  "drain": "pnpm gate:drain",
-  "format": "pnpm format",
-  "upstreamFindings": false,
-  "epicMerge": "merge",
-  "sharedResources": [
-    { "resource": "the Postgres database the suite migrates", "isolatedBy": "tests/bootstrap derives a database name from `git rev-parse --path-format=absolute --show-toplevel`, and marks the database with that same path" }
-  ],
-  "reclaim": { "report": "pnpm worktree:reclaim", "drop": "pnpm worktree:reclaim --drop" },
-  "env": { "TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/my-turbo}" },
-  "frameworkSkills": [{ "skill": "solid", "when": "SolidJS UI" }],
-  "briefConventions": "Match surrounding style. Never rebase, never self-merge."
-}
-```
-
-| Key | Read by | Meaning |
-|---|---|---|
-| `envFiles` | script | Gitignored files symlinked from the main checkout into each worktree |
-| `install` | script + skills | Run inside a new worktree — worktrees never share `node_modules` — and re-run on every tick in the epic worktree, the one tree whose dependencies can go stale under it. Omit it, and `envFiles`, for a zero-dependency repo: a guessed install command fails every worktree setup |
-| `env` | script | Exported before the install; most usefully a shared build-cache dir |
-| `gate` | skills | The authoritative check before merge. With a queue, the *runner* runs it, never an implementer. May equal `scopedCheck` when the repo has only one tier |
-| `scopedCheck` | skills | The cheap bar an implementer's commits are held to |
-| `sharedResources` | skills | What the checks touch **outside** the worktree and how each worktree gets its own — `{resource, isolatedBy}` entries, `isolatedBy: null` for one that stays shared. Write `[]` when there is nothing: here alone, omitting the key and declaring it empty mean opposite things. See the `sharedResources` note |
-| `reclaim` | skills | `{report, drop}` — the project's own sweep for resources whose worktree is gone, run by a dispatcher at arc close-out. **Omit both** where nothing durable is created; unlike `sharedResources`, that absence is derived from the entries above rather than an unasked question. See the `sharedResources` note |
-| `enqueue` / `drain` | skills | How a **gate** joins the queue — a PR's, or a dispatcher's own integration gate on a merged tree that has no PR — and how a dispatcher drains it. **Omit both** if the project has no queue — every gate is then run by hand, the implementer's included. A project that *has* one still hand-runs the dispatcher's mid-arc integration gate where its runner predates the PR-less ticket and refuses it |
-| `format` | skills | The auto-formatter in *write* mode, run right before committing |
-| `upstreamFindings` | skills | `true` lets an arc's close-out file a **pipeline** finding against this plugin's own **public** repository — as a new issue, or as a comment on one already describing that failure. Absent, `false`, or anything that is not exactly `true` means **no** — a decided answer, and the opposite reading of absence to `sharedResources`. Moot in the plugin's own repository, where the target and the tree are one. See [Filing findings upstream](#filing-findings-upstream-off-by-default) |
-| `frameworkSkills` | skills | `{skill, when}` pairs — the skill each area opens with |
-| `briefConventions` | skills | Conventions baked into every dispatched implementer brief |
-| `epicMerge` | `merge-pr.sh` + `.ps1` | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch. Omitting it means `"merge"`; see the `epicMerge` note before setting it |
-
-See [`examples/worktree.json`](examples/worktree.json) for a complete file.
-
-**`sharedResources` is a value no file in your repo can tell you, and the one key whose absence is not the safe reading.** A worktree gets its own checkout, its own branch and its own `node_modules` — and still reaches the same database, the same Redis, the same cache directory, the same port as every other worktree on the machine. That key is where a project says which of those its checks touch and what gives each worktree its own; `/pipeline:setup` **asks** for it, because it cannot be derived from a lockfile or a CI file, and then **falsifies** the answer by cutting two worktrees and gating both at once. It is a declaration, not a mechanism: the plugin never provisions anything and never calls a project's isolation code, because that code has to sit at an entry point *every* invocation reaches — the test bootstrap — and a hook the plugin called would isolate only the runs it launched, while the flow routinely has an implementer run a single test file directly. Two consequences worth knowing before you fill it in. An entry with `"isolatedBy": null` says the resource stays shared, which means this project's checks are **not** parallel-safe and a wave has to be narrowed or sequenced. And a mechanism that derives a per-worktree name from the worktree's own absolute path — the only thing already unique per tree — creates resources that **outlive the tree**: they are named after a path rather than a branch, so a dead worktree's is indistinguishable *by name* from a live one's, and `remove-worktree` drops nothing it created. `reclaim` is what owns that cleanup, and it puts one requirement back on the mechanism: as it creates each resource it must **mark** it with the worktree's absolute path — a `COMMENT ON DATABASE`, a key in the keyspace, a file in the directory — taken from `git rev-parse --path-format=absolute --show-toplevel` and never from `$PWD`, which spells a symlinked entry differently and hands one worktree two databases. The mark is the only thing that ever attributes a resource back to a worktree; an unmarked one is never dropped, and never found either.
-
-**`upstreamFindings` is the key that lets a finding leave your repository, which is why it is disclosed at the top rather than only here.** [Filing findings upstream](#filing-findings-upstream-off-by-default) is the full statement — what a finding may and may not contain, why enabling it is consent to file and never consent to disclose, and why the close-out says out loud when it has filed. **And *leave* is the operative word**, which is why the key has nothing to decide in the plugin's own repository: there the resolved target and the tree are the same repository, so an arc files without it — a case that can only ever arise here, and never in a project that installed the plugin. Two things belong beside the key itself. It is read only by the skills, never by a helper, so nothing in `bin/` behaves differently either way. And its **absence** is a deliberate reading rather than a shrug, the opposite one to `sharedResources`: there the unsafe direction is assuming a hazard away, so a missing key means the question was never put; here the unsafe direction is acting, so a missing key is a no. [`skills/orchestrate/SKILL.md`](skills/orchestrate/SKILL.md) → §7 is where the close-out rule itself lives.
-
-**`integrationBranch` is the one fact no repository states about itself.** It names the branch this project's work lands on — `main` where that is also the default branch, the live `release/x.y.z` where work lands on a release branch, `develop` under gitflow. **Nothing derives it**: a repository's DEFAULT branch is a different fact that coincides in some projects and not in others, and reading either off the other is wrong in whichever direction it is tried — a local ref recording the default can also be stale, so the inference fails without erroring. A project that moves this branch restates it in the same change that cuts the new one, which is one reviewed line and the reason it is a literal name rather than a pattern: a pattern has to be resolved, and resolving is guessing again. **Absence is answered, not ignored**: `merge-pr` keeps its older squash test exactly. The skills' fallback did change — they now take the branch the main checkout is standing on **and say that they inferred it**, where 4.9.x looked for a `release/*` branch first — so a project that declares nothing and parks its main checkout away from where work lands resolves a different branch than it did. Reported rather than silent, which is the argument for declaring.
-
-**`epicMerge` reaches exactly one merge, and without `integrationBranch` declared it does not reach it wherever work lands on the default branch.** It governs an epic branch's own collapse back into the integration branch — the branch is scaffolding, cut for one arc and deleted at its end, so a project may prefer one commit per arc to N slice merges plus a merge commit. Every other merge in the flow stays a real merge commit with no opt-out. Even under `"squash"` two conditions must both hold, and one is the reason to read the rule before setting the key: **the head branch must not be the integration branch**, which is what the declaration establishes. Undeclared, the helper falls back to asking whether the PR's *base* is the repository's default branch — a proxy that holds only where the two branches differ — so an undeclared project whose work lands on its default branch gets no squash at the genuine epic boundary, and the behaviour is otherwise indistinguishable from the option being broken. Both ports compare the key, the value and the branch names case-sensitively, so `"Squash"` and `"EpicMerge"` mean `merge` in bash and PowerShell alike. The other condition, why every unanswerable question falls back to `merge`, and the trade the option makes are all in [`skills/execute/references/worktrees-and-branches.md`](skills/execute/references/worktrees-and-branches.md) → *Mechanics*.
-
-**Why it lives in the repo.** It travels with the clone, works under any checkout directory name, and is reviewed in the same PR as the change that alters it. Keying it to a directory name instead — the old design — meant a repo cloned to a different folder silently got no config, and the helper would cut a bare worktree with no env and no `node_modules` while only warning on stderr.
-
-⚠️ **A shared cache var has to be set somewhere non-interactive shells read.** The config's `env` covers the install step, but the gate runner, the drain, and dispatched agents run in **non-interactive** shells — so a var set only where an interactive shell reads it reaches your terminal and nothing else, and the cache silently never applies to a gated PR.
-
-| Shell | Set it in | NOT in |
-|---|---|---|
-| zsh (macOS default) | `~/.zshenv` | `~/.zshrc` — interactive only |
-| bash | `~/.bashrc` **and** point `BASH_ENV` at it, since that is the only file a non-interactive bash reads | `~/.bash_profile` — login shells only |
-| PowerShell / Windows | a **persisted user environment variable**: `setx VAR value` once, or System Properties → Environment Variables | `$PROFILE` — interactive only, so it is the exact same trap as `~/.zshrc`, and there is no Windows file that behaves like `~/.zshenv` |
-
-A persisted Windows environment variable is inherited by every process started afterwards regardless of shell, so it also covers Git Bash — which is why it, and not a dotfile, is the Windows answer.
-
----
-
-## The mental model
-
-**An epic is a loop, not a plan you write once.** `/pipeline:orchestrate` grounds only the **horizon** — the next dispatchable increment, meaning every remaining item whose dependencies have already landed — dispatches it, then **reconciles** everything still outstanding against the tree that increment actually produced, rewrites what remains, and goes round again until the plan is empty and the close-out is green. That is the whole loop, and it is why an epic is one command rather than a schedule you maintain. **Work the issue settled as one slice skips all of it** — `/pipeline:decompose` grounds it, `/pipeline:execute` ships it, and there is no remainder to reconcile.
-
-Every item in the plan therefore sits at one of **two grounding depths**, decided by where the horizon is and by nothing else:
-
-| Depth | Applies to | Carries |
-|---|---|---|
-| **Slice depth** | the horizon, and only the horizon | Owned files as real paths, do-not-touch boundaries, the artifacts the slice derives, depends-on, the framework skill to open with, the model tier, the brief, the verify bar — grounded against the tree as it stands *right now* and dispatched in the same cycle. Where a query produced the owned list, the count that query returned **unfiltered** rides beside it, and the two file lists are then read asymmetrically: the owned list is a **floor** on what the change must reach, the boundaries a **ceiling** on what it may edit |
-| **Shape depth** | everything beyond it | Goal, area, what it waits on, one line on why it comes after the thing before it — and **no `file:line`, no owned files, no boundaries, no model tier, no verify bar** |
-
-Reaching the horizon is the only thing that promotes an item from one depth to the other — not a well-understood item, not a small one, not one you were asked about. Both mistakes are silent. A coordinate grounded three waves early names a path an intervening wave has since moved: nothing errors, the brief still reads well, and the implementer opens a tree where the target is not there, finds the nearest plausible thing, and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
-
-After every increment merges, the loop re-checks the rest of the plan against the merged tree, down a fixed checklist — stated once in [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) rather than re-derived each cycle — whose items include coordinates that no longer resolve, renames whose *senses* the plan still uses the old word for, work the tree now forces that no remaining item owns, and assumptions the increment falsified. Each thing it finds, it first traces down to why the code is the way it is, and then asks whether it can reason out an answer itself. **Most of them it settles on the spot**, because the answer is a few greps away — that is the default, and settling is not the same as growing the increment. What is genuinely left it folds into a named slice with its own wave when the arc cannot ship without it, and otherwise files it — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the tracker already carries that failure, as a comment on the issue that has it. It decides wave assignment, fold-vs-file, sizing and re-slicing itself, and asks you only about a product or design fork the code and conventions cannot settle. The one thing it checks every cycle and never decides itself is whether the remaining plan still answers what you asked for — every fold can be individually forced and the sum still drift away from the request, so where the two stop matching it halts and reports rather than unfolding work it already called forced, and the re-scope is yours.
-
-You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`) and nothing else, ever — every other branch, slice *or* epic, lives in its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that sits inside a polyrepo workspace (`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`, so a task spanning several member repos lands as one directory laid out the way the workspace is. Every helper resolves both layouts — a teardown that knew only the first would look at a path that never exists for a workspace member, report the tree already gone, and exit 0. That is the one rule the whole layout follows: the main checkout is the only shared mutable state here, and a branch parked in it is a branch several sessions can move under each other. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
-
-**One optional second level: the epic branch.** **The verdict is written in the issue** — `/pipeline:write-issue` answers it on the two rules below while it is planning the arc, and every pass after carries that answer rather than deriving one of its own; `/pipeline:execute` owns the branch's lifecycle. Two rules reach for it. A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. And **any** multi-slice work reaches for it by default even when every intermediate state would ship, because landing one change on the shared branch as N separate merges costs something regardless of that: an epic that turns out wrong is N merges to unpick instead of one to revert, the two halves of a contract seam are far easier to compare while both are still converging somewhere you control, and where shipped content must move a version — this repo included — N merges into the branch that releases are N releases for one change. Two further costs, a live slice's base moving under its siblings and a shared branch left carrying merged trees no single gate ever ran, land only when the slices actually run concurrently. Whichever rule fires, an **epic branch** is cut from the integration branch **into a worktree of its own** — `setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a whole in that worktree once they have all landed — when the merges actually produced a tree the slice gates did not already cover, which is a one-command check rather than a habit — and it reaches the integration branch as one ordinary merge at the end — the one merge a project may instead collapse to a single commit, by declaring `epicMerge` (**Per-project config**, above), and the only one anywhere in the flow that is ever collapsible. Neither rule is a slice count, and neither is "the integration branch is busy": the first asks whether a partial state is *broken*, and the second keys on one change decomposed into slices rather than on other sessions' traffic. It buys isolation and costs deferred conflicts, so the dispatcher merges the integration branch back into it — in that same worktree — on the same tick that drains the gate queue, mandatory, and the more so now that the second rule fires on every multi-slice arc. One naming constraint comes with the worktree: the epic branch's **leaf** (everything past the last slash) has to be one no slice will reuse, because the leaf is the worktree's directory name and a second branch resolving to the same path would be handed the epic's own tree instead of a new one. `setup-worktree` refuses that instead of reporting it as a success — it reads back which branch the tree is actually on and, where that is not the branch asked for, names both and exits non-zero rather than printing `READY:`. **Single-slice work never cuts one**, and the flow above is unchanged when there isn't one — including its docs, which on an epic instead land once at the end: each slice records what its change made false, a closing docs slice writes those against the final tree with the whole picture in view, and the epic cannot close while an entry is outstanding — except for what the deferral cannot absorb, which is settled by a test rather than by a count: **where a checker can tell a reference is stale without reading the sentence around it, the slice that broke it fixes it in its own PR.** A **structural coordinate** the slice itself moved is the case every repo has, because a gate that validates path citations reds at its first step, before the slice's own work is ever evaluated; what else falls on that side moves with what a given repo's own docs gate actually resolves. And the fix is the whole fix: a fact in that same sentence the slice's own change moved is corrected along with it, since reverting the reference only hands that gate back what it reds on. One more thing an epic changes for as long as it lives: every slice PR is based on the epic branch rather than on the default branch, so GitHub's closing keywords are inert for all of them, and nothing closes an issue but the dispatcher's own hand-close at each merge — a board that has not moved is not evidence that nothing has landed. When the epic is the first kind — knowingly red until the last consumer migrates — cutting the branch is only half the step: a `transient-red/<epic-slug>` marker ref is pushed beside it, because a project's commit-time tooling cannot read a plan and the ref graph is the only place it can learn the window is open. It is deleted with the epic branch, which is what closes the window again.
-
-**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: a dispatcher read this diff and is merging it. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge. A green gate says the suite passed; it cannot say the agent solved the right problem. One PR in the flow has no implementer behind it and so no hand-back to promote: the epic branch's closing PR into the integration branch, which the orchestrator authors and then merges. It is a draft carrying a gate comment like every other, because it opens *first* and the integrated close-out check is enqueued against it — green before the **merge**, which is the step that actually puts the change set on the shared branch, rather than before the open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was already reviewed as its own draft PR.
-
-**And a gate comment says nothing about the implementer either — which is a distinction you only need in one mode, and it is the mode where the comment is most visible.** On a project that declares no queue the implementer runs the gate itself, so its verdict comment lands on the PR the dispatcher is already watching *before* the hand-back, which arrives through another channel entirely — and the hand-back is the step that says the implementer has stopped working. So the merge, which tears down the tree that implementer may still be standing in, waits on the hand-back and never on the comment. The absence direction is a caution rather than a rule: a bare PR is not evidence a gate ran, not evidence that none did, and not evidence about the implementer either — so what it licenses is a question to the agent and nothing else.
-
-`/pipeline:execute` is where one increment gets shipped, and it runs in one of **two roles — decided by how it was entered, not by how the work looks**:
-
-- **Dispatcher** — entered from `/pipeline:orchestrate`'s loop, which invokes it once per cycle to dispatch the increment it has just grounded, or from you asking it to coordinate one increment directly. It does **not** write code. It makes + verifies a worktree per slice **and a scratchpad per slice, named in the brief**, dispatches implementer sub-agents in parallel, reviews each PR by reading the diff, drains the gate queue, and merges. Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up folded into the plan.
-- **Implementer** — entered from a dispatch brief (a dispatcher handed it one slice, the worktree to build it in, and a scratchpad of its own), or from you telling it to *build / fix / implement* a specific thing. It codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**, since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a verdict per doc it checked. Work it found but could not land, it files as a linked issue and reports by number rather than leaving in prose.
-
-A multi-phase arc or epic enters at **`/pipeline:orchestrate`** instead, where working out where the horizon falls is the loop's first cycle rather than something you have to settle before entering it. **Which of the two a piece of work is, is settled in the issue** — `/pipeline:write-issue` writes that verdict beside the phase map, and every pass after it carries the answer rather than deriving one of its own.
-
-### Why this shape
-- **Just-in-time grounding** → `orchestrate` grounds one increment at a time, against the tree that increment's implementers will actually open, then re-grounds what remains once it has merged. A plan grounded once up front is at its most accurate the moment before any of it runs and decays from there: every wave that lands moves coordinates the later waves were written against, and nothing about that decay raises an error.
-- **Isolated worktrees** → parallel tasks never collide *in the tree*; each has its own checkout, branch and `node_modules`. Isolation stops at the filesystem, though: a worktree still shares every resource that lives outside it — a database, a Redis instance, a cache directory, a fixed port — so a project whose checks touch one declares it in `sharedResources` (**Per-project config**, above), and a resource that stays shared is a fan-out this flow has to narrow rather than widen. **That key is not the whole remedy for the class, and cannot be**, because it reaches only what the project's *checks* touch. What the *agent* writes about its own run — a gate log, a captured exit status, intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives each slice its own and names it in the brief, the same way it gives each slice a worktree.
-- **A durable gate queue** → implementers enqueue and hand back rather than waiting, so a wide fan-out never serializes on a gate lock and a dying agent can't strand committed work.
-- **Real merge commits, never squash/rebase** → history is preserved; parallel-branch conflicts resolve at merge time. The one boundary a project may opt to collapse is an epic branch's own merge back into the integration branch (`epicMerge`, above) — scaffolding rather than history, and off by default.
-
----
-
 ## Daily usage
 
 ```
@@ -346,74 +166,7 @@ setx PATH "$env:USERPROFILE\.claude\skills\pipeline\bin;$env:PATH"
 
 Both args of the first form are required — no default base, since integration branches roll over and a hardcoded default goes stale. `--existing` is the recovery form, for when a branch outlives its worktree (a close-out that failed at the merge, a tree removed by hand); it takes no base, because an existing branch's base is whatever it already forked from, and it refuses rather than creating a branch that isn't there. It is a flag and never an inference — attaching to a branch you meant to fork fresh is how a worktree ends up quietly behind the integration tip.
 
-> **Always verify HEAD before dispatching an agent into a worktree.** The helper prints it — `READY: <path>` and then `HEAD: <sha>` — and, when it is forking a new branch, withholds both unless the tree it is about to hand back **contains** the base. That refusal is a weaker comparison than this one, and does not retire it:
-> ```bash
-> git fetch origin                                            # origin/… is a local cache — without this you compare a stale pair
-> git rev-parse origin/release/0.4.0                          # the HEAD: line must match this
-> git rev-list --count release/0.4.0..origin/release/0.4.0    # …and this must be 0
-> ```
-> **The fetch is part of the check, not preparation for it.** A remote-tracking ref is what the remote looked like at *that clone's* last fetch, and reading one contacts nothing — so in a checkout that has not fetched, the local base and `origin/<base>` hold the same commit for the same reason, the comparison is true, and it passes in exactly the case it exists to fail. Run it in the repository you are verifying: a fetch in some other repo you touched earlier in the session moves nothing here, and that is the shape this arrives in. The count is the half equality cannot give you — it answers *how far behind is the base I just forked from*, where two refs that go stale together answer nothing. Observed: a worktree that passed the `rev-parse` comparison on its own, with no fetch ahead of it, was 2,392 commits behind its real base tip — that checkout's last fetch was seventeen days old, so the local base and the remote-tracking ref were byte-identical and the comparison was true and meaningless.
->
-> The helper asks whether the base tip is an **ancestor** of the tree's HEAD, and resolves that tip in your **main checkout**. So a tree carrying its own commits on top of the base passes there — that is the legitimate re-attach it must not refuse — and so does a base branch that is itself behind `origin`, which is an ancestor of everything cut from it. Both hand back an ordinary `READY:`/`HEAD:` pair, and this comparison is what catches them. `--existing` takes no base, so that refusal does not run there at all and this is the only comparison covering a re-attached tree. A mismatch means the base is stale. Compare the sha, not the `READY: … off <base>` text: that says what was asked for, and this check exists for the case where what you got is something else.
-
----
-
-## Onboarding a new project
-
-Run **`/pipeline:setup`** in that repo. It grounds the commands in the repo's real lockfile, scripts, and CI, writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that repo* if the project wants one — the plugin carries the knowledge, the project owns the code, so each queue can evolve independently.
-
-**What it cannot ground, it asks you** — and everything it asks belongs to one class: the values no file in your repo could contain, so expect to be asked and read no list of them as closed. **What your checks touch that lives outside the worktree** — a database, a Redis instance, a cache directory, a fixed port — and what gives each worktree its own: that becomes `sharedResources`, and "nothing" is an answer worth recording rather than a key to leave out. **Where that answer was not "nothing", the follow-on: what drops what the isolation creates, once the worktree is gone?** Nothing in this plugin does — `remove-worktree` takes the tree and knows nothing the tree made — so where you already have a sweep, its two commands become `reclaim`; where you do not, setup hands the gap back rather than writing one for you. **And one that is not a fact about your repo at all — consent:** may a run that finds a defect in *the pipeline itself* write it into this plugin's own public repository — opening an issue about it, or commenting on one already describing that failure? That is `upstreamFindings` ([Filing findings upstream](#filing-findings-upstream-off-by-default), above), it is put flat with no case made for it, and only an explicit yes writes anything.
-
-It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where you named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision reproduces. Where you declared a `reclaim` it runs the report on **both** sides of the teardown, since a sweep that calls everything dead and a correct one are the same output on a box with one worktree. Where it scaffolded a queue the verification goes past that happy path too, because a round trip comes back green whether or not the queue holds up where a dispatcher later leans on it: it also asks the queue for its state read-only and confirms that asking moved nothing, puts two drains in contention to confirm the blocked one says who holds the slot rather than sitting silent, and enqueues a ticket with no PR to confirm the runner either settles it with the verdict on the ticket or refuses it outright rather than spending a full gate on a verdict it can never deliver. Both answers are correct and they are not interchangeable downstream: a runner that refuses is one scaffolded before that ticket shape, and the dispatcher's mid-arc integration gate is then hand-run in a project that otherwise has a working queue — which is the one case every "where the project has no queue" fallback in the flow structurally cannot cover, so the check reports which of the two it got rather than just that the queue held.
-
-To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys above, and commit it. Read the repo's `AGENTS.md`, its package scripts, and its CI to fill in the commands rather than guessing.
-
-**Onboarding is not the only job this command has — an artifact that is already there may be *behind*, and run again it reconciles rather than onboards.** A config is ground once, on the day the repo was onboarded, and nothing re-establishes it afterwards: CI renames the gate script, a lockfile changes package manager, an `envFiles` entry is deleted, the suite starts touching a service nothing declares — and the file goes on saying what was true that day. Run `/pipeline:setup` again and it re-grounds the repo as it stands now and hands back a **per-key delta**: *agrees*; *drifted*, saying what the repo now says rather than only that it differs; or *declared but unverified*, for the values no file can confirm — the ones you were asked for, which stay yours. A gate queue scaffolded against an older spec gets the same treatment one level over, as a per-invariant delta against the reference. Either way it **reports and never rewrites**, for one reason that covers both: a divergence can be deliberate, an overwrite cannot tell a deliberate one from a stale one, and so it would destroy both. **Run it between arcs, never inside one** — once worktrees are live the config is frozen for the arc, so a mid-arc delta is measured against the very file every live worktree was already provisioned from, and acting on it writes to the one piece of shared state another session may be cutting a worktree from at that moment. Nothing detects staleness for you and nothing tries to: establishing it *is* the reconcile, so this is a pass you ask for — after a check fails on a command the repo no longer has, after the helper cannot find an env file, after a red that only appears when two worktrees run at once.
-
-A repo with no config still cuts a worktree — but a **bare** one, with no env symlinks and no install. Where the project has an install step that worktree is unusable: it has no `node_modules`, so every check inside it fails for reasons that read as code bugs, and the run burns before anyone reads the stderr warning. Don't dispatch into it. For a **zero-dependency** repo a bare worktree is the only kind there is and it works fine — this repo is one, and its own config landed through a normal PR — but you still want the config, because without it the gate and the conventions are things a dispatcher has to guess, and a guessed gate passes while testing nothing.
-
----
-
-## The hard rules (the agent follows these; good to know)
-
-- **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files, boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the paths — and then nothing errors.
-- **Never** use a harness parameter or any auto worktree provisioner that makes the worktree for you — they seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes worktrees.
-- **Never squash-merge, never rebase.** Always real merge commits — with one exception a *project* declares in its config and nobody decides at merge time: an epic branch collapsing back into a non-default integration branch, where `"epicMerge": "squash"` is set (**Per-project config**, above). Never rebase has no exception at all.
-- **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
-- **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** — they enqueue; a runner gates and comments the verdict; the dispatcher reviews the diff, marks it ready, and merges. On a project that declares no queue (**Per-project config**, above) the implementer runs the gate itself and comments the result — that is the default there rather than a grant — and the **implementer's** half of the line is unchanged: still a draft, still never its own merge. The dispatcher's half does not go unchanged with it — there the verdict comment arrives *before* the hand-back rather than after it, so it is not the signal that the implementer is done, and **Where the review approval lives**, above, is where that is argued.
-- **Parked work goes under a named ref, never onto `refs/stash`.** The stash stack is **repo-global and addressed by position**: the main checkout and every worktree push onto and pop off the same one, `stash@{n}` renumbers whenever anything anywhere pushes or drops, and git's `WIP on <branch>` subject names no owner — so a bare pop in one worktree applies *and drops* whatever happens to be on top, another agent's work or the human's. Agents park with git's own documented primitive instead — `git stash create` returns a commit "without storing it anywhere in the ref namespace", which is pointed at by `refs/pipeline-stash/<branch-leaf>/<epoch>` and restored by that name with `git stash apply --index`. Nothing renumbers it, no other tree's `pop`/`drop`/`clear` can reach it, and one `git for-each-ref` lists every tree's parked work. For anything already on the stack the old discipline still binds as the fallback: re-match your entry by marker immediately before you touch it, never the argument-less `git stash pop`, and stop and report rather than guess. `git stash clear` is banned outright.
-- **An agent owns its follow-ups, and filing one looks first.** Work a change reveals but doesn't land is filed and folded into the run — not a bullet in a hand-back for you to triage. Filing searches the tracker by the *shape* of the failure first, open issues and closed alike, because the number may already exist: an open issue already carrying that failure takes the observation as a comment — which is what promotes an issue deliberately held for a second sighting — and a closed one makes the item a regression only where the fix that closed it is actually present in the copy the agent read, since otherwise the agent is running an older version and the observation is skew rather than a defect, so nothing is filed; where it cannot tell which, it says that instead of guessing. Only what nothing describes becomes a new linked issue. Two items about one module are not thereby one item; the test is a shared *failure*, never a shared subject. That holds for dispatchers too: a slice reporting unfinished work is the dispatcher's next move, not something to forward on. You get asked only for a genuine design or product fork the codebase and conventions can't settle — in plain chat, one question at a time, with a recommendation. **And an arc keeps owning them after they are filed:** while it is live, every follow-up it filed goes back through its disposition each cycle, so filing is how one is tracked, not how it is handed to you. What genuinely gets handed over is held to that same bar — a decision on something the arc never discussed, a change that needs re-agreement before it is made, an irreversible one, or scope only you can size — and an arc that leaves one behind says so on the issue at close-out, so a filed issue you come across is never ambiguous between "the loop lands this next cycle" and "this one is yours now".
-- **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order: preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no forcing feedback, and the one a hand-run close-out drops. At the epic boundary in a project that declared `"epicMerge": "squash"` it squashes instead, holds the branch back from `--delete-branch`, and deletes it only once the landed tree matches the epic tip that was gated — which is a further reason to prefer the helper over a hand-run close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR settled yourself, through the REST endpoint rather than `gh issue close` — the high-level `gh issue` writes go through GraphQL and hit rate limits exactly when you are closing a batch of them. GitHub's closing keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an epic branch or into an integration branch that isn't the default closes nothing, and the hand-close is the whole mechanism. Where the integration branch simply **is** `main`, a PR based on it targets the default branch and they do fire: the hand-close is then a harmless no-op, but a stray `Closes #<n>` closes that issue the moment that PR merges — too early, if the arc still has cycles to run.
-
----
-
-## Adding a skill
-
-Drop `skills/<slug>/SKILL.md` in and it loads on both hosts — no manifest edit needed either way: Claude Code discovers `skills/` on its own, and the Codex manifest points at the whole tree. The repo's gate enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name. (`argument-hint` is not a Codex key, but it lives in frontmatter rather than a manifest, so it is simply ignored there.)
-
-Run it before you push — it is the same command CI runs, so there is no second copy to drift:
-
-```bash
-sh scripts/check.sh
-```
-
-**The gate names every check as it runs it, and that output is the list.** What follows describes the ones worth understanding before you push and does not claim to be all of them; the authoritative enumeration lives in `scripts/check.sh`'s own numbered header, beside the code it describes, where an author adding a check has it in view. A copy anywhere else goes stale the day a check is added and reads exactly as authoritative as a current one — which this repo has now watched happen to itself: when a ninth check landed, both enumerations sitting *beside* the code moved with it and both *remote* ones, a CI step name and this section, silently did not.
-
-Alongside shellcheck, the manifest, and the skill frontmatter, it also holds `bin/` to the parity rule — on surface facts, which is the whole of what a checker can compare here: that every `<name>.sh` has a `<name>.ps1` sibling and vice versa, that the two agree on their usage line and on the contract environment variables they read, that a helper resolving paths under `WORKTREE_HOME` reads `.agents/workspace.json` at all — the one thing asserted of each sibling *alone*, because comparing the pair is structurally blind to an omission they share — and that every `.ps1` is printable ASCII terminated by LF, since Windows PowerShell 5.1 decodes a BOM-less file as the system ANSI codepage, so one stray em-dash corrupts it and the parse error lands nowhere near the character that caused it.
-
-It also checks that every `skills/` path to a `.md` file cited in a tracked `.md` still resolves in the tree — a `SKILL.md` and a reference doc alike, since the two are the same coordinate with the same failure mode and the check follows the corpus rather than enumerating one filename. A skill points at its own references constantly — a spine names the file carrying each action's *how* — so a rename or a deletion inside a skill leaves a citation pointing at nothing, and a dead path reads exactly as authoritative as a live one, which is how one wrong reference sat in a dispatch instruction across seven releases and reached two live briefs. Pointing at *another* skill is a different matter and a different check: check 12 fails the gate on it, because a skill that has to reach into another one to explain itself is not finished — state what your reader needs where they act. Path citations only, deliberately: a reference by prose phrase is left to review, because italics carry emphasis everywhere in this corpus and not just around section names, so a pattern over them would be mostly false positives and a noisy check is one the next author routes around. And path-*shaped*: the pattern is anchored on `skills/`, so a bare filename is out of reach on purpose — these docs write `README.md` and `AGENTS.md` in running prose constantly, naming no directory and usually not even this repo, so matching those would red the gate on every other project's README mentioned in passing.
-
-**A tracker coordinate is the sibling coordinate class, and it is answered rather than validated.** A bare `#123` has nothing in the tree to resolve against — a number is a valid string in every repository — so where a path is checked by *does it resolve*, this one is not checked at all: check 9 fails the gate on **any** `#<number>` in a tracked `skills/` doc, code spans and fenced blocks aside. A tracker coordinate in a skill is an instruction to go read an issue mid-task, and the reference, with the reasoning behind it, belongs in the PR that makes the change. Scoped to `skills/` because that is what ships: read from someone else's checkout a bare number resolves against **their** tracker, where it is some unrelated issue, while `AGENTS.md`, this file and `CHANGELOG.md` are only ever read from here and a number in them is already right.
-
-Those checks need nothing installed, so they always run.
-
-The one step that needs an optional tool is PSScriptAnalyzer, which needs `pwsh`. When `pwsh` or the module is missing it prints **`SKIP`**, never `ok` — a check that could not run must not read as green — and CI's `check` job (`ubuntu-latest`) is where it actually lints, since that runner ships both `pwsh` and PSScriptAnalyzer preinstalled. `pwsh` is deliberately *not* on the gate's required-tool list: this repo is zero-dependency by design, and a gate that needs an install is a gate nobody can run before pushing.
-
-Before publishing, also run the authoritative validator — the same one the community-marketplace review runs:
-
-```bash
-claude plugin validate . --strict
-```
+**Verify HEAD before you dispatch an agent into either kind of tree.** The helper prints it — `READY: <path>`, then `HEAD: <sha>` — and the comparison that catches a base gone stale under it, plus why the fetch is part of that comparison rather than preparation for it, is in [The hard rules](docs/hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know).
 
 ---
 
@@ -446,6 +199,8 @@ claude plugin validate . --strict
     ├── setup/
     │   ├── SKILL.md
     │   └── references/gate-queue.md
+    ├── cut-release/SKILL.md
+    ├── co-think/SKILL.md
     ├── write-issue/
     │   ├── SKILL.md
     │   └── references/arc-planning.md
@@ -458,7 +213,11 @@ claude plugin validate . --strict
     ├── execute/
     │   ├── SKILL.md              # a spine: an ordered list of actions, each naming its reference
     │   └── references/           # one file per phase, opened when you reach that phase
-    └── review/SKILL.md
+    ├── review/SKILL.md
+    └── glossary/
+        ├── SKILL.md              # the index both families read
+        ├── vocabulary/           # what a shared term IS — defined once, cited from everywhere
+        └── mechanics/            # how one operation is performed
 ```
 
 To change the workflow: edit the file, commit, push. A clone-install picks it up on `git pull`.

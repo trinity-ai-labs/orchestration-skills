@@ -279,7 +279,8 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   rejects it against all of them, and three entries for one site would read as three findings and
   overstate what was turned down. This is not filler — a finding you silently dropped is
   indistinguishable from one nobody ever saw, and the dispatcher reviewing your PR has no way to tell
-  the difference.
+  the difference. **This list is also the material the dispatcher's own verdict carries onto the PR
+  when it posts one**, so a rejection written thinly here reaches the PR thinly or not at all.
 - **Flagged, out of scope** — pre-existing problems found and correctly left alone, and any
   cross-slice interaction no reviewer could verify from inside this worktree. **The admission test is
   narrow, and it is about the boundary rather than the effort:** an item belongs here only when
@@ -291,8 +292,9 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   nothing, exactly as it commits and pushes nothing. The only thing it dispatches is a reader.
 - **Verification** — which scoped check you ran and its result, and which single test file if any.
 
-Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, and whatever
-filing a flagged item becomes are the caller's, in that order, and none of them are yours.
+Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, the verdict
+posted onto that PR, and whatever filing a flagged item becomes all belong to the flow that called
+you — in that order — and none of them are yours.
 
 ---
 
@@ -326,7 +328,9 @@ mechanism.
 
 **Read the tree before you read the reports, and revert anything a reviewer wrote before you weigh a
 single finding** — a careful reviewer and a runaway one leave identical artifacts, so the report cannot
-tell you which you have while `git status` and `git log` against the fork point can, and an
+tell you which you have while `git status` and `git log` against the fork point can. **A review or a
+comment a reviewer posted leaves nothing in the tree at all**, so that one is checked on the PR itself
+rather than inferred from a clean `git status`, and an
 unauthorized write left standing costs more than the mess it makes: once one is in play nothing can
 tell authorized work from rogue work, and a sibling implementer seeing a branch and a PR appear mid-run
 quarantines a legitimate slice's gate ticket on an entirely wrong rationale.
@@ -337,6 +341,6 @@ Leave every change uncommitted. The flow that called you owns the commit step, a
 logical, self-contained blocks after this pass — that ordering is the point, because a pass that runs
 after the commits cannot see them.
 
-Do not `git add`, `git commit`, `git push`, open a PR, or enqueue anything, and write no brief that
-asks a reviewer to. If you believe the change is finished, say so in your report and stop; the caller
-takes it from there.
+Do not `git add`, `git commit`, `git push`, open a PR, enqueue anything, or post a review or a comment
+on a PR, and write no brief that asks a reviewer to. If you believe the change is finished, say so in
+your report and stop; the caller takes it from there.

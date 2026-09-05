@@ -29,6 +29,10 @@
     {
       "resource": "the fixed port the e2e run binds",
       "isolatedBy": null
+    },
+    {
+      "resource": "the content-addressed build cache every package script reaches through the task runner",
+      "isolatedBy": "nothing isolates it and nothing needs to — entries are keyed by content, concurrent access is the task runner's designed mode, and a second writer of the same key writes the same bytes. This is NOT the null case: null says shared and CONTENDING, which narrows the wave; this says shared and safe by construction, which does not"
     }
   ],
   "reclaim": {

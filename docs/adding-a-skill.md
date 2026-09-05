@@ -1,0 +1,27 @@
+## Adding a skill
+
+Drop `skills/<slug>/SKILL.md` in and it loads on both hosts — no manifest edit needed either way: Claude Code discovers `skills/` on its own, and the Codex manifest points at the whole tree. The repo's gate enforces the two things that make a skill actually load: frontmatter carrying `name`, `description`, and `argument-hint`; and `name` matching the directory, since Claude Code registers the slash-command from the directory name. (`argument-hint` is not a Codex key, but it lives in frontmatter rather than a manifest, so it is simply ignored there.)
+
+Run it before you push — it is the same command CI runs, so there is no second copy to drift:
+
+```bash
+sh scripts/check.sh
+```
+
+**The gate names every check as it runs it, and that output is the list.** What follows describes the ones worth understanding before you push and does not claim to be all of them; the authoritative enumeration lives in `scripts/check.sh`'s own numbered header, beside the code it describes, where an author adding a check has it in view. A copy anywhere else goes stale the day a check is added and reads exactly as authoritative as a current one — which this repo has now watched happen to itself: when a ninth check landed, both enumerations sitting *beside* the code moved with it and both *remote* ones, a CI step name and this section, silently did not.
+
+Alongside shellcheck, the manifest, and the skill frontmatter, it also holds `bin/` to the parity rule — on surface facts, which is the whole of what a checker can compare here: that every `<name>.sh` has a `<name>.ps1` sibling and vice versa, that the two agree on their usage line and on the contract environment variables they read, that a helper resolving paths under `WORKTREE_HOME` reads `.agents/workspace.json` at all — the one thing asserted of each sibling *alone*, because comparing the pair is structurally blind to an omission they share — and that every `.ps1` is printable ASCII terminated by LF, since Windows PowerShell 5.1 decodes a BOM-less file as the system ANSI codepage, so one stray em-dash corrupts it and the parse error lands nowhere near the character that caused it.
+
+It also checks that every `skills/` path to a `.md` file cited in a tracked `.md` still resolves in the tree — a `SKILL.md` and a reference doc alike, since the two are the same coordinate with the same failure mode and the check follows the corpus rather than enumerating one filename. A skill points at its own references constantly — a spine names the file carrying each action's *how* — so a rename or a deletion inside a skill leaves a citation pointing at nothing, and a dead path reads exactly as authoritative as a live one, which is how one wrong reference sat in a dispatch instruction across seven releases and reached two live briefs. Pointing at *another* skill is a different matter and a different check: check 12 fails the gate on it, because a skill that has to reach into another one to explain itself is not finished — state what your reader needs where they act. Path citations only, deliberately: a reference by prose phrase is left to review, because italics carry emphasis everywhere in this corpus and not just around section names, so a pattern over them would be mostly false positives and a noisy check is one the next author routes around. And path-*shaped*: the pattern is anchored on `skills/`, so a bare filename is out of reach on purpose — these docs write `README.md` and `AGENTS.md` in running prose constantly, naming no directory and usually not even this repo, so matching those would red the gate on every other project's README mentioned in passing.
+
+**A tracker coordinate is the sibling coordinate class, and it is answered rather than validated.** A bare `#123` has nothing in the tree to resolve against — a number is a valid string in every repository — so where a path is checked by *does it resolve*, this one is not checked at all: check 9 fails the gate on **any** `#<number>` in a tracked `skills/` doc, code spans and fenced blocks aside. A tracker coordinate in a skill is an instruction to go read an issue mid-task, and the reference, with the reasoning behind it, belongs in the PR that makes the change. Scoped to `skills/` because that is what ships: read from someone else's checkout a bare number resolves against **their** tracker, where it is some unrelated issue, while `AGENTS.md`, this file and `CHANGELOG.md` are only ever read from here and a number in them is already right.
+
+Those checks need nothing installed, so they always run.
+
+The one step that needs an optional tool is PSScriptAnalyzer, which needs `pwsh`. When `pwsh` or the module is missing it prints **`SKIP`**, never `ok` — a check that could not run must not read as green — and CI's `check` job (`ubuntu-latest`) is where it actually lints, since that runner ships both `pwsh` and PSScriptAnalyzer preinstalled. `pwsh` is deliberately *not* on the gate's required-tool list: this repo is zero-dependency by design, and a gate that needs an install is a gate nobody can run before pushing.
+
+Before publishing, also run the authoritative validator — the same one the community-marketplace review runs:
+
+```bash
+claude plugin validate . --strict
+```

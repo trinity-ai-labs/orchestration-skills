@@ -13,6 +13,34 @@
     {
       "path": "AGENTS.md",
       "when": "a repo convention, the frozen helper contract, or the bin/ parity rule changes"
+    },
+    {
+      "path": "docs/filing-findings-upstream.md",
+      "when": "what a finding may contain, how upstreamFindings is read, or what the close-out discloses changes"
+    },
+    {
+      "path": "docs/troubleshooting.md",
+      "when": "an install failure mode, the error text it presents as, or its fix changes"
+    },
+    {
+      "path": "docs/per-project-config.md",
+      "when": "a config key is added or removed, or what reads it or what its absence means changes"
+    },
+    {
+      "path": "docs/mental-model.md",
+      "when": "the loop, a grounding depth, the branch levels, or where review approval lives changes"
+    },
+    {
+      "path": "docs/onboarding-a-project.md",
+      "when": "what /pipeline:setup grounds, asks for, verifies, or reconciles changes"
+    },
+    {
+      "path": "docs/hard-rules.md",
+      "when": "a rule the agent is held to is added, dropped, or gains an exception"
+    },
+    {
+      "path": "docs/adding-a-skill.md",
+      "when": "a gate check, the skill frontmatter contract, or the publish validator changes"
     }
   ],
   "envFiles": [],

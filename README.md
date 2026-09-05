@@ -199,6 +199,8 @@ Both args of the first form are required — no default base, since integration 
     ├── setup/
     │   ├── SKILL.md
     │   └── references/gate-queue.md
+    ├── cut-release/SKILL.md
+    ├── co-think/SKILL.md
     ├── write-issue/
     │   ├── SKILL.md
     │   └── references/arc-planning.md
@@ -211,7 +213,11 @@ Both args of the first form are required — no default base, since integration 
     ├── execute/
     │   ├── SKILL.md              # a spine: an ordered list of actions, each naming its reference
     │   └── references/           # one file per phase, opened when you reach that phase
-    └── review/SKILL.md
+    ├── review/SKILL.md
+    └── glossary/
+        ├── SKILL.md              # the index both families read
+        ├── vocabulary/           # what a shared term IS — defined once, cited from everywhere
+        └── mechanics/            # how one operation is performed
 ```
 
 To change the workflow: edit the file, commit, push. A clone-install picks it up on `git pull`.

@@ -8,7 +8,7 @@
   "docsPaths": [
     {
       "path": "README.md",
-      "when": "the flow, a helper's behaviour, or a config key changes"
+      "when": "the flow or a helper's behaviour changes"
     },
     {
       "path": "AGENTS.md",
@@ -47,5 +47,6 @@
   "sharedResources": [],
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
+  "epicMerge": "squash",
   "briefConventions": "See AGENTS.md at the repo root \u2014 it carries the full conventions plus the frozen helper contract and the bin/ parity rule."
 }

@@ -24,7 +24,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 | Behind them | Does |
 |---|---|
 | [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then turns the horizon into independent slices with owned files, do-not-touch fences and a verify bar. |
-| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs and merges. |
+| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension, weighed by the implementer. |
 
 On the one-slice path those first two are the whole of the run and you invoke them yourself — that is the path, not a side door. On an epic the loop invokes both for you.
@@ -152,7 +152,11 @@ setup-worktree.sh fix/toast-position release/0.4.0     # fork a new branch off t
 setup-worktree.sh --existing fix/toast-position        # attach a tree to a branch that already exists
 ```
 
-`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike, and not on Codex at all. To call the `.sh` helpers from a plain shell, or the `.ps1` helpers from a plain PowerShell prompt, add them once — somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike, and not on Codex at all. **Which directory you add depends on which install you have, and no one line covers both.**
+
+**On a marketplace install there is nothing to add inside Claude Code**, where `bin/` is already on the shell tool's `PATH`. In a plain terminal that install sits at `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/bin` — the same layout under `$CODEX_HOME` on Codex — the path carries the installed **version**, so it moves at every release and any export written here would be stale the day it shipped. Read the current version from `/plugin` and add that directory, or call the helper by its absolute path.
+
+**On a clone install** — the one under [Install](#install) — the directory is yours and stable, so it is the one an export can name. Add it somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc

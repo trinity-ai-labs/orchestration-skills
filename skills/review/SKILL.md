@@ -233,16 +233,13 @@ implementer's brief is a list of imperatives ending in *commit, push, open a dra
 gate*. A reviewer that inherits it does not read it as background; it reads it as its instructions,
 and it executes them.
 
-That is not hypothetical. Observed, across three consecutive slices of one epic: review agents
-applied fixes, ran the repo's formatter at root, committed in logical blocks, pushed, opened the pull
-requests, and enqueued the gate tickets — all before the implementer that spawned them got its turn
-back. Every artifact looked correct, because the reviewers were faithfully executing a correct brief.
-They were simply not the agent whose judgment those artifacts were supposed to represent.
-
-The second-order damage was worse than the mess. Once unauthorized writes were in play, agents lost
-the ability to tell authorized work from rogue work. A sibling implementer, correctly alarmed, saw a
-legitimate parallel slice's branch and PR appear mid-run, concluded it was more of the same, and
-quarantined that slice's gate ticket with a careful, well-evidenced, and entirely wrong rationale. A
+Every artifact it produces then looks correct, because it is faithfully executing a correct brief —
+it is simply not the agent whose judgment those artifacts are supposed to represent, and it has
+applied fixes, run the formatter at root, committed, pushed, opened the PR and enqueued the gate
+ticket before the implementer that spawned it gets its turn back. **The second-order damage is worse
+than the mess**: once unauthorized writes are in play nothing can tell authorized work from rogue
+work, so a sibling implementer that sees a legitimate parallel slice's branch and PR appear mid-run
+quarantines that slice's gate ticket on a careful, well-evidenced and entirely wrong rationale. A
 careful agent and a runaway agent produce identical artifacts: a branch, a PR, a queued ticket.
 
 Even a *non*-fork sub-agent, which inherits no conversation, still holds write tools and can act on a

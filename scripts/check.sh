@@ -239,9 +239,36 @@ fi
 # check exists for now lives in references/ (decompose's emitting.md), and a
 # check scoped to SKILL.md would go green over the passage it was written for.
 skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
+# A `gh api` invocation is ONE command however many lines it is written across,
+# so the continuations are joined before the pattern is applied. Read line by
+# line, a long invocation puts `gh api` on one line and the offending `-f` with
+# its @file value on the next, and the pattern matches neither — the check goes
+# green over exactly the form a long invocation is written in, which is the same
+# silent success the flag itself produces. Each joined command is reported at the
+# line it STARTS on, prefixed with its file, so the hits read as grep -n's did.
 if [ -z "$skill_docs" ]; then
 	fail "gh-api: no SKILL.md files to scan — this check scanned nothing"
-elif at_file_hits="$(grep -nE 'gh api.*(-f|--raw-field) +"?[a-z_]+=@' $skill_docs)"; then
+elif ! joined_docs="$(awk '
+	FNR == 1 && pending { print fname ":" start ":" buf; pending = 0 }
+	{
+		line = $0
+		continued = (line ~ /\\[[:space:]]*$/)
+		sub(/\\[[:space:]]*$/, "", line)
+		if (pending) {
+			buf = buf " " line
+		} else {
+			buf = line
+			fname = FILENAME
+			start = FNR
+		}
+		pending = continued
+		if (!pending) { print fname ":" start ":" buf }
+	}
+	END { if (pending) print fname ":" start ":" buf }
+' $skill_docs)"; then
+	fail "gh-api: the joiner crashed — the skills could not be scanned"
+elif at_file_hits="$(printf '%s\n' "$joined_docs" |
+	grep -E 'gh api.*(-f|--raw-field) +"?[a-z_]+=@')"; then
 	printf '%s\n' "$at_file_hits" | sed 's/^/      /' >&2
 	fail "gh-api: a skill prescribes gh api -f with an @file value; use -F, which reads the file"
 else

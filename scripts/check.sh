@@ -23,7 +23,8 @@
 #   8. every skills/ .md path cited in a tracked doc resolves.
 #   9. shipped prose carries no issue numbers.
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
-#  11. shipped prose carries no war stories.
+#  11. prose that states rules carries no war stories (a BACKSTOP: the rule
+#      is a property, stated in AGENTS.md — this pattern does not bound it).
 #  12. no skill cites another skill — the glossary excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
 #  14. the glossary stays tied to the tree.
@@ -762,11 +763,33 @@ else
 	fi
 fi
 
-# --- 11. shipped prose carries no war stories -------------------------------
+# --- 11. prose that states rules carries no war stories ----------------------
 
-# The incident that motivated a rule belongs in the PR that fixed it, where it
-# stays attached to the diff. In a skill it is words a reader cannot act on, and
-# this corpus once carried 22,451 of them.
+# THE RULE IS A PROPERTY, AND THIS CHECK IS A BACKSTOP THAT DOES NOT STATE IT.
+# The rule (AGENTS.md, *Conventions*): name the failure a rule prevents in a
+# clause that shares its sentence with the action, never in a sentence or a
+# paragraph of its own. The pattern below is a handful of phrasings that perform
+# that promotion often enough to be worth catching mechanically. It is NOT the
+# boundary: an enumerated ban is satisfied by every form it omits, so a green
+# here says only that these phrasings are absent, never that the property holds.
+# Adjudicate against the property; where you cannot tell, leave it out.
+#
+# ADDING PHRASINGS IS NOT HOW THIS GETS BETTER. Each one bought is one shape
+# and the next war story is written in the next shape — one comma inside a
+# matched phrase already puts it past this pattern, which is why the property
+# above, and not this regex, is what a writer and a reviewer adjudicate on.
+#
+# SCOPE: every tracked *.md except CHANGELOG.md. The property is about how a
+# RULE is written, so it reaches wherever this repo states or applies one —
+# skills/, AGENTS.md — which STATES the rule, and which a skills/-scoped check
+# could not see, so the file promulgating the ban was the one place it did not
+# reach — README.md, and docs/, which is where prose extracted out of skills/
+# now lands and so is the direction a war story leaves skills/ by.
+# CHANGELOG.md is exempt, and the reason is the rule's own: the ban does not
+# delete the incident, it relocates it to the change that fixed it. A release
+# entry states no rule anyone acts on mid-task, is never loaded by an agent, and
+# is one of the two places the ban points the incident TO. Failing it there
+# would leave the incident nowhere to live.
 #
 # Matched per PARAGRAPH, not per line. `git grep` is line-oriented and shipped
 # prose here is hard-wrapped, so a banned phrase routinely straddles the break
@@ -780,9 +803,9 @@ fi
 # wrap is reported at the line the match STARTS on, exactly as a single-line
 # match already was.
 
-story_files="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null || true)"
+story_files="$(git ls-files '*.md' 2>/dev/null | grep -v '^CHANGELOG\.md$' || true)"
 if [ -z "$story_files" ]; then
-	fail "no-war-stories: git listed no tracked *.md under skills/ — this check scanned nothing"
+	fail "no-war-stories: git listed no tracked *.md outside CHANGELOG.md — this check scanned nothing"
 else
 	story_hits_out="$(mktemp)" || exit 2
 	story_broken_out="$(mktemp)" || exit 2
@@ -861,7 +884,7 @@ PY
 		story_broken_count="$(wc -l <"$story_broken_out" | tr -d ' ')"
 		story_scanned=$((story_total - story_broken_count))
 		if [ "$story_scanned" -le 0 ]; then
-			fail "no-war-stories: no tracked skills/ file could be read — this check scanned nothing"
+			fail "no-war-stories: no tracked *.md file could be read — this check scanned nothing"
 			story_clean=0
 		fi
 		if [ -s "$story_hits_out" ]; then
@@ -870,7 +893,7 @@ PY
 			story_clean=0
 		fi
 		if [ "$story_clean" -eq 1 ]; then
-			ok "no-war-stories: $story_scanned shipped file(s) state rules, not incidents"
+			ok "no-war-stories: $story_scanned rule-stating file(s) carry none of the backstop phrasings (the property is AGENTS.md's, not this pattern's)"
 		fi
 	fi
 	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"

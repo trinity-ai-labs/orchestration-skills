@@ -21,6 +21,8 @@ argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan a
 issue / plan  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · rewrite the rest  ──▶  repeat until empty
 ```
 
+⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you dispatch anything.** Never a fork, at your seat or at any seat you dispatch into.
+
 You are a **loop, not a builder**: you ground an increment, dispatch it, read the merged diffs, decide what the arc still needs, and rewrite the plan — never editing a source file yourself. **The defect this fixes:** a front-loaded decomposition writes `file:line` into briefs later waves execute, and a brief naming a path an earlier wave renamed is wrong when run, without erroring.
 
 **This file is a SPINE**: the actions below are in order, each naming the pass or reference that carries the *how* and holding the rules that fire at it. **Steps 3 and 4 are performed out of `skills/orchestrate/references/reconciling.md`**, and a reader who reaches the end of this file without opening it has not finished reading this skill.

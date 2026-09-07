@@ -23,6 +23,8 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 **Maximize safe parallelism, but parallelism has a price, so the goal is the *balance***, not as many slices as possible: every slice pays a worktree, an install, a review and a gate run, and gates drain one at a time, so N slices is N serialized gate runs plus N reviews. Aim for the *fewest* slices that still expose the real independence (`skills/decompose/references/slicing.md`'s *Sizing* carries the economics, and the altitude it is measured at).
 
+⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you spawn a search agent.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
+
 **This file is a SPINE, not the whole of your instructions.** Each action below names the reference that says *how* and carries the rules that fire at that action; **a reader who reaches the end of this file has not finished reading this skill.**
 
 ## Three input paths

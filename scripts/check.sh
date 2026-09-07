@@ -26,7 +26,7 @@
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. prose that states rules carries no war stories (a BACKSTOP: the rule
 #      is a property, stated in AGENTS.md — this pattern does not bound it).
-#  12. no skill cites another skill — the glossary excepted.
+#  12. no skill cites another skill — the glossary and the ground rules excepted.
 #  13. no sentence has had its front removed (a partial prose deletion).
 #  14. the glossary stays tied to the tree.
 #  15. both bin/ ports answer the predicates they share identically.
@@ -1034,32 +1034,35 @@ fi
 # needs where they act. Unbounded cross-skill citation is what grew a
 # 96-reference web, a checker for it, and a convention for writing it.
 #
-# skills/glossary/ is the one permitted target, and it is a different edge
-# rather than a hole in this one. An entry there is a DEFINITION — what a thing
-# is — which every pass needs identically and none of them owns, so the copies
-# drift with nothing able to make them agree. A RULE is the opposite: it is what
-# one stance does about that thing, it differs per stance, and it is restated
-# where its reader acts. So the map is cited and never cites back: the ban still
-# holds in the direction that grew the web, and an entry reaching into a pass
-# fails this check exactly as any other cross-skill citation does.
+# skills/glossary/ and skills/ground-rules/ are the two permitted targets, and
+# each is a different edge rather than a hole in this one. An entry in the map
+# is a DEFINITION — what a thing is — which every pass needs identically and
+# none of them owns, so the copies drift with nothing able to make them agree.
+# A ground rule is the same shape one level over: a rule whose STATEMENT is
+# identical at every seat has no per-seat form to restate, which is the only
+# thing that would keep N copies of it honest. An ordinary RULE is neither:
+# it is what one stance does about a thing, it differs per stance, and it is
+# restated where its reader acts. So both files are cited and never cite back:
+# the ban still holds in the direction that grew the web, and either of them
+# reaching into a pass fails this check exactly as any other citation does.
 
 cross_hits="$(
 	for f in $(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null); do
 		own="$(printf '%s' "$f" | cut -d/ -f2)"
 		grep -oE '`skills/[a-z-]+/[^`]*\.md`' "$f" 2>/dev/null | tr -d '`' | while IFS= read -r p; do
 			tgt="$(printf '%s' "$p" | cut -d/ -f2)"
-			# Own references: the shape working. The concept map: the one other
-			# legal target, and only as a target — a file INSIDE the map whose own
-			# slug is `concepts` cites nothing else and still fails here.
-			[ "$tgt" = "$own" ] || [ "$tgt" = glossary ] || printf '%s: %s\n' "$f" "$p"
+			# Own references: the shape working. The concept map and the ground
+			# rules: the two other legal targets, and only as targets — a file
+			# INSIDE either one cites nothing else and still fails here.
+			[ "$tgt" = "$own" ] || [ "$tgt" = glossary ] || [ "$tgt" = ground-rules ] || printf '%s: %s\n' "$f" "$p"
 		done
 	done
 )"
 if [ -n "$cross_hits" ]; then
 	printf '%s\n' "$cross_hits" | while IFS= read -r l; do printf 'FAIL  no-cross-skill-citations: %s\n' "$l" >&2; done
-	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/glossary/ may be cited across skills, and only for a DEFINITION"
+	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/glossary/ (a DEFINITION) and skills/ground-rules/ (a rule stated identically at every seat) may be cited across skills"
 else
-	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references and the glossary"
+	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references, the glossary and the ground rules"
 fi
 
 # --- 13. no sentence has had its front removed --------------------------------

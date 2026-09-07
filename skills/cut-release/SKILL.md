@@ -15,6 +15,8 @@ argument-hint: "[the version to cut, e.g. 0.5.0 — omit and it will work one ou
 
 **Why it exists: cutting a release branch is the one moment nothing in this pipeline was present for.** So the config went stale, the version moved invisibly, and the flow could only notice the damage afterwards. Owning that moment is the whole job.
 
+⛔ **`skills/ground-rules/SKILL.md` binds you before this file does, and this pass declares no sub-agents, so it authorizes none** — read it if you are about to spawn anything here.
+
 ⛔ **The repository side, and nothing past it.** Bump the declared files, open the changelog section, cut the branch, move the config. **No tags, no publishing, no deploys, no announcements, no CI triggers** — those belong to whoever owns the release, and a pass reaching for them invents policy it cannot know.
 
 ---

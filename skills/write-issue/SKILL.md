@@ -22,6 +22,8 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 ⛔ **You set the phases and you do not ground them** — a phase becomes dispatchable slices with owned files, fences, a model tier and a verify bar at `/pipeline:decompose`'s horizon, and you never write code, make worktrees, dispatch or run the arc. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config) rather than a hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost model you brought with you.
 
+⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you spawn a search agent.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
+
 **Four steps, in order — and the file does not end at the fourth**: *Two rules that fire at every step* follows them.
 
 ---
@@ -66,7 +68,7 @@ A comment reached this way **is** a filing — the failure, the reasoning, a rec
 
 **Ground with `file:line`; write down the module and the file** — the line number is how you *check* a claim, not what the issue *carries* (Step 3's *Surface*).
 
-- **Spawn fresh read-only search agents** — never forks — in parallel, one per subsystem, for the real files, the patterns to copy and the consumers a change ripples into — **invoking this skill is what authorizes them**, and it authorizes these read-only agents and nothing else.
+- **Spawn fresh read-only search agents** — never forks — in parallel, one per subsystem, for the real files, the patterns to copy and the consumers a change ripples into — **invoking this skill is what authorizes them**, and it authorizes these read-only agents and nothing else. **Each one is the last agent in its chain and its brief says so** — it searches, reports, and dispatches nothing of its own, or the count you sized is re-sized from inside it by children whose reading you never see.
 - **Grep the WHOLE repo and cite the definition line — or the claim doesn't count.** A folder-scoped grep produces confident-but-wrong claims. Check "X is/isn't a consumer" or "only one call site" tree-wide; two sources disagreeing means you read the file.
 - **A SECTION citation is a load-bearing claim that method cannot settle — resolve it by OPENING the section, never by searching for the word it turns on.** A symbol has a definition line or none; a section citation attributes an *argument* to prose, where the search is agreeable rather than silent — the word it turns on usually sits there in an unrelated sense — and cannot dangle: a wrong one resolves to a real section, as authoritative-looking as a right one.
 - **A COUNT is a third such claim, and its citation is its INSTRUMENT** — write the unit beside the figure and the tree you took it against (`grep -c` counts matching lines, `grep -o | wc -l` occurrences).

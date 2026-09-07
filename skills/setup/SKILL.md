@@ -14,6 +14,8 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 `/pipeline:execute` cuts a worktree per task and expects each project to declare how it builds, checks and gates itself. That declaration is `<repo>/.agents/worktree.json`; this skill writes it and scaffolds a gate queue where the project wants one. **Both artifacts live in the project**, so two queues *should* be free to diverge.
 
+⛔ **`skills/ground-rules/SKILL.md` binds you before this file does, and this pass declares no sub-agents, so it authorizes none** — read it if you are about to spawn anything here.
+
 ## Why an unconfigured repo is worse than an obviously-broken one
 
 `setup-worktree.sh` does not fail on a missing config — it notes it on stderr and cuts a bare worktree, no env symlinks and no `node_modules`, so an implementer dispatched into a project that installs anything fails its checks in the shape of a code bug. And with no config the gate, the conventions and the framework skills are guesses; a guessed gate passes while testing nothing. **Treat "no config" as a hard stop, not a warning.**

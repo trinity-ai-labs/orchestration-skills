@@ -11,6 +11,7 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
 | List the live ones | `ListAgents` | `list_agents` |
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
+| Reach your dispatcher from inside a sub-agent | `SendMessage`, `to: "main"` — from a BACKGROUND sub-agent | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
 | Persistent watch over a ledger directory | `Monitor` | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
@@ -19,6 +20,8 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | `bin/` on `PATH` | yes, while enabled | **no** |
 
 ⚠️ **Correcting a live agent, listing the live ones and killing one are three rows because they are three acts with different costs.** Merged into one label they read as a single capability, and a reader reaches for whichever tool it recognises — which on this table was the destructive one. **And a cell naming a stop your host may not have is worse than a blank one**, since the flow sends you here *for* that tool: where a row says the tool is not established, the sentence above is the whole instruction — read your own tool list, and say in your report what you found.
+
+⚠️ **The sub-agent→dispatcher row hands back a RECEIPT, never a reply, so send and carry on rather than wait.** The call returns synchronously and what comes back acknowledges that the message is queued; the dispatcher reads it on its own next turn, and an answer, when it comes, arrives as a message of its own rather than as the call's return. **The Claude Code cell carries a precondition its neighbours do not** — that address resolves from a sub-agent dispatched in the BACKGROUND, which this flow defaults to but does not require, so a foreground dispatch has no channel and the row is not the one to read. **And the listing row runs one way only**: a sub-agent is not given the tool that enumerates live agents, so it cannot discover an address the way a dispatcher discovers one.
 
 ⛔ **On Codex set `model` AND `reasoning_effort` on every spawn** — `model` alone silently resets effort to that model's default, so a top-tier slice runs at a tier nobody chose. Spawning needs `features.multi_agent = true` in the host config; without it there is no spawn tool at all.
 

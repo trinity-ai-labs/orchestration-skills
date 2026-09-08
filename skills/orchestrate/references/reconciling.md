@@ -68,7 +68,7 @@ Run it in the arc's direction — "is the goal true without this?" — never the
 Two riders:
 
 - **"Filed" means filed — and *linked* is one act or two.** **The relation decides which: `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership rule binds this loop as it binds an implementer — **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native call is `skills/glossary/mechanics/sub-issue-link.md`.
-- **A fold is a new slice, never a widening of a live one**, since growing a dispatched slice's scope mid-flight is indistinguishable from the divergence the dispatcher polls for.
+- **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`).
 - **That rule is about SCOPE, and reading it as *a live brief cannot be touched* is how a one-line correction turns into a killed agent.** A live slice whose brief states a wrong **fact** — a number, a path, a name — has not grown and is not diverging; it is working correctly to a premise that is wrong, and the answer is a message to the agent carrying the corrected value. Reserve the stop for the case this rule actually describes, where the scope itself has moved.
 
 ## Where folded work goes — merge surface outranks slice cohesion
@@ -77,7 +77,7 @@ One ordered criterion, ordered rather than balanced: **merge surface first, slic
 
 **Churn discovered mid-arc goes in a serial wave — one slice, nothing else in flight.** Parallel slices fork from different bases, so a large-footprint change beside them merges textually clean and semantically wrong; and where the shared shape is a **runtime string** — a query key, a table name, a route, a config key — it does not fail to compile at all, splitting one cache entry into two while every gate stays green.
 
-**Nothing folded ever joins a wave already dispatched, whatever its size** — those slices forked before the folded item existed, so their do-not-touch boundaries cannot name it. A small fold is fine in the *next* wave, never the live one.
+**Nothing folded ever joins a wave already dispatched, whatever its size** — a fold is bulk new work rather than the one named path a dispatcher can grant onto a live fence. A small fold is fine in the *next* wave, never the live one.
 
 ## Rewriting the plan
 

@@ -43,7 +43,7 @@ Then say which path you are on and why, in one sentence — *"this looks bounded
 
 Help split it instead: name the independent pieces, say how they relate, and settle what order they get built in. **Each piece then takes its own trip through the pipeline** — its own shaping, its own issue, its own run. Shape the first one here; the rest wait.
 
-**Separate what is FORCED from what is being SEQUENCED, and settle the forced item before you compare routes.** Anything true under every route — a defect, a missing piece, a correction the work needs whichever order it lands in — comes out of the routing argument and gets settled first, since nothing else asks this: whether the arc can ship without an item is a different question from whether the item is independent of the argument being had, and left in, a sequencing debate holds hostage work that is needed however it resolves.
+**Separate what is FORCED from what is being SEQUENCED, and settle the forced item before you compare routes.** Anything true under every route — a defect, a missing piece, a correction the work needs whichever order it lands in — comes out of the routing argument and gets settled first, since nothing else asks this: whether the arc's goal is true without an item is a different question from whether the item is independent of the argument being had, and left in, a sequencing debate holds hostage work that is needed however it resolves.
 
 ## 3. Ask one question per message
 

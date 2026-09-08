@@ -8,6 +8,7 @@ Reference for `skills/write-issue/SKILL.md`, Step 3. Nothing downstream re-deriv
 
 - **A dependency ordering names no files, which is why you can write it this far out** and why it does not decay the way a coordinate does. Give each phase a goal and an area; write no `file:line`, no owned files, no fences and no verify bar — those are `/pipeline:decompose`'s at the horizon, and one written here is stale before it is read.
 - **Reconcile the map against the seams you wrote**: a producer and its consumer sitting in different phases is a seam the map has to survive, so either name it in both places or move one of the halves into the other's phase.
+- **The map covers everything the goal is not TRUE without, which is wider than what the work obviously touches** — a map whose every phase is real still reads finished while the sum falls short of the goal, so where the goal is *this stops happening*, the piece that stops it recurring is a phase of this arc rather than a neighbour of it, however small it is beside the instances it was found among.
 
 ## Sizing a phase
 

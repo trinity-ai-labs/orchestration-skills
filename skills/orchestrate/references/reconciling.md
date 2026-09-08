@@ -68,7 +68,7 @@ Run it in the arc's direction — "is the goal true without this?" — never the
 Two riders:
 
 - **"Filed" means filed — and *linked* is one act or two.** **The relation decides which: `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership rule binds this loop as it binds an implementer — **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native call is `skills/glossary/mechanics/sub-issue-link.md`.
-- **A fold is a new slice, never a widening of a live one**, since growing a dispatched slice's scope mid-flight is indistinguishable from the divergence the dispatcher polls for.
+- **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`).
 - **That rule is about SCOPE, and reading it as *a live brief cannot be touched* is how a one-line correction turns into a killed agent.** A live slice whose brief states a wrong **fact** — a number, a path, a name — has not grown and is not diverging; it is working correctly to a premise that is wrong, and the answer is a message to the agent carrying the corrected value. Reserve the stop for the case this rule actually describes, where the scope itself has moved.
 
 ## Where folded work goes — merge surface outranks slice cohesion

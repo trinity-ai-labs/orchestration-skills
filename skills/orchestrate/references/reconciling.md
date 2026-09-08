@@ -77,7 +77,7 @@ One ordered criterion, ordered rather than balanced: **merge surface first, slic
 
 **Churn discovered mid-arc goes in a serial wave — one slice, nothing else in flight.** Parallel slices fork from different bases, so a large-footprint change beside them merges textually clean and semantically wrong; and where the shared shape is a **runtime string** — a query key, a table name, a route, a config key — it does not fail to compile at all, splitting one cache entry into two while every gate stays green.
 
-**Nothing folded ever joins a wave already dispatched, whatever its size** — those slices forked before the folded item existed, so their do-not-touch boundaries cannot name it. A small fold is fine in the *next* wave, never the live one.
+**Nothing folded ever joins a wave already dispatched, whatever its size** — a fold is bulk new work rather than the one named path a dispatcher can grant onto a live fence. A small fold is fine in the *next* wave, never the live one.
 
 ## Rewriting the plan
 

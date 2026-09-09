@@ -18,7 +18,7 @@ Horizon: Wave 1 — Slices 2, 3, 4
 - Wave 3 (last — the closing docs slice; consumes the falsification ledger, and derives from what the epic added): Slice 6
 - Transient-red: Slices 2–4 run against the W0 schema change (gate read per execute's transient-red rules)
 - Epic branch: yes, per the issue — the W0 schema change leaves the branch half-migrated until Slices 2-4 land; slices fork from and PR into it
-- Conflicts to merge-resolve: Slice 3 & 4 both edit src/routes/registry.ts
+- Conflicts to merge-resolve: Slice 3 & 4 both add a route to src/routes/registry.ts — neither owns it
 - Critical path: Slice 1 → Slice 4 → Slice 5 → Slice 6
 
 ### Horizon — SLICE DEPTH (grounded against the tree as it stands right now)

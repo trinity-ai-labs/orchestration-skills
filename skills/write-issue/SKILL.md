@@ -58,7 +58,7 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 **⛔ Not licence to skip filing because something RELATED exists — the test is whether two items share a FAILURE, not a subject area.** A finding buried in a neighbour closes when the host does.
 
-A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork, and why it is not the one already there — via Step 4's comment endpoint.
+A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork, why it is not the one already there, and **at least one file, symbol or route**, since the loop re-tests this comment's verdict by intersecting exactly those and a comment carrying none reaches it as the narrowest input it ever gets — via Step 4's comment endpoint.
 
 ---
 

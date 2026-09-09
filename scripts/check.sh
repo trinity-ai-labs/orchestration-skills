@@ -770,11 +770,13 @@ budget=30000
 # skills/<slug>/ tree — a spine plus its own references, which is what one agent
 # loads, and the growth the per-file half misses when a sub-skill gains files
 # rather than grows one. AGENTS.md states this one too, with the same
-# both-green disagreement available. Both are BACKSTOPS, not budgets — the
-# largest sub-skill today sits a little over half of this number, so they catch
-# runaway growth rather than ration prose. There is deliberately no corpus-wide
-# ceiling: prose behind a pointer costs a reader nothing until it is followed,
-# so the corpus total is a quantity no reader ever pays.
+# both-green disagreement available. Both are BACKSTOPS, not budgets — they
+# catch runaway growth rather than ration prose. The headroom is deliberately
+# not stated as a fraction here: it moves with every release that adds prose,
+# and the green line below prints each sub-skill's total, so a figure in this
+# comment would go stale with nothing measuring it. There is deliberately no
+# corpus-wide ceiling: prose behind a pointer costs a reader nothing until it is
+# followed, so the corpus total is a quantity no reader ever pays.
 budget_per_skill=50000
 
 # Tracked files under skills/, for the reason checks 8 and 9 both give: skills/

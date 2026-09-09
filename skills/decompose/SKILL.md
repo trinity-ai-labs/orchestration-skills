@@ -13,7 +13,7 @@ description: >-
   horizon emits at SLICE depth (goal, owned files, boundaries, derived artifacts, depends-on, framework skill, model
   tier, brief, verify bar);
   everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
-  you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per slice.
+  you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per horizon slice.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
 ---
 
@@ -65,7 +65,7 @@ One slice = one worktree = one PR. Produce each horizon slice's fields — `Goal
 
 ### 4. Emit the breakdown → `skills/decompose/references/emitting.md`
 
-In chat, or back onto the issue as a comment or as an umbrella with one sub-issue per slice. **Writing it back is what enriches the issue** — the detail an executor acts on lands where the next reader finds it rather than only in this turn's output. Lead with the parallelization plan, then the horizon at slice depth, then the remainder at shape depth, and end with the handoff line.
+In chat, or back onto the issue as a comment or as an umbrella with one sub-issue per horizon slice. **Writing it back is what enriches the issue** — the detail an executor acts on lands where the next reader finds it rather than only in this turn's output. Lead with the parallelization plan, then the horizon at slice depth, then the remainder at shape depth, and end with the handoff line.
 
 ⛔ **Label every item's depth, and keep the two in separate sections — never interleaved.** An unlabeled shape item reads as a slice somebody left half-finished, and both repairs are wrong — dispatch it and the implementer gets no scope, "finish" it by grounding it and you have written the stale coordinates the horizon exists to prevent.
 

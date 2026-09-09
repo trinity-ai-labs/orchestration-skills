@@ -1,7 +1,8 @@
 # umbrella
 
 An **umbrella** is one issue that tracks several others: its body carries the overview and a checklist
-linking each child, and each child carries a backlink to it. It is a **tracking shape** — a fact about the
+whose lines stand for the remaining work, each either linking a child or naming an item that has no child
+yet, and each child carries a backlink to it. It is a **tracking shape** — a fact about the
 issue tracker, and nothing else.
 
 **An umbrella is not an epic branch, and having one settles nothing about the other.** The branch is a

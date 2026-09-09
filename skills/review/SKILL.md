@@ -295,9 +295,10 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   this worktree. It is not a bucket for work you could have done — for that the caller's flow
   already has a sanctioned path, the out-of-scope fix isolated in its own commit, and that path
   is preferred over deferring. What is genuinely left is the **caller's** to RAISE — where a fence
-  is what left it there, that goes to the caller's dispatcher before it goes to the tracker, and
-  becomes a linked issue, or a comment on the one already carrying that failure, only where that is
-  the answer that comes back; this pass reports it and files nothing, exactly as it commits and
+  is what left it there, that goes to the caller's dispatcher before it goes to the tracker, raised
+  on the caller's own pre-push sweep while an answer is still an edit in a tree that is open, and
+  becomes a linked issue, or a comment on the one already carrying that failure, only where that
+  is the answer that comes back; this pass reports it and files nothing, exactly as it commits and
   pushes nothing. The only thing it dispatches is a reader.
 - **Verification** — which scoped check you ran and its result, and which single test file if any.
 

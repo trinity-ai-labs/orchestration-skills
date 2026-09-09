@@ -8,6 +8,6 @@ It is one optional level above that branch, and it holds one arc. Single-slice w
 one, and a pass reads the same whether or not one exists.
 
 **An epic branch is not an umbrella (`skills/glossary/vocabulary/umbrella.md`), and having one settles nothing about the other.** An umbrella is a
-*tracking shape* — one issue holding a checklist of sub-issues, a fact about the tracker. An epic branch
+*tracking shape* — one issue holding a checklist of the remaining work, a fact about the tracker. An epic branch
 is a *branch lifecycle* — a real ref that worktrees fork from and PRs target, a fact about git. The word
 "epic" names both, which is the whole reason to say it here: an arc can have either, both or neither.

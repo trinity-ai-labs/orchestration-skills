@@ -779,18 +779,19 @@ budget=30000
 # followed, so the corpus total is a quantity no reader ever pays.
 budget_per_skill=50000
 
-# Tracked files under skills/, for the reason checks 8 and 9 both give: skills/
-# is what ships, and a scratch note or a gate log left in a worktree is not prose
-# this repo ships. `--others --exclude-standard` adds files not yet staged: a new
-# skill is exactly what these ceilings exist to weigh, and it would otherwise be
-# invisible until `git add` — a false green on the run an author actually reads.
+# Tracked or untracked-and-not-ignored *.md files under skills/, for the reason
+# checks 8 and 9 both give: skills/ is what ships, and a scratch note or a gate
+# log left in a worktree is not prose this repo ships. `--others
+# --exclude-standard` adds files not yet staged: a new skill is exactly what
+# these ceilings exist to weigh, and it would otherwise be invisible until `git
+# add` — a false green on the run an author actually reads.
 budget_files=''
 for f in $(git ls-files --cached --others --exclude-standard 'skills/*.md' 2>/dev/null | sort -u); do
 	[ -f "$f" ] || continue
 	budget_files="$budget_files $f"
 done
 if [ -z "$budget_files" ]; then
-	fail "attention-budget: git listed no tracked *.md under skills/ — this check scanned nothing"
+	fail "attention-budget: git listed no *.md under skills/ — this check scanned nothing"
 else
 	budget_counted=0
 	budget_over=''
@@ -872,7 +873,7 @@ else
 		budget_clean=0
 	fi
 	if [ "$budget_counted" -eq 0 ]; then
-		fail "attention-budget: no tracked skills/ file was measured — this check scanned nothing"
+		fail "attention-budget: no skills/ file was measured — this check scanned nothing"
 		budget_clean=0
 	fi
 	if [ -n "$budget_over" ]; then
@@ -889,7 +890,7 @@ else
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then
-		ok "attention-budget: $budget_counted tracked skills/ file(s) within the ${budget}-word per-file ceiling (wc -w; largest $budget_largest_file at $budget_largest), and each sub-skill within the ${budget_per_skill}-word ceiling:$budget_skill_report"
+		ok "attention-budget: $budget_counted skills/ file(s) within the ${budget}-word per-file ceiling (wc -w; largest $budget_largest_file at $budget_largest), and each sub-skill within the ${budget_per_skill}-word ceiling:$budget_skill_report"
 	fi
 fi
 

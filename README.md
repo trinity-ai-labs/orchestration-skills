@@ -92,7 +92,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` on Claude Code — you should see `pipeline`, its nine skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its ten skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
 
 ### Prerequisites
 

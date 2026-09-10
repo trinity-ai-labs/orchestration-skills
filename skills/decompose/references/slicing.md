@@ -51,9 +51,9 @@ A slice should be a meaningful but reviewable PR — not so small that the workt
 - **Gate once on the merged tip and the binding constraint moves to the dispatcher's own capacity to read N diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal` beside its diff can, which is why that field is worth the line it costs.
 - The *scoped* per-commit check implementers run is NOT the sizing cost; the **drained full gate** is. Size against the *actual* `gate`, cache and drain model you read in config.
 
-## The closing check — read a slice's fields against each other
+## The closing check — read a slice's fields against each other, and against what the project will accept
 
-**Before you emit a slice, read its fields against each other — as these six PAIRS, never as a general check of your work.** Nothing downstream reads any two fields against each other and you are the only party holding all of them at once, so a slice can be internally unsatisfiable and still look finished: the implementer meets one field by breaking another and reports the half it met, and no gate can read a brief.
+**Before you emit a slice, read its fields against each other and against what the project will accept — as these six PAIRS, never as a general check of your work.** Nothing downstream reads any two fields against each other and you are the only party holding all of them at once, so a slice can be internally unsatisfiable and still look finished: the implementer meets one field by breaking another and reports the half it met, and no gate can read a brief.
 
 - **A goal against its verify bar** — `Goal` against `Verify`, and the test is satisfiability by one sentence: where a single sentence would satisfy both, the goal is a restatement of the bar and you have not written one yet. A field every slice carries and no reader uses is worse than no field, because it costs prose on every slice and teaches its readers to skip the place a real goal would have been.
 - **A fence against the verify bar** — `Do NOT touch` against `Verify`; the worked example is a glob and an assertion that both land on the same test file, and the `Do NOT touch` field carries the two rules that settle it.

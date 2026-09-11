@@ -18,7 +18,7 @@ Reference for `skills/decompose/SKILL.md`, action 1. A breakdown built from the 
      gh issue view <candidate> --json body -q .body \
        | grep -qE "^[[:space:]]*-[[:space:]]*\[[ xX]\][[:space:]]*#<N>([^0-9]|$)"
      ```
-     Use `([^0-9]|$)` rather than `\b`, for portability across BSD and GNU grep. That checklist line is the artifact `skills/decompose/references/emitting.md`'s *Umbrella + sub-issues* mandates writing at its first step.
+     Use `([^0-9]|$)` rather than `\b`, for portability across BSD and GNU grep. That checklist line is the artifact `skills/decompose/references/emitting.md`'s *Writing onto a live umbrella* mandates writing at its first step.
 
   Then read the parent with `gh issue view <umbrella> --comments` **before** you ground the child: it carries the phase map, the epic verdict, the seam list and the constraints the child was written inside, none of it restated in the child.
 

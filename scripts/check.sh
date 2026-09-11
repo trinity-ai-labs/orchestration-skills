@@ -1359,7 +1359,7 @@ PASSAGES = (
     ("skills/decompose/references/slicing.md",
      "## The slice fields", "## Sizing", "declared"),
     ("skills/decompose/references/emitting.md",
-     "#### Slice 2 — <title>", "#### Slice 3", "declared"),
+     "#### Sub-issue B — <title>", "#### Sub-issue C", "declared"),
     ("skills/orchestrate/SKILL.md",
      "**Slice depth** — the horizon *only*",
      "**The horizon is the next dispatchable set", "prose"),

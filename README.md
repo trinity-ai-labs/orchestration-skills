@@ -11,7 +11,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
                                                                    (loops the ready sub-issues through those same two)
 ```
 
-**Ten skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. `/pipeline:glossary` is the map both families read, and `/pipeline:ground-rules` is the short list of rules every seat is held to identically — the never-a-fork ban first — which every pass cites and none of them restates.
+**Ten skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. `/pipeline:glossary` is the map both families read, and `/pipeline:ground-rules` is the short list of rules every seat is held to identically — the never-a-fork ban first — which every pass has its reader open before acting on anything in it.
 
 | You type | Does |
 |---|---|
@@ -218,7 +218,7 @@ Both args of the first form are required — no default base, since integration 
     │   ├── SKILL.md              # a spine: an ordered list of actions, each naming its reference
     │   └── references/           # one file per phase, opened when you reach that phase
     ├── review/SKILL.md
-    ├── ground-rules/SKILL.md     # the rules identical at every seat — cited by every pass, citing none
+    ├── ground-rules/SKILL.md     # the rules identical at every seat — read first by every pass, citing none
     └── glossary/
         ├── SKILL.md              # the index both families read
         ├── vocabulary/           # what a shared term IS — defined once, cited from everywhere

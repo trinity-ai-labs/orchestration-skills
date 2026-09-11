@@ -220,13 +220,17 @@ that is a revert, and it arrives in your Applied list wearing the word convergen
 
 ## 3. Weigh what comes back, apply what belongs, then verify it
 
-⛔ **Change nothing until EVERY reviewer you dispatched has reported.** Your host re-invokes you once
-per reviewer that finishes, so the first report arrives looking like *what comes back* while the others
-are still reading the tree — and an edit made then moves the tree under them, so their findings
-describe lines that no longer exist and your own fresh edits reach them as part of the change. **The
-count you dispatched in step 2 is the count you wait for, and anything else that would change the tree
-waits with it**, an answer from your dispatcher included. A reviewer that fails or stalls has landed
-with nothing: weigh the rest, and name that dimension in your report as one that did not report.
+⛔ **Change nothing until EVERY reviewer you dispatched has reported.** Reports arrive one reviewer at
+a time, so the first arrives looking like *what comes back* while the others are still reading the
+tree — and an edit made then moves the tree under them, so their findings describe lines that no longer
+exist and your own fresh edits reach them as part of the change. **The count you dispatched in step 2
+is the count you wait for, and anything else that would change the tree waits with it**, an answer from
+your dispatcher included. **Wait on those reviewers the way your host wakes you — where it re-invokes
+you as each one reports, by ENDING your turn with no tool call, which hands nothing back, and where it
+gives you a call that blocks until one reports, by that call — and never by a call made only to keep the
+turn open**, a placeholder agent or an `echo` or a `sleep`, which spends a round trip and learns nothing.
+A reviewer that fails or stalls has landed with nothing: weigh the rest, and name that dimension in your
+report as one that did not report.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
@@ -271,9 +275,9 @@ it allowed. **No reviewer runs one either**, which is why no brief you write nam
 *permitted* one, so the ban above cannot reach it: your whole budget is allowed, and the stall shape
 does not care which run it was — the turn ends, and the caller never gets the report. So this rule is
 keyed to the handoff rather than to the ban. Both of your checks run in the **foreground**, and this
-pass ends at its report, never at a wait. **It reaches checks and commands and NOT the reviewers you
-dispatched**, whose running is a self-suspension your host re-invokes you from — waiting on ALL of them is how
-this pass works, and reading the ban as reaching them leaves you with one reader again.
+pass ends at its report, never at a wait — a wait on the reviewers you dispatched ends a TURN, never the
+pass. **It reaches checks and commands and NOT those reviewers**: you wait on ALL of them the way this
+step opens by saying, and reading this ban as reaching them leaves you with one reader again.
 
 ---
 

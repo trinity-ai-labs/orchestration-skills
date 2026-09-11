@@ -8,6 +8,7 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | Skill discovery | `skills/<slug>/SKILL.md`, `name` + `description` frontmatter | identical |
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
+| Wait on agents you dispatched | end your turn with no tool call — each report re-invokes you, in a main session or a BACKGROUND sub-agent | **not established — read your tool list** |
 | Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
 | List the live ones | `ListAgents` | `list_agents` |
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |

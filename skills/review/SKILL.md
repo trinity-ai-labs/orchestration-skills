@@ -320,7 +320,14 @@ option that hands a sub-agent a worktree of its own.
 
 **Hand a reviewer the slice's goal, the worktree path, the resolved fork point, the diff and its one
 dimension — and none of the handoff imperatives**, since inheriting those imperatives is the whole of
-what made a fork dangerous and a fresh agent handed them by hand is a fork with extra steps. No
+what made a fork dangerous and a fresh agent handed them by hand is a fork with extra steps.
+
+**That brief names ONE tree: every repository path in it is inside the assigned worktree or relative to
+it, and where an instruction genuinely needs the repository rather than a checkout it names the REF**,
+which is the part that is repository-wide. A reviewer greps call sites and runs git, so a second
+absolute path buys it a result that is true about another branch — a green there is indistinguishable
+from a right-tree green, and the red direction is indistinguishable too, which sends a reader hunting a
+defect that is not in the diff at all. No
 *commit*, no *push*, no *open a PR*, no *enqueue*, no *run the formatter*, no *hand back to the
 dispatcher*, and no gate command. **Frame the deliverable positively rather than as a list of
 prohibitions**: you investigate, your deliverable is a report, and nothing else you do counts.

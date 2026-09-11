@@ -1,27 +1,31 @@
 ---
 name: decompose
 description: >-
-  The PRE-EXECUTION GROUNDING pass: take a deliberately big-picture issue, verify its assumptions against
-  the code, fill in the detail an executor acts on, ENRICH the issue with it, and slice ONE increment into
-  a dispatch-ready breakdown. It runs on both paths — invoked directly between /pipeline:write-issue and
-  /pipeline:execute on a single slice, and once per cycle inside /pipeline:orchestrate on an epic. Use
-  whenever you are asked to DECOMPOSE, break down, slice or plan-for-parallelism a chunk of work; to work
-  out what can run concurrently; and ALSO when the work is plainly one slice, since a plan that needs no
-  splitting can still be wrong. You ground the HORIZON — the next dispatchable increment — in the actual
+  The PRE-EXECUTION GROUNDING pass: take the deliberately big-picture issues a plan has made ready, verify
+  their assumptions against the code, fill in the detail an executor acts on, ENRICH each issue with it,
+  and hand a dispatcher the ready set as one dispatch-ready breakdown. It runs on both paths — invoked
+  directly between /pipeline:write-issue and /pipeline:execute on a single issue, and once per cycle inside
+  /pipeline:orchestrate on an epic. Use whenever you are asked to DECOMPOSE, break down, ground or
+  plan-for-parallelism a chunk of work; to work out what can run concurrently; and ALSO when the work is
+  plainly one slice, since a plan that needs no splitting can still be wrong. You ground the HORIZON — the
+  set of ready issues, ONE SLICE EACH — in the actual
   codebase at the depth an executor acts on, and VALIDATE it against what the code really does, surfacing
   wrong assumptions, unspecified behavior and defects in the plan before an implementer builds on them. The
   horizon emits at SLICE depth (goal, owned files, boundaries, derived artifacts, depends-on, framework skill, model
   tier, brief, verify bar);
-  everything past it at SHAPE depth (goal, area, dependency — no file:line). On the GitHub path
-  you post the breakdown as a comment, or convert the issue into an UMBRELLA of one sub-issue per horizon slice.
+  everything past it at SHAPE depth (goal, area, dependency — no file:line). You NEVER add a level to the
+  plan's tree: an issue too big to be one PR is reported back to the plan, never cut into slices here. On
+  the GitHub path you post what you ground as a comment on the issue it belongs to.
 argument-hint: "[issue # or a description of the plan to decompose — omit to decompose the plan already in chat]"
 ---
 
-# Decompose — ground the horizon into dispatchable slices
+# Decompose — ground the horizon: the ready issues, one slice each
 
-**Decompose is the pass between a plan and an executor, and it runs on both of the pipeline's paths** — invoked directly on a **single slice** (`/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, no loop anywhere in it), and once per cycle as the grounding step of `/pipeline:orchestrate`'s loop on an **epic**. Either way the issue reaching you is deliberately **big-picture**: you take the **horizon** — the next dispatchable increment — ground it in the real code **at the depth an executor acts on**, **enrich the issue with what you found**, and turn it into independent slices a dispatcher can run in parallel with minimal collision. Everything past the horizon carries forward as *shape*: goal, area, what it waits on — never coordinates. You are a **planner, not a builder**.
+**Decompose is the pass between a plan and an executor, and it runs on both of the pipeline's paths** — invoked directly on a **single issue** (`/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, no loop anywhere in it), and once per cycle as the grounding step of `/pipeline:orchestrate`'s loop on an **epic**. Either way the issues reaching you are deliberately **big-picture**: you take the **horizon** — the set of ready issues, **one slice each** — ground each in the real code **at the depth an executor acts on**, **enrich each issue with what you found**, and hand a dispatcher the ready set it can run in parallel with minimal collision. Everything past the horizon carries forward as *shape*: goal, area, what it waits on — never coordinates. You are a **planner, not a builder**.
 
-**Maximize safe parallelism, but parallelism has a price, so the goal is the *balance***, not as many slices as possible: every slice pays a worktree, an install, a review and a gate run, and gates drain one at a time, so N slices is N serialized gate runs plus N reviews. Aim for the *fewest* slices that still expose the real independence (`skills/decompose/references/slicing.md`'s *Sizing* carries the economics, and the altitude it is measured at).
+⛔ **You never add a level to the plan's tree** (`skills/glossary/vocabulary/umbrella.md`): **walk to the ready leaves and ground them** — adding no level, no leaf the plan does not already hold, and never cutting one leaf into two — since producing two slices where the plan held one lands work no tracked item stands for, leaving a checklist line unable to tick while it lands. (Giving a leaf the plan already carries its own number is not adding one.)
+
+**Parallelism has a price, so what you choose is WAVE WIDTH — how many of the ready issues go out together — never a slice count you manufacture**: every issue pays a worktree, an install, a review and a gate run, and gates drain one at a time, so N issues in a wave is N serialized gate runs plus N reviews. Take the *fewest* that still expose the real independence (`skills/decompose/references/slicing.md`'s *Sizing* carries the economics, and the altitude it is measured at).
 
 ⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you spawn a search agent.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
 
@@ -29,7 +33,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 ## Three input paths
 
-- **Invoked by `/pipeline:orchestrate` for one increment** — the loop names the horizon. Ground and slice **that increment only**, emit the remainder at shape depth, hand it back.
+- **Invoked by `/pipeline:orchestrate` for one increment** — the loop names the horizon. Ground **that increment only**, emit the remainder at shape depth, hand it back.
 - **In-chat plan** — decompose it and emit the breakdown **in chat**, ending with the handoff line.
 - **GitHub issue** (`decompose #<issue>`) — read it with `gh issue view <N>`, ground it, then write the breakdown back to GitHub. Ask once if it's ambiguous between this and the in-chat path.
 
@@ -55,17 +59,19 @@ Grounding almost always surfaces holes: unspecified behavior, an open design for
 
 **When you must ask, ask in plain chat — ONE question at a time.** State the gap, give your recommendation and why, ask the single most decision-blocking question, wait, fold the answer in, then ask the next only if still open. No option-picker dialogs, no batched wall. If the user is unavailable and a gap is non-blocking, proceed with the stated assumption and mark it.
 
-**Validate the horizon; past it, validate only what changes the shape** — a gap three waves out blocks only if it moves a wave boundary or creates a seam. **A falsified phase boundary or epic verdict is reported onto the issue, never answered again here** — both were settled where the arc was planned, and a pass that overrides one leaves two plans for one arc. This pass runs once per increment, so a bar set slightly too wide costs a user turn every cycle.
+**Validate the horizon; past it, validate only what changes the shape** — a gap three waves out blocks only if it moves a wave boundary or creates a seam. **A falsified phase boundary, an epic verdict, or an issue grounding shows cannot be ONE PR is reported onto the issue, never answered again here** — all three were settled where the arc was planned, and a pass that overrides one leaves two plans for one arc. **The third is the safety valve and it is a REPORT rather than a split**: the answer to an oversized issue is another child authored where issues are authored, so cutting it here instead ships slices no tracked item stands for. This pass runs once per increment, so a bar set slightly too wide costs a user turn every cycle.
 
-### 3. Slice the horizon, and size the wave → `skills/decompose/references/slicing.md`
+### 3. Ground each ready issue, and size the wave → `skills/decompose/references/slicing.md`
 
-One slice = one worktree = one PR. Produce each horizon slice's fields — `Goal`, `Owns`, `Do NOT touch`, `Derives`, depends-on, skill to invoke, model tier, brief, verify bar — read them against each other, size the wave against the gate, then lay the waves out inside the issue's phase order, with the conflict map and the contract seams.
+**Ground each ready issue as the one slice it already is** (`skills/glossary/vocabulary/umbrella.md`). Produce each horizon slice's fields — `Goal`, `Owns`, `Do NOT touch`, `Derives`, depends-on, skill to invoke, model tier, brief, verify bar — read them against each other, size the wave against the gate, then lay the waves out inside the issue's phase order, with the conflict map and the contract seams. **Those fields are what you ground PER ISSUE and never instructions for carving one up** — catch yourself producing two slices from one issue and you are looking at the defect this action exists not to commit.
+
+**A wave is a SET OF READY ISSUES run in parallel** — three are ready, so ground three, dispatch three, land three — which is why `skills/decompose/references/slicing.md`'s *Sizing* prices how many issues go in a wave and never a cut inside one. **An issue that cannot be one PR goes back as the report action 2 names**, since answering it here is the split that decouples a cycle from the board.
 
 ⛔ **Everything this action produces is *slice depth*, and slice depth is for the horizon only.** Both errors are silent: an item past the horizon at slice depth carries coordinates a later wave invalidates, and a horizon item left at shape depth is dispatched with no scope, so the implementer invents its own.
 
 ### 4. Emit the breakdown → `skills/decompose/references/emitting.md`
 
-In chat, or back onto the issue as a comment or as an umbrella with one sub-issue per horizon slice. **Writing it back is what enriches the issue** — the detail an executor acts on lands where the next reader finds it rather than only in this turn's output. Lead with the parallelization plan, then the horizon at slice depth, then the remainder at shape depth, and end with the handoff line.
+In chat, or back onto each ready issue as a comment. **Writing it back is what enriches the issue** — the detail an executor acts on lands where the next reader finds it rather than only in this turn's output. Lead with the parallelization plan, then the horizon at slice depth, then the remainder at shape depth, and end with the handoff line.
 
 ⛔ **Label every item's depth, and keep the two in separate sections — never interleaved.** An unlabeled shape item reads as a slice somebody left half-finished, and both repairs are wrong — dispatch it and the implementer gets no scope, "finish" it by grounding it and you have written the stale coordinates the horizon exists to prevent.
 

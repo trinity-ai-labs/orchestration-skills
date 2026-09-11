@@ -18,6 +18,9 @@ description: >-
 Before you do, you dispatch a reviewer per dimension over your uncommitted diff, weigh what they
 report, apply what belongs, and report what you deliberately left alone.
 
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before
+this file does.**
+
 ⛔ **A reviewer here is NEVER a fork, and a reviewer here NEVER spawns one** — this pass sits deeper
 in the tree of agents than anything else in the pipeline and its readers run beside a live
 implementer's uncommitted work, so `skills/ground-rules/SKILL.md` rules 1 and 2 are the floor under
@@ -217,6 +220,14 @@ that is a revert, and it arrives in your Applied list wearing the word convergen
 
 ## 3. Weigh what comes back, apply what belongs, then verify it
 
+⛔ **Change nothing until EVERY reviewer you dispatched has reported.** Your host re-invokes you once
+per reviewer that finishes, so the first report arrives looking like *what comes back* while the others
+are still reading the tree — and an edit made then moves the tree under them, so their findings
+describe lines that no longer exist and your own fresh edits reach them as part of the change. **The
+count you dispatched in step 2 is the count you wait for, and anything else that would change the tree
+waits with it**, an answer from your dispatcher included. A reviewer that fails or stalls has landed
+with nothing: weigh the rest, and name that dimension in your report as one that did not report.
+
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
 consciously reject the rest. **You apply nothing on anyone's behalf**: nothing lands in this tree you
@@ -261,7 +272,7 @@ it allowed. **No reviewer runs one either**, which is why no brief you write nam
 does not care which run it was — the turn ends, and the caller never gets the report. So this rule is
 keyed to the handoff rather than to the ban. Both of your checks run in the **foreground**, and this
 pass ends at its report, never at a wait. **It reaches checks and commands and NOT the reviewers you
-dispatched**, whose running is a self-suspension your host re-invokes you from — waiting on them is how
+dispatched**, whose running is a self-suspension your host re-invokes you from — waiting on ALL of them is how
 this pass works, and reading the ban as reaching them leaves you with one reader again.
 
 ---
@@ -329,7 +340,8 @@ absolute path buys it a result that is true about another branch — a green the
 from a right-tree green, and the red direction is indistinguishable too, which sends a reader hunting a
 defect that is not in the diff at all. No
 *commit*, no *push*, no *open a PR*, no *enqueue*, no *run the formatter*, no *hand back to the
-dispatcher*, and no gate command. **Frame the deliverable positively rather than as a list of
+dispatcher*, no gate command, and no command that moves or clears the tree — no checkout of another
+commit, no `stash`, `reset` or `clean` — since the caller's uncommitted change is the only copy of it. **Frame the deliverable positively rather than as a list of
 prohibitions**: you investigate, your deliverable is a report, and nothing else you do counts.
 
 **That positive frame has to reach the END OF THE CHAIN as well as the deliverable, or a budget

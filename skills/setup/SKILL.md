@@ -14,7 +14,7 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 `/pipeline:execute` cuts a worktree per task and expects each project to declare how it builds, checks and gates itself. That declaration is `<repo>/.agents/worktree.json`; this skill writes it and scaffolds a gate queue where the project wants one. **Both artifacts live in the project**, so two queues *should* be free to diverge.
 
-⛔ **`skills/ground-rules/SKILL.md` binds you before this file does, and this pass declares no sub-agents, so it authorizes none** — read it if you are about to spawn anything here.
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** This pass declares no sub-agents, so it authorizes none.
 
 ## Why an unconfigured repo is worse than an obviously-broken one
 

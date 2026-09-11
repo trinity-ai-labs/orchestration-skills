@@ -100,8 +100,9 @@ entry, so there is nothing to restore; a pop that fails on a conflict leaves its
 resolve, then `git stash drop "$REF"` resolved the same way — never a second pop. `-u` carries untracked
 files, and the push runs no commit hook, so it parks work a commit's hook would refuse. **Never an
 argument-less `git stash pop`, `apply` or `drop`, never `git stash clear`, and never touch an entry your
-marker does not name.** **Never end a turn with a stash of yours still on the stack**: pop it, drop it by
-its marker where you mean to discard it, or name its marker and the restore command in your report.
+marker does not name.** **Never hand back or report with a stash of yours still on the stack**: pop it,
+drop it by its marker where you mean to discard it, or name its marker and the restore command in that
+report.
 
 ## 8. Never game a guardrail — fix the cause, not the number
 
@@ -113,6 +114,16 @@ you have decided is wrong.
 
 Cache-eligible tasks go through the project's task runner, never the raw binary; the one sanctioned
 direct run is a single targeted test file.
+
+## 10. Never make a call only to keep your turn open
+
+**When all that is left is agents you dispatched, wait the way your host wakes you — where it re-invokes
+you as each one reports, by ending your turn with no tool call, which hands nothing back — and never by a
+call whose result you do not need, made so your turn does not end**: a placeholder agent, an `echo`, a
+`sleep`, since each is a paid round trip that learns nothing and a placeholder's own completion wakes you
+into spawning the next. **The ban is on the call's PURPOSE, not its tool** — a host call that blocks
+until a child reports is that host's wait, and a tick or watch the pass you are in requires returns
+something you act on, so neither is one of these.
 
 ---
 

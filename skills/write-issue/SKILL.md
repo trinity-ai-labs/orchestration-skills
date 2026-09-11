@@ -23,7 +23,7 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 ⛔ **You set the phases and you do not ground them** — each item you file is ground into the one dispatchable slice it already is, with owned files, fences, a model tier and a verify bar, at `/pipeline:decompose`'s horizon, and you never write code, make worktrees, dispatch or run the arc. **You are also the one pass that cuts the plan's tree** (`skills/glossary/vocabulary/umbrella.md`), so a piece you leave too big for one PR has no seat downstream that can cut it — the grounding pass grounds the leaves you filed and adds none. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config) rather than a hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost model you brought with you.
 
-⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you spawn a search agent.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
 
 **Four steps, in order — and the file does not end at the fourth**: *Two rules that fire at every step* follows them.
 

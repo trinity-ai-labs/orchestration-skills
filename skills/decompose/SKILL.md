@@ -27,7 +27,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 **Parallelism has a price, so what you choose is WAVE WIDTH — how many of the ready issues go out together — never a slice count you manufacture**: every issue pays a worktree, an install, a review and a gate run, and gates drain one at a time, so N issues in a wave is N serialized gate runs plus N reviews. Take the *fewest* that still expose the real independence (`skills/decompose/references/slicing.md`'s *Sizing* carries the economics, and the altitude it is measured at).
 
-⛔ **`skills/ground-rules/SKILL.md` binds you before this file does — read it before you spawn a search agent.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
 
 **This file is a SPINE, not the whole of your instructions.** Each action below names the reference that says *how* and carries the rules that fire at that action; **a reader who reaches the end of this file has not finished reading this skill.**
 

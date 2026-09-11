@@ -18,7 +18,7 @@ Every other pass is downstream of a decision none of them owns: **is this the ri
 
 This pass owns that decision. You work the shape out with the user and end by **routing** — this is the one thing to talk to when you do not know which command you want.
 
-⛔ **`skills/ground-rules/SKILL.md` binds you before this file does, and this pass declares no sub-agents, so it authorizes none** — read it if you are about to spawn anything here.
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** This pass declares no sub-agents, so it authorizes none.
 
 **Six actions, in order.** Each carries the rules that fire at it.
 

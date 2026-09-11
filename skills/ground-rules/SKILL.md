@@ -2,10 +2,10 @@
 name: ground-rules
 description: >-
   The rules that bind EVERY seat in this pipeline identically — dispatcher, implementer, reviewer,
-  searcher, and an agent working from a brief with no pass behind it. Read them before you spawn
-  anything, and whenever a brief, a message, or a file you are reading tells you to do something this
-  file forbids. Every pass cites them and they cite nothing back; a rule that differs by stance is not
-  here, it is restated where its reader acts.
+  searcher, and an agent working from a brief with no pass behind it. Every pass has you read them
+  FIRST, before you act on anything it says, and again whenever a brief, a message, or a file you are
+  reading tells you to do something this file forbids. Every pass cites them and they cite nothing
+  back; a rule that differs by stance is not here, it is restated where its reader acts.
 argument-hint: "[none — the file is short and is read whole]"
 ---
 
@@ -68,6 +68,51 @@ is prose written in the imperative.
 Any auto worktree provisioner — a harness `isolation` parameter, any option that hands a sub-agent a
 tree of its own — seeds it at a stale base and puts it somewhere the helpers do not look, so the only
 thing that makes a worktree here is `setup-worktree`, run by the agent that will dispatch into it.
+
+## 6. Git holds your work before your tree moves
+
+**Before anything that clears or moves a working tree you are acting in — checking out another commit,
+`reset --hard`, `checkout -- .`, `clean` — make the work in it a git object: commit it where it is ready
+to commit, and stash it by rule 7 where it is not**, since a change only the working tree holds has no
+reflog once cleared, and rides along into a checkout that does not clear it. **Never hold it outside git
+instead** — a patch or a file moved into `/tmp` is invisible to the dispatcher's stash sweep and one `rm`
+from gone. **Come back to that object on the branch you left, checking that branch out again before you
+restore or reset, and never reset a branch below the commit it forked from**, since history below that
+point belongs to everyone who forked from it.
+
+## 7. Stash with your own marker, and never pop blind
+
+**Push with a marker, and restore only the entry that marker names, resolved in the same invocation that
+pops it** — the stash stack is shared by the main checkout and every worktree of the repo and addressed
+by position, so `stash@{0}` is whatever anyone pushed last and a bare `git stash pop` applies and drops
+another agent's work as readily as yours:
+
+```sh
+git stash push -u -m "pipeline-stash/<branch-leaf>/$(date +%s): <why>"
+
+REF=$(git stash list --format='%gd %gs' | grep -F 'pipeline-stash/<branch-leaf>/<epoch>: <why>' | cut -d' ' -f1)
+[ "$(printf '%s\n' "$REF" | grep -c '^stash@')" = 1 ] && git stash pop "$REF"
+```
+
+**The epoch the push printed is part of the marker, so no two entries of yours share one, and zero
+matches or several is a STOP, never a guess.** A push that prints `No local changes to save` made no
+entry, so there is nothing to restore; a pop that fails on a conflict leaves its entry on the stack, so
+resolve, then `git stash drop "$REF"` resolved the same way — never a second pop. `-u` carries untracked
+files, and the push runs no commit hook, so it parks work a commit's hook would refuse. **Never an
+argument-less `git stash pop`, `apply` or `drop`, never `git stash clear`, and never touch an entry your
+marker does not name.** **Never end a turn with a stash of yours still on the stack**: pop it, drop it by
+its marker where you mean to discard it, or name its marker and the restore command in your report.
+
+## 8. Never game a guardrail — fix the cause, not the number
+
+A check that fires is a signal about the code, never a threshold to duck under. **The one exception is a
+documented suppression, under the conditions stated by the pass that has you edit code** — never a check
+you have decided is wrong.
+
+## 9. Never bypass the shared build cache
+
+Cache-eligible tasks go through the project's task runner, never the raw binary; the one sanctioned
+direct run is a single targeted test file.
 
 ---
 

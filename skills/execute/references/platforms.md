@@ -10,7 +10,7 @@ Reference for `skills/execute/SKILL.md`. The rest of this skill names **capabili
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
 | Wait on agents you dispatched | end your turn with no tool call — each report re-invokes you, in a main session or a BACKGROUND sub-agent | **not established — read your tool list** |
 | Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
-| List the live ones | `ListAgents` | `list_agents` |
+| List the live ones — the agents YOU spawned, never their children | `ListAgents` | `list_agents` |
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
 | Reach your dispatcher from inside a sub-agent | `SendMessage`, `to: "main"` — from a BACKGROUND sub-agent | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |

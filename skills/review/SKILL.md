@@ -70,6 +70,10 @@ What is in scope, once you have it:
 - **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
   bounds here too. Every boundary in this list binds each reviewer as well, so each one is stated in
   the brief you write rather than assumed.
+- **A grant you already worked under supersedes that fence on the paths it names.** Those paths are in
+  bounds here, so each reviewer's brief says so — left to infer it, a reader meets a diff that
+  contradicts its own stated boundaries and either flags the granted edit as drift or skips it as
+  another slice's business.
 
 ---
 
@@ -225,12 +229,15 @@ a time, so the first arrives looking like *what comes back* while the others are
 tree — and an edit made then moves the tree under them, so their findings describe lines that no longer
 exist and your own fresh edits reach them as part of the change. **The count you dispatched in step 2
 is the count you wait for, and anything else that would change the tree waits with it**, an answer from
-your dispatcher included. **Wait on those reviewers the way your host wakes you — where it re-invokes
-you as each one reports, by ENDING your turn with no tool call, which hands nothing back, and where it
-gives you a call that blocks until one reports, by that call — and never by a call made only to keep the
-turn open**, a placeholder agent or an `echo` or a `sleep`, which spends a round trip and learns nothing.
-A reviewer that fails or stalls has landed with nothing: weigh the rest, and name that dimension in your
-report as one that did not report.
+your dispatcher included. **This pass ends at its report and re-opens for nothing**, so an answer you
+held until then, or one arriving after it, is applied to a tree no reviewer will read again and has no
+reader left but whoever reviews the caller's diff — which is the caller's to record in its hand-back
+rather than this pass's to re-open for. **Wait on those reviewers the way your host wakes you — where
+it re-invokes you as each one reports, by ENDING your turn with no tool call, which hands nothing back,
+and where it gives you a call that blocks until one reports, by that call — and never by a call made
+only to keep the turn open**, a placeholder agent or an `echo` or a `sleep`, which spends a round trip
+and learns nothing. A reviewer that fails or stalls has landed with nothing: weigh the rest, and name
+that dimension in your report as one that did not report.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and

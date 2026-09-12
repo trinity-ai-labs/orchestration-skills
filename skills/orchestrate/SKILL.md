@@ -64,7 +64,7 @@ On the first cycle read the source plan — `gh issue view <N> --comments`, or t
 
 ## 2. Dispatch it → `/pipeline:execute`
 
-Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic branch's mechanics, model tiers, the gate, PR review and merge-not-squash are its own. **The epic verdict itself arrived with the issue** — carry it down, never re-decide it here.
+Invoke `/pipeline:execute` as the **dispatcher**; worktrees, the epic branch's mechanics, **resolving** each slice's model tier onto a host model, the gate, PR review and merge-not-squash are its own. **The epic verdict itself arrived with the issue** — carry it down, never re-decide it here. **The model TIER arrives the same way, ground per slice by the pass step 1 just ran** — the dispatcher resolves it, raises it on what the grounding could not see with its reason beside it, and lowers it only with a written reason in the brief — so nothing at this seat decides one either.
 
 ⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are launched.**
 

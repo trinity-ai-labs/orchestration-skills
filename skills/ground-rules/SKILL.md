@@ -125,6 +125,20 @@ into spawning the next. **The ban is on the call's PURPOSE, not its tool** — a
 until a child reports is that host's wait, and a tick or watch the pass you are in requires returns
 something you act on, so neither is one of these.
 
+## 11. Name the tier of every agent you spawn — never inherit one
+
+**Every sub-agent's model tier is a choice you state at the spawn, because a host handed no model gives
+your child YOUR model** — so one top-tier agent spawning readers spawns top-tier readers, and a
+seven-wide fan-out multiplies a tier nobody chose. Match the tier to the **child's** work rather than to
+yours: a reader handed one dimension over a diff, a searcher grepping one subsystem, a mechanical
+rename — standard tier, whatever the parent is doing. **Give a genuinely hard child the top tier all the
+same**: what is banned is inheriting a tier silently, never spending one the child's own work earns.
+
+**No seat is outside this, and it is rule 1's sibling** — that one bans a spawn MECHANISM because the
+child inherits your conversation, and this governs a spawn PARAMETER because the child inherits your
+model, so state it however read-only the child is and however small its job. The four seats rule 1 names
+are the four seats here.
+
 ---
 
 **A pass that restates one of these at your seat is stating the same rule, and a pass that states

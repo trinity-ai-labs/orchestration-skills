@@ -23,7 +23,7 @@ Reference for `skills/write-issue/SKILL.md`, Step 3. Nothing downstream re-deriv
 **Write every item to close inside ONE cycle — one item, one PR** (`skills/glossary/vocabulary/umbrella.md`) — **and split one that cannot, here, at filing time, before the arc starts**, since an item spanning two PRs leaves a checklist line unable to tick while real work lands. **This is the altitude the phase list already sits at rather than grounding**: it asks how big a piece is, never which files it touches.
 
 - **Nothing downstream cuts an item for you**, so a level you leave uncut stays uncut — the pass that grounds the work grounds the leaves you filed and adds none.
-- **Where you cannot tell whether a piece is one PR, split it** — an item too small merely rides a wave it would have ridden anyway, where one too big is reported back to you mid-arc and re-planned against a colder tree.
+- **Where you cannot tell whether a piece is one PR, keep it whole** — an item too small buys its own worktree, install, gate run and review pass and comes back mid-arc as a report to re-author it together with its neighbours, where one too big is reported back to you mid-arc and re-planned against a colder tree; neither direction is a cut anyone downstream can make for you.
 
 ## Epic or one slice — answer it in one line, every time
 

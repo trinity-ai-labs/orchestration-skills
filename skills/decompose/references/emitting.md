@@ -55,11 +55,9 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 
 **An epic branch's prefix carries no mechanical meaning; its leaf does** (`skills/glossary/mechanics/branch-leaf.md`), so that slot takes the real branch name. **It should not read like a slice branch**, or it is indistinguishable in a PR list from the `feat/<leaf>` slices merging into it. **And its leaf must be one no slice branch you name reuses** — the likeliest collider is the closing docs slice. Check it every cycle against the slices you are grounding now.
 
-End with the handoff line, and **which one depends on the path the issue is on, not on who invoked you** — verbatim intent:
+End with the handoff line — **one line, whatever the size of what you just grounded** — verbatim intent:
 
-> **Horizon ready to dispatch.** *(one slice)* `/pipeline:execute` takes it from here: a worktree, an implementer, the gate, a draft PR, review, merge. There is no remainder to reconcile and no loop to enter.
->
-> **Horizon ready to dispatch.** *(an epic)* `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon.
+> **Horizon ready to dispatch.** `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon. **Where this horizon was the whole of the plan, that reconcile finds nothing and the loop closes out on its first cycle.**
 
 ## Writing it back to GitHub
 

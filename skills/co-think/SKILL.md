@@ -85,10 +85,10 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 |---|---|
 | A spike | Answer it as cheaply as correctness allows, then **stop**. No issue; anything you built is labelled throwaway |
 | Bounded, and small enough that an issue would outweigh it | Say so, get the nod, then **build it yourself as the implementer** — you leave this pass rather than break its rule, and `/pipeline:execute` carries the implementer's flow |
-| Bounded, and real work | `/pipeline:write-issue` — it sets the phases and routes from there: `/pipeline:decompose` then `/pipeline:execute` for one slice, `/pipeline:orchestrate` for an epic |
+| Bounded, and real work | `/pipeline:write-issue` — it sets the phases and hands off to `/pipeline:orchestrate`, whatever the size of what it just planned |
 | Architectural | Shape the arc with the user first (5), then `/pipeline:write-issue` |
 | A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
-| It is already filed | `/pipeline:orchestrate` where the issue is an epic; `/pipeline:decompose`, then `/pipeline:execute`, where it is one slice |
+| It is already filed | `/pipeline:orchestrate` — it grounds the horizon and dispatches it, one cycle or twenty |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
 | Cutting the next release, or rolling the branch work lands on | `/pipeline:cut-release` — a project pass, not an arc; it is not shaped work and does not want an issue |
 

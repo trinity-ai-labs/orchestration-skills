@@ -151,4 +151,4 @@ Commit the config (and the queue scripts) and open a PR the way that repo normal
 
 **Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
-> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and names the next command: `/pipeline:decompose` then `/pipeline:execute` for one slice, `/pipeline:orchestrate` for an epic.
+> **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and hands off to `/pipeline:orchestrate`, the one command that ships dispatched work of any size.

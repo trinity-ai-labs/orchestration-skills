@@ -2,13 +2,14 @@
 
 The **dev pipeline**, packaged as one plugin for **Claude Code and Codex**: turn an idea into an issue that plans the arc, ground it against the code, then ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents.
 
-**The issue says which of two paths the work is on**, and writing it is where that gets decided:
+**One front door, and one command that ships what it plans** — the issue says how big the work is, which decides how many cycles that command runs rather than which command you type:
 
 ```
-                                                    ┌ one slice ─▶ /pipeline:decompose ─▶ /pipeline:execute ─▶ done
-rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
-                                                    └ an epic ───▶ /pipeline:orchestrate ─▶ done
-                                                                   (loops the ready sub-issues through those same two)
+rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:orchestrate ─▶ done
+                                (plans the arc)          (loops the ready sub-issues through
+                                                          /pipeline:decompose and /pipeline:execute —
+                                                          many cycles on a multi-phase arc, one on a
+                                                          standalone issue, whose reconcile finds nothing)
 ```
 
 **Ten skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. `/pipeline:glossary` is the map both families read, and `/pipeline:ground-rules` is the short list of rules every seat is held to identically — the never-a-fork ban first — which every pass has its reader open before acting on anything in it.
@@ -19,15 +20,15 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 | [`/pipeline:cut-release`](skills/cut-release/SKILL.md) | Cuts the next release branch and moves the version, as one reviewable commit in its own worktree — the repository side only, never tags or publishing. It exists because that moment was the one nothing in the flow was present for, which is how `integrationBranch` went stale and the version moved invisibly. |
 | [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door, and where a request for your judgment on a shape lands as much as a request to build one. Writes the goal down as one testable sentence, classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. It shapes toward that goal rather than around the mechanisms it finds, so an existing check, ceiling or step is something it may propose changing or deleting. |
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Takes a shape you have already settled and **plans the arc**: grounds what the arc rests on — the real modules, the seams, whether the surface exists — sets the phases and their order, answers whether the work is one slice or an epic, and files it as a forward-facing issue. **It is also the one pass that cuts the plan's tree of tasks** — umbrella to sub-issues, two levels, one sub-issue being one slice and one PR — because nothing downstream adds a level to it. Where the shape is not settled it hands back to `co-think` rather than filing. |
-| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | Runs a **multi-phase** arc to completion as a loop: grounds the horizon — the ready sub-issues — dispatches them, reconciles the rest against the tree that increment produced, repeats. A cycle lands whole issues and absorbs what it finds rather than handing it back. One slice never comes here. |
+| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | **The one command you type for dispatched work of any size.** Runs an arc to completion as a loop: grounds the horizon — the ready sub-issues — dispatches them, reviews and merges them, reconciles the rest against the tree that increment produced, repeats. A cycle lands whole issues and absorbs what it finds rather than handing it back. Dependency phases are what make an arc take many cycles — leaves that are all ready at once are one wave and land in one — and a standalone issue is one cycle over one leaf. |
 
 | Behind them | Does |
 |---|---|
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
-| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. |
+| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, run once per cycle by the loop: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
+| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass, reached from the loop rather than typed — it is the loop's own dispatcher half rather than a second seat: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. It is also where an **implementer** reads its own flow, which is the one half of it a user still enters directly. |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension it judges the slice needs, each spawned at a tier that is named rather than inherited from the implementer — standard for a reader over one dimension, higher where that dimension is genuinely hard — each reporting what it ran, and all of them weighed by the implementer. |
 
-On the one-slice path those first two are the whole of the run and you invoke them yourself — that is the path, not a side door. On an epic the loop invokes both for you.
+The loop invokes all three for you — that is what "behind them" means, and there is no size of work at which one of them becomes a command you type instead.
 
 The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. **Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get) — same arguments, same environment variables, same output, same exit codes, one CLI contract implemented twice. What holds that pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; what the repo's own gate can and cannot see of it is in [Adding a skill](docs/adding-a-skill.md).
 
@@ -126,20 +127,13 @@ The PowerShell tool is rolling out progressively *alongside* the Bash tool rathe
 /pipeline:write-issue add per-workspace model overrides   # → files issue #1042 with its phase map and its verdict
 ```
 
-`write-issue` ends with an explicit handoff line and **stops** — the line names the next command, and you decide whether to run it. Which line you get depends on the verdict it just wrote.
-
-**One slice** — two more commands, no loop:
-
-```
-/pipeline:decompose #1042          # → grounds it for an executor and enriches the issue
-/pipeline:execute #1042            # → worktree, implementer, gate, draft PR, review, merge
-```
-
-**An epic** — one:
+`write-issue` ends with an explicit handoff line and **stops** — the line names the next command, and you decide whether to run it. It is the same command whatever verdict it just wrote:
 
 ```
 /pipeline:orchestrate #1042        # → grounds the horizon, dispatches it, reconciles, repeats
 ```
+
+What the verdict decides is how many times that loop goes round: a multi-phase arc runs cycle after cycle, and a standalone issue is one cycle — its horizon is the issue itself, and its reconcile finds nothing left.
 
 `orchestrate` runs the arc to completion on its own, cycle after cycle, reporting what it decided each time and how much it has left standing; it comes back to you only for a genuine product or design fork the code and conventions cannot settle, asked in plain chat, one question at a time, with a recommendation — or to halt, which is a report rather than a question and happens when a cycle lands nothing, when what is left of the plan has grown past what you asked for, when work the goal turns out to need is too big for the arc as it was planned, or when two cycles running have each filed at least as many follow-ups as they closed, while follow-ups this arc filed are still outstanding — a backlog being transferred rather than landed. A plan that has fallen short of your goal is not one of those: that direction the loop fixes itself, folding the missing work back in.
 

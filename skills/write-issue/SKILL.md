@@ -10,14 +10,15 @@ description: >-
   deliverables it names, whether the surface it assumes exists at all — then write it forward-facing
   as work to execute: goal, approach, the surface as real modules and files, the phase map, seams,
   verify. You set the phases, you cut the plan's two-level tree of tasks — umbrella to sub-issues, one
-  sub-issue being one slice and one PR — and you answer whether the work is one slice or an epic. Ends
-  with the handoff — to /pipeline:decompose for one slice, to /pipeline:orchestrate for an epic.
+  sub-issue being one slice and one PR — and you answer whether the work is one slice or an epic, which
+  decides how many cycles the loop runs rather than which command comes next. Ends with the handoff, to
+  /pipeline:orchestrate.
 argument-hint: "[the settled shape to write up — omit to write up what is already agreed in chat]"
 ---
 
 # write-issue — author the issue that feeds the pipeline
 
-**`co-think` settles the shape; you plan the arc, and the plan you write chooses between two paths.** **One slice** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, no loop anywhere in it. **An epic** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`, which loops the phases you set through `/pipeline:decompose` and `/pipeline:execute`. Either way the issue you file is deliberately **big-picture**: `/pipeline:decompose` grounds it for an executor before anything is built, so you write the arc rather than the build.
+**`co-think` settles the shape; you plan the arc, and what the plan you write decides is how many cycles it takes to land — never which command lands it.** `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`, which loops the phases you set through `/pipeline:decompose` and `/pipeline:execute`: many cycles on a multi-phase arc, one on a standalone issue. The issue you file is deliberately **big-picture**: `/pipeline:decompose` grounds it for an executor before anything is built, so you write the arc rather than the build.
 
 ⛔ **Your input is a shape already settled — where it is not, hand back to `/pipeline:co-think` and say so.** Settling unshaped work is that pass's job, not this one, and the tell is that you are about to choose the approach, name the pieces or settle the order yourself instead of writing down one already agreed: an issue written off an unsettled shape comes out TRUE and aimed wrong, and no pass downstream reopens the goal, so the whole arc executes it correctly.
 
@@ -135,15 +136,9 @@ Neither fires at one action; both bind every line of prose this skill writes, a 
 
 ## Handoff
 
-**Route on the verdict you just wrote — one of these two, never both.**
+**One handoff, whatever verdict you just wrote.** Verbatim intent:
 
-**One slice**, verbatim intent:
-
-> **Ready to ground.** Hand this to `/pipeline:decompose`, which verifies it against the code, fills in what an executor acts on and enriches this issue with it — then `/pipeline:execute` ships it: worktree, implementer, gate, draft PR, review, merge. No loop.
-
-**An epic**, verbatim intent:
-
-> **Ready to orchestrate.** Hand this to `/pipeline:orchestrate` (e.g. `/pipeline:orchestrate #<N>`), which runs the arc as a loop: ground the next ready children through `/pipeline:decompose`, ship them through `/pipeline:execute` — worktree per slice, implementers, gate, PR review, merge — then reconcile the rest against the tree it produced, repeating until the plan is empty.
+> **Ready to orchestrate.** Hand this to `/pipeline:orchestrate` (e.g. `/pipeline:orchestrate #<N>`), which runs the arc as a loop: ground the next ready leaves through `/pipeline:decompose`, ship them through `/pipeline:execute` — worktree per slice, implementers, gate, PR review, merge — then reconcile the rest against the tree it produced, repeating until the plan is empty. **A standalone issue is that same loop run once**, its horizon being the issue itself and its reconcile finding nothing.
 
 Then **stop** — grounding, worktrees and code all sit past this pass.
 

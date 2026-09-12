@@ -70,6 +70,10 @@ What is in scope, once you have it:
 - **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
   bounds here too. Every boundary in this list binds each reviewer as well, so each one is stated in
   the brief you write rather than assumed.
+- **A grant you already worked under supersedes that fence on the paths it names.** Those paths are in
+  bounds here, so each reviewer's brief says so — left to infer it, a reader meets a diff that
+  contradicts its own stated boundaries and either flags the granted edit as drift or skips it as
+  another slice's business.
 
 ---
 

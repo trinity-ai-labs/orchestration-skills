@@ -89,6 +89,7 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 | Architectural | Shape the arc with the user first (5), then `/pipeline:write-issue` |
 | A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
 | It is already filed | `/pipeline:orchestrate` — it grounds the horizon and dispatches it, one cycle or twenty |
+| A pile of already-filed issues to group | `/pipeline:write-issue` — its third way in clusters them into one umbrella |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
 | Cutting the next release, or rolling the branch work lands on | `/pipeline:cut-release` — a project pass, not an arc; it is not shaped work and does not want an issue |
 

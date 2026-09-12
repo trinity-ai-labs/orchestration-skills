@@ -3,9 +3,10 @@ name: write-issue
 description: >-
   Write a settled shape up as a forward-facing GitHub issue — or an umbrella + sub-issues — and plan
   the arc it runs as. Fed by /pipeline:co-think. Its input is a decision already made: the approach
-  chosen, the pieces named, the order agreed, a bug already diagnosed, or a follow-up a live run
-  surfaced. Use whenever you're asked to WRITE UP / FILE / OPEN an issue, to capture agreed work as
-  something trackable, or to turn a concluded design discussion into one. You GROUND WHAT THE ARC
+  chosen, the pieces named, the order agreed, a bug already diagnosed, a follow-up a live run
+  surfaced, or a pile of already-filed issues to sweep and cluster into one. Use whenever you're asked
+  to WRITE UP / FILE / OPEN an issue, to GROUP a pile of loose issues into an umbrella, to capture
+  agreed work as something trackable, or to turn a concluded design discussion into one. You GROUND WHAT THE ARC
   RESTS ON against the real codebase — the modules it lands in, the seams between them, the
   deliverables it names, whether the surface it assumes exists at all — then write it forward-facing
   as work to execute: goal, approach, the surface as real modules and files, the phase map, seams,
@@ -36,6 +37,12 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 - **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete; Step 4's *Follow-up linking* holds the forms. **A finding from behind a fence takes one further line**: an item found inside a file its brief marked `Do NOT touch` carries `Filed from behind a fence: <the fenced path>` on its own line in the body, or heading the comment where the observation lands on an existing issue. Its premises were established by **reading** rather than by changing, so whoever picks it up re-grounds every claim before it becomes a slice.
 - **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path": **surface**, not archeology.
+
+---
+
+## A pile of already-filed issues is a third way in
+
+**A third way in, not a fifth step.** Sweep the candidates and cluster them on **a shared failure or a shared surface** — the same files, the same rule, the same failure — never on subject area alone, since two issues that only share a subject stay unrelated even swept into one pass. That never-on-subject-area line is Step 1's own, run here against a pile instead of one candidate. Emit an umbrella over each cluster exactly as an authored one: the goal it shares, the phase map over its children, the arc-wide verify bar — an ordinary epic the loop runs with no special case. **Its children are the existing numbers, and their bodies are not edited** — each was written by whoever filed it, and rewriting it loses the report. Step 4's checklist and native link cover them as they cover any child; the backlink half does not, since a child carrying no body backlink is a normal state, and this is an input there, not new machinery. **The reversal:** unrelated issues still ship separately — wrapping the backlog into one arc to save a gate run trades thin-slice churn for an epic nobody can review.
 
 ---
 

@@ -3,9 +3,9 @@ name: decompose
 description: >-
   The PRE-EXECUTION GROUNDING pass: take the deliberately big-picture issues a plan has made ready, verify
   their assumptions against the code, fill in the detail an executor acts on, ENRICH each issue with it,
-  and hand a dispatcher the ready set as one dispatch-ready breakdown. It runs on both paths — invoked
-  directly between /pipeline:write-issue and /pipeline:execute on a single issue, and once per cycle inside
-  /pipeline:orchestrate on an epic. Use whenever you are asked to DECOMPOSE, break down, ground or
+  and hand a dispatcher the ready set as one dispatch-ready breakdown. You are the grounding step of
+  /pipeline:orchestrate's loop, run once per cycle — on an arc of twenty ready leaves and on a standalone
+  issue alike, where the horizon is that one issue. Use whenever you are asked to DECOMPOSE, break down, ground or
   plan-for-parallelism a chunk of work; to work out what can run concurrently; and ALSO when the work is
   plainly one slice, since a plan that needs no splitting can still be wrong. You ground the HORIZON — the
   set of ready issues, ONE SLICE EACH — in the actual
@@ -22,7 +22,7 @@ argument-hint: "[issue # or a description of the plan to decompose — omit to d
 
 # Decompose — ground the horizon: the ready issues, one slice each
 
-**Decompose is the pass between a plan and an executor, and it runs on both of the pipeline's paths** — invoked directly on a **single issue** (`/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, no loop anywhere in it), and once per cycle as the grounding step of `/pipeline:orchestrate`'s loop on an **epic**. Either way the issues reaching you are deliberately **big-picture**: you take the **horizon** — the set of ready issues, **one slice each** — ground each in the real code **at the depth an executor acts on**, **enrich each issue with what you found**, and hand a dispatcher the ready set it can run in parallel with minimal collision. Everything past the horizon carries forward as *shape*: goal, area, what it waits on — never coordinates. You are a **planner, not a builder**.
+**Decompose is the pass between a plan and an executor, and it is the grounding step of `/pipeline:orchestrate`'s loop, run once per cycle** — on an arc of twenty ready leaves and on a standalone issue alike, where that one issue is the whole horizon. The issues reaching you are deliberately **big-picture**: you take the **horizon** — the set of ready issues, **one slice each** — ground each in the real code **at the depth an executor acts on**, **enrich each issue with what you found**, and hand a dispatcher the ready set it can run in parallel with minimal collision. Everything past the horizon carries forward as *shape*: goal, area, what it waits on — never coordinates. You are a **planner, not a builder**.
 
 ⛔ **You never add a level to the plan's tree** (`skills/glossary/vocabulary/umbrella.md`): **walk to the ready leaves and ground them** — adding no level, no leaf the plan does not already hold, never cutting one leaf into two and never merging two into one — either way the unit the board holds stops being the unit that lands: two slices where the plan held one land work no tracked item stands for, so no line can tick while real work lands, and one slice spanning two of them ticks both lines with neither item's `Verify` ever scored on its own. (Giving a leaf the plan already carries its own number is not adding one.)
 

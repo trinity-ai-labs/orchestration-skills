@@ -12,7 +12,8 @@ holds the same object, so a checklist line ticks as work lands rather than stand
 
 **Its shape is fixed where the issues are authored**: the tree has exactly two levels, and nothing below
 that point adds one. A leaf whose work turns out to exceed one PR is a defect in how the tree was cut,
-not a leaf with parts.
+not a leaf with parts; N leaves whose work turns out to be one PR's worth of one change are the same
+defect at the other end.
 
 **An umbrella is not an epic branch, and having one settles nothing about the other.** The branch is a
 lifecycle in git (`skills/glossary/vocabulary/epic-branch.md`); the umbrella is a shape in the tracker.

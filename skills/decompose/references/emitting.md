@@ -71,7 +71,7 @@ For the issue path, write the grounding back where its reader finds it, then end
 
 ### Writing onto a live umbrella — number the leaves, never add a level
 
-⛔ **You never convert an issue into an umbrella and never cut one issue into several** (`skills/glossary/vocabulary/umbrella.md`): **an issue grounding shows cannot be one PR is reported back onto it as a plan defect**, the answer being another child authored at that altitude rather than a split you perform, however pragmatic cutting it here looks.
+⛔ **You never convert an issue into an umbrella and never cut one issue into several** (`skills/glossary/vocabulary/umbrella.md`): **an issue grounding shows cannot be one PR is reported back onto it as a plan defect**, the answer being another child authored at that altitude rather than a split you perform, however pragmatic cutting it here looks. **And you never merge several leaves into one**: N ready leaves grounding shows are one PR's worth of one change are reported back the same way, the answer being one leaf re-authored at that altitude, since a slice spanning two tracked items parts the unit the board holds from the unit that lands exactly as a cut leaf does, from the other side: one artifact ticks both lines, so neither item's `Verify` was ever scored on its own.
 
 What you do write onto a live umbrella is the cycle's grounding:
 

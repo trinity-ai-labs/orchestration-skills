@@ -23,9 +23,9 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 
 | Behind them | Does |
 |---|---|
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences and a verify bar. It never cuts an issue into slices: one too big to be one PR is reported back to the plan. |
+| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
 | [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. |
-| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension, weighed by the implementer. |
+| [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension it judges the slice needs, each spawned at a tier that is named rather than inherited from the implementer — standard for a reader over one dimension, higher where that dimension is genuinely hard — each reporting what it ran, and all of them weighed by the implementer. |
 
 On the one-slice path those first two are the whole of the run and you invoke them yourself — that is the path, not a side door. On an epic the loop invokes both for you.
 

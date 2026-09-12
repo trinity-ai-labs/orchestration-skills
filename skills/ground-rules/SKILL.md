@@ -136,8 +136,8 @@ same**: what is banned is inheriting a tier silently, never spending one the chi
 
 **No seat is outside this, and it is rule 1's sibling** — that one bans a spawn MECHANISM because the
 child inherits your conversation, and this governs a spawn PARAMETER because the child inherits your
-model, so state it however read-only the child is and however small its job. The four seats rule 1 names
-are the four seats here.
+model, so state it however read-only the child is and however small its job. The seats rule 1 names are
+the seats here, and a seat that learns to spawn something is one of them the day it does.
 
 ---
 

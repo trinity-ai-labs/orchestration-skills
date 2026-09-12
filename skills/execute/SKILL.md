@@ -1,11 +1,12 @@
 ---
 name: execute
 description: >-
-  Execute ONE increment off an integration branch using isolated git worktrees. Use when you are asked to
-  EXECUTE, dispatch or ship one increment — a slice or a wave — in which case you are the DISPATCHER; and
-  when you are dispatched as an implementer sub-agent, or told directly to build, implement or fix a
-  specific thing in a repo that uses this flow, in which case you are the IMPLEMENTER.
-argument-hint: "[the increment — a slice or a wave — to execute; omit if you're implementing directly]"
+  Execute ONE increment off an integration branch using isolated git worktrees. You are the DISPATCHER
+  when /pipeline:orchestrate invokes you, once per cycle, to dispatch the increment it has just grounded —
+  that seat is the loop's own half and there is no command a user types to reach it. You are the
+  IMPLEMENTER when you are dispatched as an implementer sub-agent, or told directly to build, implement or
+  fix a specific thing in a repo that uses this flow, which is the one half a user still enters directly.
+argument-hint: "[none — an implementer is handed its brief, and the dispatcher arrives from /pipeline:orchestrate with the increment it ground]"
 ---
 
 # Execute — integration-branch worktree workflow
@@ -18,10 +19,10 @@ We work off an **integration branch** (`skills/glossary/vocabulary/integration-b
 
 **Which one you are is decided by how you got here, not by how the work looks** — the two behave very differently, and both mistakes are silent.
 
-- **DISPATCHER** — entered from **`/pipeline:orchestrate`** (once per cycle, to dispatch the increment it just grounded), or from a user asking you to *execute / dispatch* one increment. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
+- **DISPATCHER** — entered from **`/pipeline:orchestrate`**, once per cycle, to dispatch the increment it has just grounded. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
-**One increment is the unit here, and which work completes THROUGH this pass turns on one verdict written in the issue — epic, or one slice — that no pass afterwards derives a second time.** An **epic** runs to completion through `/pipeline:orchestrate`, which grounds the **horizon**, dispatches it through this skill, reconciles what remains against the tree that increment produced, and repeats. Work the issue settles as **one slice** never reaches that loop: it is grounded by `/pipeline:decompose` and finishes here, so a whole single-slice issue does complete through this pass. Reading either into the other costs a cycle and a user turn — a single slice sent to the loop is bounced back out of it, and an epic dispatched straight here runs its first increment and then stops, with nothing behind it to ground or reconcile the rest.
+**One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against the tree the increment produced, and repeats, so the dispatcher you are is that loop's own half rather than a second seat it hands work to. **What the SHAPE of the arc decides is how many cycles it runs, never which command a user typed**: dependency phases are what make an arc take many cycles — a set of leaves all ready at once is one wave and lands in one — and a standalone issue is one cycle over one leaf. **So what you finish here is the INCREMENT and never the arc** — whatever remains, empty or not, is reconciled by the same seat you are standing in rather than by this step.
 
 **A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale. `skills/execute/references/platforms.md` names your host's spawn tool.
 

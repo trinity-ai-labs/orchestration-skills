@@ -23,7 +23,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─┤
 
 | Behind them | Does |
 |---|---|
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences and a verify bar. It never cuts an issue into slices: one too big to be one PR is reported back to the plan. |
+| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, on both paths: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences and a verify bar. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
 | [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension, weighed by the implementer. |
 

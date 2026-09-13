@@ -30,7 +30,7 @@
     ],
     "defaultPrompt": [
       "Write up this plan as a grounded GitHub issue.",
-      "Decompose this issue into slices I can dispatch in parallel.",
+      "Ground this issue against the code so I can dispatch it.",
       "Orchestrate this issue through to merge."
     ]
   }

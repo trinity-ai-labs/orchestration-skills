@@ -7,7 +7,7 @@ The **dev pipeline**, packaged as one plugin for **Claude Code and Codex**: turn
 ```
 rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:orchestrate ─▶ done
                                 (plans the arc)          (loops the ready sub-issues through
-                                                          /pipeline:decompose and /pipeline:execute —
+                                                          /pipeline:ground and /pipeline:execute —
                                                           many cycles on a multi-phase arc, one on a
                                                           standalone issue, whose reconcile finds nothing)
 ```
@@ -24,7 +24,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:or
 
 | Behind them | Does |
 |---|---|
-| [`/pipeline:decompose`](skills/decompose/SKILL.md) | The **pre-execution grounding** pass, run once per cycle by the loop: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
+| [`/pipeline:ground`](skills/ground/SKILL.md) | The **pre-execution grounding** pass, run once per cycle by the loop: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass and its breakdown a wave width the dispatching seat decides. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
 | [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass, reached from the loop rather than typed — it is the loop's own dispatcher half rather than a second seat: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. It is also where an **implementer** reads its own flow, which is the one half of it a user still enters directly. |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension it judges the slice needs, each spawned at a tier that is named rather than inherited from the implementer — standard for a reader over one dimension, higher where that dimension is genuinely hard — each reporting what it ran, and all of them weighed by the implementer. |
 
@@ -205,7 +205,7 @@ Both args of the first form are required — no default base, since integration 
     ├── orchestrate/
     │   ├── SKILL.md
     │   └── references/reconciling.md
-    ├── decompose/
+    ├── ground/
     │   ├── SKILL.md
     │   └── references/           # grounding, slicing, emitting
     ├── execute/

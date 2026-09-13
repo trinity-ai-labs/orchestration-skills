@@ -236,7 +236,7 @@ fi
 # --- 4. no skill prescribes gh api -f with an @file value -------------------
 
 # Every tracked .md under skills/, not just the spines: the gh api prose this
-# check exists for now lives in references/ (decompose's emitting.md), and a
+# check exists for now lives in references/ (the grounding pass's emitting.md), and a
 # check scoped to SKILL.md would go green over the passage it was written for.
 skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
 # A `gh api` invocation is ONE command however many lines it is written across,
@@ -1313,6 +1313,32 @@ fi
 # whatever the enumeration says. Anchors are matched against whitespace-collapsed
 # text so re-wrapping a paragraph cannot truncate a scope.
 #
+# THE ANCHORS ARE SENTINELS AND CARRY NO VOCABULARY OF THEIR OWN -- a
+# `gate-anchor:enum-N:begin`/`:end` pair written beside each passage, greppable
+# with `git grep gate-anchor`. They used to be phrases lifted out of the prose
+# they delimited ("## The slice fields", "#### Sub-issue B"), which coupled this
+# registry to words the corpus renames: a rename then had to either reword the
+# anchor in the same commit or keep the old label in shipped prose to hold the
+# gate green, and a release took the second of those. A sentinel names no unit
+# the corpus is organised around, so no rename of a pass, a slice or a sub-issue
+# reaches it.
+#
+# FIVE OF THE SIX ARE SENTINELS AND THE SIXTH CANNOT BE, which is information
+# rather than an oversight. That one is a skill's frontmatter `description`, and
+# a YAML block scalar carries no comment: anything written inside it ships in the
+# description, and a pair placed at the key boundary instead would widen the
+# compared scope from the field run to the WHOLE description. That passage is
+# `prose` mode, where a spelling anywhere in the scope counts, so the widening
+# re-creates one level down the defect the scoping above exists to prevent --
+# `model` and `verify` are bare aliases, so one more sentence in that description
+# could satisfy a field its enumeration had dropped, and nothing would fire.
+# Correctness of the guard beats uniformity of the mechanism, so those anchors
+# stay phrase-based and a rename of the depth vocabulary adjudicates them by
+# hand. The fenced template is the other awkward placement and it CAN stay tight:
+# no invisible comment survives a code fence, so that pair rides on two heading
+# lines, with the prose above the fence telling a reader not to copy them into
+# what it emits.
+#
 #   prose     the enumeration is one sentence; a spelling anywhere in it counts.
 #   declared  the enumeration is a bullet list or a template, where the same word
 #             recurs in the surrounding prose ("Wave 2 owns those" sits inside the
@@ -1325,7 +1351,8 @@ fi
 #
 # An anchor that no longer resolves is a FAILURE and never a skip, because
 # rewording one is exactly how a passage would stop being compared while this
-# check kept printing ok.
+# check kept printing ok. A sentinel someone tidied away out of a passage is that
+# same failure wearing a different cause, and it reds here for the same reason.
 
 enum_out="$(mktemp)" || exit 2
 python3 - >"$enum_out" 2>&1 <<'ENUMPY'
@@ -1352,19 +1379,19 @@ ALIASES = {
 }
 
 PASSAGES = (
-    ("skills/decompose/SKILL.md",
+    # The one passage that cannot carry a sentinel -- see the note above.
+    ("skills/ground/SKILL.md",
      "horizon emits at SLICE depth", "everything past it at SHAPE depth", "prose"),
-    ("skills/decompose/SKILL.md",
-     "Produce each horizon slice's fields", "read them against each other", "prose"),
-    ("skills/decompose/references/slicing.md",
-     "## The slice fields", "## Sizing", "declared"),
-    ("skills/decompose/references/emitting.md",
-     "#### Sub-issue B — <title>", "#### Sub-issue C", "declared"),
+    ("skills/ground/SKILL.md",
+     "gate-anchor:enum-2:begin", "gate-anchor:enum-2:end", "prose"),
+    ("skills/ground/references/slicing.md",
+     "gate-anchor:enum-3:begin", "gate-anchor:enum-3:end", "declared"),
+    ("skills/ground/references/emitting.md",
+     "gate-anchor:enum-4:begin", "gate-anchor:enum-4:end", "declared"),
     ("skills/orchestrate/SKILL.md",
-     "**Slice depth** — the horizon *only*",
-     "**The horizon is the next dispatchable set", "prose"),
+     "gate-anchor:enum-5:begin", "gate-anchor:enum-5:end", "prose"),
     ("docs/mental-model.md",
-     "| **Slice depth** |", "| **Shape depth** |", "prose"),
+     "gate-anchor:enum-6:begin", "gate-anchor:enum-6:end", "prose"),
 )
 
 

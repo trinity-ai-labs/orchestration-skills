@@ -53,7 +53,7 @@ Either fires on its own; when neither does, slices merge into the integration br
 **Rule 1 — the shippability trigger.** *Does any intermediate state leave the integration branch in a condition you would not ship?* If yes, cut one, at any width from two slices up.
 
 - **Primary — the epic is only correct as a whole.** A foundational change every consumer must follow: a NOT-NULL schema swap, a required interface field, a renamed module. Every state from the foundation landing to the last consumer migrating is unshippable — the shape *Transient-red window* describes, and this branch keeps that window off the shared branch. Still weigh it — consumers all landing the same afternoon may not be worth the branch.
-- **Secondary — a contract seam.** `decompose` emits a producer → consumer map; two halves of one contract landing separately leaves the branch wrong in between.
+- **Secondary — a contract seam.** `ground` emits a producer → consumer map; two halves of one contract landing separately leaves the branch wrong in between.
 
 **Answer Rule 1 on every multi-slice arc anyway, because it decides which kind of branch you hold.** "Yes" makes the epic **knowingly red** until its last consumer migrates, which opens the `transient-red/<epic-slug>` window (*Mechanics*). "No" leaves a branch that is isolation and nothing else, strictly gated throughout, with no window and no marker ref.
 
@@ -65,7 +65,7 @@ Either fires on its own; when neither does, slices merge into the integration br
 - **Cross-slice seam review** — *The PR review loop* wants both halves of a seam diffed against each other before either merges, far easier on a branch you control.
 - **One arc, N releases** — where shipped content must move a version, every merge into the integration branch is a release, with the version file and changelog a hotspot every slice touches.
 
-**`decompose` recommends; you decide and act.** It produces the seam map, so it is the pass positioned to see whether two halves must land together; a decomposition recommending nothing means no epic branch.
+**`ground` recommends; you decide and act.** It produces the seam map, so it is the pass positioned to see whether two halves must land together; a breakdown recommending nothing means no epic branch.
 
 ## The cost
 
@@ -106,7 +106,7 @@ Conflicts do not disappear, they are deferred and concentrated: a collision a sl
 - **The epic worktree is a merge point and a gate target, not a workspace — nobody codes in it**, and never carries uncommitted changes: the every-tick `merge origin/<integration-branch>` refuses to run over them, and `merge-pr.sh` fails mid-close-out when it fast-forwards the base **inside that worktree**. **Resolve a conflicted tick before you walk away** — resolve, commit, push.
 - **A module-resolution failure in the epic worktree is a stale install until proven otherwise, not a defect in the merged code.** This tree outlives the merges landing in it, so its dependencies fall behind; the tick's install (*Draining the gate queue*) keeps it current. Ask whether one has run since the package arrived **before reading a line of the diff**, or that error's shape sends a fix agent against correct code.
 - **Its *prefix* is free, its leaf is not, and the marker ref is the opposite of both.** Nothing reads an epic branch's prefix; it is identified by what forks from it and PRs into it. **`transient-red/<epic-slug>` is not free: its name IS the contract**, since the detector finds the window by that exact ref — a marker spelled otherwise is a window that never opens, silently.
-- **Cut under Rule 1's primary trigger? Open the window in the same breath — the branch alone does not open it.** Commit-time tooling cannot read your decomposition, so declare it structurally from the epic's worktree:
+- **Cut under Rule 1's primary trigger? Open the window in the same breath — the branch alone does not open it.** Commit-time tooling cannot read your breakdown, so declare it structurally from the epic's worktree:
   ```
   git -C <epic-worktree> branch transient-red/<epic-slug> <epic-branch>
   git -C <epic-worktree> push origin transient-red/<epic-slug>

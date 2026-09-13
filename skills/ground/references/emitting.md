@@ -1,13 +1,13 @@
 # Emitting the breakdown
 
-Reference for `skills/decompose/SKILL.md`, action 4. In chat, or back onto the issue.
+Reference for `skills/ground/SKILL.md`, action 4. In chat, or back onto the issue.
 
 ## In-chat path — output format
 
-Lead with the parallelization plan (waves + critical path), then the horizon's slices at slice depth, then the remainder at shape depth. **The phase order in it comes from the issue; what you produce is which ready issues make up the horizon's wave, and each one's grounding.** **Every horizon entry is one ready sub-issue and carries its number**, since the unit that lands and the unit the tracker holds are the same object and an entry standing for no tracked item is one nothing can tick. Use this shape (the arc here is mid-flight, Wave 0 already merged; on a first cycle the horizon is usually Wave 0 alone and every later wave is shape):
+Lead with the parallelization plan (waves + critical path), then the horizon's slices at slice depth, then the remainder at shape depth. **The phase order in it comes from the issue; what you produce is which ready issues make up the horizon's wave, and each one's grounding.** **Every horizon entry is one ready sub-issue and carries its number**, since the unit that lands and the unit the tracker holds are the same object and an entry standing for no tracked item is one nothing can tick. Use this shape (the arc here is mid-flight, Wave 0 already merged; on a first cycle the horizon is usually Wave 0 alone and every later wave is shape). **The two `gate-anchor` markers below belong to the gate rather than to the shape** — `scripts/check.sh` reads the field run between them, so leave them where they are and copy neither into what you emit:
 
 ```
-## Decomposition: <plan title>
+## Grounding: <plan title>
 Integration branch: <the project's declared integrationBranch>   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice)
 Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 
@@ -24,7 +24,7 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 
 ### Horizon — SLICE DEPTH (grounded against the tree as it stands right now)
 
-#### Sub-issue B — <title>
+#### Sub-issue B — <title>   <!-- gate-anchor:enum-4:begin -->
 - This slice IS that issue, ground whole; it is never cut into two
 - Branch: `feat/<leaf>`   ·   Wave: 1   ·   Depends on: sub-issue A (merged)   ·   Model: top tier (subtle migration)
 - Skill to invoke first: effect
@@ -35,7 +35,7 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 - Brief: <2–5 sentences>
 - Verify: <acceptance + tests, incl. the reversal that proves the new test fails pre-change>
 
-#### Sub-issue C — <title>
+#### Sub-issue C — <title>   <!-- gate-anchor:enum-4:end -->
 ...
 
 ### Beyond the horizon — SHAPE DEPTH (deliberately not grounded: no file:line, no owned files, no boundaries, no model tier)
@@ -55,11 +55,9 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 
 **An epic branch's prefix carries no mechanical meaning; its leaf does** (`skills/glossary/mechanics/branch-leaf.md`), so that slot takes the real branch name. **It should not read like a slice branch**, or it is indistinguishable in a PR list from the `feat/<leaf>` slices merging into it. **And its leaf must be one no slice branch you name reuses** — the likeliest collider is the closing docs slice. Check it every cycle against the slices you are grounding now.
 
-End with the handoff line, and **which one depends on the path the issue is on, not on who invoked you** — verbatim intent:
+End with the handoff line — **one line, whatever the size of what you just grounded** — verbatim intent:
 
-> **Horizon ready to dispatch.** *(one slice)* `/pipeline:execute` takes it from here: a worktree, an implementer, the gate, a draft PR, review, merge. There is no remainder to reconcile and no loop to enter.
->
-> **Horizon ready to dispatch.** *(an epic)* `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon.
+> **Horizon ready to dispatch.** `/pipeline:orchestrate` takes it from here: it dispatches this increment through `/pipeline:execute` — a worktree per slice, implementers, gate, PR review, merge — then reconciles the remainder against the tree the increment actually produced and moves the horizon. **Where this horizon was the whole of the plan, that reconcile finds nothing and the loop closes out on its first cycle.**
 
 ## Writing it back to GitHub
 
@@ -77,7 +75,7 @@ What you do write onto a live umbrella is the cycle's grounding:
 
 1. **Rewrite the umbrella body** into the live overview: the goal, the parallelization plan (waves, conflict map, docs axis, critical path), **the remainder at shape depth** — each beyond-horizon item's goal, area, depends-on and why-it-comes-after, exactly as the in-chat *Beyond the horizon* section above carries them — and a **tracked checklist**, which GitHub renders as progress. **A checklist line carries a number only where a sub-issue exists for it**: `- [ ] #<sub>` at the horizon, and a plain `- [ ] <title>` for a beyond-horizon item, which indexes that item's entry in the remainder rather than replacing it.
 2. **Give each horizon leaf its number** — a checklist line the plan already carries takes its sub-issue as the horizon reaches it, carrying that slice's full brief: scope, do-not-touch, depends-on, skill-to-invoke, model hint, verify. **That is one number per leaf and never a number per piece of a leaf**, the leaf being the slice. **Beyond the horizon the default is a checklist line in the umbrella body and no brief**, and a placeholder sub-issue — which gets no brief either — is the exception on one test: the item needs what a line cannot carry, an assignee of its own or a close of its own. Title each with its wave (e.g. `[W1] <title>`) so the dispatch order is visible at a glance.
-3. **Link them as native sub-issues — always, never an optional extra.** The relationship is a plain REST endpoint that is simply there and *GitHub write mechanics* below carries the exact call, so there is no availability to condition on. **The native link is also what makes the reader-side check in `skills/decompose/references/grounding.md` cheap**: its first step is one `/parent` call, which 404s on every child of a markdown-only umbrella and forces an arriving agent onto the timeline fallback. And *always* keep the `- [ ] #<sub>` checklist too — it is the index reviewers scan, and the artifact that fallback matches on.
+3. **Link them as native sub-issues — always, never an optional extra.** The relationship is a plain REST endpoint that is simply there and *GitHub write mechanics* below carries the exact call, so there is no availability to condition on. **The native link is also what makes the reader-side check in `skills/ground/references/grounding.md` cheap**: its first step is one `/parent` call, which 404s on every child of a markdown-only umbrella and forces an arriving agent onto the timeline fallback. And *always* keep the `- [ ] #<sub>` checklist too — it is the index reviewers scan, and the artifact that fallback matches on.
 4. Label the umbrella (`epic`/`umbrella` if such a label exists; create nothing exotic).
 
 **Whether the work is one issue or an umbrella of children is not this pass's call at all** — it was answered where the issues were authored, so a three-slice reading of a single issue here is the report above rather than three issues you cut.

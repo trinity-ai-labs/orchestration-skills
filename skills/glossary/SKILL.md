@@ -18,7 +18,7 @@ another to know what to do. But the *vocabulary* is shared, so a term used by fo
 four passes — four definitions of one thing, already drifting, with nothing that could make them agree.
 
 **This is where a definition lives. How a stance ACTS on it lives in that stance.** `epic branch` means
-one thing; what `/pipeline:decompose` does about one, what `/pipeline:execute` does about one and what
+one thing; what `/pipeline:ground` does about one, what `/pipeline:execute` does about one and what
 `/pipeline:orchestrate` does about one are three different things, all three correct, and none of them
 belong here.
 

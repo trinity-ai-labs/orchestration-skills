@@ -3,25 +3,28 @@ name: write-issue
 description: >-
   Write a settled shape up as a forward-facing GitHub issue — or an umbrella + sub-issues — and plan
   the arc it runs as. Fed by /pipeline:co-think. Its input is a decision already made: the approach
-  chosen, the pieces named, the order agreed, a bug already diagnosed, or a follow-up a live run
-  surfaced. Use whenever you're asked to WRITE UP / FILE / OPEN an issue, to capture agreed work as
-  something trackable, or to turn a concluded design discussion into one. You GROUND WHAT THE ARC
+  chosen, the pieces named, the order agreed, a bug already diagnosed, a follow-up a live run
+  surfaced, or a pile of already-filed issues to sweep and cluster into one. Use whenever you're asked
+  to WRITE UP / FILE / OPEN an issue, to DECOMPOSE or break a plan down into the children that will
+  ship it, to GROUP a pile of loose issues into an umbrella, to capture
+  agreed work as something trackable, or to turn a concluded design discussion into one. You GROUND WHAT THE ARC
   RESTS ON against the real codebase — the modules it lands in, the seams between them, the
   deliverables it names, whether the surface it assumes exists at all — then write it forward-facing
   as work to execute: goal, approach, the surface as real modules and files, the phase map, seams,
   verify. You set the phases, you cut the plan's two-level tree of tasks — umbrella to sub-issues, one
-  sub-issue being one slice and one PR — and you answer whether the work is one slice or an epic. Ends
-  with the handoff — to /pipeline:decompose for one slice, to /pipeline:orchestrate for an epic.
+  sub-issue being one slice and one PR — and you answer whether the work is one slice or an epic, which
+  decides how many cycles the loop runs rather than which command comes next. Ends with the handoff, to
+  /pipeline:orchestrate.
 argument-hint: "[the settled shape to write up — omit to write up what is already agreed in chat]"
 ---
 
 # write-issue — author the issue that feeds the pipeline
 
-**`co-think` settles the shape; you plan the arc, and the plan you write chooses between two paths.** **One slice** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:decompose` → `/pipeline:execute`, no loop anywhere in it. **An epic** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`, which loops the phases you set through `/pipeline:decompose` and `/pipeline:execute`. Either way the issue you file is deliberately **big-picture**: `/pipeline:decompose` grounds it for an executor before anything is built, so you write the arc rather than the build.
+**`co-think` settles the shape; you plan the arc, and what the plan you write decides is how many cycles it takes to land — never which command lands it.** `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate`, which loops the phases you set through `/pipeline:ground` and `/pipeline:execute`: many cycles on a multi-phase arc, one on a standalone issue. The issue you file is deliberately **big-picture**: `/pipeline:ground` grounds it for an executor before anything is built, so you write the arc rather than the build.
 
 ⛔ **Your input is a shape already settled — where it is not, hand back to `/pipeline:co-think` and say so.** Settling unshaped work is that pass's job, not this one, and the tell is that you are about to choose the approach, name the pieces or settle the order yourself instead of writing down one already agreed: an issue written off an unsettled shape comes out TRUE and aimed wrong, and no pass downstream reopens the goal, so the whole arc executes it correctly.
 
-⛔ **You set the phases and you do not ground them** — each item you file is ground into the one dispatchable slice it already is, with owned files, fences, a model tier and a verify bar, at `/pipeline:decompose`'s horizon, and you never write code, make worktrees, dispatch or run the arc. **You are also the one pass that cuts the plan's tree** (`skills/glossary/vocabulary/umbrella.md`), so a piece you leave too big for one PR has no seat downstream that can cut it — the grounding pass grounds the leaves you filed and adds none. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config) rather than a hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost model you brought with you.
+⛔ **You set the phases and you do not ground them** — each item you file is ground into the one dispatchable slice it already is, with owned files, fences, a model tier and a verify bar, at `/pipeline:ground`'s horizon, and you never write code, make worktrees, dispatch or run the arc. **You are also the one pass that cuts the plan's tree** (`skills/glossary/vocabulary/umbrella.md`), so a piece you leave too big for one PR has no seat downstream that can cut it — the grounding pass grounds the leaves you filed and adds none. Stay **project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config) rather than a hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost model you brought with you.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** Never a fork, and every searcher you spawn is itself the last agent in its chain.
 
@@ -35,6 +38,12 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 - **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete; Step 4's *Follow-up linking* holds the forms. **A finding from behind a fence takes one further line**: an item found inside a file its brief marked `Do NOT touch` carries `Filed from behind a fence: <the fenced path>` on its own line in the body, or heading the comment where the observation lands on an existing issue. Its premises were established by **reading** rather than by changing, so whoever picks it up re-grounds every claim before it becomes a slice.
 - **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path": **surface**, not archeology.
+
+---
+
+## A pile of already-filed issues is a third way in
+
+**A third way in, not a fifth step.** Sweep the candidates and cluster them on **a shared failure or a shared surface** — the same files, the same rule, the same failure — never on subject area alone, since two issues that only share a subject stay unrelated even swept into one pass. That never-on-subject-area line is Step 1's own, run here against a pile instead of one candidate. Emit an umbrella over each cluster exactly as an authored one: the goal it shares, the phase map over its children, the arc-wide verify bar — an ordinary epic the loop runs with no special case. **Its children are the existing numbers, and their reports are not touched** — no re-authoring, no summarising, no restructuring, since rewriting one loses the report whoever filed it wrote. Step 4's mechanics cover them exactly as they cover any child — checklist, native link, and a `Part of #<umbrella>` backlink **appended** rather than woven in, so the report stays untouched while containment stays visible. **The reversal:** unrelated issues still ship separately — wrapping the backlog into one arc to save a gate run trades thin-slice churn for an epic nobody can review.
 
 ---
 
@@ -65,7 +74,7 @@ A comment reached this way **is** a filing — the failure, the reasoning, a rec
 
 ## Step 2 — Ground what the arc RESTS ON
 
-**Verify what the arc rests on against the actual code before you write it: the modules it lands in, the seams between them, the deliverables it names, and whether the surface it assumes exists at all.** That depth and no deeper — the coordinates an executor acts on are `/pipeline:decompose`'s, re-derived at the horizon — and at this depth an unchecked claim comes out confidently wrong, a consumer that isn't one or a sole call site that is one of six, with nothing downstream able to tell it from a correct one.
+**Verify what the arc rests on against the actual code before you write it: the modules it lands in, the seams between them, the deliverables it names, and whether the surface it assumes exists at all.** That depth and no deeper — the coordinates an executor acts on are `/pipeline:ground`'s, re-derived at the horizon — and at this depth an unchecked claim comes out confidently wrong, a consumer that isn't one or a sole call site that is one of six, with nothing downstream able to tell it from a correct one.
 
 **Ground with `file:line`; write down the module and the file** — the line number is how you *check* a claim, not what the issue *carries* (Step 3's *Surface*).
 
@@ -86,7 +95,7 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 
 - **Goal** — one or two sentences: what changes and why it's worth doing. Forward-facing.
 - **Approach** — the chosen design, stated as decisions rather than options you're weighing.
-- **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each change ripples into. The core of what Step 2 checked, and a **map, not a checklist** — nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is `/pipeline:decompose`'s, at the horizon.
+- **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each change ripples into. The core of what Step 2 checked, and a **map, not a checklist** — nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is `/pipeline:ground`'s, at the horizon.
 - **Type / interface sketch** — a short code block for a new type, API shape or contract, with real names.
 - **Phases** — the arc's ORDERING over the items you file, yours alone to set and mapped **to the end of the arc**. **A phase is not the tracked unit and normally spans several PRs**, so the shippable-boundary test below decides order and grouping and never how big a filed item is — read as the tracked unit, it files children nothing can land whole. Name the phases where the work has a dependency order, and at **each boundary state whether the branch is independently shippable there**, plus any breaking foundational change (a required field, a NOT-NULL swap, a renamed export) later phases must follow, which is what tells the arc it runs red until the last consumer migrates. That is a property of the plan, not the code, so nothing downstream reads it back out of the tree and an unasked question reads as a yes — which is how a foundational phase sits half-migrated on a shared branch, green at every step. **Write the epic-versus-one-slice verdict beside the map, in one line, every time.** `skills/write-issue/references/arc-planning.md` carries what the map must cover, how to size a phase, and the two rules that settle that verdict.
 - **Seams** — name any **producer → consumer** shape this plan introduces or changes whose halves land in different phases: a return type, a schema field, a config key, a behavior documentation describes. Write each as *producer → consumer → the shape between them*. **Where that shape is a status, flag or state value rather than a structure, say what the consuming side *does* with it** — one that only filters is safe, one whose read feeds an action is the seam. The **cross-tree** ones matter most — code ↔ docs, code ↔ prompt, code ↔ config — where nothing mechanical links the halves. The arc's running seam map is **seeded** from this field and re-derived nowhere, so a seam left out is one nothing downstream ever looks for.
@@ -95,7 +104,7 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 
 **Then settle the shape — one issue, or umbrella + subs.**
 
-- **Single issue** (the default) — small-to-medium work that lands as one PR. One body, filed; `/pipeline:decompose` grounds it into the one dispatchable slice it already is, and enriches it with what an executor needs.
+- **Single issue** (the default) — small-to-medium work that lands as one PR. One body, filed; `/pipeline:ground` grounds it into the one dispatchable slice it already is, and enriches it with what an executor needs.
 - **Umbrella + sub-issues** (`skills/glossary/vocabulary/umbrella.md`) — large AND multi-area. **File each child so it lands as ONE PR**, since a child that is really two lands half its work against a checklist line that cannot tick. The umbrella is the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is a self-contained forward-facing spec, **titled with the phase it lands in** (`[P0]`, `[P1]`), the phase being the ORDERING over the children rather than the unit a child is. Author them at Step 4; nothing downstream converts a single issue into an umbrella for you.
 - Don't reflexively shard — an umbrella for two small phases is overhead with no payoff, and a phase holding one PR's worth of work is one child rather than a level; `skills/write-issue/references/arc-planning.md`'s *Sizing a phase, and sizing the items inside it* carries both tests.
 - **An umbrella is not an epic branch, and filing one settles nothing about the other** (`skills/glossary/vocabulary/epic-branch.md` separates them). The branch question is answered here on the two rules and carried out by `/pipeline:execute`, never read off how the issue was filed — taking it for answered leaves the facts unwritten.
@@ -129,21 +138,15 @@ Neither fires at one action; both bind every line of prose this skill writes, a 
 - **STRIP** — "an earlier scan found / was wrong", "verified against the code", "the first pass missed X", "the research said", how-we-discovered-it, and any correction-of-a-prior-investigation meta.
 - Where a correction matters, **bake the correct fact silently into the plan** rather than narrating it.
 
-**No line numbers.** Not archeology, and it goes anyway: a `file:line` written for phase 4 is wrong by the time phase 4 runs, and `/pipeline:decompose` re-derives coordinates at the horizon regardless, at the depth an executor acts on. Nothing re-checks this body, so a stale coordinate reads like a live one.
+**No line numbers.** Not archeology, and it goes anyway: a `file:line` written for phase 4 is wrong by the time phase 4 runs, and `/pipeline:ground` re-derives coordinates at the horizon regardless, at the depth an executor acts on. Nothing re-checks this body, so a stale coordinate reads like a live one.
 
 ---
 
 ## Handoff
 
-**Route on the verdict you just wrote — one of these two, never both.**
+**One handoff, whatever verdict you just wrote.** Verbatim intent:
 
-**One slice**, verbatim intent:
-
-> **Ready to ground.** Hand this to `/pipeline:decompose`, which verifies it against the code, fills in what an executor acts on and enriches this issue with it — then `/pipeline:execute` ships it: worktree, implementer, gate, draft PR, review, merge. No loop.
-
-**An epic**, verbatim intent:
-
-> **Ready to orchestrate.** Hand this to `/pipeline:orchestrate` (e.g. `/pipeline:orchestrate #<N>`), which runs the arc as a loop: ground the next ready children through `/pipeline:decompose`, ship them through `/pipeline:execute` — worktree per slice, implementers, gate, PR review, merge — then reconcile the rest against the tree it produced, repeating until the plan is empty.
+> **Ready to orchestrate.** Hand this to `/pipeline:orchestrate` (e.g. `/pipeline:orchestrate #<N>`), which runs the arc as a loop: ground the next ready leaves through `/pipeline:ground`, ship them through `/pipeline:execute` — worktree per slice, implementers, gate, PR review, merge — then reconcile the rest against the tree it produced, repeating until the plan is empty. **A standalone issue is that same loop run once**, its horizon being the issue itself and its reconcile finding nothing.
 
 Then **stop** — grounding, worktrees and code all sit past this pass.
 

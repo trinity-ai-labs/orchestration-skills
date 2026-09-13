@@ -26,11 +26,14 @@
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. prose that states rules carries no war stories (a BACKSTOP: the rule
 #      is a property, stated in AGENTS.md — this pattern does not bound it).
-#  12. no skill cites another skill — the glossary and the ground rules excepted.
+#  12. no skill cites another skill — three shared homes excepted, each
+#      admitted on a stated property, each compared as a WHOLE SEGMENT.
 #  13. no sentence has had its front removed (a partial prose deletion).
 #  14. the glossary stays tied to the tree.
 #  15. both bin/ ports answer the predicates they share identically.
 #  16. every slice-field enumeration names every field.
+#  17. the procedures home holds procedure and not stance — no entry names a
+#      seat, every entry is indexed, and every entry is cited by a pass.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -236,7 +239,7 @@ fi
 # --- 4. no skill prescribes gh api -f with an @file value -------------------
 
 # Every tracked .md under skills/, not just the spines: the gh api prose this
-# check exists for now lives in references/ (decompose's emitting.md), and a
+# check exists for now lives in references/ (the grounding pass's emitting.md), and a
 # check scoped to SKILL.md would go green over the passage it was written for.
 skill_docs="$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null | tr '\n' ' ')"
 # A `gh api` invocation is ONE command however many lines it is written across,
@@ -1030,42 +1033,67 @@ PY
 	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"
 fi
 
-# --- 12. no skill cites another skill, the concept map excepted --------------
+# --- 12. no skill cites another skill, three shared homes excepted -----------
 
 # A spine pointing at its own references is the shape working. A skill reaching
 # into ANOTHER skill to explain itself is not finished: state what your reader
-# needs where they act. Unbounded cross-skill citation is what grew a
-# 96-reference web, a checker for it, and a convention for writing it.
+# needs where they act. Unbounded cross-skill citation is what grew a web of
+# references, a checker for it, and a convention for writing it. No count of
+# that web is stated here or in AGENTS.md: the two copies had drifted to two
+# different figures, neither is checkable now, and it is not a number a reader
+# acts on — so the claim is dropped rather than reconciled, which would re-seed
+# the drift surface inside the one rule written to prevent exactly that.
 #
-# skills/glossary/ and skills/ground-rules/ are the two permitted targets, and
-# each is a different edge rather than a hole in this one. An entry in the map
-# is a DEFINITION — what a thing is — which every pass needs identically and
-# none of them owns, so the copies drift with nothing able to make them agree.
-# A ground rule is the same shape one level over: a rule whose STATEMENT is
-# identical at every seat has no per-seat form to restate, which is the only
-# thing that would keep N copies of it honest. An ordinary RULE is neither:
-# it is what one stance does about a thing, it differs per stance, and it is
-# restated where its reader acts. So both files are cited and never cite back:
-# the ban still holds in the direction that grew the web, and either of them
-# reaching into a pass fails this check exactly as any other citation does.
+# THREE permitted targets, and each is a different edge rather than a hole in
+# this one. Each is admitted on a property naming what has no per-seat form,
+# which is the only thing that would keep N hand-maintained copies honest:
+#
+#   skills/glossary/     a DEFINITION — what a thing IS. Every pass needs it
+#                        identically and none of them owns it, so the copies
+#                        drift with nothing able to make them agree.
+#   skills/ground-rules/ a RULE whose STATEMENT is identical at every seat.
+#                        Same shape one level over: no per-seat form to restate.
+#   skills/procedures/    a PROCEDURE whose STEPS are identical at every seat —
+#                        the command and its flags, the order they run in, the
+#                        meaning of the values it reads, the host tool that runs
+#                        it, and what to verify once it has. What a seat DOES
+#                        about the result is not in it.
+#
+# An ordinary RULE is none of the three: it is what one stance does about a
+# thing, it differs per stance, and it is restated where its reader acts. A rule
+# does not become citable because restating it is inconvenient — if two seats
+# would do different things with it, it stays written at both. So all three are
+# cited and never cite back: the ban still holds in the direction that grew the
+# web, and any of them reaching into a pass fails this check exactly as any
+# other citation does. That direction is what check 17 keeps honest for the
+# newest of them, by failing an entry that names a seat.
+#
+# ⛔ EVERY COMPARISON HERE IS WHOLE-SEGMENT EQUALITY, AND THAT IS LOAD-BEARING
+# RATHER THAN INCIDENTAL. The cited target is cut out as one path segment and
+# compared with `=`. A prefix match, a glob or a `case` pattern would admit
+# skills/ground/ — a PASS — as a citable target for free, because its directory
+# name is a prefix of skills/ground-rules/, and the check would then no longer
+# be able to say that a pass may not be cited. Nothing would go red; the corpus
+# would simply become citable. Add a fourth target the same way or not at all.
 
 cross_hits="$(
 	for f in $(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null); do
 		own="$(printf '%s' "$f" | cut -d/ -f2)"
 		grep -oE '`skills/[a-z-]+/[^`]*\.md`' "$f" 2>/dev/null | tr -d '`' | while IFS= read -r p; do
 			tgt="$(printf '%s' "$p" | cut -d/ -f2)"
-			# Own references: the shape working. The concept map and the ground
-			# rules: the two other legal targets, and only as targets — a file
-			# INSIDE either one cites nothing else and still fails here.
-			[ "$tgt" = "$own" ] || [ "$tgt" = glossary ] || [ "$tgt" = ground-rules ] || printf '%s: %s\n' "$f" "$p"
+			# Own references: the shape working. The concept map, the ground
+			# rules and the procedures home: the three other legal targets, and
+			# only as targets — a file INSIDE any of them cites nothing beyond
+			# its own home and the other two, and still fails here otherwise.
+			[ "$tgt" = "$own" ] || [ "$tgt" = glossary ] || [ "$tgt" = ground-rules ] || [ "$tgt" = procedures ] || printf '%s: %s\n' "$f" "$p"
 		done
 	done
 )"
 if [ -n "$cross_hits" ]; then
 	printf '%s\n' "$cross_hits" | while IFS= read -r l; do printf 'FAIL  no-cross-skill-citations: %s\n' "$l" >&2; done
-	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/glossary/ (a DEFINITION) and skills/ground-rules/ (a rule stated identically at every seat) may be cited across skills"
+	fail "no-cross-skill-citations: restate the rule where its reader acts, or drop it — only skills/glossary/ (a DEFINITION), skills/ground-rules/ (a RULE stated identically at every seat) and skills/procedures/ (a PROCEDURE whose STEPS are identical at every seat) may be cited across skills"
 else
-	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references, the glossary and the ground rules"
+	ok "no-cross-skill-citations: every skill is readable on its own, citing only its own references, the glossary, the ground rules and the procedures"
 fi
 
 # --- 13. no sentence has had its front removed --------------------------------
@@ -1313,6 +1341,32 @@ fi
 # whatever the enumeration says. Anchors are matched against whitespace-collapsed
 # text so re-wrapping a paragraph cannot truncate a scope.
 #
+# THE ANCHORS ARE SENTINELS AND CARRY NO VOCABULARY OF THEIR OWN -- a
+# `gate-anchor:enum-N:begin`/`:end` pair written beside each passage, greppable
+# with `git grep gate-anchor`. They used to be phrases lifted out of the prose
+# they delimited ("## The slice fields", "#### Sub-issue B"), which coupled this
+# registry to words the corpus renames: a rename then had to either reword the
+# anchor in the same commit or keep the old label in shipped prose to hold the
+# gate green, and a release took the second of those. A sentinel names no unit
+# the corpus is organised around, so no rename of a pass, a slice or a sub-issue
+# reaches it.
+#
+# FIVE OF THE SIX ARE SENTINELS AND THE SIXTH CANNOT BE, which is information
+# rather than an oversight. That one is a skill's frontmatter `description`, and
+# a YAML block scalar carries no comment: anything written inside it ships in the
+# description, and a pair placed at the key boundary instead would widen the
+# compared scope from the field run to the WHOLE description. That passage is
+# `prose` mode, where a spelling anywhere in the scope counts, so the widening
+# re-creates one level down the defect the scoping above exists to prevent --
+# `model` and `verify` are bare aliases, so one more sentence in that description
+# could satisfy a field its enumeration had dropped, and nothing would fire.
+# Correctness of the guard beats uniformity of the mechanism, so those anchors
+# stay phrase-based and a rename of the depth vocabulary adjudicates them by
+# hand. The fenced template is the other awkward placement and it CAN stay tight:
+# no invisible comment survives a code fence, so that pair rides on two heading
+# lines, with the prose above the fence telling a reader not to copy them into
+# what it emits.
+#
 #   prose     the enumeration is one sentence; a spelling anywhere in it counts.
 #   declared  the enumeration is a bullet list or a template, where the same word
 #             recurs in the surrounding prose ("Wave 2 owns those" sits inside the
@@ -1325,7 +1379,8 @@ fi
 #
 # An anchor that no longer resolves is a FAILURE and never a skip, because
 # rewording one is exactly how a passage would stop being compared while this
-# check kept printing ok.
+# check kept printing ok. A sentinel someone tidied away out of a passage is that
+# same failure wearing a different cause, and it reds here for the same reason.
 
 enum_out="$(mktemp)" || exit 2
 python3 - >"$enum_out" 2>&1 <<'ENUMPY'
@@ -1352,19 +1407,19 @@ ALIASES = {
 }
 
 PASSAGES = (
-    ("skills/decompose/SKILL.md",
+    # The one passage that cannot carry a sentinel -- see the note above.
+    ("skills/ground/SKILL.md",
      "horizon emits at SLICE depth", "everything past it at SHAPE depth", "prose"),
-    ("skills/decompose/SKILL.md",
-     "Produce each horizon slice's fields", "read them against each other", "prose"),
-    ("skills/decompose/references/slicing.md",
-     "## The slice fields", "## Sizing", "declared"),
-    ("skills/decompose/references/emitting.md",
-     "#### Sub-issue B — <title>", "#### Sub-issue C", "declared"),
+    ("skills/ground/SKILL.md",
+     "gate-anchor:enum-2:begin", "gate-anchor:enum-2:end", "prose"),
+    ("skills/ground/references/slicing.md",
+     "gate-anchor:enum-3:begin", "gate-anchor:enum-3:end", "declared"),
+    ("skills/ground/references/emitting.md",
+     "gate-anchor:enum-4:begin", "gate-anchor:enum-4:end", "declared"),
     ("skills/orchestrate/SKILL.md",
-     "**Slice depth** — the horizon *only*",
-     "**The horizon is the next dispatchable set", "prose"),
+     "gate-anchor:enum-5:begin", "gate-anchor:enum-5:end", "prose"),
     ("docs/mental-model.md",
-     "| **Slice depth** |", "| **Shape depth** |", "prose"),
+     "gate-anchor:enum-6:begin", "gate-anchor:enum-6:end", "prose"),
 )
 
 
@@ -1495,10 +1550,117 @@ else
 fi
 rm -f "$enum_out"
 
+# --- 17. the procedures home holds procedure, not stance ----------------------
+
+# Check 12 admits skills/procedures/ as a citable target on ONE property: an
+# entry carries a procedure whose steps are identical at every seat. This is
+# that property with an instrument behind it, so opening the citation rule does
+# not quietly become a licence to move any prose into a shared home. It is
+# check 14's sibling — the same three questions asked of a different home —
+# and the reason both exist is that a home which has itself gone stale, or which
+# has started holding stance, reads exactly like a live one.
+#
+#   no seat named  a SEAT's name in an entry is the mechanical tell that the
+#                  prose around it is what ONE stance does, which differs per
+#                  stance and so belongs where that reader acts. Moving such a
+#                  rule here would not remove a duplicate, it would hand a rule
+#                  with one reader a second one. The guard is therefore not a
+#                  fence around the extraction — it is the extraction's own
+#                  admission test, and it says what may move.
+#   findable       every entry has a row in the spine. Check 8 catches a row
+#                  pointing at a missing entry; the reverse is silent.
+#   used           every entry is cited by at least one file outside this home.
+#                  An entry nothing points at is prose no reader reaches — and
+#                  it is an extraction's own failure shape: prose moved here
+#                  while the restatement it replaced was deleted and never
+#                  re-pointed leaves no dangling path for check 8 to find.
+#
+# THE SEAT SET IS THE WHOLE PIPELINE'S, NOT THE TWO OBVIOUS ONES. The pattern
+# covers dispatcher, implementer, reviewer and searcher — the seats
+# skills/ground-rules/SKILL.md itself enumerates — plus runner, the process that
+# drains a gate queue and comments a verdict. Two names caught nothing that the
+# full set does not, and the two it omitted were both live in this home's first
+# draft: `a runner` inside a config key's meaning, and `a searcher` inside
+# another's, neither of which the narrower pattern could see. An enumerated ban
+# is satisfied by every form it omits, so this list is the floor rather than the
+# boundary: adjudicate a new entry against the PROPERTY, and where prose needs a
+# word on this list, second person is the way out of it, never a bound bolted
+# onto the test.
+#
+# SECOND PERSON IS DELIBERATELY NOT BANNED HERE, and this is the one place this
+# home's guard differs from check 14's. The glossary bans "you"/"your" because a
+# DEFINITION describes a thing and an entry that starts instructing has become a
+# stance. A PROCEDURE is the opposite: it legitimately says run this, then verify
+# that, so importing that ban would fail every procedure ever written. The seat
+# name is the tell that works for this home; reader-address is not.
+#
+# The scope is every .md under skills/procedures/ that git tracks OR that is
+# untracked and not ignored, the spine included — a spine that named a seat while
+# indexing seat-free entries would be stating the admission property in prose
+# that fails it. `--others --exclude-standard` is load-bearing rather than
+# incidental, for the reason check 10 gives for the same flag: a home that is
+# NEW is exactly what this check exists to weigh, and tracked-only it would be
+# invisible until `git add` — a false green on the run an author actually reads,
+# and on the very change that creates the home.
+
+proc_dir=skills/procedures
+proc_index="$proc_dir/SKILL.md"
+if [ ! -f "$proc_index" ]; then
+	fail "procedures: $proc_index is missing — the home's index is what every citation resolves through"
+else
+	# Read the set line-at-a-time out of a FILE rather than iterating an unquoted
+	# variable. A path holding a space would otherwise word-split into two paths
+	# that do not exist, both skipped, and that entry would vanish from all three
+	# tests below while the check still printed ok — the silent-drop shape, not a
+	# loud failure. A redirect from a file is not a pipe, so the counters and the
+	# problem list mutated inside the loop survive it.
+	proc_list="$(mktemp)" || exit 2
+	git ls-files --cached --others --exclude-standard "$proc_dir/*.md" 2>/dev/null | sort -u >"$proc_list"
+	proc_problems=''
+	proc_seen=0
+	proc_n=0
+	while IFS= read -r e; do
+		[ -n "$e" ] || continue
+		[ -f "$e" ] || continue
+		proc_seen=$((proc_seen + 1))
+		# The spine is held to the seat-name ban with the entries; the findable
+		# and used tests below are about what it INDEXES, so it skips those.
+		if grep -qniE '\b(dispatchers?|implementers?|reviewers?|searchers?|runners?)\b' "$e"; then
+			proc_problems="$proc_problems
+$e: names a seat — that prose is what ONE stance does, so restate it where its reader acts rather than here"
+		fi
+		if [ "$e" != "$proc_index" ]; then
+			proc_n=$((proc_n + 1))
+			grep -qF "$e" "$proc_index" || proc_problems="$proc_problems
+$e: no row in the spine — unfindable for a reader who cannot already name it"
+			proc_cited=$(git ls-files 'skills/*.md' 'skills/**/*.md' 2>/dev/null \
+				| grep -v "^$proc_dir/" \
+				| while IFS= read -r f; do grep -qF "$e" "$f" && echo x; done | wc -l | tr -d ' ')
+			[ "${proc_cited:-0}" -gt 0 ] || proc_problems="$proc_problems
+$e: cited by no pass — an extracted procedure nothing points at is prose no reader reaches"
+		fi
+	done <"$proc_list"
+	rm -f "$proc_list"
+	# Three independent verdicts rather than a chain: scanning nothing and holding
+	# a bad entry are different failures, and an elif would hide the second.
+	if [ "$proc_seen" -eq 0 ]; then
+		fail "procedures: no .md under $proc_dir was measured — this check scanned nothing"
+	elif [ "$proc_n" -eq 0 ]; then
+		fail "procedures: no entries under $proc_dir beside its spine — this check scanned nothing"
+	elif [ -n "$proc_problems" ]; then
+		printf '%s\n' "$proc_problems" | while IFS= read -r l; do
+			[ -n "$l" ] && printf 'FAIL  procedures: %s\n' "$l" >&2
+		done
+		fail "procedures: an entry must be indexed, cited, and free of any seat's name"
+	else
+		ok "procedures: $proc_n entr(y/ies) each indexed, cited by a pass, and naming no seat (second person is deliberately permitted — these are procedures)"
+	fi
+fi
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the two bin/ ports answer their shared predicates identically, and every slice-field enumeration names every field\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, and every slice-field enumeration names every field\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

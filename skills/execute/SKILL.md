@@ -1,11 +1,12 @@
 ---
 name: execute
 description: >-
-  Execute ONE increment off an integration branch using isolated git worktrees. Use when you are asked to
-  EXECUTE, dispatch or ship one increment — a slice or a wave — in which case you are the DISPATCHER; and
-  when you are dispatched as an implementer sub-agent, or told directly to build, implement or fix a
-  specific thing in a repo that uses this flow, in which case you are the IMPLEMENTER.
-argument-hint: "[the increment — a slice or a wave — to execute; omit if you're implementing directly]"
+  Execute ONE increment off an integration branch using isolated git worktrees. You are the DISPATCHER
+  when /pipeline:orchestrate invokes you, once per cycle, to dispatch the increment it has just grounded —
+  that seat is the loop's own half and there is no command a user types to reach it. You are the
+  IMPLEMENTER when you are dispatched as an implementer sub-agent, or told directly to build, implement or
+  fix a specific thing in a repo that uses this flow, which is the one half a user still enters directly.
+argument-hint: "[none — an implementer is handed its brief, and the dispatcher arrives from /pipeline:orchestrate with the increment it ground]"
 ---
 
 # Execute — integration-branch worktree workflow
@@ -18,12 +19,12 @@ We work off an **integration branch** (`skills/glossary/vocabulary/integration-b
 
 **Which one you are is decided by how you got here, not by how the work looks** — the two behave very differently, and both mistakes are silent.
 
-- **DISPATCHER** — entered from **`/pipeline:orchestrate`** (once per cycle, to dispatch the increment it just grounded), or from a user asking you to *execute / dispatch* one increment. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
+- **DISPATCHER** — entered from **`/pipeline:orchestrate`**, once per cycle, to dispatch the increment it has just grounded. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
-**One increment is the unit here, and which work completes THROUGH this pass turns on one verdict written in the issue — epic, or one slice — that no pass afterwards derives a second time.** An **epic** runs to completion through `/pipeline:orchestrate`, which grounds the **horizon**, dispatches it through this skill, reconciles what remains against the tree that increment produced, and repeats. Work the issue settles as **one slice** never reaches that loop: it is grounded by `/pipeline:decompose` and finishes here, so a whole single-slice issue does complete through this pass. Reading either into the other costs a cycle and a user turn — a single slice sent to the loop is bounced back out of it, and an epic dispatched straight here runs its first increment and then stops, with nothing behind it to ground or reconcile the rest.
+**One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against the tree the increment produced, and repeats, so the dispatcher you are is that loop's own half rather than a second seat it hands work to. **What the SHAPE of the arc decides is how many cycles it runs, never which command a user typed**: dependency phases are what make an arc take many cycles — a set of leaves all ready at once is one wave and lands in one — and a standalone issue is one cycle over one leaf. **So what you finish here is the INCREMENT and never the arc** — whatever remains, empty or not, is reconciled by the same seat you are standing in rather than by this step.
 
-**A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale. `skills/execute/references/platforms.md` names your host's spawn tool.
+**A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a second copy, and nothing would mark which one had gone stale. `skills/procedures/host-tools.md` names your host's spawn tool.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds every seat this file describes.** It carries the rules whose statement is the same for a dispatcher and an implementer alike; what each of the two does differently is here.
 
@@ -53,7 +54,7 @@ The heavy gate (`gate` = build + full test suite) is CPU-saturating, so **implem
 
 Each phase names the reference that tells you **how**; open it before you act, not when you reach it. The ⛔ lines are the rules whose action needs no reference, so they live here and nowhere else.
 
-**Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`, `epicMerge`, brief conventions. Everything below is provisioned from it. → `skills/execute/references/per-project-config.md`
+**Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`, `epicMerge`, brief conventions. Everything below is provisioned from it. → `skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, and `skills/procedures/config-keys.md` for what each key MEANS and what its absence means. The helper you provision with is `skills/procedures/worktree-helper.md`, and your host's tool for every capability named below is `skills/procedures/host-tools.md`.
 
 ### 1. Set up → `skills/execute/references/worktrees-and-branches.md`
 
@@ -65,7 +66,7 @@ Write each brief, dispatch, arm the tick, and drain the gate queue on that same 
 
 ⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing artifacts nothing can tell from authorized work.
 
-⛔ **You have not dispatched until the divergence tick is armed** — your host's self-paced timer at ≈600s (`skills/execute/references/platforms.md`), as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight — **and what you do about what it catches is two levers rather than one**, since most of what a tick surfaces is a wrong fact you correct by messaging the live agent, not a scope change nobody granted that you stop it over. **The tick also carries the questions your slices have asked you** — answering one is neither lever and kills nothing. The reference carries the test.
+⛔ **You have not dispatched until the divergence tick is armed** — your host's self-paced timer at ≈600s (`skills/procedures/host-tools.md`), as the **last** act of the turn, after the agents are launched. It is not how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight — **and what you do about what it catches is two levers rather than one**, since most of what a tick surfaces is a wrong fact you correct by messaging the live agent, not a scope change nobody granted that you stop it over. **The tick also carries the questions your slices have asked you** — answering one is neither lever and kills nothing. The reference carries the test.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 
@@ -88,7 +89,7 @@ Gate the integrated whole when a merge combined work from more than one slice, t
 **Your instructions are `skills/execute/references/implementer.md`, and you read all of it before you write a line.** It carries every step below in full; this list is the order, and the rules whose action needs no reference.
 
 1. **`cd` into your assigned worktree and prove you are there.**
-2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is declared there, never inferred.
+2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is declared there, never inferred; what each key MEANS is `skills/procedures/config-keys.md`.
    ⛔ **A baseline your slice needs is taken FIRST, before your first edit** — one your brief hands down on your fork point is it and is never re-taken, and one you missed is read through git or asked for, and taken at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite** — no `gate`, no whole-package test, no raw sweep, foreground or background. One targeted test file is the widest run you get, unless your gate mode says otherwise.

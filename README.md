@@ -12,7 +12,7 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:or
                                                           standalone issue, whose reconcile finds nothing)
 ```
 
-**Ten skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. `/pipeline:glossary` is the map both families read, and `/pipeline:ground-rules` is the short list of rules every seat is held to identically — the never-a-fork ban first — which every pass has its reader open before acting on anything in it.
+**Eleven skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. The remaining three are **shared homes** every pass may cite and none of which cites back, each admitted on a property naming what has no per-seat form to restate: `/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is; `/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork ban first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures` holds the **procedure** every seat runs identically — the worktree helper's command-line contract, what each config key means and what its absence means, and each host's tool for a capability the flow needs.
 
 | You type | Does |
 |---|---|
@@ -93,7 +93,7 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` on Claude Code — you should see `pipeline`, its ten skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
 
 ### Prerequisites
 
@@ -213,10 +213,15 @@ Both args of the first form are required — no default base, since integration 
     │   └── references/           # one file per phase, opened when you reach that phase
     ├── review/SKILL.md
     ├── ground-rules/SKILL.md     # the rules identical at every seat — read first by every pass, citing none
+    ├── procedures/               # steps this pipeline OWNS, identical at every seat — cited by every pass, citing none
+    │   ├── SKILL.md              # the index, and the admission property in its own voice
+    │   ├── worktree-helper.md    # the helpers' frozen command-line contract
+    │   ├── config-keys.md        # what each .agents/worktree.json key means, and what its absence means
+    │   └── host-tools.md         # the one file naming a host's tools, models and paths
     └── glossary/
         ├── SKILL.md              # the index both families read
         ├── vocabulary/           # what a shared term IS — defined once, cited from everywhere
-        └── mechanics/            # how one operation is performed
+        └── mechanics/            # how something this pipeline does NOT own behaves — goes wrong by going stale
 ```
 
 To change the workflow: edit the file, commit, push. A clone-install picks it up on `git pull`.

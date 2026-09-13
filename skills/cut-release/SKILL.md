@@ -23,13 +23,13 @@ argument-hint: "[the version to cut, e.g. 0.5.0 — omit and it will work one ou
 
 ## 0. Refuse while any worktree is live
 
-**A project's config is frozen once worktrees exist**, because the helper that cuts them reads the main checkout's working copy and every live tree was provisioned from it. This pass rewrites `integrationBranch` — the value those trees were cut against — so read `git worktree list --porcelain`, and where any tree other than the main checkout is standing, **stop and say which**. Finish or tear down the arc first.
+**A project's config is frozen once worktrees exist**, because the helper that cuts them reads the main checkout's working copy (`skills/procedures/worktree-helper.md`) and every live tree was provisioned from it. This pass rewrites `integrationBranch` — the value those trees were cut against — so read `git worktree list --porcelain`, and where any tree other than the main checkout is standing, **stop and say which**. Finish or tear down the arc first.
 
 **A hard stop rather than a warning**, because the damage is silent: a live slice keeps gating and merging against a branch the project has just moved past, and every signal it produces reads clean.
 
 ## 1. Say where you are and what you are about to do — then wait
 
-**Observe rather than configure.** The branch the main checkout is standing on is what a release is cut *from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog` and `integrationBranch`, and the current version out of the first `bumpFiles` entry.
+**Observe rather than configure.** The branch the main checkout is standing on is what a release is cut *from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog` and `integrationBranch` — `skills/procedures/config-keys.md` carries what each means and what its absence means — and the current version out of the first `bumpFiles` entry.
 
 - **No `bumpFiles` declared** means nothing here hand-edits a version — tooling owns it, or the project does not version. Say so and stop, rather than editing a file the project's own tooling maintains.
 - **`HEAD` against `integrationBranch` is the DRIFT test, not the route test, and which of the two is stale decides what you do.** The main checkout holds the integration branch and nothing else, so the two naming different branches means one moved without the other — `git rev-parse --verify <declared>` answers which. **The declared branch does not exist**: the config was pointed at the next release and nobody cut it, which is this pass's own moment — take route A with the branch already named. **It exists**: the roll was made without this pass, so report both names and stop, since a further branch cut on top writes that drift into the history rather than ending it, and `/pipeline:setup` owns that repair.
@@ -48,7 +48,7 @@ Route B moves no branch, so its sentence promises none:
 ## 2. Route A — there is a branch to cut
 
 1. **Create the new branch and push it**, from the branch you are standing on. It is a branch pointer and nothing else yet.
-2. **Cut a worktree off the NEW branch** for the bump, with `setup-worktree <a-branch-for-the-bump> <new-branch>`, and verify what it prints: the path is the one it reports, its `HEAD` matches the tip you asked for, and it is standing on the branch you asked for. **Never work in the main checkout** — it is the one piece of shared mutable state here, and another session cutting a worktree reads whatever branch it is standing on.
+2. **Cut a worktree off the NEW branch** for the bump, with `setup-worktree <a-branch-for-the-bump> <new-branch>` (`skills/procedures/worktree-helper.md` carries the two lines it prints and what it refuses), and **verify all three of them yourself**: the path is the one it reported, its `HEAD` matches the tip you asked for, and it is standing on the branch you asked for. **Never work in the main checkout** — it is the one piece of shared mutable state here, and another session cutting a worktree reads whatever branch it is standing on.
 3. **The bump PRs into the new release branch** (step 4). That is the only valid base: the new branch is not merged into the old one, and never will be — it *replaces* it as the branch work lands on.
 
 ## 2b. Route B — version bump only
@@ -59,8 +59,8 @@ Route B moves no branch, so its sentence promises none:
 
 In that worktree, as a **single commit** — the version, its changelog section and the config naming the branch are one fact, and a reader landing on a commit carrying two of the three cannot tell which is authoritative.
 
-1. **Every path in `bumpFiles`.** All of them: the key is a claim of completeness precisely because a repository can carry a version in more than one place and ship a different one to each consumer.
-2. **A new section in `changelog`**, at the top, headed with the version, written from what has landed since the last section — the merged history is the source, never recollection. **Read which of that key's two forms you were handed**: a path to a FILE takes the section prepended to it, a path to a DIRECTORY takes the version's own file created there, since a project keeping one changelog file per release declares the directory.
+1. **Every path in `bumpFiles`.** All of them — the key is a claim of **completeness** (`skills/procedures/config-keys.md`), and a repository can carry a version in more than one place and ship a different one to each consumer.
+2. **A new section in `changelog`**, at the top, headed with the version, written from what has landed since the last section — the merged history is the source, never recollection. **Read which of that key's two admitted forms you were handed** and act on that one: a FILE takes the section prepended to it, a DIRECTORY takes the version's own file created there.
 3. **Route A only: `integrationBranch`**, in `.agents/worktree.json` or the workspace manifest that declares it, pointed at the new branch. **In this same commit**: it is the field that stops the two facts drifting, so moving one without the other rebuilds the drift this pass exists to end.
 
 ⛔ **Whether the branch you cut FROM also moves its version is the project's habit, not this pass's policy — read it, then ask.** Find the last commit that moved these files and see whether the branch you are standing on carried a version change too. Do the same. **Where there is no previous rollover to read, ask once**, and say you are asking because there is no precedent.

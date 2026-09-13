@@ -18,7 +18,7 @@ argument-hint: "[path to the repo to onboard — omit to onboard the current one
 
 ## Why an unconfigured repo is worse than an obviously-broken one
 
-`setup-worktree.sh` does not fail on a missing config — it notes it on stderr and cuts a bare worktree, no env symlinks and no `node_modules`, so an implementer dispatched into a project that installs anything fails its checks in the shape of a code bug. And with no config the gate, the conventions and the framework skills are guesses; a guessed gate passes while testing nothing. **Treat "no config" as a hard stop, not a warning.**
+`setup-worktree.sh` does not fail on a missing config — it warns on stderr and cuts a bare worktree instead (`skills/procedures/config-keys.md`), so an implementer dispatched into a project that installs anything fails its checks in the shape of a code bug. And with no config the gate, the conventions and the framework skills are guesses; a guessed gate passes while testing nothing. **Treat "no config" as a hard stop, not a warning.**
 
 ---
 
@@ -85,7 +85,7 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 
 ## Step 2 — Write `.agents/worktree.json`
 
-`setup-worktree` reads `envFiles`, `env` and `install`; `merge-pr` reads `epicMerge` and `integrationBranch`, the second from a workspace's `.agents/workspace.json` as well; the skills read the rest.
+**What each key MEANS, and what its absence means, is `skills/procedures/config-keys.md`** — which helper reads which key included. Read it once; the table below is what this pass sources each value FROM, which is a different question and this pass's own.
 
 ### First, ask for the three values no file in the repo holds
 
@@ -120,7 +120,7 @@ A third arrow, and the cheap one. The two above compare a project against its ow
 - ⛔ **You declare; you never provision** — no setup script, no lifecycle hook, nothing this plugin would call; a hook isolating only what the plugin invokes isolates the wrong set.
 - **Where the mechanism creates something DURABLE, record how the resource is MARKED, not only named** — at creation (`COMMENT ON DATABASE`, a keyspace key, a file in the directory), carrying the worktree's path from `git rev-parse --path-format=absolute --show-toplevel`, never `$PWD`, which spells a symlinked entry differently and hands one worktree two databases. The mark is the only thing `reclaim` can attribute back, so **a mechanism that marks nothing is a bootstrap change, not a config gap**: write it down and hand it back.
 
-`epicMerge` governs one merge — an epic branch collapsing into an integration branch that is not the repository's default — and every value but the exact lowercase `"squash"` means `merge`. `examples/worktree.json` is a complete file.
+`examples/worktree.json` is a complete file, and `skills/procedures/config-keys.md` carries what each value in it means.
 
 ## Step 3 — Scaffold the gate queue, only where the project wants one → `skills/setup/references/gate-queue.md`
 
@@ -134,7 +134,7 @@ The arrow is reversed from Step 1's: the project is not onboarding but possibly 
 
 ## Step 4 — Verify it, don't assert it
 
-A config that parses is not a config that works. Prove each layer. ⚠️ Every helper ships as `<name>.sh` and `<name>.ps1`; use the one your shell tool runs, and call it by absolute path on a host that does not put the plugin's `bin/` on `PATH`.
+A config that parses is not a config that works. Prove each layer. ⚠️ Which extension to call, and whether a bare command resolves at all, is per-host — `skills/procedures/host-tools.md` settles both before you run the first one.
 
 1. **The reader agrees.** Run `setup-worktree <branch> <base>`, then confirm each declared env file is **present** in the worktree and deps are installed — not merely that it exited 0. Present rather than symlinked is fine; on Windows the helper copies.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip resolved **locally** (`git -C <repo> rev-parse <base>`) — no fetch, no freshness count: the config's reader is what is under test. The full fetch-and-compare belongs at **dispatch**.
@@ -147,7 +147,7 @@ A config that parses is not a config that works. Prove each layer. ⚠️ Every 
 
 Commit the config (and the queue scripts) and open a PR the way that repo normally does; in a workspace, one per member, the manifest itself having no repo to land in. One exception, stated in the message: **the project has an install step**, so a bare worktree has no `node_modules` and every check in it fails in the shape of a code bug — commit that first config straight to the integration branch. A **zero-dependency** project is not covered.
 
-**A later CHANGE to a config is a different case, not a second exception.** `setup-worktree` reads the **main checkout's working copy**, so such a slice cannot exercise its own change until it lands there. Apply the effect by hand, **say in the hand-back that the config path itself was never exercised**, and never reach into the main checkout to make the helper see it early: that writes to the one piece of shared mutable state here, and another session cutting a worktree inside that window is provisioned from an unmerged config with nothing anywhere to tell it. It is the same read that lets Step 4 prove a new config before anything is committed.
+**A later CHANGE to a config is a different case, not a second exception.** The helper reads the **main checkout's working copy**, so such a slice cannot exercise its own change until it lands there, and neither route round that works (`skills/procedures/worktree-helper.md`). Apply the effect by hand, **say in the hand-back that the config path itself was never exercised**, and never reach into the main checkout to make the helper see it early. It is the same read that lets Step 4 prove a new config before anything is committed.
 
 **Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 

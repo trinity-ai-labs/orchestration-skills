@@ -326,10 +326,10 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   already has a sanctioned path, the out-of-scope fix isolated in its own commit, and that path
   is preferred over deferring. What is genuinely left is the **caller's** to RAISE — where a fence
   is what left it there, that goes to the caller's dispatcher before it goes to the tracker, raised
-  on the caller's own pre-push sweep while an answer is still an edit in a tree that is open, and
-  becomes a linked issue, or a comment on the one already carrying that failure, only where that
-  is the answer that comes back; this pass reports it and files nothing, exactly as it commits and
-  pushes nothing. The only thing it dispatches is a reader.
+  before the caller pushes while an answer is still an edit in a tree that is open, and becomes a
+  linked issue, or a comment on the one already carrying that failure, **filed by the seat that
+  returns that verdict** and only where that is the answer that comes back; this pass reports it
+  and files nothing, exactly as it commits and pushes nothing, and neither does the caller. The only thing it dispatches is a reader.
 - **Verification** — which scoped check you ran and its result, and which single test file if any, **plus
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget

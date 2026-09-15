@@ -95,7 +95,7 @@ Gate the integrated whole when a merge combined work from more than one slice, t
    ⛔ **Never run the full suite** — no `gate`, no whole-package test, no raw sweep, foreground or background. One targeted test file is the widest run you get, unless your gate mode says otherwise.
 4. **Update the docs your change made stale.**
 5. **Fix what is wrong outside your owned files, in this PR.** Not a sweep and not a report: repair what you HIT while doing the slice, each in its own commit. Only two things go to your dispatcher instead — a fix large enough to be its own unit of work, and a fix that would overturn a deliberate design decision.
-   ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still sweeps, and the earlier you ask the more room an answer has to land in.
+   ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to land in.
 6. **Run `/pipeline:review` if your brief says to, then commit.**
    ⛔ **The pass reads your *uncommitted* diff, so commit LAST.** Against a clean tree it finds nothing and says so.
    ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it to a reader but the dispatcher's read of your diff.

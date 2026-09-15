@@ -36,7 +36,7 @@ argument-hint: "[the settled shape to write up — omit to write up what is alre
 
 **A second way in, not a fifth step.** Many issues start as **something a run surfaced and did not land** — residual cleanup, a stale doc, a half-done rename. The loop's reconcile sends here what it could neither settle from the tree nor fold into the live arc. Write them like any other issue, through the same four steps, keeping the recommendation they arrive with rather than re-deriving a neutral question.
 
-- **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete; Step 4's *Follow-up linking* holds the forms. **A finding from behind a fence takes one further line**: an item found inside a file its brief marked `Do NOT touch` carries `Filed from behind a fence: <the fenced path>` on its own line in the body, or heading the comment where the observation lands on an existing issue. Its premises were established by **reading** rather than by changing, so whoever picks it up re-grounds every claim before it becomes a slice.
+- **Link it to what produced it** — unlinked it reads as a fresh idea while its umbrella closes looking complete; Step 4's *Follow-up linking* holds the forms.
 - **Name what surfaced it, in one line, as a fact about the plan** — "the <thing> migration in #<N> moved <producer> and left <consumer> on the old path": **surface**, not archeology.
 
 ---

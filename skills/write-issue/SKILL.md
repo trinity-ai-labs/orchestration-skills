@@ -192,7 +192,9 @@ not what the issue *carries* (Step 3's *Surface*).
   usually sits there in an unrelated sense — and cannot dangle: a wrong one resolves to a real section, as
   authoritative-looking as a right one.
 - **A COUNT is a third such claim, and its citation is its INSTRUMENT** — write the unit beside the figure and
-  the tree you took it against (`grep -c` counts matching lines, `grep -o | wc -l` occurrences).
+  the tree you took it against (`grep -c` counts matching lines, `grep -o | wc -l` occurrences). **And where
+  the issue's own prose summarises a list it also prints — a `Verify` bar's count, a phase map beside its
+  checklist — that count is DERIVED from the list, never typed a second time.**
 - **Read `AGENTS.md` / the per-project config** for the conventions the issue must respect: framework skills,
   compat policy, comment style, the gate.
 - **Writing about the repository that SHIPS these skills? Ground by the TREE's copy of these rules, not the

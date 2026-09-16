@@ -138,6 +138,14 @@ are byte-identical to a clean empty result. So:
   that never ran — a rejected regex, a glob the shell ate, a printer truncating each line before the match.
 - **Exclude the query from its own answer** wherever the command can see itself, as a process match on its own
   command line does.
+- **A count that summarises a list you also print IN THE SAME DOCUMENT is the same claim as the list — state
+  it once.** Derive its count from the list itself, and re-derive it whenever the list gains or loses a
+  member: a count correctly derived once and then left standing through a later edit ships the exact drift
+  this rule exists to prevent, so "derived" describes the document's current state, never a step performed
+  once and forgotten. Or drop the number and write "the list above" / "the list below" instead, which needs
+  no re-deriving because there is nothing in it to recount. A summary sentence is read first and carried
+  forward; the list beside it is what a later reader checks against — letting the two diverge costs nothing
+  to write and is expensive to trust.
 
 **`Owns` (`skills/ground/references/slicing.md`) carries this failure inverted** — a brief that kept a query's
 cardinality and threw away its members (*40 references, find them, they are yours*); the list and the count

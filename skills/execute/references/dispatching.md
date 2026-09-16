@@ -23,7 +23,9 @@ Rules from the other passes bind you even when you were invoked directly. Run th
   answers the first while a brief usually asserts the second. **And where two outputs of one command disagree,
   that IS the finding** — reconcile them rather than picking the half that fits the sentence you were writing.
 - **Enumeration cardinality.** Does each list carry the unfiltered count, does that number say what it counts,
-  and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
+  did the command filter nothing, and — where the brief's own prose summarises a list it also prints — does
+  that summary's count agree with the list rather than being typed again from an earlier draft?
+  `grep … | head -8` exits 0 on eight hits and eighteen alike.
 - **The verify bar's property.** Read each command against the sentence beside it, on the case the slice is
   *expected* to produce: an instrument with no instances on its target returns an uninformative green.
 - **Field reconciliation.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here

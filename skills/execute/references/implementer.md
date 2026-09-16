@@ -128,6 +128,22 @@ only to keep your turn open** — `skills/procedures/host-tools.md` names that w
 turn, ending it while they run hands nothing back and each one re-invokes you as it reports, so a placeholder
 agent, an `echo` or a `sleep` spends a round trip and learns nothing.
 
+**Before you commit, sweep for untracked files and account for each one.** The command is the one this
+corpus already uses: `git ls-files --others --exclude-standard`. For every name it prints, **add it or say
+why it stays out** — scratch, ignored build output, something genuinely unrelated to this slice. **An empty
+result is the ordinary case, not a suspicious one**, and the obligation is to account for each entry, never
+to add every entry the command names.
+
+**This is the one gap none of your other signals can see.** Your scoped check **compiles the working
+tree it finds on disk**; the diff, the PR and the merge **read what git holds**. A file present on disk and
+absent from the index is fully visible to the first and invisible to the second. **The gate does not close
+it either** — it runs inside this same worktree, compiles the same working tree, and reaches the same
+green, while the artifact that actually merges is the PR, which never contained the file. The gate and the
+merge see different trees, and that gap is exactly the width of your untracked set. **Nothing mechanical
+closes it** — a check cannot tell a file that belongs from one that doesn't — so the obligation sits here,
+at the seat that knows what the slice was for, and it is never raised into a rule a gate or the dispatcher
+enforces.
+
 **Then commit in logical blocks.** Stage each self-contained step (a type + its plumbing, a behavior + its
 tests, one cohesive refactor) into its own commit with a mechanism-explaining message. **Never rebase.**
 

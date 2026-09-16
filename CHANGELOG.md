@@ -67,6 +67,14 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   verdict still names none, the reader compares its post time against `git log -1 --format=%cI` rather than
   reaching for the first SHA-shaped token in the text, which is routinely the baseline and would fail the
   check the same way.
+- **An implementer can no longer reach its commit with a file its scoped check read off disk and git
+  does not hold.** The scoped check compiles the working tree; the diff, the PR and the merge read what git
+  holds, and the gate closes nothing between them because it compiles the same working tree the check did.
+  Before committing, the implementer now sweeps `git ls-files --others --exclude-standard` and accounts for
+  each name it prints — added, or left out with a reason — rather than leaving none of the existing signals
+  to ask at all. An empty result stays the ordinary case: the obligation is to account for each entry, never
+  to add every one, and it sits at the seat that knows what the slice was for rather than becoming a new
+  check.
 
 ## 5.1.2
 

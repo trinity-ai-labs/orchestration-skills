@@ -156,7 +156,8 @@ true without it?**
   **An item folded out of *Adjacent* already HAS a number: it keeps it**, its checklist line links that issue
   like any other child, and the issue becomes the slice's own when the horizon reaches it rather than a second
   one being cut beside it.
-- **Adjacent** — the goal is fully met without it **and it is genuinely a DIFFERENT ARC**.
+- **Adjacent** (`skills/glossary/vocabulary/adjacent.md`) — the goal is fully met without it **and it is
+  genuinely a DIFFERENT ARC**.
   **File it and link it**, per `/pipeline:write-issue`, and track it as its own arc; never fold it. ⚠️
   **This is the narrow verdict, not the convenient one, and *different arc* is narrower than both *separable*
   and *real work worth doing*** — either of those read as the bar turns every finding into a number on

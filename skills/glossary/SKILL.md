@@ -55,6 +55,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 
 | term | entry |
 |---|---|
+| Adjacent | `skills/glossary/vocabulary/adjacent.md` |
 | divergence | `skills/glossary/vocabulary/divergence.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
 | grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |

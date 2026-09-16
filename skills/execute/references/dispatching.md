@@ -576,7 +576,7 @@ never gate and never enqueue at all.
   dependencies wholesale: a tree with an outstanding ticket installs next tick.
 
 ## Wait on your own tickets settling — one Monitor over the queue's ledger
-The signal that belongs to you is **one persistent `Monitor`, armed once per wave, polling the gate queue's
+The signal that belongs to you is **one persistent watch, armed once per wave, polling the gate queue's
 `done/` ledger and emitting one line per settlement belonging to that wave.** Arm it in the same breath as the
 dispatch, beside the divergence tick.
 
@@ -621,8 +621,9 @@ while true; do
 done
 ```
 
-Two things in that shape fail at arm time in **zsh**, the shell a `Monitor` runs in on macOS, leaving a dead
-watch indistinguishable from a quiet queue. **The seen set is a FILE, never a shell string the loop appends
+Two things in that shape fail at arm time in **zsh**, the shell a persistent watch runs in on macOS
+(`skills/procedures/host-tools.md`), leaving a dead watch indistinguishable from a quiet queue.
+**The seen set is a FILE, never a shell string the loop appends
 to**: a `[` right after a parameter expansion opens an array subscript, so a string accumulator has the shell
 evaluate a ticket path as a math expression — and a file survives the pipe's subshell, where a variable's
 writes would not. **Enumerate with `find`, never a bare glob**: zsh's `nomatch` makes an unmatched

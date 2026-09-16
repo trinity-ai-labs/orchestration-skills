@@ -94,6 +94,24 @@ target for free, because its directory name is a prefix of `skills/ground-rules/
 longer say that a pass may not be cited. Nothing goes red on that mistake; the corpus simply becomes citable.
 A fourth home arrives the same way or not at all.
 
+**Three properties are enforced on a glossary entry and none of them asks which KIND of word belongs there,
+so the admission test is stated here.** Check 14 holds every entry to being indexed, to being cited by a pass,
+and to stating a definition rather than addressing the reader — and its own comment says it deliberately does
+not ask whether a term is defined anywhere outside the map. The test is the property that home is admitted on,
+read as three questions about the sentence an entry would carry: **does it claim what the thing IS, is that
+claim identical for every pass, and does no pass own it?** All three, or the term belongs somewhere else. A
+word fails the first question when the sentence says what a seat DOES about the thing — that is a rule, and it
+stays written where its reader acts, at every seat that acts on it. It fails the second when the sentence
+reads differently at two seats, and the third when one pass owns the thing and the others only observe it. A
+term passing all three is as much a FACT about a tool or an artifact as a noun this pipeline invented: the two
+tables in `skills/glossary/SKILL.md` split on who owns the truth, not on what earns a row.
+
+**Two things that test is NOT.** It is not a bar on how many passes use the word — two live entries are cited
+by exactly one file each and both are correct, so a plurality condition would forbid what is already there.
+And it is not a standing instruction to go looking: a term is admitted when it comes up in the work, and
+nothing here commissions a sweep for words the corpus has not defined, since a pass whose purpose is to find
+work will always find some and the backlog it produces is indistinguishable from progress.
+
 **Check 17 is what keeps the newest home from becoming a dumping ground, and it is check 14's sibling.** It
 holds every `.md` under `skills/procedures/` that git tracks **or that is untracked and not ignored** — the
 spine included — to three properties. That second half is load-bearing rather than incidental, for the reason
@@ -124,6 +142,28 @@ there to prevent. Leave them where they sit: they carry no meaning of their own 
 this corpus renames, which is why they are sentinels rather than phrases lifted out of the surrounding prose —
 anchors cut from the prose had to be reworded by every rename that touched it, and the cheap way out of that
 is leaving a stale label in shipped text to keep the gate green.
+
+**Check 18 reads that same derivation onto the vendor-neutral rule, and the shape of what it admits is its
+blind spot.** Shipped prose names the CAPABILITY and leaves resolution to
+`skills/procedures/host-tools.md`, the one file allowed to name a host's tools, models and paths — a rule held
+by reading prose, so every literal written after the last reading survived until somebody read for it again.
+The check derives its literal set from that table's own Claude Code column rather than carrying a copy, so
+adding a row there is what arms it for that tool and there is no second place to remember; a source it cannot
+read, or one that yields no literals, fails rather than skipping, for the reason check 16 gives about its own
+canonical passage.
+
+**What it reads is a CODE SPAN, which is as much the blind spot as the design.** A tool named in running prose
+without backticks is outside its reach on purpose: a section heading naming a passage, and the italic
+cross-references pointing at that heading, are exactly that shape, and a pattern over bare words would red on
+them and on the ordinary English word besides. Inside a span it admits a container type — `Monitor[]` standing
+for any registry-like type — because that is a different TOKEN, and it **fails CLOSED** on any other
+arrangement of a literal it cannot place, naming the span it could not classify: a guard that cannot tell a
+tool from a type is a guard whose green means nothing, so an unplaceable usage reds rather than passing
+quietly. Two further limits, both deliberate: the set is one column's bare CamelCase tokens, so a parameter or
+model string sharing that column, and a host that spells its tools another way, each stay the author's to
+catch — this bounds one host's tool names rather than the rule, which is wider; and the scope is `skills/`,
+because that is what ships, while `AGENTS.md`, `README.md` and these pages are only ever read as this
+repository's own.
 
 **The war-story ban is the one prose rule stated as a PROPERTY, and its check says so.** The rule is
 [AGENTS.md](../AGENTS.md)'s: name the failure a rule prevents in a clause that shares its sentence with the

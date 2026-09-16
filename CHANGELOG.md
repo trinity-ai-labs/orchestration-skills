@@ -75,6 +75,47 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   to ask at all. An empty result stays the ordinary case: the obligation is to account for each entry, never
   to add every one, and it sits at the seat that knows what the slice was for rather than becoming a new
   check.
+- **A fenced-path ask can now be answered with evidence rather than a routing.** The set a dispatcher owes a
+  live slice had four members — *take it*, *the sibling owns it*, *file it*, *stop, I am re-cutting* — and
+  every one of them presumes the finding is real, settling only who acts next. A dispatcher that had opened
+  the file and found the claim untrue of the tree had nothing to return, and the nearest member, *the sibling
+  owns it*, leaves the asker fenced on an ownership claim that is false and the slice recording a
+  not-affected verdict for the wrong reason. The fifth answer is *the premise did not hold, and here is what
+  I checked*: the question dissolved rather than moved, and the answer names the ground it dissolved on, so a
+  later slice meeting the same passage re-runs that ground instead of re-asking the question — a declined ask
+  being re-askable and a routing giving it nothing to test.
+- **It is not a cheap way to decline an ask.** The ground is recorded rather than asserted — the file and
+  what was read in it, in the answer and in the places a grant is already written, the issue while no PR is
+  open and the slice's PR before the diff is reviewed. Returning it with no check behind it is the failure
+  the answer exists to prevent rather than an instance of it, and the asking seat is told to ask for the
+  ground where one comes back without it.
+- **Written at both seats, plus the two that cite the set by its size.** The asking side's *Five answers can
+  come back* in `skills/execute/references/implementer.md`, the deciding side's own bullets in
+  `skills/execute/references/dispatching.md`, the two places in
+  `skills/execute/references/reviewing.md` where an unanswered or late ask is answered on that same set, and
+  the user-facing mental model, which restates the set in its own voice. Each states what separates the new
+  member from the nearest one it would otherwise be forced into.
+- **The placement test gains the verdict for true, tiny, and not goal-completing: fold on COST.** Its two
+  verdicts turn on goal-completeness — *Forced* folds what the goal is not true without, *Adjacent* files
+  what is genuinely another arc — and everything else became a line in the plan for a later arc, which
+  **defers** the work. Doing it and deferring it are not the same outcome, and an item that is one edit is
+  cheaper closed than recorded. It folds as *Forced* folds — a checklist line and no new number — and the
+  record says **cost** rather than borrowing *Forced*'s reason, which would claim the goal was not true
+  without it and is false there.
+- **Its discriminator is that the item is an EDIT, never that a cycle happens to be running.** The first two
+  clauses — goal true without it, not a different arc — are the deferred line's population exactly, so the
+  third is what separates them: an open tree, a loaded context and a running gate are true of every finding
+  the checklist produces and tell two dispositions apart nowhere, where *this one is an edit* is a claim about
+  the item a later cycle can find false. Anything needing scoping of its own is what the line is for.
+- **It generalises the principle the file already held rather than adding a second one beside it.** *Fold vs.
+  file* already says a pipeline finding the arc CAN close it closes, which is why *fixed* is the default
+  rather than the leftover; that argument is untouched and this verdict reads it onto ordinary findings. **It
+  widens nothing above it**: *Adjacent*'s two conditions and the order they are read in stand exactly as they
+  were, and *Forced* still takes everything the goal is not true without, at any size. One four-word repair
+  went with it — the pipeline-finding paragraph said it takes *this test's two verdicts*, a total the third
+  verdict falsified while leaving the claim under it true, so it now takes *two of this test's verdicts* and
+  says what it always said. Both user-facing pages that restate the placement test move with it — the mental
+  model and the hard-rules page — and only that half, since only one of them restates the answer set as well.
 
 ## 5.1.2
 

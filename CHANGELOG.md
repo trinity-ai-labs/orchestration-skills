@@ -48,6 +48,16 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   IT — DO NOT FILE IT. This is the default and it has no bar to clear*, on the argument that writing the
   sentence describing a defect costs more than deleting the defect. That release made fixing the default at
   the implementer's seat and left this enumeration untouched; this is the same argument at the loop's.
+- **A gate verdict now names the revision it gated, and a reader is told what to do when one doesn't.** An
+  override-mode verdict is free-form prose with every reason to carry more than one commit — a baseline most
+  of all — and nothing required it to say which one it had actually gated, so a verdict naming only its
+  baseline in a comparison table left the dispatcher-side SHA check with no revision to compare against, in
+  the direction that manufactures work: it reports post-gate commits that never happened. The comment now
+  leads with the gated revision and labels every other SHA it carries; a `Gated-At: <sha>` trailer says the
+  same thing in parser-friendly form, worth adopting, never required, and nothing here parses one. Where a
+  verdict still names none, the reader compares its post time against `git log --format='%h %cI'` rather than
+  reaching for the first SHA-shaped token in the text, which is routinely the baseline and would fail the
+  check the same way.
 
 ## 5.1.2
 

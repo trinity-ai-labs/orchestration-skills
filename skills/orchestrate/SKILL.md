@@ -264,9 +264,10 @@ identical afterwards.
   `.agents/worktree.json`'s `upstreamFindings` (`skills/procedures/config-keys.md`).
   **Not enabled, the question is still asked and answered in writing** — *not enabled here* — and the finding
   goes to the maintainer in the run's report in full, the one place a report may house one.
-  **Where the resolved target IS the repository the arc is running in the key does not apply and the finding
-  is FILED**, since the key gates a crossing and nothing crosses: compare the manifest's `repository` against
-  the arc's origin by owner and name, never as URL strings, and treat an unreadable origin as different.
+  **Where the resolved target IS the repository the arc is running in the key does not apply and what the arc
+  did not already close is FILED**, since the key gates a crossing and nothing crosses: compare the manifest's
+  `repository` against the arc's origin by owner and name, never as URL strings, and treat an unreadable
+  origin as different.
 - ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — the issue body,
   its title, and every comment on it name the configured git user alone: no trailer, line, footer or URL
   naming Claude, the assistant, the model, the harness, or the session. The named forms and the named

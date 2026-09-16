@@ -32,6 +32,18 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   *Fold vs. file* says a finding about the pipeline itself takes its two verdicts and which close-out answer
   each produces — folded is *fixed*, *Adjacent* is *filed* — adding no verdict and widening no bar. And the
   user-facing page a reader is told to read before installing now says the first answer files nothing at all.
+- **Three sentences that stated the in-repo outcome unconditionally are narrowed — a straggler of the fourth
+  answer rather than a second change.** The loop's own opt-in bullet, the key description in
+  `skills/procedures/config-keys.md` and its user-facing counterpart in `docs/per-project-config.md` each
+  said that where the resolved target is the repository the arc is running in, the finding *is filed* — true
+  when filing was the only outcome, and one answer short now that an in-repo arc which closes the gap files
+  nothing. Each now says it files what it did not already close. **The key's own meaning is untouched**: it
+  still gates a crossing, nothing crosses in that case, and absence is still a decided no.
+- **And a pointer in that same page named a section by a number that could be read two ways.** It sent a
+  reader to the loop's spine at *§7*; that file's headings are numbered 0 through 5 with two unnumbered
+  besides, so *§7* is either wrong or a positional count of `##` headings — ambiguous either way, and the
+  ambiguity breaks again at the next heading added. It now names the section by its title, which survives
+  renumbering.
 - **The precedent is one level down and one release back.** The implementer's own reference already says *FIX
   IT — DO NOT FILE IT. This is the default and it has no bar to clear*, on the argument that writing the
   sentence describing a defect costs more than deleting the defect. That release made fixing the default at

@@ -75,6 +75,31 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   to ask at all. An empty result stays the ordinary case: the obligation is to account for each entry, never
   to add every one, and it sits at the seat that knows what the slice was for rather than becoming a new
   check.
+- **The pass that authors issues gains a fourth way in: a re-author a live arc reported back.** A running arc
+  reports two size findings back at issue altitude — a ready leaf that cannot be one PR, and N ready leaves
+  that are one PR's worth of one change — and both terminated in a pass whose every way in was written about
+  filing NEW work, so the receiving seat existed only as one clause in the arc-planning reference, naming the
+  event and none of its mechanics. **One statement now covers both directions rather than two procedures that
+  happen to agree**: the leaves the report names are superseded, the plan gains the leaves that replace them,
+  and every superseded leaf leaves the board the same way — a split being one leaf superseded by several and a
+  fold several superseded by one. **Three forks are settled as decisions.** A superseded leaf is **closed as
+  not planned** and never edited into what replaces it, since closed-as-completed says a fix shipped in some
+  release — which is exactly what the pass's own search step reads a closed issue as — and an edit in place
+  loses the report whoever filed it wrote; the replacement takes a **new number**, since an edit reaches one
+  item where each direction has several on one side — several replacements in a split, several originals in a
+  fold — so an inherited number branches both directions instead of carrying either; and the umbrella's
+  checklist is rewritten **before** the close, because that body is the live remaining plan and is re-read
+  every cycle, so an agent arriving between the two writes must still find every leaf that remains named in
+  it. **Both artifacts move, for the leaf going out and the leaf coming in** — the `- [ ] #<leaf>` checklist
+  line and the native sub-issue link — since a parent lookup reads the link while a markdown-only umbrella's
+  fallback reads the checklist, so a superseded leaf keeping either one still reads as live to the reader that
+  keys on it and a replacement given only one is invisible to the other. Step 4 gains the close call, REST for
+  the same reason the other writes there are. **The reversal ships with it**: this answers a report and is
+  never a second route by which a cycle re-cuts the board — the tracker stays the authority and the grounding
+  pass folds and cuts nothing on its own initiative. **Step 1's closed-issue triage now reads the close
+  reason first** — its two existing branches both look into the copy for what a fix introduced, which a leaf
+  closed as not planned never shipped, so that reason routes the searcher to what replaced it instead. The
+  arc-planning reference's one clause now points at the seat that carries the mechanics.
 
 ## 5.1.2
 

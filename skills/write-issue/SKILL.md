@@ -4,9 +4,11 @@ description: >-
   Write a settled shape up as a forward-facing GitHub issue — or an umbrella + sub-issues — and plan
   the arc it runs as. Fed by /pipeline:co-think. Its input is a decision already made: the approach
   chosen, the pieces named, the order agreed, a bug already diagnosed, a follow-up a live run
-  surfaced, or a pile of already-filed issues to sweep and cluster into one. Use whenever you're asked
-  to WRITE UP / FILE / OPEN an issue, to DECOMPOSE or break a plan down into the children that will
-  ship it, to GROUP a pile of loose issues into an umbrella, to capture
+  surfaced, a pile of already-filed issues to sweep and cluster into one, or a re-author a live arc
+  reported back — a leaf that cannot be one PR, or N leaves that are one PR's worth of one change.
+  Use whenever you're asked to WRITE UP / FILE / OPEN an issue, to DECOMPOSE or break a plan down into
+  the children that will ship it, to GROUP a pile of loose issues into an umbrella, to RE-AUTHOR the
+  leaves an arc reported back as wrongly sized, to capture
   agreed work as something trackable, or to turn a concluded design discussion into one. You GROUND WHAT THE ARC
   RESTS ON against the real codebase — the modules it lands in, the seams between them, the
   deliverables it names, whether the surface it assumes exists at all — then write it forward-facing
@@ -81,6 +83,44 @@ run trades thin-slice churn for an epic nobody can review.
 
 ---
 
+## A re-author reported back from a live arc is a fourth way in
+
+**A fourth way in, not a fifth step.** A live arc reports back that a ready leaf **cannot be one PR**, or that
+**N ready leaves are one PR's worth of one change**, and the answer to either is authored here — a leaf cut or
+merged anywhere downstream parts the unit the board holds from the unit that lands. The report arrives
+settled: it is a size finding taken against the tree the arc stands on, so keep it rather than re-deriving the
+question, and write what replaces those leaves through the same four steps as any other issue.
+
+**One statement covers both directions, because both are one move**: *the leaves the report names are
+superseded, the plan gains the leaves that replace them, and every superseded leaf leaves the board the same
+way.* A split is one leaf superseded by several and a fold is several superseded by one, so nothing true of a
+superseded leaf in the one direction is untrue of it in the other.
+
+- **A superseded leaf is CLOSED as not planned — never edited into what replaces it — and the replacement
+  takes a NEW number.** Closed as completed it says a fix shipped in some release, which is what Step 1 reads
+  a closed issue as; edited in place it loses the report whoever filed it wrote, and an edit reaches one item
+  where each direction has several on one side — several replacements in a split, several originals in a fold
+  — so an inherited number branches both directions rather than carrying either.
+- **Both artifacts move, for the leaf going out and for the leaf coming in** — the `- [ ] #<leaf>` checklist
+  line and the native sub-issue link (`skills/glossary/mechanics/sub-issue-link.md`). A parent lookup reads
+  the link and a markdown-only umbrella's fallback reads the checklist, so a superseded leaf keeping either
+  one still reads as live to the reader that keys on it, and a replacement given only one is invisible to the
+  other. Step 4's mechanics carry a replacement exactly as they carry any child.
+- **Rewrite the umbrella's checklist BEFORE the close, not after.** That body is the live remaining plan and
+  is re-read every cycle, so an agent arriving between the two writes has to find every leaf that remains
+  named in it; closing first leaves the plan short by everything the report covered.
+
+**A report against a standalone issue has no umbrella and the statement is unchanged, that issue being the
+plan** — it is superseded exactly as a leaf is, and what replaces it is authored whole, an umbrella over
+children where the report was that it cannot be one PR.
+
+**The reversal:** this answers a report and is never a second route by which a cycle re-cuts the board. The
+tracker stays the authority, the pass that grounds the work folds and cuts nothing on its own initiative, and
+a re-author runs because a leaf was reported unbuildable as one PR — never because a cycle judged the plan
+would read better some other way.
+
+---
+
 ## Step 1 — Before you file, search what is already filed — by failure shape, open and closed
 
 **Run this before you ground anything: the outcome decides whether there is a body to write at all.** Every
@@ -101,8 +141,11 @@ item's own words, and cover CLOSED issues as well as open.**
 - **An open issue already describes this failure → comment on THAT issue**, saying what is *new*: the second
   run, the different mechanism, the condition that widens it. **This is what promotes a held issue**, which
   otherwise holds forever.
-- **A closed issue describes it → establish which copy you read before calling it anything**: look in
-  **that copy** for what the fix introduced — the rule, the flag, the branch, the behaviour change.
+- **A closed issue describes it → read its close REASON, then establish which copy you read before calling
+  it anything**: look in **that copy** for what the fix introduced — the rule, the flag, the branch, the
+  behaviour change.
+  - **Closed as not planned → nothing shipped there**: it was superseded rather than fixed, so follow it to
+    what replaced it and run this step against that.
   - **Present and still failing → a REGRESSION**, naming that issue and what shipped to close it.
     **File a new issue and comment on the closed one pointing at it; never reopen it** — that erases which
     release the fix landed in.
@@ -254,6 +297,10 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   too. That native link is `skills/glossary/mechanics/sub-issue-link.md`. A bare `Follows #<N>` is provenance,
   not containment, and takes the backlink alone. **PATCH the umbrella's body to add the follow-up to its
   checklist**, or it reads as finished work that is not.
+- **Superseding a leaf**: take its checklist line out of the umbrella body and unlink it as a native
+  sub-issue — both, since two readers key on one each — then close **each** leaf the re-author supersedes:
+  `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -f state=closed -f state_reason=not_planned`. The reason
+  field is not decoration: left off, the close reads as a fix that shipped.
 - **Labels**: apply an existing `epic`/`umbrella` label where the repo has one; don't invent exotic ones. It
   names the **tracking shape**, never a branch decision, though it reads as the verdict it shares a word with.
 

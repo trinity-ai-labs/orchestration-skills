@@ -173,7 +173,14 @@ does not exist yet.
   or the command, since `wc -l` counts matching lines fed a `grep` and members fed a file list.
   **Say what the instrument CANNOT see, too** — a pattern that is case-sensitive where the corpus is not, or
   anchored on a spelling the corpus also writes another way, comes back short and reads as thorough.
-  `skills/ground/references/grounding.md`'s *An enumeration is a claim* carries the sweep mechanics.
+  **A count and the list it summarises are ONE CLAIM, and a document states it once**: where your own prose
+  summarises a list the same document also prints, derive that number FROM the list — and RE-derive it on
+  every later edit to either, since a count correct when written and left standing through the next edit is
+  the same drift as never deriving it — or drop the number and point at the list instead, which needs no
+  re-deriving because there is nothing in it to recount. The summary is what a reader carries into the work
+  and the list is what they check against, so the two disagreeing costs nothing to write and everything to
+  trust — and no GATE reads a prose sentence against a prose table, which is why this is a rule rather than a
+  checker. `skills/ground/references/grounding.md`'s *An enumeration is a claim* carries the sweep mechanics.
 - ⛔ **No code, no worktrees, no dispatch, no merge** — `/pipeline:execute` dispatches and merges,
   `/pipeline:orchestrate` owns the loop around you. You never edit a source file, and if you catch yourself
   opening one to change it, stop; never run a worktree helper or any harness auto-provisioner; never spawn

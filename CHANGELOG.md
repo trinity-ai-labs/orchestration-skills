@@ -143,6 +143,16 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   verdict falsified while leaving the claim under it true, so it now takes *two of this test's verdicts* and
   says what it always said. Both user-facing pages that restate the placement test move with it — the mental
   model and the hard-rules page — and only that half, since only one of them restates the answer set as well.
+- **A count summarising an enumeration the same document also prints is now the same claim as the list, never
+  a second one.** The existing enumeration rule bound a count to the instrument that produced it — name the
+  command, say what it counts, name what it cannot see — but nothing governed a summary sentence disagreeing
+  with the list it describes further down the same document: the instrument rule could be satisfied in full
+  while the summary contradicted its own table, and nothing read the two against each other. A summary is now
+  **derived** from the list it describes, or the prose drops the number and points at the list instead, which
+  is cheaper and cannot drift. **Written beside the instrument requirement rather than in a second home**, and
+  at the dispatcher's own check on a brief's enumerations, which now asks the self-consistency question beside
+  the ones it already asked. **No new check enforces it** — a gate reads neither a prose summary nor the table
+  it describes, which is this rule's own reason for being a rule rather than a checker.
 
 ## 5.1.2
 

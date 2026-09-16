@@ -310,14 +310,21 @@ worktree is gone:
    later.
 
 **When this close-out ends the whole arc rather than one increment, one arc-level question is still owed and
-it is answered in writing: did the arc surface a defect or gap in the pipeline itself?** Exactly one of three
-answers — **filed**, naming the issue; **none found**; or **not enabled here**, where
+it is answered in writing: did the arc surface a defect or gap in the pipeline itself?** Exactly one of four
+answers, in that order of preference — **fixed**, closed in this release and naming where it landed;
+**filed**, naming the issue; **none found**; or **not enabled here**, where
 `.agents/worktree.json`'s `upstreamFindings` is anything but exactly `true`, in which case the finding goes to
-the maintainer in the run's report instead. The bar is an **observed failure the finding can name** — a run
+the maintainer in the run's report instead. **Fixed is the default and clears no bar**: a gap closable in the
+release already being shipped is closed there and names the file and the changelog entry it landed in, held
+to the discipline filing demands of a number — and it is available only where that release IS this tree, so
+an arc inside a consuming project answers it for nothing in these skills. Filing is what is left
+and it takes **both** halves: the bar is an **observed failure the finding can name** — a run
 that broke, a rule read and not followed, a check green over a tree it never saw — never an improvement that
-would be nice; a finding that clears it is **filed** as an artifact with a number, into the plugin's own
+would be nice — **and** the arc genuinely cannot close it, being a different arc or closing it changing what
+the arc IS; a finding that clears both is **filed** as an artifact with a number, into the plugin's own
 repository resolved from `repository` in `.claude-plugin/plugin.json`, genericised of every path, symbol,
-branch and client name because that tracker is public. It binds a dispatcher invoked directly exactly as it
+branch and client name because that tracker is public, and one only written down is still no disposition
+where one fixed and named has landed. It binds a dispatcher invoked directly exactly as it
 binds the loop, and it is asked **per arc, never per increment** — asked five times in an evening it becomes
 noise and gets tuned out, which is worse than not asking. "None found" is cheap but still written down, since
 an arc that surfaced nothing and one where nobody asked look identical afterwards.

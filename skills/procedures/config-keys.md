@@ -52,7 +52,7 @@ a question rather than a default.
   answer rather than an unasked question, the opposite of how `sharedResources` reads absence. **Omit
   it** unless the owner has decided to publish upstream: the plugin's tracker is public and most installs
   are not. **Where the resolved target IS the repository the arc is running in, the key does not apply
-  and the finding is filed** — it gates a crossing, and nothing crosses.
+  and what the arc did not already close is filed** — it gates a crossing, and nothing crosses.
 - **`integrationBranch`** — the branch this project's work lands on
   (`skills/glossary/vocabulary/integration-branch.md`): a **literal name, never a pattern**. `main` where
   work lands on the default branch, the live `release/x.y.z` where it lands on a release branch,

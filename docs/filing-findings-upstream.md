@@ -3,10 +3,13 @@
 > **Read this before you install.** This plugin can write into **this repository, which is public** — opening a GitHub issue, or adding a comment to an issue already here — from inside whatever repository you are running it in. It does that only when you have switched it on, and it is **off unless you switch it on** — but it is a thing the plugin can do, so it is stated here rather than buried in a config table.
 
 **What it is.** At the end of an arc, `/pipeline:orchestrate` answers one question in writing: did this run
-surface a defect or a gap in *the pipeline itself* — not in your code, in these skills. Where you have enabled
-it, an answer that names a real observed failure is filed **in this repository**, so the same gap stops
-costing every other install the same way. Where you have not, it goes to you in the run's own report and
-nowhere else. Either way the question is asked and answered; the key decides only where the answer can go.
+surface a defect or a gap in *the pipeline itself* — not in your code, in these skills. **Its first answer
+files nothing at all**: a gap the run can close in the release it is already shipping is answered *fixed*,
+naming where the fix landed, which in practice means an arc running inside this repository, since the release
+these skills ship in is not one your project can change. Where you have enabled it, an answer that names a
+real observed failure is filed **in this repository**, so the same gap stops costing every other install the
+same way. Where you have not, it goes to you in the run's own report and nowhere else. Either way the question
+is asked and answered; the key decides only where the answer can go.
 
 **Filed is not always a new issue, it is sometimes nothing at all, and whatever does get written is equally
 public.** Before anything is created, the tracker here is searched by the *shape* of the failure — open issues
@@ -37,10 +40,10 @@ having been asked. So: nothing turns this on but your own yes — not a flag, no
 updating itself, and not a question you decline.
 
 **The one case the key does not cover cannot be your repository.** An arc run inside *this* plugin's own
-repository files its finding without the key: there the target and the tree are the same repository, so the
-finding leaves nothing and there is no disclosure for an opt-in to gate. Whether that holds is decided by
-comparing the plugin's manifest against the origin of the repository the run is in, so it can only ever come
-out true in this repository — from your tree, absence stays a decided no and nothing is filed.
+repository files what it did not already close, without the key: there the target and the tree are the same
+repository, so the finding leaves nothing and there is no disclosure for an opt-in to gate. Whether that holds
+is decided by comparing the plugin's manifest against the origin of the repository the run is in, so it can
+only ever come out true in this repository — from your tree, absence stays a decided no and nothing is filed.
 
 **What a filed finding contains.** The *shape* of the failure, the counts, and the conclusion — written for a
 reader who has never seen your repository. It does **not** contain a file path, a symbol, a route, a branch

@@ -244,8 +244,11 @@ rather than this pass's to re-open for. **Wait on those reviewers the way your h
 it re-invokes you as each one reports, by ENDING your turn with no tool call, which hands nothing back,
 and where it gives you a call that blocks until one reports, by that call — and never by a call made
 only to keep the turn open**, a placeholder agent or an `echo` or a `sleep`, which spends a round trip
-and learns nothing. A reviewer that fails or stalls has landed with nothing: weigh the rest, and name
-that dimension in your report as one that did not report.
+and learns nothing. **Where your host gives NEITHER of those two, ending your turn loses the very report
+you are waiting for, so report on what has landed and name the dimensions still out as still out** —
+`skills/procedures/host-tools.md` is where you read which branch is yours, and a blank row there is the
+third until your own tool list says otherwise. A reviewer that fails or stalls has landed with nothing:
+weigh the rest, and name that dimension in your report as one that did not report.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
@@ -253,9 +256,10 @@ consciously reject the rest. **You apply nothing on anyone's behalf**: nothing l
 did not decide on, and a finding you are not the party to act on is reported rather than delegated.
 
 **Before you weigh a single finding, read the TREE the reviewers ran against** — `git status` and
-`git log` against the fork point from step 1. A reviewer that edited, committed, pushed, opened a PR or
-enqueued a ticket is a runaway, and it looks exactly like a careful one from its report alone; the
-hard rule at the end of this file carries what you do about it.
+`git log` against the fork point from step 1. A reviewer that edited, committed, pushed, opened a PR,
+enqueued a ticket or filed an issue is a runaway, and it looks exactly like a careful one from its report
+alone; the hard rule at the end of this file carries what you do about it, and the last of those is the one
+`git status` cannot see.
 
 **Read the goal reviewer's report first.** Every other dimension asks whether the code is good and none
 of them asks whether it achieved anything, so a diff aimed at the wrong thing comes back with six clean
@@ -329,12 +333,14 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   before the caller pushes while an answer is still an edit in a tree that is open, and becomes a
   linked issue, or a comment on the one already carrying that failure, **filed by the seat that
   returns that verdict** and only where that is the answer that comes back; this pass reports it
-  and files nothing, exactly as it commits and pushes nothing, and neither does the caller. The only thing it
-  dispatches is a reader.
+  and files nothing, exactly as it commits and pushes nothing — a filing from here spends a whole unit of
+  work on what one line of this report settles — and neither does the caller, nor any reviewer it
+  dispatched. The only thing it dispatches is a reader.
 - **Verification** — which scoped check you ran and its result, and which single test file if any, **plus
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget
-  already spent — read the finding it came with, then size what you enqueue knowing that run happened.
+  already spent — read the finding it came with, and report that the run happened, since the seat that
+  enqueues the real ticket is the one that can size around it.
 
 Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, the verdict
 posted onto that PR, and whatever raising a flagged item becomes all belong to the flow that called
@@ -348,7 +354,7 @@ you — in that order — and none of them are yours.
 
 **Spawn every reviewer FRESH and never as a fork** — a fork inherits the whole conversation of whoever
 spawned it, which in this flow is an implementer's brief whose imperatives end in *commit, push, open a
-draft PR, enqueue the gate*, and a fork reads those as its own instructions and executes them before
+draft PR, hand back*, and a fork reads those as its own instructions and executes them before
 the implementer that spawned it gets its turn back. Use your host's fresh-sub-agent tool, and never an
 option that hands a sub-agent a worktree of its own.
 
@@ -370,7 +376,8 @@ which is the part that is repository-wide. A reviewer greps call sites and runs 
 absolute path buys it a result that is true about another branch — a green there is indistinguishable
 from a right-tree green, and the red direction is indistinguishable too, which sends a reader hunting a
 defect that is not in the diff at all. No
-*commit*, no *push*, no *open a PR*, no *enqueue*, no *run the formatter*, no *hand back to the
+*commit*, no *push*, no *open a PR*, no *enqueue*, no *open an issue or comment on one*, no *run the
+formatter*, no *hand back to the
 dispatcher*, no gate command, and no command that moves or clears the tree — no checkout of another
 commit, no `stash`, `reset` or `clean` — since the caller's uncommitted change is the only copy of it. **Frame
 the deliverable positively rather than as a list of
@@ -408,16 +415,29 @@ tree until told that it is.
 behind that positive frame rather than the mechanism** — a reader told only *don't*, holding a finding one
 command would confirm and handed no verification state, reads the ban as a formality. Say WHY in the
 brief and what it costs: a reviewer that runs the gate saturates the machine the real gate is queued for,
-produces a green nobody reads, double-spends a run you have already paid for, and leaves you unable to
-size what you are about to enqueue. **So every brief also asks the reviewer to report what it RAN** — the
+produces a green nobody reads, double-spends a run you have already paid for, and leaves the seat that
+enqueues the real ticket sizing it against a run nobody told it about. **So every brief also asks the
+reviewer to report what it RAN** — the
 commands behind its findings, at the granularity your own verification line carries — and you carry that
 per reviewer into your report, which is what makes a blank there a fact rather than a silence.
+
+**A GitHub issue is not a disposition available to a reviewer, in any circumstance, for any finding — put
+that in every brief you write, with its reason in the same sentence**: what this pass produces is one line
+in a report to the party holding the tree, where a filing spends a whole unit of work — a read, a
+discussion, a grounding pass, a worktree, an agent, a gate run and a merge — on what one edit of yours
+settles, onto a board nobody in this run is holding. **State it positively beside the ban, as the gate ban
+is stated**: what a reviewer finds goes in its report, whatever a fence, an absent owner or an unreachable
+seat makes filing look like the only route left. **And a filing that happened anyway is recovered the way a
+posted review is, because neither leaves anything in the tree** — read it off the tracker rather than off a
+clean `git status`, take the finding back into your own `Flagged` list where it belonged, and name the
+number in your hand-back, since the seat that holds the filing disposition is the only one that can close
+what nobody authorized.
 
 **Read the tree before you read the reports, and revert anything a reviewer wrote before you weigh a
 single finding** — a careful reviewer and a runaway one leave identical artifacts, so the report cannot
 tell you which you have while `git status` and `git log` against the fork point can. **A review or a
-comment a reviewer posted leaves nothing in the tree at all**, so that one is checked on the PR itself
-rather than inferred from a clean `git status`, and an
+comment a reviewer posted, and an issue it opened, leave nothing in the tree at all**, so those are checked
+on the PR and on the tracker rather than inferred from a clean `git status`, and an
 unauthorized write left standing costs more than the mess it makes: once one is in play nothing can
 tell authorized work from rogue work, and a sibling implementer seeing a branch and a PR appear mid-run
 quarantines a legitimate slice's gate ticket on an entirely wrong rationale.

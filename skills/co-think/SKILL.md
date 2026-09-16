@@ -25,7 +25,7 @@ thing to talk to when you do not know which command you want.
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this
 file does.** This pass declares no sub-agents, so it authorizes none.
 
-**Six actions, in order.** Each carries the rules that fire at it.
+**Seven actions, in order.** Each carries the rules that fire at it.
 
 ## 1. Classify the request out loud, before your first question
 
@@ -36,7 +36,7 @@ passes.
 
 Then say which path you are on and why, in one sentence — *"this looks bounded, so I'll put a short design in
 chat rather than write an issue"* — so the user can override it before you spend a single question. A bug
-report classifies only once its cause is known, so it goes to 4 first.
+report classifies only once its cause is known, so it goes to 5 first.
 
 | Path | What it is |
 |---|---|
@@ -48,7 +48,33 @@ report classifies only once its cause is known, so it goes to 4 first.
 - **Read enough of the repo to place it** — the files, the docs and the recent commits around the request —
   before you settle on a path. Bounded measures the tree, never your familiarity with this kind of app.
 
-## 2. Check the scope before you refine the detail
+## 2. Audit the premises the request rests on, before you shape anything
+
+**Write the claims the request stands on down, then check each against the tree** — before a question is spent
+on one and before any shape is drawn over it. A request asserts things about the code as it arrives: that a
+flag exists, that a schema has no field for this, that a section says such-and-such, that nothing validates
+it. Each is a claim somebody can be wrong about, and shaped over an unchecked one every pass after this
+grounds, plans and builds a route to somewhere nobody needed to go, with nothing downstream asking again.
+
+**Three verdicts, each carrying what it rests on:**
+
+- **Verified** — name the coordinate that establishes it: the file, and what you read in it.
+- **False** — say what the tree says instead, at that same coordinate, and put it to the user before anything
+  else, since a false premise usually changes the request rather than the answer to it.
+- **Unverifiable** — say why nothing settles it here: no artifact in this tree decides it, the answer lives in
+  a running system, the claim is about somebody's intent. ⚠️ **That verdict is legitimate, and it is what
+  keeps this from being a ritual** — an audit obliged to come back verified or false invents the third case,
+  and an invented verdict is indistinguishable from a checked one afterwards.
+
+**Then name which premises the shape PROCEEDS ON as assumptions** — the unverifiable ones it cannot wait for,
+and any you deliberately did not check — stated with the shape rather than held back, the way you already name
+the assumption you proceed under when you name what would change your mind.
+
+**Neither of its neighbours does this job.** Action 1 reads the repo to PLACE the request, and a request can
+be classified correctly and false in every premise it carries; the pricing rule two actions on weighs a
+CONSTRAINT you are about to let narrow the design, where this tests a CLAIM the request arrived with.
+
+## 3. Check the scope before you refine the detail
 
 **A request spanning several independent subsystems gets said out loud immediately**, ahead of any clarifying
 question. Questions spent sharpening the detail of something that needed decomposing first are questions spent
@@ -65,7 +91,7 @@ whether the arc's goal is true without an item is a different question from whet
 the argument being had, and left in, a sequencing debate holds hostage work that is needed however it
 resolves.
 
-## 3. Ask one question per message
+## 4. Ask one question per message
 
 - **One question per message.** A topic needing more becomes several messages, never one message carrying
   three questions.
@@ -92,7 +118,7 @@ resolves.
   decided; citing it to rule an approach out spends a decision the user never made. Only the second gets
   priced first.
 
-## 4. Take a bug to its root cause before you classify it
+## 5. Take a bug to its root cause before you classify it
 
 **A bug whose cause is unknown is not a shaped arc** and cannot be routed — nothing yet says whether the fix
 is one line or a subsystem.
@@ -103,10 +129,10 @@ is one line or a subsystem.
   the investigation, most of the time.
 - **Trace the bad value back to where it ENTERS, not to where it surfaced.** Across a boundary, establish
   which side it is already wrong on before you look inside either.
-- **Then re-classify with the cause in hand** and route from 6. A one-line fix at a known cause is bounded; a
+- **Then re-classify with the cause in hand** and route from 7. A one-line fix at a known cause is bounded; a
   cause that turns out structural is architectural.
 
-## 5. Shape the arc — architectural only
+## 6. Shape the arc — architectural only
 
 A design is not done when the parts are named. Work these four out with the user, and get the answers into the
 design before any issue is written:
@@ -122,7 +148,7 @@ design before any issue is written:
 
 Present the design in sections scaled to their complexity, and ask after each whether it holds so far.
 
-## 6. Get the intent approved, then route
+## 7. Get the intent approved, then route
 
 ⛔ **Every path ends with the user approving the intent, and the approval never scales down.** The artifact
 scales — two sentences for a spike, a short design in chat for a bounded change, sections for an architectural
@@ -136,8 +162,8 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 | A spike | Answer it as cheaply as correctness allows, then **stop**. No issue; anything you built is labelled throwaway |
 | Bounded, and small enough that an issue would outweigh it | Say so, get the nod, then **build it yourself as the implementer** — you leave this pass rather than break its rule, and `/pipeline:execute` carries the implementer's flow |
 | Bounded, and real work | `/pipeline:write-issue` — it sets the phases and hands off to `/pipeline:orchestrate`, whatever the size of what it just planned |
-| Architectural | Shape the arc with the user first (5), then `/pipeline:write-issue` |
-| A bug whose cause is unknown | Debug it to a root cause (4), then re-classify — never route a guess |
+| Architectural | Shape the arc with the user first (6), then `/pipeline:write-issue` |
+| A bug whose cause is unknown | Debug it to a root cause (5), then re-classify — never route a guess |
 | It is already filed | `/pipeline:orchestrate` — it grounds the horizon and dispatches it, one cycle or twenty |
 | A pile of already-filed issues to group | `/pipeline:write-issue` — its third way in clusters them into one umbrella |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
@@ -155,7 +181,7 @@ Four rules fire at no single action:
   mechanism still serves it — unasked, a mechanism that is present and enforced reads as a constraint rather
   than a choice, so the pass adjusts its parameters (which unit, which number, which threshold) and never asks
   whether it should exist at all, while every iteration looks like progress.
-  **Action 3's pricing rule is this one pointed at the conversation**: this rule says a mechanism may be
+  **Action 4's pricing rule is this one pointed at the conversation**: this rule says a mechanism may be
   changed, and that one says you owe the user the cost of changing it at the moment you are about to let it
   decide the shape for them.
 - ⛔ **After a correction: restate, commit, go.** One line naming the goal, one line saying what you will

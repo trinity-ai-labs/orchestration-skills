@@ -29,6 +29,12 @@ your host may not have is worse than a blank one**, since the flow sends you her
 row says the tool is not established, the sentence above is the whole instruction — read your own tool
 list, and say in your report what you found.
 
+⚠️ **The wait row has THREE branches, and a BLANK cell is what selects the third.** A filled cell names one
+of two waits: an ended turn with no tool call, where the host re-invokes you as each child reports, or a call
+that blocks until one does. **A blank means this table establishes neither for that host, and it is a reading
+rather than an absence of one** — read your own tool list, and where that confirms neither exists, there is no
+wait to make and `skills/ground-rules/SKILL.md` rule 10 carries what to do instead.
+
 ⚠️ **The reach-your-spawner row hands back a RECEIPT, never a reply, so send and carry on rather than
 wait.** The call returns synchronously and what comes back acknowledges that the message is queued; the
 agent it addresses reads it on its own next turn, and an answer, when it comes, arrives as a message of

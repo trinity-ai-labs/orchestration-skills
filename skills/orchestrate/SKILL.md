@@ -213,12 +213,18 @@ else stops the loop; the checklist's *Scope drift* **halts where the plan has gr
 exit that does not look like one because it fires on a loop landing work cleanly;
 **a forced item the arc was planned smaller than halts it too**, once absorbing it would change what the arc
 IS, reported with the re-plan recommended; and **two consecutive cycles at a net of zero or more halt it as
-well — but only while items this arc filed are still *Adjacent***, the net being *filed minus closed* off the
+well — but only while items this arc filed are still *Adjacent***, the net being
+**filed minus the closes against the PLAN** off the
 record `skills/orchestrate/references/reconciling.md` says to write, so a backlog that has stopped shrinking
 across two cycles is an arc transferring work rather than landing it, reported with the re-plan recommended
-like any other halt. **Read that *only while* as a condition on the halt and never as a note beside it**,
+like any other halt. **The closes of what the arc GENERATED itself are recorded beside that and this exit does
+not read them**, since an arc working only on its own findings closes as many as it files and would otherwise
+score its healthiest cycle with the plan standing still.
+**Read that *only while* as a condition on the halt and never as a note beside it**,
 since an arc that has filed nothing scores 0 − 0 = 0 every cycle and would otherwise halt on its second cycle
-for having filed nothing. **Scope drift's other direction is not an exit at all** — a plan falling SHORT
+for having filed nothing. **Nothing else about this exit moves** — the threshold, the two-cycle window and
+that condition stand exactly as they were, and what changed is which closes go into the net.
+**Scope drift's other direction is not an exit at all** — a plan falling SHORT
 re-opens and the loop carries on — so read which direction fired before you treat a fire as a stop.
 **Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue
 filed out of this arc that it did not land, that the loop is not coming back, and
@@ -299,8 +305,9 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   an arc that files three items per item it closes hands back three decisions per close.
   **Read that multiplication off the cycle's record rather than off your sense of it, and read the RATE for
   it** — the record carries how many of the arc's filed items are still *Adjacent*, how many cycles the oldest
-  has been, and that cycle's filed, closed and net, and a multiplication is a flow, so it shows up in the rate
-  while a level rising by one a cycle reads as noise.
+  has been, and that cycle's filed, its closes against the plan, its closes of what the arc generated itself,
+  and the net of the first two; a multiplication is a flow, so it shows up in the rate while a level rising by
+  one a cycle reads as noise.
 - ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table,
   a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify
   bar**, grepping the *old literal* across the whole tree, fixtures, snapshots, generated files, docs and

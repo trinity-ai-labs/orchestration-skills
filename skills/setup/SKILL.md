@@ -222,7 +222,8 @@ it means.
 ## Step 3 — Scaffold the gate queue, only where the project wants one → `skills/setup/references/gate-queue.md`
 
 Only where Step 0 picked the queue tier. The queue is what lets implementers never run the heavy gate — they
-push, open a draft PR, enqueue a durable ticket and hand back, while dispatchers drain one gate at a time.
+push, open a draft PR and hand back, while the dispatcher drops the durable ticket once it has read that diff
+and drains one gate at a time.
 Scaffold the three scripts with their `package.json` entries, and **read the reference first**: the whole
 rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) whose failure mode is a green
 gate against code no gate ever saw.
@@ -230,15 +231,20 @@ gate against code no gate ever saw.
 ### Already has a queue? Reconcile it — report the delta, never rewrite
 
 The arrow is reversed from Step 1's: the project is not onboarding but possibly *behind a reference that
-moved*. Read the scripts against the invariants in `skills/setup/references/gate-queue.md` and hand back a
-**per-invariant delta** — implemented, absent, or not determinable by reading, that third with the command
-that would settle it. **Report, never rewrite**, an overwrite being unable to tell a deliberate divergence
+moved*. Read the scripts against the invariants in `skills/setup/references/gate-queue.md` — **and against
+that file's *Reporting* field list, since a verdict field is not an invariant and a per-invariant delta alone
+would report a runner complete while it writes a verdict its readers cannot use** — and hand back a
+**per-invariant delta plus a per-field one** — implemented, absent, or not determinable by reading, that third
+with the command that would settle it. **Report, never rewrite**, an overwrite being unable to tell a
+deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
 The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so
-every already-scaffolded queue reports one absence. Report it like any other, with what the runner would have
-to add, and leave the adopting to the project.
+every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
+identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
+and an absent failure set is what leaves a red ticket unusable as a baseline. Report each like any other, with
+what the runner would have to add, and leave the adopting to the project.
 
 ## Step 4 — Verify it, don't assert it
 

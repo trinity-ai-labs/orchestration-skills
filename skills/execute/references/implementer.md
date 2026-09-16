@@ -29,8 +29,9 @@ worktree before acting on it, `diff` the two where one looks wrong, and say whic
 
 **The flow is: take any baseline your slice needs → write all the code → update the docs it changed → fix what
 you HIT outside your owned files, in this PR → (`/pipeline:review` if this slice warrants it) → commit → push
-→ draft PR → enqueue the gate → hand back.** Run only *cheap* checks: format, a scoped lint/typecheck
-(`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
+→ draft PR → hand back.** The gate ticket is **not in that flow** — your dispatcher enqueues it after it has
+read your diff, and in override gate mode there is none. Run only *cheap* checks: format, a scoped
+lint/typecheck (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
 **one targeted test file run directly** — the widest test execution you get.
 
 **A baseline your slice needs is taken FIRST — before your first edit — and only once.**
@@ -75,14 +76,20 @@ lands. **Park held work in a stash carrying your marker, and restore it by that 
 (`skills/ground-rules/SKILL.md`, rule 7, has the commands).
 
 ⛔ **Never a quality pass that FORKS its reviewers, and never one that hands a reviewer this brief** — a fork
-inherits it and carries out its *commit, push, PR, enqueue* imperatives for you before you get your turn back,
-and a fresh agent handed those same imperatives does it too. `/pipeline:review` dispatches one FRESH reviewer
-per dimension, hands each the slice's goal, the fork point, the diff and its dimension and none of those
-imperatives, and stays the only party that edits your tree — every reviewer reports and does nothing else, so
-a commit, a push or a PR that appears while it runs is a runaway to revert before you read a finding.
+inherits it and carries out its *commit, push, PR, hand back* imperatives for you before you get your turn
+back, and a fresh agent handed those same imperatives does it too. `/pipeline:review` dispatches one FRESH
+reviewer per dimension, hands each the slice's goal, the fork point, the diff and its dimension and none of
+those imperatives, and stays the only party that edits your tree — every reviewer reports and does nothing
+else, so a commit, a push or a PR that appears while it runs is a runaway to revert before you read a finding.
 **And every reviewer is the LAST agent in the chain — its brief says in as many words that it dispatches
 nothing of its own**, or the reader count the pass sized is re-sized from inside it and you weigh findings
 nobody in the chain established firsthand.
+⛔ **Every one of those briefs also states that a GitHub issue is not a disposition available to that reviewer,
+in any circumstance, for any finding, with the reason beside it** — a filing from a reader spends a whole unit
+of work on what one line in its report settles, and the ban stated only here reaches no reviewer. **A filing a
+reviewer performed leaves nothing in your tree**, so it is read off the tracker rather than off a clean
+`git status`, the finding comes back into the pass's own flagged list, and the number goes in your hand-back
+by name.
 
 **Format in write mode right before committing** — the scoped check only format-*checks*.
 **Formatter output is always committed, never reverted**: your files' formatting folds into the change,
@@ -98,8 +105,9 @@ on any result** (that flag is the dispatcher's signature that it read your diff)
 **The one exception covers only WHO runs the gate — override gate mode**, never self-granted: the brief or
 dispatching user **explicitly** puts this slice there, or the project declares no `enqueue` and no `drain`,
 where *Per-project config* makes in-line gating the default. Then run `gate` once, in the foreground, comment
-the result on your own draft PR, and never enqueue. **Capture that gate's own exit status, never a
-pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
+the result on your own draft PR, and never enqueue — which you never do in the default mode either, the ticket
+there being your dispatcher's to raise after it reads your diff. **Capture that gate's own exit status, never
+a pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
 flow's only evidence a gate ran.
 
 **Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label
@@ -126,7 +134,11 @@ handoff never happened. **Run your checks in the foreground, and end your turn a
 **Sub-agents you spawned are the opposite case: wait on them the way your host wakes you, never by a call made
 only to keep your turn open** — `skills/procedures/host-tools.md` names that wait, and where it is an ended
 turn, ending it while they run hands nothing back and each one re-invokes you as it reports, so a placeholder
-agent, an `echo` or a `sleep` spends a round trip and learns nothing.
+agent, an `echo` or a `sleep` spends a round trip and learns nothing. **A call that blocks until a child
+reports is that same wait where your host has one; where it has NEITHER, ending your turn loses your
+hand-back, so hand back on what has landed and name the children still out** rather than waiting silently on a
+re-invocation that is not coming — a blank row in that table is this third branch until your own tool list
+says otherwise.
 
 **Before you commit, sweep for untracked files and account for each one.** The command is the one this
 corpus already uses: `git ls-files --others --exclude-standard`. For every name it prints, **add it or say
@@ -159,21 +171,21 @@ alone, since an enumerated ban is satisfied by every member it omits — where y
 
 ## The handoff, and the repairs you fold in before it
 
-**The handoff — push, draft PR, enqueue, hand back.** That order is what makes a mid-flight death lose
-nothing: the branch is pushed and the PR open before the ticket exists, so dying right after enqueuing leaves
-a draft PR a runner still gates.
+**The handoff — push, draft PR, hand back.** Everything that outlives you is a git object before you hand
+back, so a death anywhere in it loses nothing — and **the gate ticket is not yours in either mode**: in the
+default queue mode your dispatcher enqueues it once it has read your diff, since nothing should gate a tree it
+may be about to have rewritten, and in override gate mode there is no ticket at all. **You never run
+`enqueue`.**
 
 1. **Push** all your commits.
 2. **Open a DRAFT PR** targeting the branch your worktree was cut from — your brief names it
-   (`gh pr create --draft`). Capture the PR number and URL. **Reference the issue as `Refs #<n>`, never a
+   (`gh pr create --draft`). Capture the PR number and URL and **report both**, since they are what your
+   dispatcher's ticket for this slice is addressed with. **Reference the issue as `Refs #<n>`, never a
    closing keyword**, which is live whenever your base is the default branch: **you cannot tell** whether this
    PR settles the whole issue, holding one slice's brief, not the arc.
-3. **Enqueue the gate:**
-   `enqueue --branch <yourBranch> --worktree <yourWorktreeAbsPath> --pr-number <n> --pr-url <url>`. A runner
-   drains it, gates your worktree, and comments the verdict; the PR stays a draft. (Override gate mode: skip.)
-4. **Hand back** — the PR URL, files changed, scoped-check result, tests touched, **the per-doc verdict**
-   (each doc updated or not-affected-because, never a bare "docs reviewed"), **every follow-up you filed** by
-   issue number, **the review pass's applied and rejected findings where the slice ran one** (the only route
+3. **Hand back** — the PR URL and number, files changed, scoped-check result, tests touched, **the per-doc
+   verdict** (each doc updated or not-affected-because, never a bare "docs reviewed"),
+   **the review pass's applied and rejected findings where the slice ran one** (the only route
    its `Rejected` list has to the dispatcher), **every question you asked and what came back** — naming where
    a grant you acted on was written down, or saying plainly that nothing was, since your report is then the
    only record of it, **and, where the slice ran a pass, saying for each grant whether you acted on it BEFORE

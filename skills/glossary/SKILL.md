@@ -11,7 +11,9 @@ argument-hint: "[the term to look up — omit to read the index]"
 
 # Glossary — one definition per shared term
 
-**A "term" here is anything with an invariant definition — a noun the passes share, and equally a FACT about a tool or an artifact.** How `gh` treats a flag, or when GitHub acts on a closing keyword, is one fact every pass needs identically and none of them owns, which is the same shape as a noun and the same drift.
+**A "term" here is anything with an invariant definition — a noun the passes share, and equally a FACT about a
+tool or an artifact.** How `gh` treats a flag, or when GitHub acts on a closing keyword, is one fact every
+pass needs identically and none of them owns, which is the same shape as a noun and the same drift.
 
 The pipeline's passes are separate on purpose: a reader acts from one of them and should not have to open
 another to know what to do. But the *vocabulary* is shared, so a term used by four passes was defined by

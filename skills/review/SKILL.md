@@ -329,7 +329,8 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   before the caller pushes while an answer is still an edit in a tree that is open, and becomes a
   linked issue, or a comment on the one already carrying that failure, **filed by the seat that
   returns that verdict** and only where that is the answer that comes back; this pass reports it
-  and files nothing, exactly as it commits and pushes nothing, and neither does the caller. The only thing it dispatches is a reader.
+  and files nothing, exactly as it commits and pushes nothing, and neither does the caller. The only thing it
+  dispatches is a reader.
 - **Verification** — which scoped check you ran and its result, and which single test file if any, **plus
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget
@@ -371,7 +372,8 @@ from a right-tree green, and the red direction is indistinguishable too, which s
 defect that is not in the diff at all. No
 *commit*, no *push*, no *open a PR*, no *enqueue*, no *run the formatter*, no *hand back to the
 dispatcher*, no gate command, and no command that moves or clears the tree — no checkout of another
-commit, no `stash`, `reset` or `clean` — since the caller's uncommitted change is the only copy of it. **Frame the deliverable positively rather than as a list of
+commit, no `stash`, `reset` or `clean` — since the caller's uncommitted change is the only copy of it. **Frame
+the deliverable positively rather than as a list of
 prohibitions**: you investigate, your deliverable is a report, and nothing else you do counts.
 
 **That positive frame has to reach the END OF THE CHAIN as well as the deliverable, or a budget

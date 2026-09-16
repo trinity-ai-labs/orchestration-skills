@@ -1,80 +1,258 @@
 # Dispatching a slice
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you write a brief or spawn an implementer**: what a brief carries, and how you watch a wave.
+Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you write a brief or spawn an
+implementer**: what a brief carries, and how you watch a wave.
 
 ## Dispatch
-Take the increment's independent tasks as the breakdown hands them to you. For each: create + **verify** a worktree, then **dispatch a FRESH implementer sub-agent** (never a fork, no `isolation`) at that path, in parallel where the tasks are independent. The gate doesn't bottleneck fan-out.
+Take the increment's independent tasks as the breakdown hands them to you. For each: create + **verify** a
+worktree, then **dispatch a FRESH implementer sub-agent** (never a fork, no `isolation`) at that path, in
+parallel where the tasks are independent. The gate doesn't bottleneck fan-out.
 
 Rules from the other passes bind you even when you were invoked directly. Run these against the brief first:
 
-- **Merge-surface ordering.** This wave is your last chance to place a wide-footprint change: nothing folded joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong, every gate green.
-- **The bare-string verify rider.** A rename crossing a string boundary — a table, a route, a cache key, an env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file are blind to a renamed literal.
-- **Grounding, and its instrument.** A command LOCATES a candidate and OPENING what it found is what establishes the claim, so every sentence asserting something about the code as fact is made from the file or marked an assumption to flag; nothing downstream checks a brief against the tree. **Containing a string and acting on it are different facts** — every `grep -l` or `grep -c` over source answers the first while a brief usually asserts the second. **And where two outputs of one command disagree, that IS the finding** — reconcile them rather than picking the half that fits the sentence you were writing.
-- **Enumeration cardinality.** Does each list carry the unfiltered count, does that number say what it counts, and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
-- **The verify bar's property.** Read each command against the sentence beside it, on the case the slice is *expected* to produce: an instrument with no instances on its target returns an uninformative green.
-- **Field reconciliation.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here rather than hand the implementer the judgement.
-- **Guardrail permissibility.** Does anything the brief asks for, for a file it names, get refused by this project's gate, linter or ratchets? A brief can be internally consistent, expressible and reachable and still demand what the project rejects — and the slice finds out by going red, or by quietly doing something else, which is indistinguishable from diverging.
+- **Merge-surface ordering.** This wave is your last chance to place a wide-footprint change: nothing folded
+  joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong,
+  every gate green.
+- **The bare-string verify rider.** A rename crossing a string boundary — a table, a route, a cache key, an
+  env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file
+  are blind to a renamed literal.
+- **Grounding, and its instrument.** A command LOCATES a candidate and OPENING what it found is what
+  establishes the claim, so every sentence asserting something about the code as fact is made from the file or
+  marked an assumption to flag; nothing downstream checks a brief against the tree.
+  **Containing a string and acting on it are different facts** — every `grep -l` or `grep -c` over source
+  answers the first while a brief usually asserts the second. **And where two outputs of one command disagree,
+  that IS the finding** — reconcile them rather than picking the half that fits the sentence you were writing.
+- **Enumeration cardinality.** Does each list carry the unfiltered count, does that number say what it counts,
+  and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
+- **The verify bar's property.** Read each command against the sentence beside it, on the case the slice is
+  *expected* to produce: an instrument with no instances on its target returns an uninformative green.
+- **Field reconciliation.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here
+  rather than hand the implementer the judgement.
+- **Guardrail permissibility.** Does anything the brief asks for, for a file it names, get refused by this
+  project's gate, linter or ratchets? A brief can be internally consistent, expressible and reachable and
+  still demand what the project rejects — and the slice finds out by going red, or by quietly doing something
+  else, which is indistinguishable from diverging.
 
-**The model tier arrives WITH the slice and your job is to RESOLVE it — then state it at the spawn, never by omission.** The breakdown's `Model` field is where the tier was decided, by the seat that had read the code, with one line of *why* beside it: you turn that tier into the host model it names (`skills/procedures/host-tools.md` maps it, with the effort setting that must ride with it) and you NAME it in every spawn, since a sub-agent handed no model runs on YOURS and a tier nobody chose then rides each child you launch — an implementer, a fix agent, and whatever that implementer spawns under it. **You may RAISE it on what the breakdown could not see** — how wide this wave ended up, a slice already back once — **with your reason beside it and nobody's permission, and you may LOWER it only with that reason written into the brief**, since the cheaper reading is always the defensible one and a downgrade otherwise leaves no artifact at all: the hand-back does not name the tier and the diff does not carry it. **Where no breakdown handed you one — a direct invocation — write the tier and its line of *why* yourself and say in the brief that you did**, matching it to the child's own work (`skills/ground-rules/SKILL.md`, rule 11) rather than leaving a field the next reader scores against itself. The easier the model, the **more explicit the brief**: exact files, patterns to copy, hard boundaries.
+**The model tier arrives WITH the slice and your job is to RESOLVE it — then state it at the spawn, never by
+omission.** The breakdown's `Model` field is where the tier was decided, by the seat that had read the code,
+with one line of *why* beside it: you turn that tier into the host model it names
+(`skills/procedures/host-tools.md` maps it, with the effort setting that must ride with it) and you NAME it in
+every spawn, since a sub-agent handed no model runs on YOURS and a tier nobody chose then rides each child you
+launch — an implementer, a fix agent, and whatever that implementer spawns under it.
+**You may RAISE it on what the breakdown could not see** — how wide this wave ended up, a slice already back
+once — **with your reason beside it and nobody's permission, and you may LOWER it only with that reason
+written into the brief**, since the cheaper reading is always the defensible one and a downgrade otherwise
+leaves no artifact at all: the hand-back does not name the tier and the diff does not carry it.
+**Where no breakdown handed you one — a direct invocation — write the tier and its line of *why* yourself and
+say in the brief that you did**, matching it to the child's own work (`skills/ground-rules/SKILL.md`, rule 11)
+rather than leaving a field the next reader scores against itself. The easier the model, the
+**more explicit the brief**: exact files, patterns to copy, hard boundaries.
 
-**The wave's WIDTH arrives the same way, and you are the seat that decides it.** The breakdown recommends a width and states the evidence only grounding held — which ready issues are the same mechanical change, which have an ordering between them, which share a contract seam or a fence, which owned paths overlap — and that is the whole of what it could see, since it reads neither the gate queue, nor which slices are already live, nor what this host can take. **So decide the width against the machine you are holding, and where you go narrower or wider than the recommendation put your reason in the brief of every slice in that wave** — a width has no field of its own, so those briefs are the artifact it lands in, exactly as a lowered tier's reason does — since a wave widened past what grounding argued for with nothing recording why leaves nothing saying which of the two judgements it got, and bills the difference as a suite reddening under concurrent implementers that passes on a quiet machine. **A departure with no reason beside it is what this closes rather than a freedom it grants** — and **width is a property of the WAVE rather than a tenth slice field**, the nine a slice carries being settled where a slice is ground.
+**The wave's WIDTH arrives the same way, and you are the seat that decides it.** The breakdown recommends a
+width and states the evidence only grounding held — which ready issues are the same mechanical change, which
+have an ordering between them, which share a contract seam or a fence, which owned paths overlap — and that is
+the whole of what it could see, since it reads neither the gate queue, nor which slices are already live, nor
+what this host can take. **So decide the width against the machine you are holding, and where you go narrower
+or wider than the recommendation put your reason in the brief of every slice in that wave** — a width has no
+field of its own, so those briefs are the artifact it lands in, exactly as a lowered tier's reason does —
+since a wave widened past what grounding argued for with nothing recording why leaves nothing saying which of
+the two judgements it got, and bills the difference as a suite reddening under concurrent implementers that
+passes on a quiet machine. **A departure with no reason beside it is what this closes rather than a freedom it
+grants** — and **width is a property of the WAVE rather than a tenth slice field**, the nine a slice carries
+being settled where a slice is ground.
 
-**Three decisions, ONE principle rather than three unrelated rules: the pass that reads the code RECOMMENDS; the seat that holds the machine DECIDES.** The model tier above, the width here and the review pass below are that one shape — grounding had the slice's real files in front of it, and you have the queue, the host and the wave as it actually came out — so each reaches you already carrying the reason the seat that wrote it had, and each departure carries yours, three seats writing three verbs for one decision being how a tier nobody chose comes to ride a whole fan-out.
+**Three decisions, ONE principle rather than three unrelated rules: the pass that reads the code RECOMMENDS;
+the seat that holds the machine DECIDES.** The model tier above, the width here and the review pass below are
+that one shape — grounding had the slice's real files in front of it, and you have the queue, the host and the
+wave as it actually came out — so each reaches you already carrying the reason the seat that wrote it had, and
+each departure carries yours, three seats writing three verbs for one decision being how a tier nobody chose
+comes to ride a whole fan-out.
 
-**Open every brief with "Step 0: invoke the `pipeline:execute` skill and act as the IMPLEMENTER."** That is THIS skill, pointing the agent at `skills/execute/references/implementer.md`. **Do NOT re-paste that playbook.** ⚠️ **Name a section together with the skill or file holding it** — a section named apart from its skill is a claim nothing can check, and a brief naming the wrong one fails silently.
+**Open every brief with "Step 0: invoke the `pipeline:execute` skill and act as the IMPLEMENTER."** That is
+THIS skill, pointing the agent at `skills/execute/references/implementer.md`.
+**Do NOT re-paste that playbook.** ⚠️ **Name a section together with the skill or file holding it** — a
+section named apart from its skill is a claim nothing can check, and a brief naming the wrong one fails
+silently.
 
-**Your job is to translate the parts implementers must execute correctly into their brief.** Step 0 carries simple absolute prohibitions fine — never rebase, never self-merge. It does NOT carry (a) a multi-step procedure with one correct order and one silently-incomplete wrong one, or (b) a rule overriding a harness default. Seven items have one of those shapes and go into every brief close to verbatim: the **commit-last ordering**, the **push-draft-PR-then-enqueue handoff**, the **docs-in-the-same-PR rule** and the **stash-before-the-tree-moves rule** (a); **no AI attribution**, the **no-full-suite-runs ban** and the **foreground-handoff rule** (b). Any future addition with either shape goes the same way. **The count is stated here and nowhere else.**
+**Your job is to translate the parts implementers must execute correctly into their brief.** Step 0 carries
+simple absolute prohibitions fine — never rebase, never self-merge. It does NOT carry (a) a multi-step
+procedure with one correct order and one silently-incomplete wrong one, or (b) a rule overriding a harness
+default. Seven items have one of those shapes and go into every brief close to verbatim: the
+**commit-last ordering**, the **push-draft-PR-then-enqueue handoff**, the **docs-in-the-same-PR rule** and the
+**stash-before-the-tree-moves rule** (a); **no AI attribution**, the **no-full-suite-runs ban** and the
+**foreground-handoff rule** (b). Any future addition with either shape goes the same way.
+**The count is stated here and nowhere else.**
 
 Your brief carries the **task-specific context the skill can't know**, plus the items above:
-- **Step 0 skills.** `pipeline:execute` as implementer, plus any framework reference skill the task touches, as an explicit first step: standard-tier agents won't reach for them unprompted.
-- **Dispatching into the repository that SHIPS these skills? Say which copy of them is authoritative.** Step 0 loads the **installed** plugin, never the tree the implementer stands in, and **the rules an arc has just shipped are the ones most likely missing from that copy.** So put one sentence in the brief: *the worktree's copy of these skills is authoritative — read the rule there, and where one looks wrong or missing, `diff` the installed copy against the worktree's and trust the worktree.*
-- **The task + the worktree — and a brief names ONE tree.** What to build or fix, the worktree's absolute path, the files and patterns to copy; **every path INTO THE REPOSITORY is inside that worktree or relative to it**, since a second checkout is a tree of its own and a command run there returns a green that is true about another branch. **The slice's own scratchpad below is the one path deliberately outside the tree, so name it as that** — left unmarked it reaches an implementer as the second repository path the receiving rule tells it to query. **Where an instruction genuinely needs the REPOSITORY rather than a checkout** — reading an upstream ref, comparing against the integration branch — **say so and name the ref**, which is the thing that is actually repository-wide. ⚠️ **A phrase like *the repo root* is where this slips in**: it reads as a property of the repository, of which there is one, while in a worktree fan-out it is a property of the tree, of which there is one per slice.
-- **A scratchpad of its own, provisioned by you and NAMED in the brief.** An implementer's logs and exit statuses land in the scratchpad it inherited from you — the one every sibling inherited too. A subdirectory per slice is enough, and **provisioning one silently is worth nothing**: an implementer cannot tell a per-slice scratchpad from a shared one, so the brief carries the path, says it is this slice's alone, and says to put every log and temp file there. A sibling's write truncates a shared log, indistinguishably from a short one. ⚠️ **Kill by exact pid, or not at all.**
-- **The slice's `Goal`, verbatim from the breakdown rather than in your paraphrase.** One line in outcome terms saying what the slice is FOR, and the only part of a brief that tells an implementer what its literal instructions are in service of — which is what lets it notice that following them to the letter would miss the point, rather than doing so and reporting success. A brief carrying only the route gives its reader no way to see that the route is wrong. **Where the breakdown handed you no goal, write one and say that you did**; where you genuinely cannot, say that too, rather than leaving it to be inferred from the brief by the two parties downstream who then score that brief against itself.
-- **Scope + hard do-not-touch boundaries.** The other slices'/phases' core files this task must NOT edit. **And where the scope is an enumeration — the consumers, the call sites, the declarations of a chain — say in the brief that the list is a FLOOR on what the change must reach, while the fence stays the CEILING on what it may edit.** Write down all three moves: **land** the member the list missed where nothing fences it, **ask you** where a `Do NOT touch` or a sibling's `Owns` does — handing that one back only if no answer reaches it — and **report it either way**, since every other slice was sized against that list. **A path appearing in TWO slices' `Owns` is a slicing defect rather than a fence to write** — sequence them across waves, or report it to the plan where they cannot be separated at all, since fencing one slice off its own file leaves both gating green alone and the failure existing only in the pair, and this is the seat where the duplicate is visible before either agent is live.
-- **The address it sends that question to — you NAME it, and you say the channel is there at all.** The address is host-specific and a sub-agent cannot enumerate its way to one (`skills/procedures/host-tools.md` maps it, and names the precondition its host attaches), so an implementer left to work it out reaches you only by luck: the finding comes back cold after the tree is gone, as a filing you pay a second dispatch to undo. Same shape as the base branch you substitute below — a literal, in the brief. The policy itself the implementer already holds through Step 0, so name the address and stop rather than re-pasting the rule.
-- **The slice's `Derives` entry, carried across whole rather than reduced to a path.** That field names artifacts whose contents are a function of the **whole tree**, with the disposition beside the path: run the project's regenerator, report the delta, never hand-edit. **That entry is the only place the implementer meets the rule**; omitted, the slice arrives green with the artifact correct on neither branch.
-- **A baseline a slice needs is measured FIRST — before its first edit — and once.** Where you already hold it, taken on the commit this wave was cut from (`skills/execute/references/worktrees-and-branches.md`, invariant 2), hand it down named by that SHA and by what it counts, **as the baseline and never as a number to re-take** — a slice re-measuring what you hold spends a run for nothing, and one that reads the instruction after its first edit has to move its tree off its own work to reach the fork point. **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before you dispatch, since an implementer runs the suite at most once and in the default gate mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result only where it names every failure — a green one does, and a red ticket keeping only its failing tail does not — and otherwise you gate that commit as a PR-less ticket on the worktree you are about to dispatch into, dispatching once it settles. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch, or leave it out and have the brief say to take it before the first edit, which is where anything else the slice needs goes too.
-- **Project conventions for this slice.** The relevant bits of `briefConventions` (`<repo>/.agents/worktree.json`) and `AGENTS.md` — compat policy, comment style.
-- **Docs ship in the same PR as the behavior.** Stale docs throw no error and fail no gate, so considering them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this brief and swap *report the change you need* for *bring them in line*** — pasted unqualified, the block below tells every slice to write the page the map gave to one of them. Paste this:
+- **Step 0 skills.** `pipeline:execute` as implementer, plus any framework reference skill the task touches,
+  as an explicit first step: standard-tier agents won't reach for them unprompted.
+- **Dispatching into the repository that SHIPS these skills? Say which copy of them is authoritative.** Step 0
+  loads the **installed** plugin, never the tree the implementer stands in, and
+  **the rules an arc has just shipped are the ones most likely missing from that copy.** So put one sentence
+  in the brief: *the worktree's copy of these skills is authoritative — read the rule there, and where one
+  looks wrong or missing, `diff` the installed copy against the worktree's and trust the worktree.*
+- **The task + the worktree — and a brief names ONE tree.** What to build or fix, the worktree's absolute
+  path, the files and patterns to copy; **every path INTO THE REPOSITORY is inside that worktree or relative
+  to it**, since a second checkout is a tree of its own and a command run there returns a green that is true
+  about another branch. **The slice's own scratchpad below is the one path deliberately outside the tree, so
+  name it as that** — left unmarked it reaches an implementer as the second repository path the receiving rule
+  tells it to query. **Where an instruction genuinely needs the REPOSITORY rather than a checkout** — reading
+  an upstream ref, comparing against the integration branch — **say so and name the ref**, which is the thing
+  that is actually repository-wide. ⚠️ **A phrase like *the repo root* is where this slips in**: it reads as a
+  property of the repository, of which there is one, while in a worktree fan-out it is a property of the tree,
+  of which there is one per slice.
+- **A scratchpad of its own, provisioned by you and NAMED in the brief.** An implementer's logs and exit
+  statuses land in the scratchpad it inherited from you — the one every sibling inherited too. A subdirectory
+  per slice is enough, and **provisioning one silently is worth nothing**: an implementer cannot tell a
+  per-slice scratchpad from a shared one, so the brief carries the path, says it is this slice's alone, and
+  says to put every log and temp file there. A sibling's write truncates a shared log, indistinguishably from
+  a short one. ⚠️ **Kill by exact pid, or not at all.**
+- **The slice's `Goal`, verbatim from the breakdown rather than in your paraphrase.** One line in outcome
+  terms saying what the slice is FOR, and the only part of a brief that tells an implementer what its literal
+  instructions are in service of — which is what lets it notice that following them to the letter would miss
+  the point, rather than doing so and reporting success. A brief carrying only the route gives its reader no
+  way to see that the route is wrong. **Where the breakdown handed you no goal, write one and say that you
+  did**; where you genuinely cannot, say that too, rather than leaving it to be inferred from the brief by the
+  two parties downstream who then score that brief against itself.
+- **Scope + hard do-not-touch boundaries.** The other slices'/phases' core files this task must NOT edit.
+  **And where the scope is an enumeration — the consumers, the call sites, the declarations of a chain — say
+  in the brief that the list is a FLOOR on what the change must reach, while the fence stays the CEILING on
+  what it may edit.** Write down all three moves: **land** the member the list missed where nothing fences it,
+  **ask you** where a `Do NOT touch` or a sibling's `Owns` does — handing that one back only if no answer
+  reaches it — and **report it either way**, since every other slice was sized against that list.
+  **A path appearing in TWO slices' `Owns` is a slicing defect rather than a fence to write** — sequence them
+  across waves, or report it to the plan where they cannot be separated at all, since fencing one slice off
+  its own file leaves both gating green alone and the failure existing only in the pair, and this is the seat
+  where the duplicate is visible before either agent is live.
+- **The address it sends that question to — you NAME it, and you say the channel is there at all.** The
+  address is host-specific and a sub-agent cannot enumerate its way to one (`skills/procedures/host-tools.md`
+  maps it, and names the precondition its host attaches), so an implementer left to work it out reaches you
+  only by luck: the finding comes back cold after the tree is gone, as a filing you pay a second dispatch to
+  undo. Same shape as the base branch you substitute below — a literal, in the brief. The policy itself the
+  implementer already holds through Step 0, so name the address and stop rather than re-pasting the rule.
+- **The slice's `Derives` entry, carried across whole rather than reduced to a path.** That field names
+  artifacts whose contents are a function of the **whole tree**, with the disposition beside the path: run the
+  project's regenerator, report the delta, never hand-edit. **That entry is the only place the implementer
+  meets the rule**; omitted, the slice arrives green with the artifact correct on neither branch.
+- **A baseline a slice needs is measured FIRST — before its first edit — and once.** Where you already hold
+  it, taken on the commit this wave was cut from (`skills/execute/references/worktrees-and-branches.md`,
+  invariant 2), hand it down named by that SHA and by what it counts, **as the baseline and never as a number
+  to re-take** — a slice re-measuring what you hold spends a run for nothing, and one that reads the
+  instruction after its first edit has to move its tree off its own work to reach the fork point.
+  **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before
+  you dispatch, since an implementer runs the suite at most once and in the default gate mode never: a
+  recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result only where it names
+  every failure — a green one does, and a red ticket keeping only its failing tail does not — and otherwise
+  you gate that commit as a PR-less ticket on the worktree you are about to dispatch into, dispatching once it
+  settles. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
+  or leave it out and have the brief say to take it before the first edit, which is where anything else the
+  slice needs goes too.
+- **Project conventions for this slice.** The relevant bits of `briefConventions`
+  (`<repo>/.agents/worktree.json`) and `AGENTS.md` — compat policy, comment style.
+- **Docs ship in the same PR as the behavior.** Stale docs throw no error and fail no gate, so considering
+  them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the
+  plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this
+  brief and swap *report the change you need* for *bring them in line*** — pasted unqualified, the block below
+  tells every slice to write the page the map gave to one of them. Paste this:
 
   > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover the repo's doc set (`README.md`, `AGENTS.md`/`CLAUDE.md`, any docs directory). Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 
-  **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a second entry for what the change ADDED that no doc describes.
-- **Gate mode for this slice.** Gate mode decides **who runs the gate and when** — nothing else. The DEFAULT: the implementer runs only the scoped check, pushes, opens a draft PR and enqueues, and a runner gates it later. Override when the slice is foundational or cross-cutting, or when there is no dispatcher to drain: then tell the implementer to run the full `gate` itself, in the foreground, **post the result as a comment on its own PR**, and NOT enqueue. Both modes end in a draft PR carrying a gate comment: whether the diff was *read* is your call.
+  **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two
+  riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
+  path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
+  second entry for what the change ADDED that no doc describes.
+- **Gate mode for this slice.** Gate mode decides **who runs the gate and when** — nothing else. The DEFAULT:
+  the implementer runs only the scoped check, pushes, opens a draft PR and enqueues, and a runner gates it
+  later. Override when the slice is foundational or cross-cutting, or when there is no dispatcher to drain:
+  then tell the implementer to run the full `gate` itself, in the foreground,
+  **post the result as a comment on its own PR**, and NOT enqueue. Both modes end in a draft PR carrying a
+  gate comment: whether the diff was *read* is your call.
 
-  ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge or tear down.** That covers override mode and any project with no queue (`skills/execute/references/per-project-config.md`). The sequence is: implementer gates → **hands back** → you review → you merge. The verdict arrives first and is the more visible artifact, yet it says only that a gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
+  ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge
+  or tear down.** That covers override mode and any project with no queue
+  (`skills/execute/references/per-project-config.md`). The sequence is: implementer gates → **hands back** →
+  you review → you merge. The verdict arrives first and is the more visible artifact, yet it says only that a
+  gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still
+  be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
 
   For a DEFAULT-mode slice paste the ban; it overrides the "verify by running the tests" instinct:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`). Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
-- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.** `/pipeline:review` is the implementer's own quality + correctness pass over its uncommitted diff: worth it on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision sets the commit ordering below. **The breakdown recommends, you decide, and going the other way puts your reason in the brief** — the seat that recommended had the slice's real files in front of it and priced this fan as the dominant term in the wave, so an override with no reason beside it is the one move that leaves nothing recording which of the two judgements the slice actually got. A slice arriving with no recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR, enqueue the gate* included, which they then execute, while the shipped pass dispatches fresh reviewers carrying the slice's goal, the diff and one dimension each and nothing else, and sizes that reader count itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it waited on review sub-agents ran the pass as designed, and one whose reviewers left commits, a push or a PR forked them — so read `git log` on the branch before you read the report.
-- **The commit ordering — set by the review decision above.** A review slice commits LAST, since the pass acts only on the *uncommitted* diff; a skip-review slice commits in logical blocks as the work lands, and is told so. For a review slice paste:
+- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
+  `/pipeline:review` is the implementer's own quality + correctness pass over its uncommitted diff: worth it
+  on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision
+  sets the commit ordering below. **The breakdown recommends, you decide, and going the other way puts your
+  reason in the brief** — the seat that recommended had the slice's real files in front of it and priced this
+  fan as the dominant term in the wave, so an override with no reason beside it is the one move that leaves
+  nothing recording which of the two judgements the slice actually got. A slice arriving with no
+  recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an
+  improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR,
+  enqueue the gate* included, which they then execute, while the shipped pass dispatches fresh reviewers
+  carrying the slice's goal, the diff and one dimension each and nothing else, and sizes that reader count
+  itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it
+  waited on review sub-agents ran the pass as designed, and one whose reviewers left commits, a push or a PR
+  forked them — so read `git log` on the branch before you read the report.
+- **The commit ordering — set by the review decision above.** A review slice commits LAST, since the pass acts
+  only on the *uncommitted* diff; a skip-review slice commits in logical blocks as the work lands, and is told
+  so. For a review slice paste:
 
   > **Review slice:** Do NOT commit as you go — write the ENTIRE change uncommitted (cheap checks while you work are fine). When the code is done run `/pipeline:review` over your full uncommitted diff: it dispatches a fresh reviewer per dimension and each one reports; YOU hold the tree, change nothing in it until the last report has landed, commit nothing, and decide which findings to apply. Then run the auto-formatter in WRITE mode, and THEN commit, in logical self-contained blocks.
 
-  The pre-commit hook holds commits to the scoped check either way, and only *checks* formatting rather than fixing it.
-- **The foreground-handoff rule — it goes in EVERY brief, whatever the gate mode.** The ban above reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on it. **Its second half is the wait on the slice's own sub-agents, written for a host that re-invokes an agent as each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended turn, put your host's wait in its place.
+  The pre-commit hook holds commits to the scoped check either way, and only *checks* formatting rather than
+  fixing it.
+- **The foreground-handoff rule — it goes in EVERY brief, whatever the gate mode.** The ban above reaches only
+  a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on it.
+  **Its second half is the wait on the slice's own sub-agents, written for a host that re-invokes an agent as
+  each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended turn, put
+  your host's wait in its place.
 
   > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result; the pre-commit hook runs `scopedCheck` on `git commit` anyway. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing.
-- **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless the brief names the right one. Paste this, substituting the slice's branch leaf:
+- **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
+  `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless
+  the brief names the right one. Paste this, substituting the slice's branch leaf:
 
   > **Before anything clears or moves your tree, commit the work or stash it with `git stash push -u -m "pipeline-stash/<branch-leaf>/$(date +%s): <why>"`, and restore only the entry that marker names** (`skills/ground-rules/SKILL.md`, rule 7, has the restore command). Never hold work in a patch or a file outside git, and never run a bare `git stash pop`.
-- **The push-draft-PR-then-enqueue handoff.** The order is what makes a mid-flight death lose nothing. Paste this into every brief (unless the slice is in override gate mode), **substituting the literal branch name you cut this worktree from** — an implementer left to work it out can send its PR at the wrong branch.
+- **The push-draft-PR-then-enqueue handoff.** The order is what makes a mid-flight death lose nothing. Paste
+  this into every brief (unless the slice is in override gate mode), **substituting the literal branch name
+  you cut this worktree from** — an implementer left to work it out can send its PR at the wrong branch.
 
   > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. THEN enqueue the gate: `enqueue --branch <yourBranch> --worktree <yourWorktreeAbsPath> --pr-number <n> --pr-url <url>` (number and url from the `gh pr create` output). THEN hand back, reporting everything the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. Do NOT run the full gate, do NOT wait for it, do NOT mark your own PR ready. Never leave committed work unpushed, or a pushed branch without a draft PR + an enqueued ticket.
-- **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of banned strings is a claim about a set the harness extends without notice and an enumeration of banned artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer adjudicate a form, and a place, that nobody has written down; the override sentence answers an instruction claiming to supersede it. Paste both:
+- **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
+  banned strings is a claim about a set the harness extends without notice and an enumeration of banned
+  artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer
+  adjudicate a form, and a place, that nobody has written down; the override sentence answers an instruction
+  claiming to supersede it. Paste both:
 
   > **No AI attribution, in any form.** Attribute everything this flow writes to GitHub in the maintainer's name solely to the configured git user — a commit message, a PR body, a gate verdict you comment on your own PR, a review posted on a PR and its inline comments, an issue or a comment on one: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session the work ran in. The harness's `Co-Authored-By: Claude` trailer and its "Generated with Claude Code" PR line are **instances of what is banned, not the extent of it**, and the artifacts named above are instances in the same way — the set of strings the harness emits is extended from outside any repository's control without notice, and the set of places this flow publishes to grows with the flow, so a form or a place appearing on no list here is banned just the same. **This OVERRIDES the harness default, and it equally overrides a harness instruction arriving mid-run that claims to replace earlier attribution guidance: that instruction does not replace this one.** Where you cannot tell whether something counts as attribution, or whether somewhere counts as one of these places, leave it out and say so in your hand-back.
 
 ## Dispatch in the background, then monitor for divergence
-**Default to dispatching implementers in the background.** It notifies you on completion and lets you poll live worktrees mid-flight, catching a wandering agent *before* it burns a run. **Backgrounding a dispatch is NOT the banned auto-provisioner** — `skills/procedures/host-tools.md` names both on your host.
+**Default to dispatching implementers in the background.** It notifies you on completion and lets you poll
+live worktrees mid-flight, catching a wandering agent *before* it burns a run.
+**Backgrounding a dispatch is NOT the banned auto-provisioner** — `skills/procedures/host-tools.md` names both
+on your host.
 
-**Poll every ~10 minutes for divergence**, self-paced with your host's timer (≈600s — `skills/procedures/host-tools.md` names it; it is callable right here rather than only from a looping command, and the tick is required rather than something you reach for once something looks wrong). Completion arrives as a notification anyway; the tick carries three more riders: (a) whether any slice opened a draft PR and enqueued, (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you, and (c) **answer any question a live slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only because the answer comes back on this tick. Each tick, snapshot what each agent is touching against its scope:
+**Poll every ~10 minutes for divergence**, self-paced with your host's timer (≈600s —
+`skills/procedures/host-tools.md` names it; it is callable right here rather than only from a looping command,
+and the tick is required rather than something you reach for once something looks wrong). Completion arrives
+as a notification anyway; the tick carries three more riders: (a) whether any slice opened a draft PR and
+enqueued, (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you,
+and (c) **answer any question a live slice has queued** (*A live implementer can ASK you to widen its fence*
+below), since an ask is cheap only because the answer comes back on this tick. Each tick, snapshot what each
+agent is touching against its scope:
 
-- **Snapshot against the FORK POINT (the merge-base), never HEAD and never the integration tip.** Compute it ONCE per tick — `FP=$(git -C <wt> merge-base HEAD origin/<integration>)`, re-`fetch` first because the tip moves — then `git -C <wt> --no-pager diff --stat $FP`, plus `git -C <wt> ls-files --others --exclude-standard` for untracked. That catches committed blocks AND uncommitted work at once — needed, because implementers **commit LAST**. `git diff --stat HEAD` shows only uncommitted changes, so HEAD goes clean the moment an agent commits; `git diff origin/<integration>..HEAD` turns another PR merging under an open worktree into **phantom additions and deletions**, which has got an in-scope agent stopped.
+- **Snapshot against the FORK POINT (the merge-base), never HEAD and never the integration tip.** Compute it
+  ONCE per tick — `FP=$(git -C <wt> merge-base HEAD origin/<integration>)`, re-`fetch` first because the tip
+  moves — then `git -C <wt> --no-pager diff --stat $FP`, plus
+  `git -C <wt> ls-files --others --exclude-standard` for untracked. That catches committed blocks AND
+  uncommitted work at once — needed, because implementers **commit LAST**. `git diff --stat HEAD` shows only
+  uncommitted changes, so HEAD goes clean the moment an agent commits; `git diff origin/<integration>..HEAD`
+  turns another PR merging under an open worktree into **phantom additions and deletions**, which has got an
+  in-scope agent stopped.
 
-  **A diffstat answers WHERE an agent is editing and never WHETHER ANYTHING CHANGED, so take a DIGEST for that second question** — two ticks return the same summary line (`11 files, +111/-32`) while the agent rewrites the bodies of those same files, and a reader comparing summaries reports an identity its instrument never established:
+  **A diffstat answers WHERE an agent is editing and never WHETHER ANYTHING CHANGED, so take a DIGEST for that
+  second question** — two ticks return the same summary line (`11 files, +111/-32`) while the agent rewrites
+  the bodies of those same files, and a reader comparing summaries reports an identity its instrument never
+  established:
 
   ```sh
   { git -C <wt> --no-pager diff $FP
@@ -83,74 +261,300 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   } | git hash-object --stdin
   ```
 
-  **The untracked NAMES go in beside their content**, since hashes alone come back equal after a rename that keeps its place in the sort, and an agent spending a tick moving new files into place then reads as stalled. **Batch the hashing rather than `-I{}`**, which runs one command per file and drops any whose command line exceeds the shell's limit — onto stderr, leaving that file out of the digest and every later edit to it invisible. It writes nothing: `hash-object` without `-w` only computes. On a shell without these constructs, any equivalent digesting those same three streams does the job. **The digest is a measured value, so it RIDES into the next tick's prompt** exactly as a correction's expected value does, **paired with the `$FP` it was taken against** — two digests taken against different fork points compare nothing — and what you compare is the two digests, never the two diffstats.
-- **Divergence is an UNAUTHORIZED scope change — a verdict you render, never a property of the diff** (`skills/glossary/vocabulary/divergence.md`). **What counts:** editing another task's or phase's **core source files** — a "types only" task editing the resolver, a backend task building UI. **What does NOT count:** compile-driven ripples from the task's own change — exhaustive `switch`/enum/config entries a new member forces, `+1`-line fixture edits across many `*.test.ts` files — nor a path you granted, which only your own record carries and the diff never will. **A slice that is ASKING is not diverging while it asks**; a slice editing the path it asked about, before you answered, is, so read the ask and the diff together rather than letting a pending question excuse a hunk. Spell this line out in the wakeup prompt so the check is mechanical.
-- **Check substance, not just the file count.** A diffstat says *where* an agent is editing, not *whether the approach is correct*. On a subtle slice, read the diff of the 2–3 highest-risk files (`git -C <wt> --no-pager diff $FP -- <file>`) and grep it for the anti-patterns the brief banned. **In a prose-shaped repo a diffstat measures nothing**: one changed line can be a rewritten 400-word rule.
-- **⛔ Confirm the alarm against `$FP` BEFORE you stop the agent — whatever channel it arrived on.** The alarm that reaches you is usually a fragment from elsewhere — a pasted screenshot, a hand-back line, a notification. **A fragment carries no base, and the DIRECTION of a change cannot be read off a hunk** — one rewriting `b` back to `a` is byte-identical whether the agent is diverging into a backwards rename or **reverting an out-of-scope forward one**, and only `git -C <wt> show $FP:<file>` separates them.
-- **Something wrong with a LIVE agent has TWO levers, and the destructive one is second. Message it first.** `skills/procedures/host-tools.md` names your host's tool for sending to a running agent. **The test is what actually changed.** A **fact** the brief got wrong — a number, a path, a name, a bar set at the wrong value — is a *correction*: one message carrying the old value, the new one, and why. Its **scope** changing — different files, a slice that has to be re-cut — is the only thing warranting a stop, because that is a brief the agent can no longer be working to. **One named path added to a fence is not that**: it is a *grant*, a third thing beside both levers, and it kills nothing — the slice keeps the brief it is working to and gains one path.
-- **⛔ A correction is a new requirement authored under time pressure, so read it for SATISFIABILITY before you send it — the same reading a slice's fields get against each other before one is emitted, applied now to a single sentence.** Read it against what the project's **declared guardrails** permit for the file it names — a ratchet, a size ceiling, a lint rule, a required export — since a correction can demand exactly what one of them forbids and then no wording satisfies it. **Neither outcome is detectable after the fact, so the check happens BEFORE you send and not after** — an agent that obeys ships a red gate for a reason nothing on the PR connects back to your message, and one that correctly ignores you is indistinguishable from one diverging. Where the check fails the finding is yours — **withdraw the instruction on the same channel and say you are withdrawing it**, rather than leaving the agent holding two instructions it cannot both meet. **And the moment you are likeliest to send an unsatisfiable one is the moment you have just found two slices owning one path**, which is the collision the one-path-one-slice rule on `Owns` exists to keep off your desk.
-- **⛔ A stop is not the safe default it feels like, because killing an agent discards everything it has ESTABLISHED.** A live implementer has read files, resolved consumers and settled questions your replacement brief will not contain, so the successor re-pays the whole grounding and re-derives the same answers — and the work lost is invisible, since nothing reports what an agent knew at the moment it was killed. Reach for the message; escalate to the stop when the change is one a message cannot express.
-- **⛔ The *frozen once live* rule is about the project's CONFIG, and it does not reach a brief.** That rule exists because the config is shared mutable state other sessions cut worktrees from, which is why its drift is stop-and-report rather than repair. A brief is neither shared nor re-read by anyone else, so nothing carries the rule across — and the resemblance is the entire trap: *once live, never repair* is memorable enough to get applied to the wrong object, and applied there it turns every one-line correction into a kill.
-- **A correction sent as a message leaves NO artifact, so put it where it outlives the run.** The agent's context dies with the agent, and the next reader — a fix agent, the PR reviewer, whoever picks the arc up tomorrow — sees only that the code came out a certain way. Write the correction onto the issue or PR the brief points at, as a comment that explicitly supersedes what it replaces, and point the live agent at it. **This is the half a message loses against a re-dispatch and the reason it is not simply cheaper**: a fresh brief is durable by construction and a message is not, so the durability has to be added by hand.
-- **A correction is CARRIED into the next tick as a check with an expected VALUE, since *not yet applied* and *applied then reverted* read identically off a diff.** Write down what the corrected file should now contain — the new number, the resolved path, the word the rule turns on — and re-run that check next tick against the worktree, rather than re-reading the message you sent.
-- **⛔ And the check names an INSTRUMENT that cannot produce a false ABSENT on this content, because the two errors are not symmetric**: a missed reversion costs one more tick, where a false one manufactures a correction and sends it into a run that already did the work correctly, leaving a correct agent indistinguishable from a diverging one. **Collapse whitespace before matching** — `tr '\n' ' ' < file | tr -s ' ' | grep -oF` — since a line-based `grep` returns zero on a phrase spanning a hard wrap. **Take the `-F`**, since an expected value carrying `**bold**` is an invalid regex and the error exits non-zero, which every `if` reads as absent. **Stop the expected value at a line-leading marker** — a comment's `#`, a quote's `>` — since that marker survives the collapse and sits mid-phrase in anything wrapped inside one. **Read a diff with `git diff -U0` rather than prefix-filtering it**, since `grep '^[+-][^+-]'` drops a changed bullet whose list marker sits at column 0, which is most of them here, and the indented ones that survive are what make the filter look like it worked. **Prefer a value whose absence is unambiguous** — a count, a resolved path, a word occurring once — over a long quoted phrase. **An absent reading is checked against the instrument before it is treated as a reversion.**
-- **A live implementer can ASK you to widen its fence, and answering is a dispatch decision rather than an interruption.** You are the only seat that can see what the siblings own and whether that file is about to be rewritten by another slice, which is the reason it was fenced out of it — so absorbing the question IS the job rather than overhead on it, and you escalate to the user only for the one class that already reaches the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued message on your next turn, carrying the path, what is wrong with it and a recommendation. **Four answers, and you owe it one:**
-  - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that slice's PR before you review its diff — saying in as many words that it supersedes the brief's fence on that path. **Where the subject is *every occurrence of X* rather than one path, the grant is an ENUMERATION and you write it as the named paths that derivation resolves to** — derive the extent from a command that filtered nothing, say what the count counts, and say the list is a FLOOR on what the change must reach whose missed member is landed, asked about or reported exactly as a brief's enumeration is, rather than handing over the locations you happen to have seen, since a short grant is worse than a refused one: the slice applies it and the tree is left with some copies corrected and some not, which reads as disagreement rather than as staleness. **Sweep by the CLAIM, not by the value** — copies sharing one stale value are all found by grepping that value, and a copy carrying a *different* stale one is invisible to exactly that sweep. **A grant has TWO halves and they fail in opposite directions, so meet both.** **Carry the widened path — every path an enumeration resolved to, with the count beside it — into the next tick's on-scope set**, since it is your own grant the divergence check is about to read and forgetting one fires a false divergence alarm on the very next tick. **The PR half instead goes silent**, handing the reviewer a diff that edits outside the brief's fence with nothing on the PR explaining why. **The write stays yours rather than the implementer's**, whose hand-back line naming where each grant was written down is the DETECTOR that one is missing — move the write there and the detector becomes the thing it was detecting. **Do not grant one path twice**: a second slice asking about ground already granted gets *the sibling owns it*, or two agents edit one file. **A grant you answer after that slice's review pass has closed produces an edit no reviewer read**, so your own read of the diff is the only reader it gets.
-  - **The sibling owns it** — leave the asker fenced and carry the correction to the slice that does own the file, on the message lever above. Two agents editing one file is the collision every fence in this flow exists to prevent.
-  - **File it** — the finding is real and belongs to no live slice. **That verdict is yours to return rather than the implementer's to reach for**, since a filing spends a whole unit of work — its own tree, PR and gate — on what one line of yours settles. **Say in the same breath that the issue must name at least one file, symbol or route**, since the instrument that later re-tests a filed verdict intersects exactly those coordinates against the owned files of the work about to be dispatched, and an item carrying none is re-judged on its own wording every cycle instead.
-  - **Stop, I am re-cutting** — the ask surfaced a boundary that is wrong rather than merely narrow, which is the one shape a message cannot express and the stop lever's own test.
+  **The untracked NAMES go in beside their content**, since hashes alone come back equal after a rename that
+  keeps its place in the sort, and an agent spending a tick moving new files into place then reads as stalled.
+  **Batch the hashing rather than `-I{}`**, which runs one command per file and drops any whose command line
+  exceeds the shell's limit — onto stderr, leaving that file out of the digest and every later edit to it
+  invisible. It writes nothing: `hash-object` without `-w` only computes. On a shell without these constructs,
+  any equivalent digesting those same three streams does the job. **The digest is a measured value, so it
+  RIDES into the next tick's prompt** exactly as a correction's expected value does,
+  **paired with the `$FP` it was taken against** — two digests taken against different fork points compare
+  nothing — and what you compare is the two digests, never the two diffstats.
+- **Divergence is an UNAUTHORIZED scope change — a verdict you render, never a property of the diff**
+  (`skills/glossary/vocabulary/divergence.md`). **What counts:** editing another task's or phase's
+  **core source files** — a "types only" task editing the resolver, a backend task building UI.
+  **What does NOT count:** compile-driven ripples from the task's own change — exhaustive `switch`/enum/config
+  entries a new member forces, `+1`-line fixture edits across many `*.test.ts` files — nor a path you granted,
+  which only your own record carries and the diff never will. **A slice that is ASKING is not diverging while
+  it asks**; a slice editing the path it asked about, before you answered, is, so read the ask and the diff
+  together rather than letting a pending question excuse a hunk. Spell this line out in the wakeup prompt so
+  the check is mechanical.
+- **Check substance, not just the file count.** A diffstat says *where* an agent is editing, not *whether the
+  approach is correct*. On a subtle slice, read the diff of the 2–3 highest-risk files
+  (`git -C <wt> --no-pager diff $FP -- <file>`) and grep it for the anti-patterns the brief banned.
+  **In a prose-shaped repo a diffstat measures nothing**: one changed line can be a rewritten 400-word rule.
+- **⛔ Confirm the alarm against `$FP` BEFORE you stop the agent — whatever channel it arrived on.** The alarm
+  that reaches you is usually a fragment from elsewhere — a pasted screenshot, a hand-back line, a
+  notification. **A fragment carries no base, and the DIRECTION of a change cannot be read off a hunk** — one
+  rewriting `b` back to `a` is byte-identical whether the agent is diverging into a backwards rename or
+  **reverting an out-of-scope forward one**, and only `git -C <wt> show $FP:<file>` separates them.
+- **Something wrong with a LIVE agent has TWO levers, and the destructive one is second. Message it first.**
+  `skills/procedures/host-tools.md` names your host's tool for sending to a running agent.
+  **The test is what actually changed.** A **fact** the brief got wrong — a number, a path, a name, a bar set
+  at the wrong value — is a *correction*: one message carrying the old value, the new one, and why. Its
+  **scope** changing — different files, a slice that has to be re-cut — is the only thing warranting a stop,
+  because that is a brief the agent can no longer be working to. **One named path added to a fence is not
+  that**: it is a *grant*, a third thing beside both levers, and it kills nothing — the slice keeps the brief
+  it is working to and gains one path.
+- **⛔ A correction is a new requirement authored under time pressure, so read it for SATISFIABILITY before you
+  send it — the same reading a slice's fields get against each other before one is emitted, applied now to a
+  single sentence.** Read it against what the project's **declared guardrails** permit for the file it names —
+  a ratchet, a size ceiling, a lint rule, a required export — since a correction can demand exactly what one
+  of them forbids and then no wording satisfies it. **Neither outcome is detectable after the fact, so the
+  check happens BEFORE you send and not after** — an agent that obeys ships a red gate for a reason nothing on
+  the PR connects back to your message, and one that correctly ignores you is indistinguishable from one
+  diverging. Where the check fails the finding is yours — **withdraw the instruction on the same channel and
+  say you are withdrawing it**, rather than leaving the agent holding two instructions it cannot both meet.
+  **And the moment you are likeliest to send an unsatisfiable one is the moment you have just found two slices
+  owning one path**, which is the collision the one-path-one-slice rule on `Owns` exists to keep off your
+  desk.
+- **⛔ A stop is not the safe default it feels like, because killing an agent discards everything it has
+  ESTABLISHED.** A live implementer has read files, resolved consumers and settled questions your replacement
+  brief will not contain, so the successor re-pays the whole grounding and re-derives the same answers — and
+  the work lost is invisible, since nothing reports what an agent knew at the moment it was killed. Reach for
+  the message; escalate to the stop when the change is one a message cannot express.
+- **⛔ The *frozen once live* rule is about the project's CONFIG, and it does not reach a brief.** That rule
+  exists because the config is shared mutable state other sessions cut worktrees from, which is why its drift
+  is stop-and-report rather than repair. A brief is neither shared nor re-read by anyone else, so nothing
+  carries the rule across — and the resemblance is the entire trap: *once live, never repair* is memorable
+  enough to get applied to the wrong object, and applied there it turns every one-line correction into a kill.
+- **A correction sent as a message leaves NO artifact, so put it where it outlives the run.** The agent's
+  context dies with the agent, and the next reader — a fix agent, the PR reviewer, whoever picks the arc up
+  tomorrow — sees only that the code came out a certain way. Write the correction onto the issue or PR the
+  brief points at, as a comment that explicitly supersedes what it replaces, and point the live agent at it.
+  **This is the half a message loses against a re-dispatch and the reason it is not simply cheaper**: a fresh
+  brief is durable by construction and a message is not, so the durability has to be added by hand.
+- **A correction is CARRIED into the next tick as a check with an expected VALUE, since *not yet applied* and
+  *applied then reverted* read identically off a diff.** Write down what the corrected file should now contain
+  — the new number, the resolved path, the word the rule turns on — and re-run that check next tick against
+  the worktree, rather than re-reading the message you sent.
+- **⛔ And the check names an INSTRUMENT that cannot produce a false ABSENT on this content, because the two
+  errors are not symmetric**: a missed reversion costs one more tick, where a false one manufactures a
+  correction and sends it into a run that already did the work correctly, leaving a correct agent
+  indistinguishable from a diverging one. **Collapse whitespace before matching** —
+  `tr '\n' ' ' < file | tr -s ' ' | grep -oF` — since a line-based `grep` returns zero on a phrase spanning a
+  hard wrap. **Take the `-F`**, since an expected value carrying `**bold**` is an invalid regex and the error
+  exits non-zero, which every `if` reads as absent. **Stop the expected value at a line-leading marker** — a
+  comment's `#`, a quote's `>` — since that marker survives the collapse and sits mid-phrase in anything
+  wrapped inside one. **Read a diff with `git diff -U0` rather than prefix-filtering it**, since
+  `grep '^[+-][^+-]'` drops a changed bullet whose list marker sits at column 0, which is most of them here,
+  and the indented ones that survive are what make the filter look like it worked.
+  **Prefer a value whose absence is unambiguous** — a count, a resolved path, a word occurring once — over a
+  long quoted phrase. **An absent reading is checked against the instrument before it is treated as a
+  reversion.**
+- **A live implementer can ASK you to widen its fence, and answering is a dispatch decision rather than an
+  interruption.** You are the only seat that can see what the siblings own and whether that file is about to
+  be rewritten by another slice, which is the reason it was fenced out of it — so absorbing the question IS
+  the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
+  the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
+  message on your next turn, carrying the path, what is wrong with it and a recommendation.
+  **Four answers, and you owe it one:**
+  - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives
+    the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that
+    slice's PR before you review its diff — saying in as many words that it supersedes the brief's fence on
+    that path. **Where the subject is *every occurrence of X* rather than one path, the grant is an
+    ENUMERATION and you write it as the named paths that derivation resolves to** — derive the extent from a
+    command that filtered nothing, say what the count counts, and say the list is a FLOOR on what the change
+    must reach whose missed member is landed, asked about or reported exactly as a brief's enumeration is,
+    rather than handing over the locations you happen to have seen, since a short grant is worse than a
+    refused one: the slice applies it and the tree is left with some copies corrected and some not, which
+    reads as disagreement rather than as staleness. **Sweep by the CLAIM, not by the value** — copies sharing
+    one stale value are all found by grepping that value, and a copy carrying a *different* stale one is
+    invisible to exactly that sweep. **A grant has TWO halves and they fail in opposite directions, so meet
+    both.** **Carry the widened path — every path an enumeration resolved to, with the count beside it — into
+    the next tick's on-scope set**, since it is your own grant the divergence check is about to read and
+    forgetting one fires a false divergence alarm on the very next tick. **The PR half instead goes silent**,
+    handing the reviewer a diff that edits outside the brief's fence with nothing on the PR explaining why.
+    **The write stays yours rather than the implementer's**, whose hand-back line naming where each grant was
+    written down is the DETECTOR that one is missing — move the write there and the detector becomes the thing
+    it was detecting. **Do not grant one path twice**: a second slice asking about ground already granted gets
+    *the sibling owns it*, or two agents edit one file. **A grant you answer after that slice's review pass
+    has closed produces an edit no reviewer read**, so your own read of the diff is the only reader it gets.
+  - **The sibling owns it** — leave the asker fenced and carry the correction to the slice that does own the
+    file, on the message lever above. Two agents editing one file is the collision every fence in this flow
+    exists to prevent.
+  - **File it** — the finding is real and belongs to no live slice. **That verdict is yours to return rather
+    than the implementer's to reach for**, since a filing spends a whole unit of work — its own tree, PR and
+    gate — on what one line of yours settles. **Say in the same breath that the issue must name at least one
+    file, symbol or route**, since the instrument that later re-tests a filed verdict intersects exactly those
+    coordinates against the owned files of the work about to be dispatched, and an item carrying none is
+    re-judged on its own wording every cycle instead.
+  - **Stop, I am re-cutting** — the ask surfaced a boundary that is wrong rather than merely narrow, which is
+    the one shape a message cannot express and the stop lever's own test.
 
-  ⚠️ **Answer on the tick you read it — silence is an answer you did not give.** The channel is fire-and-forget, so the implementer holds a receipt rather than a reply: it is already working on everything the answer does not gate, and a question left on the pile comes back as a hand-back you then spend a second dispatch to settle. **A stale fence is the common case, so let it move your prior toward *take it*** — one carried over from an already-merged slice fences paths nothing owns. **Settle every outstanding ask before you merge and tear down**, or an answer lands on an agent whose turn and worktree are already gone.
-- **If an agent DIVERGED — a scope change you have confirmed against `$FP`:** stop it (`skills/procedures/host-tools.md` names your host's stop tool), then **dispatch a fresh plain agent into the SAME worktree path** with a tighter brief naming what it strayed into and telling it to revert the bad edits, **its tier named for that round rather than carried from the slice's** — reverting named edits is cheaper than the build was. **If one opened its draft PR + enqueued**, stop rescheduling it and move into the drain, review and merge loop.
-- **⛔ Don't mistake a legitimate nested sub-agent wait for a stall.** On a host whose wait on sub-agents is an ended turn (`skills/procedures/host-tools.md`), an implementer that spawned children ends its turn while they run, **and that ended turn is a wait, not its hand-back**, whether or not your host notifies you of it. **The tell is what you can actually read: an uncommitted full worktree and no PR** — a live agent's children are not among your instruments, since your listing enumerates the agents YOU spawned and a grandchild is invisible from this seat, so a rule conditioned on one is a rule satisfied by guessing. That is a **self-suspension** the harness re-invokes, so leave it alone; expect no PR for the first couple of ticks. **Two levels is the whole depth this flow has — you, an implementer, and that implementer's reviewers, which are leaves** — so children under a reviewer in the agent tree are a fan-out nothing authorized, and correcting it means messaging the live implementer, since a reviewer's children leave nothing in the worktree to find later.
-- **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at the same digest mean you cannot see work, not that there is none, so send the message that asks what the agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything it established (*A stop is not the safe default* above). **The asymmetry decides the direction**: a missed stall costs one more tick, where resuming an agent mid-edit spends its run and leaves a correct agent indistinguishable from a diverging one. **The terminal step is the tick AFTER that message** — the same digest again, and either no answer or one naming a wait nothing will re-invoke, resumes it; **a reported wait on a check or command it started is that shape by construction**, since it waits on a process. **A slice you told to run `/pipeline:review` has a WINDOW where an unchanged digest is its specified state** — its brief freezes the tree from the moment its reviewers go out until the last report lands — so *my reviewers are out* is the answer that clears this tick, expiring at the next one rather than exempting the slice. **And an absent reading is checked against the instrument before it is treated as a stall**: instruments that share a blind spot agree with each other, and a depth-limited file scan, a process sweep for test binaries and a log's mtime all fall silent on an agent that is editing code.
-- **An INFRA stall — a task FAILING with "Agent stalled: no progress for Ns (stream watchdog did not recover)" — loses nothing.** The worktree including uncommitted work persists; one resume to the SAME agent, restating the remaining finish-order, recovers it. Never a redispatch. **That is the same preference the correction lever states above, and this is the case where it is least ambiguous** — nothing about the slice changed, so there is nothing a new agent could be told that the live one does not already know.
+  ⚠️ **Answer on the tick you read it — silence is an answer you did not give.** The channel is
+  fire-and-forget, so the implementer holds a receipt rather than a reply: it is already working on everything
+  the answer does not gate, and a question left on the pile comes back as a hand-back you then spend a second
+  dispatch to settle. **A stale fence is the common case, so let it move your prior toward *take it*** — one
+  carried over from an already-merged slice fences paths nothing owns.
+  **Settle every outstanding ask before you merge and tear down**, or an answer lands on an agent whose turn
+  and worktree are already gone.
+- **If an agent DIVERGED — a scope change you have confirmed against `$FP`:** stop it
+  (`skills/procedures/host-tools.md` names your host's stop tool), then
+  **dispatch a fresh plain agent into the SAME worktree path** with a tighter brief naming what it strayed
+  into and telling it to revert the bad edits, **its tier named for that round rather than carried from the
+  slice's** — reverting named edits is cheaper than the build was. **If one opened its draft PR + enqueued**,
+  stop rescheduling it and move into the drain, review and merge loop.
+- **⛔ Don't mistake a legitimate nested sub-agent wait for a stall.** On a host whose wait on sub-agents is an
+  ended turn (`skills/procedures/host-tools.md`), an implementer that spawned children ends its turn while
+  they run, **and that ended turn is a wait, not its hand-back**, whether or not your host notifies you of it.
+  **The tell is what you can actually read: an uncommitted full worktree and no PR** — a live agent's children
+  are not among your instruments, since your listing enumerates the agents YOU spawned and a grandchild is
+  invisible from this seat, so a rule conditioned on one is a rule satisfied by guessing. That is a
+  **self-suspension** the harness re-invokes, so leave it alone; expect no PR for the first couple of ticks.
+  **Two levels is the whole depth this flow has — you, an implementer, and that implementer's reviewers, which
+  are leaves** — so children under a reviewer in the agent tree are a fan-out nothing authorized, and
+  correcting it means messaging the live implementer, since a reviewer's children leave nothing in the
+  worktree to find later.
+- **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
+  the same digest mean you cannot see work, not that there is none, so send the message that asks what the
+  agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything
+  it established (*A stop is not the safe default* above). **The asymmetry decides the direction**: a missed
+  stall costs one more tick, where resuming an agent mid-edit spends its run and leaves a correct agent
+  indistinguishable from a diverging one. **The terminal step is the tick AFTER that message** — the same
+  digest again, and either no answer or one naming a wait nothing will re-invoke, resumes it;
+  **a reported wait on a check or command it started is that shape by construction**, since it waits on a
+  process. **A slice you told to run `/pipeline:review` has a WINDOW where an unchanged digest is its
+  specified state** — its brief freezes the tree from the moment its reviewers go out until the last report
+  lands — so *my reviewers are out* is the answer that clears this tick, expiring at the next one rather than
+  exempting the slice. **And an absent reading is checked against the instrument before it is treated as a
+  stall**: instruments that share a blind spot agree with each other, and a depth-limited file scan, a process
+  sweep for test binaries and a log's mtime all fall silent on an agent that is editing code.
+- **An INFRA stall — a task FAILING with "Agent stalled: no progress for Ns (stream watchdog did not recover)"
+  — loses nothing.** The worktree including uncommitted work persists; one resume to the SAME agent, restating
+  the remaining finish-order, recovers it. Never a redispatch. **That is the same preference the correction
+  lever states above, and this is the case where it is least ambiguous** — nothing about the slice changed, so
+  there is nothing a new agent could be told that the live one does not already know.
 
-Carry each agent's last-known on-scope file set into the next wakeup prompt, so a jump in surface area is obvious tick-over-tick. **Carry any live correction's expected value and its instrument beside it**, since the file set is breadth and a correction is content: a tick handed only the breadth reads a corrected value's absence as *not yet applied* and never as *applied then reverted*. **And carry each live agent's last DIGEST beside the `$FP` it was taken against**, since the stall check is a comparison against last tick's measurement: a prompt that ships without it ships a tick whose stall question cannot be asked.
+Carry each agent's last-known on-scope file set into the next wakeup prompt, so a jump in surface area is
+obvious tick-over-tick. **Carry any live correction's expected value and its instrument beside it**, since the
+file set is breadth and a correction is content: a tick handed only the breadth reads a corrected value's
+absence as *not yet applied* and never as *applied then reverted*. **And carry each live agent's last DIGEST
+beside the `$FP` it was taken against**, since the stall check is a comparison against last tick's
+measurement: a prompt that ships without it ships a tick whose stall question cannot be asked.
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once your implementers have enqueued** — how the drain runs, and how you wait on your own tickets.
+Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once your implementers have enqueued** — how
+the drain runs, and how you wait on your own tickets.
 
 ## Draining the gate queue
-On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims queued tickets and, for each, runs the full `gate` in that ticket's worktree **behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick re-invokes it.
+On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
+the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
+queued tickets and, for each, runs the full `gate` in that ticket's worktree
+**behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on
+green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick
+re-invokes it.
 
-**A wide fan-out stays safe because the slot, not the fan-out, decides how many gates run**, and implementers never gate at all.
+**A wide fan-out stays safe because the slot, not the fan-out, decides how many gates run**, and implementers
+never gate at all.
 
-- **Size the drain to the fan-out.** A lone slice enqueues once and hands back, and **that hand-back is a free notification** — drain on it, leaving the tick's drain to cover only an agent that dies between `enqueue` and handing back. Keep it on the tick either way, but never let it stand in for the divergence check: a tick read as "the drain timer" stops diffing worktrees.
-- **A full drain can be long** — each ticket is one serialized gate — so bound a big queue with `drain --max N` per tick and detach it: `nohup … &`, or your shell's equivalent. **That form is the deliberate one, and the harness's tracked background flag is the wrong reach precisely because it WOULD create an event** — the drain's exit must not become one, and a tracked run hands you a completion notification about a pass that settles nothing of yours, arriving in the shape a verdict arrives in. **Its completion is NOT a signal about your own tickets; never wait on it**: a pass loops until the *machine-wide* queue is empty, and your own ticket may be gated by another session's runner with no completion event of yours at all. The signal that IS yours is *Wait on your own tickets settling — one Monitor over the queue's ledger* below. ⚠️ **Detaching the drain is not in tension with the check-backgrounding ban** — *The foreground-handoff rule* above, and `skills/execute/references/implementer.md` → *Never background a check and end your turn on it*. **That ban is keyed to ending a turn on a CHECK'S RESULT**; a dispatcher's turn ends on the tick, on no result at all.
-- **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains from *different* dispatchers are safe by construction, so don't coordinate, just drain. To read the queue's state rather than work it, that is `drain --status`.
-- **`--status` answers OWNERSHIP, never MOVEMENT — and on a runner scaffolded before that flag existed it does not fail, it DRAINS.** It gives queue depth, who holds the slot, and which runner claimed which ticket; for **movement**, read the gate's child processes in that worktree — a clock cannot tell a gating runner from one blocked on a slot. An older runner, scaffolded before the flag existed, passes it straight through to a drain, so **read a `--status` whose output looks like a drain as evidence that it WAS one**; the portable instrument is `ls` over `<queue-root>/<project>/queue` and `.../processing`, which claims nothing.
-- **Don't hand-run `gate` on top of a live drain** — a concurrent gate re-creates the saturation the slot prevents. Both gates a dispatcher used to launch itself are enqueued now (*Gate the integrated whole*). ⚠️ **Except on a runner predating the PR-less ticket, which refuses it** (*Gate the integrated whole* → *A runner scaffolded before the PR-less ticket REJECTS it*): the mid-arc gate is hand-run there, so run it when nothing is draining — established by **reading the queue directory**, never `--status`, itself a drain on that vintage.
-- **A worktree whose ticket has not SETTLED is FROZEN — don't mutate it, don't remove it. The test is the ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running.** A claim is an atomic rename landing between your check and your agent's first edit, and **queued-and-unclaimed is the NORMAL state**, where a slice sits the moment its implementer hands back — so checking `processing/` is not checking anything. A tree changed mid-gate is judged against a HEAD no gate saw, under a SHA that may still match the PR's. Wait for the verdict comment, either direction, or the ticket's arrival in `done/` when there is no PR.
-- **A red ticket is dispatcher feedback, not lost work.** The PR stays draft with the failure commented: read it and dispatch a fix agent into that same worktree, which re-pushes and re-enqueues — safe precisely because the ticket has resolved.
-- **A REFUSED ticket means nothing was gated** — the runner found uncommitted tracked changes in that worktree and settled without gating, rather than judge a tree no commit holds. It is not a red: there is no failure in the diff to fix and no fix agent to dispatch. Find what left the tree dirty, get that work committed and pushed, or stashed by its marker and dropped where it is not wanted (`skills/ground-rules/SKILL.md`, rules 6–7), and re-enqueue; a still-dirty tree only earns a second refusal.
-- **A PR with NO gate comment has not been gated — never treat it as red.** A pass comment is green, a failure comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before posting it reconciles undelivered ones before claiming anything, so **run the drain and look again**; still bare after that, re-enqueue.
-- **Reconcile the local integration branch on every tick.** A dropped sync leaves it behind the remote and the next worktree forks off a stale HEAD. One anchored fast-forward, idempotent and near-instant: `git -C <main-checkout> fetch origin && git -C <main-checkout> pull --prune --ff-only`.
+- **Size the drain to the fan-out.** A lone slice enqueues once and hands back, and
+  **that hand-back is a free notification** — drain on it, leaving the tick's drain to cover only an agent
+  that dies between `enqueue` and handing back. Keep it on the tick either way, but never let it stand in for
+  the divergence check: a tick read as "the drain timer" stops diffing worktrees.
+- **A full drain can be long** — each ticket is one serialized gate — so bound a big queue with
+  `drain --max N` per tick and detach it: `nohup … &`, or your shell's equivalent.
+  **That form is the deliberate one, and the harness's tracked background flag is the wrong reach precisely
+  because it WOULD create an event** — the drain's exit must not become one, and a tracked run hands you a
+  completion notification about a pass that settles nothing of yours, arriving in the shape a verdict arrives
+  in. **Its completion is NOT a signal about your own tickets; never wait on it**: a pass loops until the
+  *machine-wide* queue is empty, and your own ticket may be gated by another session's runner with no
+  completion event of yours at all. The signal that IS yours is *Wait on your own tickets settling — one
+  Monitor over the queue's ledger* below. ⚠️ **Detaching the drain is not in tension with the
+  check-backgrounding ban** — *The foreground-handoff rule* above, and
+  `skills/execute/references/implementer.md` → *Never background a check and end your turn on it*.
+  **That ban is keyed to ending a turn on a CHECK'S RESULT**; a dispatcher's turn ends on the tick, on no
+  result at all.
+- **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains
+  from *different* dispatchers are safe by construction, so don't coordinate, just drain. To read the queue's
+  state rather than work it, that is `drain --status`.
+- **`--status` answers OWNERSHIP, never MOVEMENT — and on a runner scaffolded before that flag existed it does
+  not fail, it DRAINS.** It gives queue depth, who holds the slot, and which runner claimed which ticket; for
+  **movement**, read the gate's child processes in that worktree — a clock cannot tell a gating runner from
+  one blocked on a slot. An older runner, scaffolded before the flag existed, passes it straight through to a
+  drain, so **read a `--status` whose output looks like a drain as evidence that it WAS one**; the portable
+  instrument is `ls` over `<queue-root>/<project>/queue` and `.../processing`, which claims nothing.
+- **Don't hand-run `gate` on top of a live drain** — a concurrent gate re-creates the saturation the slot
+  prevents. Both gates a dispatcher used to launch itself are enqueued now (*Gate the integrated whole*). ⚠️
+  **Except on a runner predating the PR-less ticket, which refuses it** (*Gate the integrated whole* → *A
+  runner scaffolded before the PR-less ticket REJECTS it*): the mid-arc gate is hand-run there, so run it when
+  nothing is draining — established by **reading the queue directory**, never `--status`, itself a drain on
+  that vintage.
+- **A worktree whose ticket has not SETTLED is FROZEN — don't mutate it, don't remove it. The test is the
+  ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running.** A
+  claim is an atomic rename landing between your check and your agent's first edit, and
+  **queued-and-unclaimed is the NORMAL state**, where a slice sits the moment its implementer hands back — so
+  checking `processing/` is not checking anything. A tree changed mid-gate is judged against a HEAD no gate
+  saw, under a SHA that may still match the PR's. Wait for the verdict comment, either direction, or the
+  ticket's arrival in `done/` when there is no PR.
+- **A red ticket is dispatcher feedback, not lost work.** The PR stays draft with the failure commented: read
+  it and dispatch a fix agent into that same worktree, which re-pushes and re-enqueues — safe precisely
+  because the ticket has resolved.
+- **A REFUSED ticket means nothing was gated** — the runner found uncommitted tracked changes in that worktree
+  and settled without gating, rather than judge a tree no commit holds. It is not a red: there is no failure
+  in the diff to fix and no fix agent to dispatch. Find what left the tree dirty, get that work committed and
+  pushed, or stashed by its marker and dropped where it is not wanted (`skills/ground-rules/SKILL.md`, rules
+  6–7), and re-enqueue; a still-dirty tree only earns a second refusal.
+- **A PR with NO gate comment has not been gated — never treat it as red.** A pass comment is green, a failure
+  comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an
+  inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before
+  posting it reconciles undelivered ones before claiming anything, so **run the drain and look again**; still
+  bare after that, re-enqueue.
+- **Reconcile the local integration branch on every tick.** A dropped sync leaves it behind the remote and the
+  next worktree forks off a stale HEAD. One anchored fast-forward, idempotent and near-instant:
+  `git -C <main-checkout> fetch origin && git -C <main-checkout> pull --prune --ff-only`.
 - **Sweep for outstanding parked work on the same tick:**
   ```sh
   git stash list --format='%gd %gs' | grep -F 'pipeline-stash/'
   ```
-  **Run it against the main checkout and it covers every live worktree at once**: the stack lives in the repo's common gitdir, not in a tree (`skills/ground-rules/SKILL.md`, rule 7, has the commands and the marker format). While agents are live a hit is context for the divergence check. **When the fleet is quiet a hit no hand-back named is a defect to chase, not noise** — an implementer ended its turn with work its teardown will not carry.
-- **Running an epic branch? Merge the integration branch into it on this same tick, in the epic's own worktree.** Nothing to do when there is none. When there is one:
+  **Run it against the main checkout and it covers every live worktree at once**: the stack lives in the
+  repo's common gitdir, not in a tree (`skills/ground-rules/SKILL.md`, rule 7, has the commands and the marker
+  format). While agents are live a hit is context for the divergence check.
+  **When the fleet is quiet a hit no hand-back named is a defect to chase, not noise** — an implementer ended
+  its turn with work its teardown will not carry.
+- **Running an epic branch? Merge the integration branch into it on this same tick, in the epic's own
+  worktree.** Nothing to do when there is none. When there is one:
   ```
   git -C <epic-worktree> fetch origin
   git -C <epic-worktree> merge origin/<integration-branch>
   git -C <epic-worktree> push origin <epic-branch>
   ( cd <epic-worktree> && <install> )
   ```
-  Merge, never rebase — the mandatory mitigation for the epic branch's deferred, concentrated conflicts (*The epic branch*), cheap only while the slice authors are live to resolve them. **The push is what puts the merged base where the slice worktrees fetch it from.** Resolve a conflict, commit, and push before you walk away.
+  Merge, never rebase — the mandatory mitigation for the epic branch's deferred, concentrated conflicts (*The
+  epic branch*), cheap only while the slice authors are live to resolve them.
+  **The push is what puts the merged base where the slice worktrees fetch it from.** Resolve a conflict,
+  commit, and push before you walk away.
 
-  **That fourth line is the project's own `install` (`skills/procedures/config-keys.md`), and it runs UNCONDITIONALLY** — a no-op where a project declares none. The epic worktree's dependencies fall behind the branch it holds, and the gate then reds on module resolution with no code defect. **Never condition it on the cadence merge's own diff**: a new package arrives through a *slice close-out*, whose fast-forward here sets `ORIG_HEAD` too. **The frozen rule above defers it**, since an install rewrites dependencies wholesale: a tree with an outstanding ticket installs next tick.
+  **That fourth line is the project's own `install` (`skills/procedures/config-keys.md`), and it runs
+  UNCONDITIONALLY** — a no-op where a project declares none. The epic worktree's dependencies fall behind the
+  branch it holds, and the gate then reds on module resolution with no code defect.
+  **Never condition it on the cadence merge's own diff**: a new package arrives through a *slice close-out*,
+  whose fast-forward here sets `ORIG_HEAD` too. **The frozen rule above defers it**, since an install rewrites
+  dependencies wholesale: a tree with an outstanding ticket installs next tick.
 
 ## Wait on your own tickets settling — one Monitor over the queue's ledger
-The signal that belongs to you is **one persistent `Monitor`, armed once per wave, polling the gate queue's `done/` ledger and emitting one line per settlement belonging to that wave.** Arm it in the same breath as the dispatch, beside the divergence tick.
+The signal that belongs to you is **one persistent `Monitor`, armed once per wave, polling the gate queue's
+`done/` ledger and emitting one line per settlement belonging to that wave.** Arm it in the same breath as the
+dispatch, beside the divergence tick.
 
-**Its ABSENCE has one tell, and it is your own behaviour rather than anything on disk.** A dispatcher that finds itself learning a verdict from a timer — the tick came round, so it went and looked — or from a drain's exit, has no watch armed: those are the two routes left when the settlement event never comes, and both read as diligence from the inside. **Arm one and the verdict comes to you** — `skills/procedures/host-tools.md` names your host's tool for a persistent watch.
+**Its ABSENCE has one tell, and it is your own behaviour rather than anything on disk.** A dispatcher that
+finds itself learning a verdict from a timer — the tick came round, so it went and looked — or from a drain's
+exit, has no watch armed: those are the two routes left when the settlement event never comes, and both read
+as diligence from the inside. **Arm one and the verdict comes to you** — `skills/procedures/host-tools.md`
+names your host's tool for a persistent watch.
 
-**The wave is the unit — not the ticket.** A fix agent re-pushes and **re-enqueues**, so anything keyed to the tickets live at arm time is stale the moment the wave moves. Key on the wave's **branches**, the set the divergence tick already carries, and every re-enqueue is covered for free.
+**The wave is the unit — not the ticket.** A fix agent re-pushes and **re-enqueues**, so anything keyed to the
+tickets live at arm time is stale the moment the wave moves. Key on the wave's **branches**, the set the
+divergence tick already carries, and every re-enqueue is covered for free.
 
-**Scope on the fields the ticket is guaranteed to carry, and emit on SETTLED rather than on a verdict.** A ticket carries `{ branch, worktreePath, mode }`, plus `prNumber`/`prUrl` only where the gated tree has a PR; the verdict facts on it are spelled as each runner picks. Read `branch`, plus `prNumber` for the handle it prints, and nothing else: a watch that never fires is indistinguishable from a wave that has not settled.
+**Scope on the fields the ticket is guaranteed to carry, and emit on SETTLED rather than on a verdict.** A
+ticket carries `{ branch, worktreePath, mode }`, plus `prNumber`/`prUrl` only where the gated tree has a PR;
+the verdict facts on it are spelled as each runner picks. Read `branch`, plus `prNumber` for the handle it
+prints, and nothing else: a watch that never fires is indistinguishable from a wave that has not settled.
 
-**Watch the ledger, not the PR.** A correct runner records the verdict on the ticket *before* it attempts to post, so a failed post leaves a settled ticket whose comment never landed. A watch on the comment sleeps through that; one on the ledger wakes on it, and waking is what runs the reconciling drain. *A PR with NO gate comment has not been gated* is the reading to apply once awake.
+**Watch the ledger, not the PR.** A correct runner records the verdict on the ticket *before* it attempts to
+post, so a failed post leaves a settled ticket whose comment never landed. A watch on the comment sleeps
+through that; one on the ledger wakes on it, and waking is what runs the reconciling drain. *A PR with NO gate
+comment has not been gated* is the reading to apply once awake.
 
 **The shape** — poll the ledger, remember what you reported, print one line per new arrival in the wave:
 
@@ -173,14 +577,36 @@ while true; do
 done
 ```
 
-Two things in that shape fail at arm time in **zsh**, the shell a `Monitor` runs in on macOS, leaving a dead watch indistinguishable from a quiet queue. **The seen set is a FILE, never a shell string the loop appends to**: a `[` right after a parameter expansion opens an array subscript, so a string accumulator has the shell evaluate a ticket path as a math expression — and a file survives the pipe's subshell, where a variable's writes would not. **Enumerate with `find`, never a bare glob**: zsh's `nomatch` makes an unmatched `"$DONE"/*.json.*` fatal, killing a watch armed while `done/` is empty.
+Two things in that shape fail at arm time in **zsh**, the shell a `Monitor` runs in on macOS, leaving a dead
+watch indistinguishable from a quiet queue. **The seen set is a FILE, never a shell string the loop appends
+to**: a `[` right after a parameter expansion opens an array subscript, so a string accumulator has the shell
+evaluate a ticket path as a math expression — and a file survives the pipe's subshell, where a variable's
+writes would not. **Enumerate with `find`, never a bare glob**: zsh's `nomatch` makes an unmatched
+`"$DONE"/*.json.*` fatal, killing a watch armed while `done/` is empty.
 
-**Prime the seen set before the loop**: `done/` is a durable ledger, and an unprimed watch replays the whole archive as this wave's news. **Dedupe on the ticket file, never on the branch**: a branch that goes red, takes a fix and re-enqueues settles twice, and the second is what you want. (Read the JSON, not the filename — the claim suffix is a runner's PID.) And **read the ticket before you mark it seen**, since one caught mid-write is unreadable for a pass and marking it first retires it unreported.
+**Prime the seen set before the loop**: `done/` is a durable ledger, and an unprimed watch replays the whole
+archive as this wave's news. **Dedupe on the ticket file, never on the branch**: a branch that goes red, takes
+a fix and re-enqueues settles twice, and the second is what you want. (Read the JSON, not the filename — the
+claim suffix is a runner's PID.) And **read the ticket before you mark it seen**, since one caught mid-write
+is unreadable for a pass and marking it first retires it unreported.
 
-**A few seconds is the right interval, and it is not the tick's question**: each poll is a directory listing plus a small JSON read, where the ~10-minute cadence in *Dispatch in the background, then monitor for divergence* is for reading **worktrees**. **Do not put this on that tick or give it that period.**
+**A few seconds is the right interval, and it is not the tick's question**: each poll is a directory listing
+plus a small JSON read, where the ~10-minute cadence in *Dispatch in the background, then monitor for
+divergence* is for reading **worktrees**. **Do not put this on that tick or give it that period.**
 
-**Silence from this watch means nothing settled — never that the wave is healthy.** It fires on arrival in `done/` in both directions, since a red settles exactly as a green does. What it cannot see is a ticket that never settles: **a runner that dies mid-gate has its ticket reclaimed back to `queue/` and re-gated later** — not a settlement, so no event. It is a wake-up, not a liveness check: the divergence tick notices a wave that stopped moving, and the queue directory says where a ticket is.
+**Silence from this watch means nothing settled — never that the wave is healthy.** It fires on arrival in
+`done/` in both directions, since a red settles exactly as a green does. What it cannot see is a ticket that
+never settles: **a runner that dies mid-gate has its ticket reclaimed back to `queue/` and re-gated later** —
+not a settlement, so no event. It is a wake-up, not a liveness check: the divergence tick notices a wave that
+stopped moving, and the queue directory says where a ticket is.
 
-**⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer section's *Never background a check and end your turn on it* by nothing. An implementer has a **durable handoff**, push → draft PR → enqueue, so the wait is unnecessary there and the ticket is by design somebody else's to watch; a dispatcher has no handoff to end on and holds the merge decision the settlement feeds.
+**⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer
+section's *Never background a check and end your turn on it* by nothing. An implementer has a
+**durable handoff**, push → draft PR → enqueue, so the wait is unnecessary there and the ticket is by design
+somebody else's to watch; a dispatcher has no handoff to end on and holds the merge decision the settlement
+feeds.
 
-**Tear it down at close-out by stopping the watcher.** The queue cannot tell you when your wave is over: a red settles too, and the wave ends when you merge, which nothing on disk can see. So the watch has no exit condition of its own and `persistent: true` is right. One left armed past its wave goes quiet, indistinguishable from a wave with nothing settling.
+**Tear it down at close-out by stopping the watcher.** The queue cannot tell you when your wave is over: a red
+settles too, and the wave ends when you merge, which nothing on disk can see. So the watch has no exit
+condition of its own and `persistent: true` is right. One left armed past its wave goes quiet,
+indistinguishable from a wave with nothing settling.

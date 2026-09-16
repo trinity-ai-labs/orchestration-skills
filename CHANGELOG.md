@@ -2,6 +2,85 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.3.0
+
+- **The ban on filing now reaches a slice's reviewers, and it arrives with the shape a prohibition needs.** An
+  implementer is told without qualification that a GitHub issue is not a disposition available to it; the
+  review pass it spawns wrote briefs that banned commit, push, open a PR, enqueue, the formatter, the gate and
+  anything moving the tree — and named no tracker at all, so an implementer whose reviewer filed could report
+  truthfully that **it** opened none. The ban is now stated at the reviewer's seat and **required in every
+  reviewer brief**, copying the four-part shape the gate ban one rule over already had: the prohibition, its
+  reason in the same sentence, a required line in every brief, and a recovery for a filing that happened
+  anyway — read off the tracker rather than off a clean `git status`, since a filing leaves nothing in the
+  worktree, exactly like a posted review. The runaway checklists name it too.
+- **It stays written per seat rather than moving to the shared rules home, and the reason is now recorded
+  there.** That home admits a rule whose statement is identical at every seat. This one is the same sentence
+  for an implementer and a reviewer and the opposite sentence for a dispatcher and for the loop, which hold
+  that disposition and exercise it — so it fails the admission test rather than squeezing through it, and the
+  ground rules now carry it as the worked near miss beside the one they already had.
+- **Two sentences that said only an implementer has no filing disposition are widened**, in the dispatcher's
+  reviewing reference and in the loop's reconcile checklist: a reviewer has none either, and a consumer that
+  undercounts leaves the newer half of the rule invisible to the seat reading it.
+- **The implementer's hand-back no longer asks for follow-ups by issue number** — the last residue of the
+  release that removed that disposition, and a field that presupposed the very act the same file bans.
+- **The wait rule has a third branch at every seat that states it.** Every seat offered two — end your turn,
+  or a call that blocks until a child reports. Where a host gives neither, ending the turn loses the handoff
+  with nothing coming to restore it, so the agent hands back on what has landed and names the children still
+  out rather than waiting silently. Written at the ground rules, the review pass, the implementer's reference,
+  the dispatcher's every-brief block, the host-tool table in its own register, and the user-facing hard-rules
+  page — six seats, one of which the arc's own enumeration had missed.
+- **The dispatcher enqueues a slice's gate, after it has read the diff.** The old order had the implementer
+  enqueue as its last act before handing back, which froze the worktree from that moment: the dispatcher was
+  told to read a diff and send a fix agent **before** any drain, into a tree the ticket had already frozen,
+  and a correction sent to a live slice produced one slice, two gate runs and a refusal as the only notice.
+  Nothing takes a ticket back. Moving the act costs the durability the old order bought and buys it back
+  another way — by the time the ticket is raised the branch is pushed and the PR open, so the work is in git
+  and a ticket nobody queued costs a gate run's latency rather than work. It is also an alignment rather than
+  a new pattern: at an epic's close-out the dispatcher already opens the draft PR and enqueues the gate
+  against it.
+- **That move is scoped to the default queue mode wherever it is stated.** In override gate mode, and in a
+  project declaring no `enqueue` and no `drain`, the implementer gates in-line on its own draft PR and no
+  ticket exists at any point — so neither failure can occur there, and prose that did not say so would be
+  false rather than merely incomplete.
+- **A gate ticket now carries its failure set by identifier.** Two reading seats already required a named
+  failure set before treating a recorded result as a baseline — the dispatcher's baseline rule and its
+  green-modulo-baseline assertion — and the ticket had no field for one, so a red base was a result nobody
+  could compare against and the only legal move was to gate again. The verdict comment carries it too.
+- **And a per-step executed-or-replayed record.** A green that replayed from cache and a green that executed
+  were the same green. A replayed step says its inputs hash to a result already recorded green and nothing
+  ran, so a verdict whose steps all replayed establishes an unchanged tree rather than a suite that covered a
+  change — which the seat reading a verdict is now told, and which the onboarding pass now reports as a
+  per-field delta beside its per-invariant one, a verdict field not being an invariant.
+- **The slicing pass's closing check becomes one closed question plus five pairs.** Its own section title
+  already named the two families the six pairs mixed: fields read against each other, and fields read against
+  what the project will accept. The second family compares a field against an open world, so those stay named
+  pairs. The first family's path-keyed row is now one question — *for every field that constrains what may
+  happen to a named path, does any other field demand of that same path something the first forbids?* — run
+  per path and answered per path, which is what makes it a test rather than an invitation to feel careful.
+  The fence pair survives as its worked example, and `Derives` needs no pair of its own because it already
+  carries a disposition beside a path and the question reaches it by construction.
+- **`Owns` now says a path may carry a disposition and that the disposition binds.** It sanctioned them only
+  for docs on an epic and for tests a sweep returned, leaving one on any other path an extension the field
+  did not describe while still binding whoever read it. Both clauses go in the entry beside the path, the
+  format `Derives` already models, since a bare path reads as ordinary scope. It narrows the kind of edit a
+  path takes and never what the change must reach.
+- **The shaping pass audits the premises a request arrives with, before it shapes.** The claims the request
+  rests on are written down and checked against the tree — **verified** with the coordinate, **false** with
+  what the tree says instead, **unverifiable** with why — and the shape then names which it proceeds on as an
+  assumption. Unverifiable is a legitimate verdict and is what keeps the audit from being a ritual: an audit
+  obliged to come back verified or false invents the third case. It is a new action rather than a restatement
+  — that pass's first action reads the repo only to classify, and its pricing rule weighs a constraint about
+  to narrow the design rather than a claim the request carried in.
+- **The loop's halt reads closes against the PLAN, and self-generated closes are recorded separately.** The
+  net was filed minus closed over one population, which counted a finding the arc generated and closed exactly
+  as it counted a leaf the plan was filed for — so an arc working only on its own findings closed as many as
+  it filed and read as its healthiest while the plan stood still. The cycle record now carries filed, plan
+  closes, self-generated closes and the net of the first two. Nothing else about the exit moves: the
+  threshold, the two-cycle window and the *only while items are still Adjacent* condition stand as they were.
+- **A repository convention describing a sub-skill as what an agent actually loads is corrected.** An agent
+  loads a spine plus the references that spine sends it to, which is the disclosure model stated in the same
+  bullet. The unit is the directory; both ceilings keep their numbers.
+
 ## 5.2.0
 
 - **An arc's close-out can now say it FIXED the gap it found.** The question it answers in writing — *did this

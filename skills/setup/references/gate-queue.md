@@ -10,7 +10,7 @@ concurrent runners are safe, a killed runner loses nothing, and a reboot leaves 
 
 | Script | Role |
 |---|---|
-| `enqueue-gate.mjs` | Drops a durable ticket for one gate — an implementer's, after it opens its draft PR, or a dispatcher's on a tree with no PR |
+| `enqueue-gate.mjs` | Drops a durable ticket for one gate — the dispatcher's, against a slice's draft PR once it has read that diff, or on a tree that has no PR |
 | `gate-runner.mjs` | A one-shot drain pass: claim → check the tree → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
 | `gate-slot.mjs` | A machine-wide mutex so only one heavy gate runs at a time |
 
@@ -143,7 +143,8 @@ about the pushed diff. Refusing before the slot also keeps a moving tree from sp
 **Refused is a third outcome, not a red**, because the two say different things to the dispatcher reading
 them: red is feedback about the diff and is answered by dispatching a fix agent, where refused says nothing
 was gated and the tree moved under the ticket, and is answered by committing that tree's change, or stashing
-it by its marker, and re-enqueueing. A refusal carries no failing tail — no gate ran to produce one.
+it by its marker, and re-enqueueing. A refusal carries no failing tail, no failure set and no step record — no
+gate ran to produce any of them.
 
 **A refusal is a verdict, so invariant 7 binds it unchanged: it is not done until it is delivered.** Comment
 it on the PR like any other and leave the PR draft. Settling it silently leaves the PR bare instead, and
@@ -162,7 +163,9 @@ project's contributors will see it.
 ## Reporting
 
 **The verdict is a PR comment whichever way it went, and the PR stays draft.** Green posts a passing comment,
-red the failing tail, and a refusal the reason nothing was gated, plus the head SHA. Where the ticket has a PR
+red the failing tail **and the failure set by identifier**, and a refusal the reason nothing was gated, plus
+the head SHA — **and each of them the per-step executed-or-replayed record**, since the seat that reads the
+comment rather than the ledger is owed the same two facts. Where the ticket has a PR
 that comment is the only channel, and the queue never touches the draft flag — which is what makes
 **a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
 
@@ -172,12 +175,29 @@ distinguishable: "in `done/`, no comment" is produced by a failed post, by a gat
 had vanished, by an exception mid-pass, and — benignly — by a PR-less ticket. Only the enqueue-time
 undeliverable flag tells the last from the first; on GitHub they look identical.
 
-So the ticket carries the outcome, the exit code, the failing tail, the SHA that was gated, and whether the
-report was delivered — which is what makes `done/` a ledger and delivery a retryable step.
+So the ticket carries the outcome, the exit code, the failing tail, **the failure SET by identifier**, **a
+per-step executed-or-replayed record**, the SHA that was gated, and whether the report was delivered — which
+is what makes `done/` a ledger and delivery a retryable step.
+
+**The failure SET is the field a later reader compares against, and the failing tail cannot stand in for it.**
+Name every failure by the pair the reading seats already match on — the test file and the test name — across
+**every** package, so a red verdict is a usable baseline for the next tree gated at that commit. A tail is the
+last N lines of output and its membership is whatever fitted, so a reader handed one alone either re-gates or
+compares a set it reconstructed, and both of those are silent. Keep the tail too: it carries the diagnosis the
+set does not.
+
+**Record per STEP whether the gate executed it or replayed it from cache, because a green that replayed and a
+green that executed are otherwise the same green.** A replayed step says its inputs hash to a result already
+recorded green and nothing more — nothing ran, so nothing environmental was exercised — and a verdict whose
+steps all replayed establishes an unchanged tree rather than a suite that covered a change. Absent the field,
+the reader sizing what to gate next, or asking whether a suite actually reached a diff, has nothing to read on
+the ticket or on the comment.
 
 **The failing tail belongs to a red verdict — compute it and store it only there.** Greens are the common case
 and the tail is the largest field, so tails on green spend invariant 8's retention budget on bytes no comment
-quotes. Implementation trap: where the routine computing the tail also cleans up the task-runner's run-summary
+quotes. **The failure set rides with it on red for the same reason, a green having no failures to name; the
+per-step record goes on BOTH**, since what a green establishes is exactly the question it answers.
+Implementation trap: where the routine computing the tail also cleans up the task-runner's run-summary
 scratch files, lift that out so it still runs when the tail is skipped.
 
 **Reconcile at the head of every pass.** Before claiming, scan `done/` for undelivered verdicts and post them;

@@ -31,6 +31,14 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     **new prose**.
   - **The tests the caller sweep in `skills/ground/references/grounding.md` came back with**, each with its
     disposition.
+  - **An entry may carry a DISPOSITION, and where it does that disposition BINDS.** The two cases this field
+    already sanctions — the tests a sweep returned, above, and a doc on an epic, below — are instances rather
+    than the extent, and one on any other kind of path is this field doing the same thing.
+    **Write both clauses into the entry beside the path**, the way
+    `Derives` does — `docs/mental-model.md — ledger entry only; record what this falsifies rather than
+    rewriting it` — since a bare path reads as ordinary scope and a disposition left out of the entry reaches
+    nobody. **It narrows the KIND of edit that path takes and never what the change must reach**: the field is
+    a floor still, and a path carrying a disposition is a path the change must land on.
   - ⛔ **`Owns` is a FLOOR, never a ceiling — the files the change must reach, not the only files it may
     touch.** Everything neither owned by this slice nor named in its `Do NOT touch` is the UNLISTED MIDDLE,
     and the unlisted middle is fixable: a slice that finds something broken there repairs it in the PR it is
@@ -244,18 +252,34 @@ fan at all, which is the only place in this pass the dominant term can be argued
 ## The closing check — read a slice's fields against each other, and against what the project will accept
 
 **Before you emit a slice, read its fields against each other and against what the project will accept — as
-these six PAIRS, never as a general check of your work.** Nothing downstream reads any two fields against each
+ONE CLOSED QUESTION over the path-keyed family plus these five PAIRS, never as a general check of your work.**
+Nothing downstream reads any two fields against each
 other and you are the only party holding all of them at once, so a slice can be internally unsatisfiable and
 still look finished: the implementer meets one field by breaking another and reports the half it met, and no
-gate can read a brief.
+gate can read a brief — **nor could one ever read a prose summary against a prose table, which is why this
+stays a rule you run rather than a check that runs it.**
+
+**The question, run per path and answered per path:**
+
+> **For every field that constrains what may happen to a named path, does any other field demand of that same
+> path something the first forbids?**
+
+`Owns` with a disposition beside an entry, `Do NOT touch` and `Derives` all constrain a path; `Verify` and
+`Brief` both demand outcomes of one. **Key it on the PATHS rather than on the fields**: gather every path
+those five name, ask the question once for each, and **write a verdict per path** — the per-path verdict is
+what makes this a test, where one answer over the whole slice is the invitation to feel careful it replaces.
+**The worked example is a fence against a verify bar** — a `Do NOT touch` glob and an assertion that both land
+on the same test file, the case the `Do NOT touch` field above carries two rules to settle.
+**`Derives` has the identical hole and earns no pair of its own**: it already carries a disposition beside a
+path, so the question reaches it by construction.
+
+**Then these five pairs, which the question cannot reach**, each reading a field against something other than
+another field's claim on a path:
 
 - **A goal against its verify bar** — `Goal` against `Verify`, and the test is satisfiability by one sentence:
   where a single sentence would satisfy both, the goal is a restatement of the bar and you have not written
   one yet. A field every slice carries and no reader uses is worse than no field, because it costs prose on
   every slice and teaches its readers to skip the place a real goal would have been.
-- **A fence against the verify bar** — `Do NOT touch` against `Verify`; the worked example is a glob and an
-  assertion that both land on the same test file, and the `Do NOT touch` field carries the two rules that
-  settle it.
 - **A content requirement against a style constraint** — two halves of one `Brief`, or a `Brief` against the
   conventions the slice inherits, each satisfiable alone and contradictory only in the pair.
 - **Any requirement against the vocabulary the target actually has** — a brief can demand a distinction the

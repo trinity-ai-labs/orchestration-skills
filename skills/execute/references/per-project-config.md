@@ -18,12 +18,14 @@ onboarded first.
 Two independent readings, both properties of the **ticket** and set at enqueue —
 **never inferred from the branch name**, since a rename must not silently change how a PR is gated.
 
-**Who runs the gate.** By default the implementer runs `scopedCheck`, pushes, opens a **draft** PR and
-enqueues; a runner drains the ticket, gates it and comments the verdict. **Override gate mode** is the other:
-the implementer runs `gate` itself, in the foreground, comments the result on its own draft PR, never
-enqueuing. Two routes: a dispatcher's brief or the dispatching user **explicitly** puts a slice there, never
+**Who runs the gate.** By default the implementer runs `scopedCheck`, pushes, opens a **draft** PR and hands
+back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it and
+comments the verdict. **Override gate mode** is the other: the implementer runs `gate` itself, in the
+foreground, comments the result on its own draft PR, and **no ticket is created at all**. Two routes: a
+dispatcher's brief or the dispatching user **explicitly** puts a slice there, never
 self-granted, **or the project declares no `enqueue` and no `drain`, where in-line gating is the DEFAULT
-rather than a grant.** **The implementer's half is unchanged in both**: still a draft at hand-back, never
+rather than a grant.** **The implementer's half reads the same in both, and in neither of them does it
+enqueue**: still a draft at hand-back, never
 marked ready by the implementer, never its own merge. In-line, though, the verdict lands *before* the
 hand-back — wait for it before you tear down the tree or merge (*The PR review loop*).
 
@@ -43,9 +45,9 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 ## Three readings that change the flow
 
 - **No `enqueue`/`drain`** → **this project gates in-line, and that is the DEFAULT here rather than a grant**
-  (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. Never tell an
-  implementer to enqueue here — the command doesn't exist, and the run ends with committed work and no
-  handoff.
+  (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
+  at all** — the command doesn't exist, so a brief telling an implementer to enqueue, or a dispatcher reaching
+  for the ticket once it has read the diff, ends with committed work and no handoff.
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **"default to parallelization" does not hold in

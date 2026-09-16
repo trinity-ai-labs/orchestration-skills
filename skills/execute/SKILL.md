@@ -82,18 +82,27 @@ Three things then change for the dispatcher:
 ## The durable gate queue
 
 The heavy gate (`gate` = build + full test suite) is CPU-saturating, so
-**implementers enqueue and dispatchers drain**. An implementer holds itself to the cheap **scoped check**
-(format-check + lint + typecheck, enforced by the pre-commit hook), pushes and opens its **draft PR** before
-it **enqueues** a durable ticket (`enqueue`), so a death after enqueue strands nothing. A runner (`drain`)
-then claims tickets **one at a time**, in each ticket's own worktree behind a slim machine-wide slot, gating
-in the mode that ticket declared (*Gate mode*) and commenting the verdict on the PR while leaving it draft.
+**the dispatcher enqueues and the dispatcher drains — an implementer does neither**. An implementer holds
+itself to the cheap **scoped check** (format-check + lint + typecheck, enforced by the pre-commit hook),
+pushes, opens its **draft PR** and hands back; **you enqueue that slice's ticket (`enqueue`) once you have
+read its diff**, since nothing should gate a tree you are about to have rewritten — which is the order
+phase 3 already asks for, *review BEFORE you drain*. **Nothing is at risk in the gap**: the branch is pushed
+and the PR open before you are handed anything, so the work is durable in git and a ticket nobody queued
+costs a gate run's latency rather than work. A runner (`drain`) then claims tickets **one at a time**, in
+each ticket's own worktree behind a slim machine-wide slot, gating in the mode that ticket declared
+(*Gate mode*) and commenting the verdict on the PR while leaving it draft.
 
-**A dispatcher's OWN gates go in the same queue — in a project whose runner will take them, no gate is run by
-hand**: the epic's **close-out gate** against its own draft PR (*The epic branch* → *Mechanics*), the
-**mid-arc integration gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the
-integrated whole*), and a slice's **suite baseline** as a PR-less ticket on its worktree before anything is
-dispatched into it. A runner scaffolded before that ticket type refuses it, and only there is a hand-run gate
-sanctioned.
+**That is the DEFAULT QUEUE MODE and none of it reaches a project without one**: where the project declares
+no `enqueue` and no `drain`, or a slice sits in override gate mode, the implementer gates in-line on its own
+draft PR and **no ticket exists at all** (`skills/execute/references/per-project-config.md`).
+
+**So EVERY gate in this flow is one of yours — in a project whose runner will take them, no gate is run by
+hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
+its own draft PR, which has taken this shape all along — draft, enqueue, gate comment, posted review, merge
+(`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration gate** as a **PR-less
+ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a slice's **suite
+baseline** as a PR-less ticket on its worktree before anything is dispatched into it. A runner scaffolded
+before that ticket type refuses it, and only there is a hand-run gate sanctioned.
 
 ---
 
@@ -133,7 +142,8 @@ nothing. The reference carries the test.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 
-Read the gate verdict, read the diff, and post the verdict you form onto the PR as a review each round.
+Read the diff and post the verdict you form onto the PR as a review each round; **enqueue that slice's gate
+only once the code is final**, then read the verdict the runner comments.
 
 ⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
 says a gate finished, not that anyone read the change.
@@ -181,10 +191,16 @@ reference.
    answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
    to a reader but the dispatcher's read of your diff.
    ⛔ **Its reviewers are FRESH agents handed one dimension each, never forks of you** — a fork inherits this
-   brief and executes its *commit, push, PR, enqueue* imperatives, and you are the only party that edits this
-   tree. ⛔ **Each reviewer is the LAST agent in the chain and its brief says so** — it dispatches nothing of
-   its own, or you weigh a finding no reader in the chain established.
-7. **Commit, push, open a draft PR, enqueue or gate in-line, hand back.**
+   brief and executes its *commit, push, PR, hand back* imperatives, and you are the only party that edits
+   this tree. ⛔ **Each reviewer is the LAST agent in the chain and its brief says so** — it dispatches
+   nothing of its own, or you weigh a finding no reader in the chain established.
+   ⛔ **Every reviewer's brief also states that a GitHub issue is not a disposition available to it, with the
+   reason beside it** — a reader that files spends a whole unit of work on what one line in its report to you
+   settles, and the ban is stated at that seat or it reaches no reviewer.
+7. **Commit, push, open a draft PR, gate in-line where your mode says so, hand back.**
+   ⛔ **You enqueue nothing.** In the default queue mode your dispatcher enqueues your ticket once it has read
+   your diff; in override mode there is no ticket at all. Either way what you hand back is a pushed branch and
+   a draft PR.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or
@@ -204,7 +220,7 @@ you read them; the documented-suppression carve-out to their guardrail rule, and
 `skills/execute/references/implementer.md`. One rule binds both roles at any moment and reads differently for
 each, so it sits here rather than on a step.
 
-- ⛔ **FIX IT, DO NOT FILE IT — and you never open a GitHub issue, in any circumstance.** A defect found is a
+- ⛔ **FIX IT, DO NOT FILE IT.** A defect found is a
   defect fixed, in the PR already open, with the cause in front of you. Writing the sentence that describes it
   costs more than deleting it, and the sentence is only the start: a filed item then costs a read, a
   discussion, a grounding pass, a worktree, an agent, a gate run and a merge to do what one edit would have
@@ -212,3 +228,9 @@ each, so it sits here rather than on a step.
   go looking for more, either: fix what you hit, never what you can find. A pass whose purpose is to find work
   always finds it, and the backlog it produces is indistinguishable from progress right up until nobody can
   ship.
+  **Where the two roles part is the DISPOSITION rather than the preference.** ⛔ **An IMPLEMENTER opens no
+  GitHub issue, in any circumstance, for any finding — and neither does any reviewer it dispatches, which is
+  why every one of those briefs says so** — since a filing from either seat spends that whole unit of work on
+  what one raised sentence settles while the tree is still open. ⛔ **A DISPATCHER holds the disposition
+  neither of them has**: filing is a verdict you return and then perform yourself, so the finding leaves the
+  implementer's hands rather than landing back in them (*Judge what comes back*).

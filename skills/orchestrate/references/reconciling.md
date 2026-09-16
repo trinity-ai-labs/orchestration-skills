@@ -56,8 +56,9 @@ anywhere — and comes back in.
 
 **8. Follow-ups filed out of this arc — and this one reads the TRACKER, where a finding can sit looking
 handled.** Every issue filed **out of** this arc — the loop's own filings under *Fold vs. file*, and those its
-dispatchers filed under the same follow-up-ownership rule, an implementer having no filing disposition of its
-own — goes back through *Fold vs. file* whenever its `Follows #<N>` or `Part of #<umbrella>` names a live arc.
+dispatchers filed under the same follow-up-ownership rule, neither an implementer nor a reviewer under one
+having a filing disposition of its own — goes back through *Fold vs. file* whenever its `Follows #<N>` or
+`Part of #<umbrella>` names a live arc.
 **Who filed it does not narrow this**, and **filing is how a finding is tracked, not how it is disposed of**:
 the tree may since have answered it. **Three things go on the desk beside each item before its verdict is
 re-run, since re-asking the same reader holding the same summary returns the same answer however wrong it
@@ -107,10 +108,13 @@ been** — one filing a cycle reads as discipline, and a count alone reads as st
 as accumulation. **Both are the loop's own to count rather than the tracker's to report**, since the tracker
 carries no *Adjacent* marker and no notion of a cycle: take the count from the verdicts this loop has
 recorded, and the age from the increment comments the umbrella has carried since that issue was filed.
-**The cycle's RATE comes off this same walk and adds no step to it** — item 8 is already reading every issue
-filed out of this arc, so gather the counts as you go, and let that read cover CLOSED issues as well as open
+**Two of the cycle's RATE numbers come off this same walk and add no step to it** — item 8 is already reading
+every issue filed out of this arc, so gather what it filed and what of that has closed as you go, and let that
+read cover CLOSED issues as well as open
 (`--state all`), since a closed one has left the re-disposition set and would otherwise be invisible to the
-very count it belongs in. **Gathered here, defined there**: *Rewriting the plan* fixes the population, the
+very count it belongs in. **The third does NOT come off this walk**: closes against the PLAN are the leaves
+the plan was filed for, which this walk never touches, so take that count off the plan as you rewrite it.
+**Gathered here, defined there**: *Rewriting the plan* fixes the two populations, the
 window and the net's sign, and restating them here is how the two seats drift into counting different things.
 Each item then goes through *Fold vs. file*, which opens by establishing *why the thing is the way it is*:
 everything above produces findings, none of it explanations.
@@ -308,18 +312,31 @@ one left with no surface at all is dropped at close-out with nothing recording t
 numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there
 because the age of the oldest is counted in those comments.
 
-**The rate is three more numbers — filed this cycle, closed this cycle, and the NET, which is FILED MINUS
-CLOSED, so a positive net is the backlog GROWING and a negative one is it shrinking.** Write the sign out that
-way in the comment rather than leaving the subtraction to be inferred.
-**Both counts run over ONE population and ONE window, and getting either wrong inverts the net.** The
-population is every issue filed out of this arc — this loop's own *Adjacent* filings and its dispatchers'
-alike, exactly the set item 8 walks, since a *filed* count drawn narrower than the *closed* count it is
-subtracted from scores a cycle flat while the level it is meant to explain climbs. The window is
-**since the previous increment comment**, so *closed this cycle* is how many of that population have closed
-since then and never how many stand closed in total, a running total being a subtrahend that grows forever and
-reports a backlog shrinking while it grows. **Write all three every cycle even where the arc filed nothing and
+**The rate is four more numbers — filed this cycle, PLAN closes this cycle, SELF-GENERATED closes this cycle,
+and the NET, which is FILED MINUS PLAN CLOSES, so a positive net is the backlog GROWING against the plan and a
+negative one is it shrinking.** Write the sign out that way in the comment rather than leaving the subtraction
+to be inferred.
+
+**The two close counts are different POPULATIONS, and keeping them apart is the whole of why there are two.**
+**PLAN closes** are the leaves the plan was filed for — the checklist lines and sub-issues this cycle landed,
+which the rewritten body above already holds, so take that count from there. **SELF-GENERATED closes** are
+items this arc itself filed and has since closed, out of the population item 8 walks. Added together, an arc
+that only ever works on its own findings closes as many as it files and scores its healthiest cycle while the
+plan has not moved; kept apart, that arc nets its filed count every cycle it files, where the single
+subtraction scored it negative and `skills/orchestrate/SKILL.md`'s fifth exit never fired. **That exit's
+*only while items are still Adjacent* condition is untouched and still gates it**, so an arc whose own filings
+have all closed is exempt exactly as it was — the condition rations the exit, and this split only decides what
+the net counts. **Record the self-generated count all the same** — an arc closing what it found is doing real
+work, and leaving the number out would say it did none.
+
+**Filed runs over the population item 8 walks** — every issue filed out of this arc, this loop's own
+*Adjacent* filings and its dispatchers' alike — since a *filed* count drawn narrower than the count subtracted
+from it scores a cycle flat while the level it is meant to explain climbs. **The window is the same for all
+three: since the previous increment comment**, so each is what happened since then and never how many stand
+closed in total, a running total being a subtrahend that grows forever and
+reports a backlog shrinking while it grows. **Write all four every cycle even where the arc filed nothing and
 closed nothing**, since a level and an age say how much is standing and how long it has stood but never which
-way it is moving, and `skills/orchestrate/SKILL.md`'s fifth exit reads the rate rather than the level.
+way it is moving, and that exit reads the rate rather than the level.
 
 **The body carries one more piece of arc state, and the loop is the only pass positioned to hold it: the arc's
 contract-seam map, a running union rather than a per-cycle re-derivation.** Seed it from the issue body's

@@ -80,7 +80,7 @@ silently.
 simple absolute prohibitions fine — never rebase, never self-merge. It does NOT carry (a) a multi-step
 procedure with one correct order and one silently-incomplete wrong one, or (b) a rule overriding a harness
 default. Seven items have one of those shapes and go into every brief close to verbatim: the
-**commit-last ordering**, the **push-draft-PR-then-enqueue handoff**, the **docs-in-the-same-PR rule** and the
+**commit-last ordering**, the **push-then-draft-PR handoff**, the **docs-in-the-same-PR rule** and the
 **stash-before-the-tree-moves rule** (a); **no AI attribution**, the **no-full-suite-runs ban** and the
 **foreground-handoff rule** (b). Any future addition with either shape goes the same way.
 **The count is stated here and nowhere else.**
@@ -144,9 +144,14 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before
   you dispatch, since an implementer runs the suite at most once and in the default gate mode never: a
   recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result only where it names
-  every failure — a green one does, and a red ticket keeping only its failing tail does not — and otherwise
-  you gate that commit as a PR-less ticket on the worktree you are about to dispatch into, dispatching once it
-  settles. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
+  every failure — **which is a field on the ticket, the failure set by identifier, so a red verdict IS a
+  usable baseline where that field is filled in and a failing tail alone still is not** — and where it is
+  not, you gate that commit as a PR-less ticket on the worktree you are about to dispatch into, dispatching
+  once it settles. **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a
+  replayed step says the task's inputs hash to a result already recorded green and says nothing about running
+  here, so a green whose steps all replayed establishes the tree unchanged for that task rather than a suite
+  that covered it, and it is blind to exactly the environmental and shared-resource reds a fresh execution
+  surfaces. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
   or leave it out and have the brief say to take it before the first edit, which is where anything else the
   slice needs goes too.
 - **Project conventions for this slice.** The relevant bits of `briefConventions`
@@ -164,11 +169,15 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
   second entry for what the change ADDED that no doc describes.
 - **Gate mode for this slice.** Gate mode decides **who runs the gate and when** — nothing else. The DEFAULT:
-  the implementer runs only the scoped check, pushes, opens a draft PR and enqueues, and a runner gates it
-  later. Override when the slice is foundational or cross-cutting, or when there is no dispatcher to drain:
+  the implementer runs only the scoped check, pushes, opens a draft PR and hands back; **you enqueue its
+  ticket once you have read the diff** (*Review BEFORE you drain, never after* in
+  `skills/execute/references/reviewing.md` states that order, and the epic close-out has taken this shape all
+  along — draft PR first, gate enqueued against it, per
+  `skills/execute/references/worktrees-and-branches.md`), and a runner gates it later. Override when the slice
+  is foundational or cross-cutting, or when there is no dispatcher to drain:
   then tell the implementer to run the full `gate` itself, in the foreground,
-  **post the result as a comment on its own PR**, and NOT enqueue. Both modes end in a draft PR carrying a
-  gate comment: whether the diff was *read* is your call.
+  **post the result as a comment on its own PR**, and — in neither mode — enqueue anything. Both modes end in
+  a draft PR carrying a gate comment: whether the diff was *read* is your call.
 
   ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge
   or tear down.** That covers override mode and any project with no queue
@@ -189,7 +198,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   nothing recording which of the two judgements the slice actually got. A slice arriving with no
   recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an
   improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR,
-  enqueue the gate* included, which they then execute, while the shipped pass dispatches fresh reviewers
+  hand back* included, which they then execute, while the shipped pass dispatches fresh reviewers
   carrying the slice's goal, the diff and one dimension each and nothing else, and sizes that reader count
   itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it
   waited on review sub-agents ran the pass as designed, and one whose reviewers left commits, a push or a PR
@@ -206,19 +215,22 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on it.
   **Its second half is the wait on the slice's own sub-agents, written for a host that re-invokes an agent as
   each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended turn, put
-  your host's wait in its place.
+  your host's blocking wait in its place, and **where it gives neither, put the third branch in the brief
+  instead**: an ended turn there loses the hand-back with nothing coming to re-invoke it, so the slice reports
+  on what has landed and names the children still out.
 
-  > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result; the pre-commit hook runs `scopedCheck` on `git commit` anyway. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing.
+  > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result; the pre-commit hook runs `scopedCheck` on `git commit` anyway. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
 - **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
   `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless
   the brief names the right one. Paste this, substituting the slice's branch leaf:
 
   > **Before anything clears or moves your tree, commit the work or stash it with `git stash push -u -m "pipeline-stash/<branch-leaf>/$(date +%s): <why>"`, and restore only the entry that marker names** (`skills/ground-rules/SKILL.md`, rule 7, has the restore command). Never hold work in a patch or a file outside git, and never run a bare `git stash pop`.
-- **The push-draft-PR-then-enqueue handoff.** The order is what makes a mid-flight death lose nothing. Paste
-  this into every brief (unless the slice is in override gate mode), **substituting the literal branch name
-  you cut this worktree from** — an implementer left to work it out can send its PR at the wrong branch.
+- **The push-then-draft-PR handoff.** The order is what keeps a mid-flight death from losing anything. Paste
+  this into every brief — **whatever the gate mode**, since the ticket has left it — **substituting the
+  literal branch name you cut this worktree from**, an implementer left to work it out being able to send its
+  PR at the wrong branch.
 
-  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. THEN enqueue the gate: `enqueue --branch <yourBranch> --worktree <yourWorktreeAbsPath> --pr-number <n> --pr-url <url>` (number and url from the `gh pr create` output). THEN hand back, reporting everything the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. Do NOT run the full gate, do NOT wait for it, do NOT mark your own PR ready. Never leave committed work unpushed, or a pushed branch without a draft PR + an enqueued ticket.
+  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing**: the gate ticket is your dispatcher's, raised once it has read your diff. Do NOT run the full gate, do NOT wait for one, do NOT mark your own PR ready. Never leave committed work unpushed, or a pushed branch without a draft PR.
 - **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
   banned strings is a claim about a set the harness extends without notice and an enumeration of banned
   artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer
@@ -238,8 +250,9 @@ on your host.
 and the tick is required rather than something you reach for once something looks wrong). A completion
 notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
 about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
-three more riders: (a) whether any slice opened a draft PR and enqueued, (b) **drain the gate queue**
-(`drain`), so enqueued PRs carry their verdict without waiting for you, and (c) **answer any question a live
+three more riders: (a) whether any slice opened a draft PR and handed back, which is when you read its diff
+and enqueue its ticket, (b) **drain the gate queue** (`drain`), so the tickets you have raised carry their
+verdict without waiting for you, and (c) **answer any question a live
 slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
 because the answer comes back on this tick. Each tick, snapshot what each agent is touching against its scope:
 
@@ -461,8 +474,8 @@ absence as *not yet applied* and never as *applied then reverted*. **And carry e
 beside the `$FP` it was taken against**, since the stall check is a comparison against last tick's
 measurement: a prompt that ships without it ships a tick whose stall question cannot be asked.
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once your implementers have enqueued** — how
-the drain runs, and how you wait on your own tickets.
+Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once you have enqueued the tickets your
+slices' diffs earned** — how the drain runs, and how you wait on your own tickets.
 
 ## Draining the gate queue
 On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
@@ -473,11 +486,11 @@ green and the failing tail on red, and **leaves it draft either way**. It is a o
 re-invokes it.
 
 **A wide fan-out stays safe because the slot, not the fan-out, decides how many gates run**, and implementers
-never gate at all.
+never gate and never enqueue at all.
 
-- **Size the drain to the fan-out.** A lone slice enqueues once and hands back, and
-  **that hand-back is a free notification** — drain on it, leaving the tick's drain to cover only an agent
-  that dies between `enqueue` and handing back. Keep it on the tick either way, but never let it stand in for
+- **Size the drain to the fan-out.** A lone slice hands back once, and **that hand-back is a free
+  notification** — read its diff on it, enqueue, and drain once the ticket is in. Keep the drain on the tick
+  either way, but never let it stand in for
   the divergence check: a tick read as "the drain timer" stops diffing worktrees.
 - **A full drain can be long** — each ticket is one serialized gate — so bound a big queue with
   `drain --max N` per tick and detach it: `nohup … &`, or your shell's equivalent.
@@ -510,12 +523,15 @@ never gate at all.
 - **A worktree whose ticket has not SETTLED is FROZEN — don't mutate it, don't remove it. The test is the
   ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running.** A
   claim is an atomic rename landing between your check and your agent's first edit, and
-  **queued-and-unclaimed is the NORMAL state**, where a slice sits the moment its implementer hands back — so
-  checking `processing/` is not checking anything. A tree changed mid-gate is judged against a HEAD no gate
-  saw, under a SHA that may still match the PR's. Wait for the verdict comment, either direction, or the
-  ticket's arrival in `done/` when there is no PR.
+  **queued-and-unclaimed is the NORMAL state**, where a slice sits from the moment you enqueue it until a
+  runner claims it — so checking `processing/` is not checking anything. A tree changed mid-gate is judged
+  against a HEAD no gate saw, under a SHA that may still match the PR's. Wait for the verdict comment, either
+  direction, or the ticket's arrival in `done/` when there is no PR.
+  **Your own act is what starts the freeze, which is the whole reason the enqueue waits on your read of the
+  diff**: before you raise the ticket there is no ticket, so the tree is still yours to send a fix agent into
+  without a withdraw that does not exist.
 - **A red ticket is dispatcher feedback, not lost work.** The PR stays draft with the failure commented: read
-  it and dispatch a fix agent into that same worktree, which re-pushes and re-enqueues — safe precisely
+  it and dispatch a fix agent into that same worktree, which re-pushes; you re-enqueue — safe precisely
   because the ticket has resolved.
 - **A REFUSED ticket means nothing was gated** — the runner found uncommitted tracked changes in that worktree
   and settled without gating, rather than judge a tree no commit holds. It is not a red: there is no failure
@@ -570,8 +586,8 @@ exit, has no watch armed: those are the two routes left when the settlement even
 as diligence from the inside. **Arm one and the verdict comes to you** — `skills/procedures/host-tools.md`
 names your host's tool for a persistent watch.
 
-**The wave is the unit — not the ticket.** A fix agent re-pushes and **re-enqueues**, so anything keyed to the
-tickets live at arm time is stale the moment the wave moves. Key on the wave's **branches**, the set the
+**The wave is the unit — not the ticket.** A fix agent re-pushes and **you re-enqueue**, so anything keyed to
+the tickets live at arm time is stale the moment the wave moves. Key on the wave's **branches**, the set the
 divergence tick already carries, and every re-enqueue is covered for free.
 
 **Scope on the fields the ticket is guaranteed to carry, and emit on SETTLED rather than on a verdict.** A
@@ -630,9 +646,9 @@ stopped moving, and the queue directory says where a ticket is.
 
 **⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer
 section's *Never background a check and end your turn on it* by nothing. An implementer has a
-**durable handoff**, push → draft PR → enqueue, so the wait is unnecessary there and the ticket is by design
-somebody else's to watch; a dispatcher has no handoff to end on and holds the merge decision the settlement
-feeds.
+**durable handoff**, push → draft PR → hand back, so the wait is unnecessary there and the ticket is by
+construction somebody else's — yours — to raise and to watch; a dispatcher has no handoff to end on and holds
+the merge decision the settlement feeds.
 
 **Tear it down at close-out by stopping the watcher.** The queue cannot tell you when your wave is over: a red
 settles too, and the wave ends when you merge, which nothing on disk can see. So the watch has no exit

@@ -36,6 +36,13 @@ it reads. So the mid-arc gate does not leave this section's scope — what chang
   only at the epic's integration gate. When you assert green-modulo-baseline, enumerate the failing files
   across all packages and match them to the baseline set by name; a `cache miss, executing …` line for a
   package whose *result* you never saw is a signal to go read that result, not to assume it passed.
+  **Both sides of that match are fields on the ticket — the failure SET by identifier, and a per-step
+  executed-or-replayed record — so read set against set rather than reconstructing either from a failing
+  tail**, which carries the last N lines and not the membership this assertion turns on. **And read a step
+  marked replayed as establishing only that its inputs hash to a result already recorded green**: nothing ran
+  here, so a package whose every step replayed was not exercised by this gate at all and cannot clear a
+  regression that lives in the environment rather than in the diff — which is the bullet below, reached from
+  the other side.
 
 - **Several worktrees red at the same moment, with infrastructure-shaped errors, is ONE shared resource before
   it is N code defects — and it is the same instrument as the bullet above, pointed one level out.** That one
@@ -143,14 +150,18 @@ before the producer's value could exist. Both PRs will be green — each gate on
 the producer has merged and the consumer has not, the consumer's next re-gate catches it; when they merge in
 the same drain, nothing does.
 
-**Review BEFORE you drain, never after.** Reviewing is where you decide whether the code changes, so draining
-first is both wasted (a full serialized gate burned on code you're about to replace) and *unsafe*: the fix
-agent you dispatch next would edit a worktree with a gate still running in it, which produces a green that
-corresponds to no commit (see *Draining the gate queue*). The order per PR is: implementer hands back a
-**draft PR + an enqueued ticket** → **you read the diff first** → **post that round's verdict as a review** →
-needs changes? dispatch the fix agent **now**, before any drain — it re-pushes and re-enqueues → re-review →
-only once the code is final do you drain, so the gate verdict corresponds to the exact commit you're going to
-merge. Then verify that correspondence explicitly before merging: compare the SHA the gate comment names
+**Review BEFORE you enqueue, and drain after — never the other way round.** Reviewing is where you decide
+whether the code changes, so a ticket raised first is both wasted (a full serialized gate burned on code you
+are about to replace) and *unsafe*: the fix agent you dispatch next would edit a worktree that ticket has
+already frozen, and nothing takes a ticket back (see *Draining the gate queue*). **The order per PR, in the
+default queue mode, is: implementer hands back a draft PR → you read the diff first → post that round's
+verdict as a review → needs changes? dispatch the fix agent NOW, while there is still no ticket → re-review →
+and only once the code is final do you ENQUEUE, then drain** — so the gate verdict corresponds to the exact
+commit you are going to merge. A fix round after a ticket has settled re-pushes and is re-enqueued the same
+way, that raise being yours too. **In override gate mode, and in a project declaring no queue, there is no
+ticket at any point** and the verdict comment is already on the PR when the hand-back arrives
+(`skills/execute/references/per-project-config.md`). Then verify that correspondence explicitly before
+merging: compare the SHA the gate comment names
 against the PR's current head, since a verdict that predates the last push describes a tree the PR no longer
 carries.
 
@@ -228,16 +239,17 @@ made in the brief, then read the silence: correct where you skipped it, a round 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that
 same worktree, a resume message to the same implementer, or an issue **you** file and link, folded into the
-wave plan — that filing being yours to perform rather than the implementer's, which has no filing disposition
-at all — and where the report carries a QUESTION about a fenced path that went unanswered while the slice ran,
-you answer it here on the same five answers, a *take it* becoming a fix agent into that worktree with the
-fence widened — whose edit lands after any pass that slice ran had already reported, so the round you review
-next is its only reader (*Hard rules* — the follow-up-ownership rule is yours to discharge here, the
-implementer having no filing disposition of its own, and *The epic branch* says which branch the follow-up
-targets while one is live). **Read a hand-back that surfaces an out-of-fence finding for the FIRST time here
-as a raise that came too late, never as merely a late question** — the implementer fixes what it hits and
-raises what a fence stops it from fixing before it pushes, precisely so one reaches you while its tree is open
-and *take it* still costs an edit, so answer this one on those same five answers and name the late raise in
+wave plan — that filing being yours to perform because **neither the implementer nor any reviewer it
+dispatched has a filing disposition at all** — and where the report carries a QUESTION about a fenced path
+that went unanswered while the slice ran, you answer it here on the same five answers, a *take it* becoming a
+fix agent into that worktree with the fence widened — whose edit lands after any pass that slice ran had
+already reported, so the round you review next is its only reader (*Hard rules* — the follow-up-ownership rule
+is yours to discharge here, neither the implementer nor a reviewer under it having a filing disposition of its
+own, and *The epic branch* says which branch the follow-up targets while one is live). **Read a hand-back that
+surfaces an out-of-fence finding for the FIRST time here as a raise that came too late, never as merely a late
+question** — the implementer fixes what it hits and raises what a fence stops it from fixing before it pushes,
+precisely so one reaches you while its tree is open and *take it* still costs an edit, so answer this one on
+those same five answers and name the late raise in
 the round you dispatch next, which is the only thing that makes the next hand-back carry questions rather than
 findings. **Forwarding the list to the user is the same defect one level up**, and it is worse from here: you
 are the only party in the run holding the breakdown, the sibling slices, and the wave plan the item has to be
@@ -342,18 +354,19 @@ If it needs changes, **dispatch a FRESH fix agent into that same worktree** (nev
 your dispatcher conversation), **naming its model tier for THIS round rather than carrying the slice's** — a
 fix round is usually cheaper than the build it corrects, a few named seats with the wording already supplied,
 so the tier the slice was dispatched at is the wrong default and an unstated one hands the agent yours — but
-only once that worktree's ticket has SETTLED, or was never enqueued. **Not "once no gate is running in it":**
-a ticket sitting **queued and unclaimed** freezes the tree exactly as a claimed one does, and queued is the
-state a slice is in the moment its implementer hands back — which is this step, reached from a review you were
-told to run *before* draining. So the check that feels sufficient here, looking for a live gate, is the one
+only once that worktree's ticket has SETTLED, or has not been raised at all. **On the FIRST round it has not
+been raised**: you enqueue after this read, by the order above, so the tree is free and the round costs no
+withdraw. On a later round the test is the ticket's EXISTENCE rather than whether a gate is observably
+running — a ticket sitting **queued and unclaimed** freezes the tree exactly as a claimed one does. So the
+check that feels sufficient here, looking for a live gate, is the one
 that structurally cannot see the hazard: the claim is an atomic rename and lands between your look and the
 agent's first edit. **A gate that judged a mutated tree posts a verdict indistinguishable from any other — and
 on a SHA that may still match the PR's head**, so the SHA comparison that *Review BEFORE you drain, never
 after* has you run before merging passes on it too, and nothing left in the flow can catch it. *Draining the
-gate queue* carries the operative rule. Once the ticket has settled the fix agent re-pushes and re-enqueues,
-and the runner re-gates. Iterate until the PR is good and green. Only when satisfied do you post the last
-review and **merge and clean up** — and the *order* matters because of worktrees (see next section): the
-implementer has already pushed everything, so you **remove the worktree first**, then merge with
+gate queue* carries the operative rule. Once the ticket has settled the fix agent re-pushes and **you**
+re-enqueue, and the runner re-gates. Iterate until the PR is good and green. Only when satisfied do you post
+the last review and **merge and clean up** — and the *order* matters because of worktrees (see next
+section): the implementer has already pushed everything, so you **remove the worktree first**, then merge with
 `gh pr merge --merge --delete-branch`.
 
 **In in-line gate mode your satisfaction is not the only precondition on this step — the implementer's

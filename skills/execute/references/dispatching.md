@@ -349,7 +349,7 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
   the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
   message on your next turn, carrying the path, what is wrong with it and a recommendation.
-  **Four answers, and you owe it one:**
+  **Five answers, and you owe it one:**
   - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives
     the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that
     slice's PR before you review its diff — saying in as many words that it supersedes the brief's fence on
@@ -382,6 +382,17 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
     re-judged on its own wording every cycle instead.
   - **Stop, I am re-cutting** — the ask surfaced a boundary that is wrong rather than merely narrow, which is
     the one shape a message cannot express and the stop lever's own test.
+  - **The premise did not hold, and here is what I checked** — you opened the file, rule or symbol the ask
+    rests on and the claim is not true of the tree, so the question dissolves rather than moving: nothing is
+    granted, nothing goes to a sibling, nothing is filed. **This is the one answer that carries EVIDENCE
+    rather than a ROUTING** — the other four each say who acts next, and this one says what you read and
+    where, so the next slice meeting that same passage re-runs your ground instead of re-asking your
+    question. **The ground is RECORDED rather than asserted**: name the file and what you read in it, in the
+    answer and in the places a grant is written — onto the issue while no PR is open, onto that slice's PR
+    before you review its diff. ⛔ **Returning it without having done the check and written it down is the
+    failure this answer exists to prevent rather than an instance of it** — and *the sibling owns it* is not
+    the cheaper route to the same place, since it leaves the asker fenced on an ownership claim that is false
+    and the slice then records a not-affected verdict whose stated reason is the wrong one.
 
   ⚠️ **Answer on the tick you read it — silence is an answer you did not give.** The channel is
   fire-and-forget, so the implementer holds a receipt rather than a reply: it is already working on everything

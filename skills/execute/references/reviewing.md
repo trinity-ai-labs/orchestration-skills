@@ -154,6 +154,18 @@ merge. Then verify that correspondence explicitly before merging: compare the SH
 against the PR's current head, since a verdict that predates the last push describes a tree the PR no longer
 carries.
 
+That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
+precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.
+
+**Where the comment names no gated revision at all — no SHA singled out as the one `gate` ran against — do not
+fall back to the first SHA-shaped token in the text.** A verdict has every reason to carry other SHAs, the
+baseline it measured against most of all, and the first token in the comment is routinely that one: a commit
+on the integration branch the PR's head will never equal, which fails this comparison in the direction that
+manufactures work rather than the one that catches a stale verdict. **Compare timestamp against commit time
+instead**: the comment's own post time against HEAD's, taken as one commit rather than the whole log (`git log
+-1 --format=%cI`) — covered where HEAD committed no later than the verdict posted, stale where it committed
+after, the same reading the SHA comparison above gives when one is nameable.
+
 **Judge the diff against the slice's GOAL, and read the review pass's verdict on it rather than deriving your
 own — except on an edit that landed after that pass closed, which the verdict predates and does not reach.** A
 `Goal` states in outcome terms what the slice was for, and it is the only artifact in the run the

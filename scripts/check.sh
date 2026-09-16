@@ -770,12 +770,14 @@ fi
 budget=30000
 
 # The per-sub-skill ceiling: the SUM of the same measurement over one
-# skills/<slug>/ tree — a spine plus its own references, which is what one agent
-# loads, and the growth the per-file half misses when a sub-skill gains files
-# rather than grows one. AGENTS.md states this one too, with the same
-# both-green disagreement available. Both are BACKSTOPS, not budgets — they
-# catch runaway growth rather than ration prose. The headroom is deliberately
-# not stated as a fraction here: it moves with every release that adds prose,
+# skills/<slug>/ tree — a spine plus its own references, counted as that whole
+# DIRECTORY rather than as what any one agent loads, since an agent loads the
+# spine plus whichever references it is sent to — and the growth the per-file
+# half misses when a sub-skill gains files rather than grows one. AGENTS.md
+# states this one too, with the same both-green disagreement available.
+# Both are BACKSTOPS, not budgets — they catch runaway growth rather than
+# ration prose. The headroom is deliberately not stated as a fraction here:
+# it moves with every release that adds prose,
 # and the green line below prints each sub-skill's total, so a figure in this
 # comment would go stale with nothing measuring it. There is deliberately no
 # corpus-wide ceiling: prose behind a pointer costs a reader nothing until it is

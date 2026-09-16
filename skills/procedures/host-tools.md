@@ -16,7 +16,7 @@ list and say so in your report.**
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
 | Reach the agent that SPAWNED you, from inside a sub-agent | `SendMessage`, `to: "main"` — from a BACKGROUND sub-agent | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
-| Persistent watch over a ledger directory | `Monitor` | **not established — read your tool list** |
+| Persistent watch over a ledger directory | `Monitor`, whose command runs in **zsh** on macOS | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |

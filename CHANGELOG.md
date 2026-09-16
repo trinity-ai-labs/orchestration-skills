@@ -2,6 +2,45 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.3.1
+
+- **The vendor-neutral rule gains a check, and the check derives its extent instead of remembering it.**
+  Shipped prose names the capability and leaves resolution to the host-tool mappings table; that rule was held
+  by reading prose, so every literal written after the last reading survived until somebody read for it again,
+  and a closed issue in this tracker fixed three of them by hand. Check 18 reads the literal set out of the
+  mappings table's own Claude Code column — the bare CamelCase tokens, which is what parts a tool from the
+  manifest path, the frontmatter keys and the parameter assignments sharing that column — so adding a row is
+  what arms the check for that tool and there is no second place to remember. The table is the source and so
+  is not scanned, and a source that cannot be read or that yields no literals fails rather than skipping,
+  which is check 16's rule for its own canonical passage. This is that pattern's second application.
+- **Its subject is a code span, never the bare string, and four live usages of a tool name stay green.** The
+  mappings table itself; a generic container type in the slicing reference (`Monitor[]`, standing for any
+  registry-like type); a section heading naming a passage in the dispatching reference; and the two italic
+  cross-references pointing at that heading, one in that file and one in the landing reference. The heading
+  and the cross-references are not code spans at all and the container is a different token, so each is
+  admitted by a property rather than by an exemption naming it, and no rename can un-admit one. A span holding
+  a literal in any other arrangement **fails closed and names the span it could not classify**, because a
+  guard that cannot tell a tool from a type is a guard whose green means nothing.
+- **Two survivors the check found, both in the dispatching reference's watch passage**, now name the
+  capability and leave the tool to the table. **And one platform fact moves into the table with them** — the
+  shell a host's persistent watch runs in, which is a host-specific fact of exactly the kind that home exists
+  for, while the two shell-syntax rules that turn on it stay where their reader acts.
+- **The glossary gains a stated admission test, at the authoring guide rather than inside the map.** Three
+  properties were enforced — indexed, cited by a pass, a definition rather than an address to the reader — and
+  none of them asked which kind of word belongs there at all. The test is the property that home is admitted
+  on, read as three questions about the sentence an entry would carry: does it claim what the thing IS, is
+  that claim identical for every pass, and does no pass own it. It is **descriptive** rather than narrowing —
+  every existing entry passes it, and a plurality condition was deliberately left out because two live entries
+  are cited by exactly one file each and both are correct.
+- **And the one live term that test admits: `Adjacent`**, the reconcile verdict whose two conditions the loop
+  reads in order, cited now from the verdict list and from the loop's own spine. No sweep for undefined words
+  ships with it and no second term is admitted: the test admits terms as they come up and commissions no hunt.
+- **The new check's blind spot is recorded beside the others.** It reads code spans, so a tool named in
+  running prose without backticks is out of reach on purpose — the heading and its cross-references are that
+  shape, and a pattern over bare words would red on them and on the ordinary English word. Its set is one
+  column's tokens, so a host spelling its tools another way stays the author's to catch, and its scope is
+  `skills/`, because that is what ships.
+
 ## 5.3.0
 
 - **The ban on filing now reaches a slice's reviewers, and it arrives with the shape a prohibition needs.** An

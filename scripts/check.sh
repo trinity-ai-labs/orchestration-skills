@@ -34,6 +34,8 @@
 #  16. every slice-field enumeration names every field.
 #  17. the procedures home holds procedure and not stance — no entry names a
 #      seat, every entry is indexed, and every entry is cited by a pass.
+#  18. shipped prose names a capability, never a host's tool literal — the set
+#      derived from the mappings table, so a row added there arms the check.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one agent loads;
@@ -1659,10 +1661,195 @@ $e: cited by no pass — an extracted procedure nothing points at is prose no re
 	fi
 fi
 
+# --- 18. shipped prose names a capability, never a host's tool literal --------
+
+# AGENTS.md: shipped prose names the CAPABILITY and leaves resolution to
+# skills/procedures/host-tools.md, the one file allowed to name a host's tools,
+# models and paths. That rule was held by reading prose alone, so a tool literal
+# written after the last reading survived until somebody read for it again, and
+# fixing the instances by hand is the bill a rule with no instrument sends every
+# time.
+#
+# THE LITERAL SET IS DERIVED, NOT LISTED. This is the second application of the
+# reasoning check 16 states for the slice fields: a hand copy of the tool names
+# here would be one more list with nothing comparing it -- the disease one level
+# up, inside the checker for it. The names are read out of the mappings table's
+# own Claude Code column, so adding a row there is what arms this check for that
+# tool and there is no second place to remember. The table is the SOURCE and so
+# is not scanned: it would be compared against itself and pass whatever it said.
+# A source that cannot be read, or that yields no literals, is a FAILURE and
+# never a skip, for the reason check 16 gives about its own canonical passage --
+# a check comparing nothing goes on printing ok.
+#
+# A TOOL LITERAL IS A BARE CamelCase TOKEN in that column, which is what parts a
+# tool from everything else sharing the column: the manifest path, two
+# frontmatter keys and several parameter assignments (`run_in_background: true`,
+# `model: "opus"`), none of them a thing a seat RUNS. Four passes name that
+# manifest path legitimately, so a check reading every backticked literal in the
+# column would red on correct prose on its first run. Codex names its tools in
+# snake_case, which is the other half of why one column is read and not both.
+#
+# THE SUBJECT IS A CODE SPAN, NEVER THE BARE STRING, and that is the difference
+# between this check and one the next author routes around. Four usages of a
+# tool name are legitimate and all four are live here: the mappings table
+# itself; a generic container type in a slicing example (`Monitor[]`) standing
+# for any registry-like type; a section heading naming a passage; and the italic
+# cross-references pointing at that heading. The heading and the
+# cross-references are not code spans at all, and the container is a different
+# TOKEN -- so each is admitted by a property rather than by an exemption naming
+# it, and no rename can un-admit one.
+#
+# WHERE THE KIND CANNOT BE READ MECHANICALLY IT FAILS CLOSED. A span equal to
+# the literal names the tool; a span carrying container syntax (`X[]`, `X<T>`)
+# is a type; a span holding the literal as its own token in any other
+# arrangement is reported unclassified and reds the gate, because a guard that
+# cannot tell a tool from a type is a guard whose green means nothing.
+#
+# The scope is every .md under skills/ that git tracks OR that is untracked and
+# not ignored -- skills/ is what ships, and the second half is there for check
+# 10's reason: a new pass is exactly what this check exists to read, and
+# tracked-only it stays invisible until `git add`. AGENTS.md, README.md and
+# docs/ are out of scope for check 9's reason -- they are only ever read as this
+# repository's own, where naming the host this repo's gate and helpers run on is
+# a fact about this repo rather than a host shipped into somebody else's prose.
+
+vendor_src='skills/procedures/host-tools.md'
+vendor_list="$(mktemp)" || exit 2
+git ls-files --cached --others --exclude-standard 'skills/*.md' 2>/dev/null | sort -u >"$vendor_list"
+vendor_out="$(mktemp)" || exit 2
+python3 - "$vendor_src" "$vendor_list" >"$vendor_out" 2>&1 <<'VENDORPY'
+import pathlib
+import re
+import sys
+
+source, listing = sys.argv[1], sys.argv[2]
+
+# Container syntax a host tool literal never carries, and the one arrangement
+# that reads as a TYPE rather than as a tool.
+CONTAINER = r"(\[\]|<[^<>]*>)"
+
+
+def literals(text):
+    """Bare CamelCase tokens backticked in the table's Claude Code column."""
+    found = []
+    for line in text.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) != 3 or cells[1] == "Claude Code":
+            continue
+        if set(cells[1]) <= set("-: "):
+            continue
+        for span in re.findall(r"`([^`\n]+)`", cells[1]):
+            if re.fullmatch(r"[A-Z][A-Za-z0-9]*", span) and span != span.upper():
+                found.append(span)
+    return sorted(set(found))
+
+
+def stands_alone(span, literal):
+    """True where the literal is its own token inside the span.
+
+    `ListAgents` is not an occurrence of `Agent`, and `Monitors` is not one of
+    `Monitor`: glued to an identifier character it is a different word, and
+    reporting it would red on prose this rule has no claim on.
+    """
+    for m in re.finditer(re.escape(literal), span):
+        before = span[m.start() - 1] if m.start() else ""
+        after = span[m.end():m.end() + 1]
+        if before and (before.isalnum() or before == "_"):
+            continue
+        if after and (after.isalnum() or after == "_"):
+            continue
+        return True
+    return False
+
+
+problems = []
+lits = []
+try:
+    table = pathlib.Path(source).read_text(encoding="utf-8", errors="replace")
+except OSError as err:
+    problems.append(
+        "%s: the mappings table could not be read (%s) - every literal below is "
+        "derived from it, so this check scanned nothing" % (source, err)
+    )
+else:
+    lits = literals(table)
+    if not lits:
+        problems.append(
+            "%s: no host tool literal parsed out of the Claude Code column - "
+            "this check scanned nothing" % source
+        )
+
+scanned = 0
+for path in pathlib.Path(listing).read_text(encoding="utf-8").split("\n"):
+    if not path or path == source or not pathlib.Path(path).is_file():
+        continue
+    scanned += 1
+    if not lits:
+        continue
+    text = pathlib.Path(path).read_text(encoding="utf-8", errors="replace")
+    for n, line in enumerate(text.splitlines(), 1):
+        for span in re.findall(r"`([^`\n]+)`", line):
+            for lit in lits:
+                if not stands_alone(span, lit):
+                    continue
+                if span == lit:
+                    problems.append(
+                        "%s:%d: names the host tool `%s` in shipped prose - name "
+                        "the CAPABILITY and leave resolution to %s, the one file "
+                        "allowed to name a host's tools" % (path, n, lit, source)
+                    )
+                elif not re.fullmatch(re.escape(lit) + CONTAINER, span):
+                    problems.append(
+                        "%s:%d: the code span `%s` carries `%s` as its own token "
+                        "and this check cannot read which it is, a tool or a "
+                        "type, so it fails closed - name the capability, or "
+                        "write the span so its kind is unambiguous"
+                        % (path, n, span, lit)
+                    )
+
+print("%d %d" % (scanned, len(lits)))
+for problem in problems:
+    print(problem)
+VENDORPY
+vendor_status=$?
+rm -f "$vendor_list"
+
+if [ "$vendor_status" -ne 0 ]; then
+	sed 's/^/      /' "$vendor_out" >&2
+	fail "host-literals: the reader crashed — shipped prose was not read for host tool literals"
+else
+	vendor_counts="$(sed -n '1p' "$vendor_out")"
+	vendor_files="${vendor_counts% *}"
+	vendor_lits="${vendor_counts#* }"
+	vendor_bad="$(sed '1d' "$vendor_out")"
+	case ${vendor_files:-x}${vendor_lits:-x} in
+	*[!0-9]*)
+		fail "host-literals: the reader printed no counts — this check scanned nothing"
+		;;
+	*)
+		if [ "$vendor_files" -eq 0 ] || [ "$vendor_lits" -eq 0 ]; then
+			# The reader's own reason for the empty set, which is the whole
+			# diagnostic on this branch: "scanned nothing" says the check is
+			# blind and never why, and the why is what gets it re-armed.
+			[ -n "$vendor_bad" ] && printf '%s\n' "$vendor_bad" | sed 's/^/FAIL  host-literals: /' >&2
+			fail "host-literals: $vendor_files file(s) against $vendor_lits literal(s) — this check scanned nothing"
+		elif [ -n "$vendor_bad" ]; then
+			printf '%s\n' "$vendor_bad" | sed 's/^/FAIL  host-literals: /' >&2
+			fail "host-literals: name the capability where its reader acts — the literal set is derived from $vendor_src, so a row added there is one every pass now owes"
+		else
+			ok "host-literals: $vendor_files skills/ file(s) against the $vendor_lits tool literal(s) derived from $vendor_src, none named in shipped prose"
+		fi
+		;;
+	esac
+fi
+rm -f "$vendor_out"
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, and every slice-field enumeration names every field\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, every slice-field enumeration names every field, and shipped prose names a capability rather than a host tool literal\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

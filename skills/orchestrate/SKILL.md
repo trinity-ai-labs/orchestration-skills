@@ -138,13 +138,13 @@ same way** — re-author them as one leaf at issue altitude through `/pipeline:w
 checklist lines to its one line, ground it as one slice, and carry on into this cycle.
 **Never by briefing one implementer on two issues**, which is one PR closing two tracked items.
 
-**Once the horizon is ground and BEFORE step 2 dispatches it, intersect every item still *Adjacent* against
-those fresh `Owns`** — the one moment in the cycle when the paths are real and the item can still fold, which
-is why the reconcile checklist's *Follow-ups filed out of this arc* sends its disqualifying half here and why
-a match it scheduled is discharged here. **A hit disqualifies *Adjacent* without re-opening the goal
-question**: the item edits what a slice about to dispatch edits, so it is not separable, and the placement
-test's remaining outcome is to fold it — into the plan, re-ground with the horizon, never bolted onto the wave
-now going out.
+**Once the horizon is ground and BEFORE step 2 dispatches it, intersect every item still *Adjacent*
+(`skills/glossary/vocabulary/adjacent.md`) against those fresh `Owns`** — the one moment in the cycle when the
+paths are real and the item can still fold, which is why the reconcile checklist's *Follow-ups filed out of
+this arc* sends its disqualifying half here and why a match it scheduled is discharged here. **A hit
+disqualifies *Adjacent* without re-opening the goal question**: the item edits what a slice about to dispatch
+edits, so it is not separable, and the placement test's remaining outcome is to fold it — into the plan,
+re-ground with the horizon, never bolted onto the wave now going out.
 
 **Read UP before you read DEEP: establish whether the issue is a sub-issue and read the parent before
 grounding the child.** `/pipeline:ground` runs that check for you; what you owe it is the instruction to,

@@ -48,6 +48,15 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   IT — DO NOT FILE IT. This is the default and it has no bar to clear*, on the argument that writing the
   sentence describing a defect costs more than deleting the defect. That release made fixing the default at
   the implementer's seat and left this enumeration untouched; this is the same argument at the loop's.
+- **The dispatcher's tick can now tell a sub-agent that stopped from one that finished.** A completion
+  notification only ever meant the agent stopped running; the tick read it as settling whether the slice
+  landed, and a stalled agent fires the identical notification a finished one does. The tick now checks a
+  completed report against the same fork point it already computes each cycle: no commit past it, or no remote
+  branch at all, is a stall rather than a hand-back. The lever is a message to the same agent, never a stop
+  and never a re-dispatch, since the tree's work is intact and only the hand-back is missing. The instrument
+  fires on the completion signal itself rather than as a new sweep, and it is written apart from the corpus's
+  existing rule against mistaking a live nested sub-agent's wait for a stall — the two are separated by agent
+  state, not by what the tree looks like.
 - **A gate verdict now names the revision it gated, and a reader is told what to do when one doesn't.** An
   override-mode verdict is free-form prose with every reason to carry more than one commit — a baseline most
   of all — and nothing required it to say which one it had actually gated, so a verdict naming only its
@@ -55,7 +64,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   the direction that manufactures work: it reports post-gate commits that never happened. The comment now
   leads with the gated revision and labels every other SHA it carries; a `Gated-At: <sha>` trailer says the
   same thing in parser-friendly form, worth adopting, never required, and nothing here parses one. Where a
-  verdict still names none, the reader compares its post time against `git log --format='%h %cI'` rather than
+  verdict still names none, the reader compares its post time against `git log -1 --format=%cI` rather than
   reaching for the first SHA-shaped token in the text, which is routinely the baseline and would fail the
   check the same way.
 

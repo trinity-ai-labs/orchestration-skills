@@ -102,6 +102,13 @@ the result on your own draft PR, and never enqueue. **Capture that gate's own ex
 pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
 flow's only evidence a gate ran.
 
+**Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label
+every other SHA it carries, a baseline included, rather than leaving a reader to guess which one you mean.**
+*Review BEFORE you drain, never after* compares the SHA the comment names against the PR's head; an unlabeled
+baseline in that slot is a commit the head will never match, and reads exactly like a verdict that predates
+the last push when nothing did. A `Gated-At: <sha>` trailer says the same thing in a form a machine could
+parse — worth adopting, never required, and nothing in this flow reads one back.
+
 **Tidying that PR's comments goes by IDENTITY and never by position or recency, because ONE account authors
 every party's comments here and `author.login` therefore cannot tell yours from your dispatcher's.** A stale
 verdict naming a superseded head is genuinely worth removing — a reader scanning for the verdict that matches

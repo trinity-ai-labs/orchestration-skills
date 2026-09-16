@@ -57,6 +57,16 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   fires on the completion signal itself rather than as a new sweep, and it is written apart from the corpus's
   existing rule against mistaking a live nested sub-agent's wait for a stall — the two are separated by agent
   state, not by what the tree looks like.
+- **A gate verdict now names the revision it gated, and a reader is told what to do when one doesn't.** An
+  override-mode verdict is free-form prose with every reason to carry more than one commit — a baseline most
+  of all — and nothing required it to say which one it had actually gated, so a verdict naming only its
+  baseline in a comparison table left the dispatcher-side SHA check with no revision to compare against, in
+  the direction that manufactures work: it reports post-gate commits that never happened. The comment now
+  leads with the gated revision and labels every other SHA it carries; a `Gated-At: <sha>` trailer says the
+  same thing in parser-friendly form, worth adopting, never required, and nothing here parses one. Where a
+  verdict still names none, the reader compares its post time against `git log -1 --format=%cI` rather than
+  reaching for the first SHA-shaped token in the text, which is routinely the baseline and would fail the
+  check the same way.
 
 ## 5.1.2
 

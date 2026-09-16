@@ -148,11 +148,13 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   command, say what it counts, name what it cannot see — but nothing governed a summary sentence disagreeing
   with the list it describes further down the same document: the instrument rule could be satisfied in full
   while the summary contradicted its own table, and nothing read the two against each other. A summary is now
-  **derived** from the list it describes, or the prose drops the number and points at the list instead, which
-  is cheaper and cannot drift. **Written beside the instrument requirement rather than in a second home**, and
-  at the dispatcher's own check on a brief's enumerations, which now asks the self-consistency question beside
-  the ones it already asked. **No new check enforces it** — a gate reads neither a prose summary nor the table
-  it describes, which is this rule's own reason for being a rule rather than a checker.
+  **derived** from the list it describes, re-derived on every later edit to either side, or the prose drops
+  the number and points at the list instead, which needs no re-deriving. **Written at three seats**: beside
+  the instrument requirement rather than in a second home, at the dispatcher's own check on a brief's
+  enumerations, which now asks the self-consistency question beside the ones it already asked, and at the
+  pass that authors issues, whose own count-citation bullet now asks it too. **No new check enforces it** —
+  a gate reads neither a prose summary nor the table it describes, which is this rule's own reason for being
+  a rule rather than a checker.
 
 ## 5.1.2
 

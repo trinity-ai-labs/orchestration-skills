@@ -289,11 +289,18 @@ the question lands on the dispatcher's next turn. So send it and carry straight 
 not depend on the answer — blocking on the send is the stall. **Run out of independent work with no answer and
 you hand back carrying the question**, the fallback rather than the first move.
 
-**Four answers can come back, and none is yours to assume from silence.** *Take it* — act on it exactly as *A
+**Five answers can come back, and none is yours to assume from silence.** *Take it* — act on it exactly as *A
 CORRECTION from your dispatcher…* below says to act on any corrected fact. *The sibling owns it* — leave that
 path alone. *File it* — the verdict is the dispatcher's to return AND the filing is the dispatcher's to
 perform, so that finding leaves your hands rather than landing back in them. *Stop, I am re-cutting* — hand
-back what you have. **No answer ends in a ticket YOU open.**
+back what you have. *The premise did not hold, and here is what I checked* — the question dissolved rather
+than moved, so no path changes hands and nothing is filed;
+**that answer carries the GROUND it was checked against, and your hand-back records THAT as the reason for
+your verdict** rather than an ownership nobody established, which is what separates it from *the sibling owns
+it*, the nearest answer it would otherwise be forced into and one whose reason would be false here. ⚠️
+**An answer asserting the premise is false and naming no ground is not this answer**: ask for the ground,
+since a declined ask is re-askable and the next slice meeting that same passage reaches the same conclusion
+with nothing to re-run. **No answer ends in a ticket YOU open.**
 
 **A *take it* whose subject is every occurrence of something is an ENUMERATION and binds you as one** — the
 enumeration rule below covers a list *a brief* hands you, and a grant is not a brief.

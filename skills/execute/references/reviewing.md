@@ -230,14 +230,14 @@ required, even — to say what it did not land. The item stops with you: your mo
 same worktree, a resume message to the same implementer, or an issue **you** file and link, folded into the
 wave plan — that filing being yours to perform rather than the implementer's, which has no filing disposition
 at all — and where the report carries a QUESTION about a fenced path that went unanswered while the slice ran,
-you answer it here on the same four answers, a *take it* becoming a fix agent into that worktree with the
+you answer it here on the same five answers, a *take it* becoming a fix agent into that worktree with the
 fence widened — whose edit lands after any pass that slice ran had already reported, so the round you review
 next is its only reader (*Hard rules* — the follow-up-ownership rule is yours to discharge here, the
 implementer having no filing disposition of its own, and *The epic branch* says which branch the follow-up
 targets while one is live). **Read a hand-back that surfaces an out-of-fence finding for the FIRST time here
 as a raise that came too late, never as merely a late question** — the implementer fixes what it hits and
 raises what a fence stops it from fixing before it pushes, precisely so one reaches you while its tree is open
-and *take it* still costs an edit, so answer this one on those same four answers and name the late raise in
+and *take it* still costs an edit, so answer this one on those same five answers and name the late raise in
 the round you dispatch next, which is the only thing that makes the next hand-back carry questions rather than
 findings. **Forwarding the list to the user is the same defect one level up**, and it is worse from here: you
 are the only party in the run holding the breakdown, the sibling slices, and the wave plan the item has to be

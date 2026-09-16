@@ -54,8 +54,13 @@ files only what is genuinely a *different arc* — narrower than separable and n
 doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the
 tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a
 different arc becomes a line in the plan for a later arc rather than a number on the board, since a number
-bought for work nobody is carrying yet is what turns a run into somebody's inbox, and the close-out reports
-what the arc absorbed once, as part of the release. **Either of those names at least one file, symbol or
+bought for work nobody is carrying yet is what turns a run into somebody's inbox — unless it is one edit
+rather than work somebody has to carry, where something true and not needed for the goal is folded in on
+**cost** and done now, closing it costing less than the line deferring it costs to write, carry and re-read.
+The test there is that the item is an edit, never that a cycle is open, which is true of everything the loop
+finds and separates none of it; and the reason recorded is that cost rather than the goal-completeness reason
+a forced item is folded on. And the close-out reports what the arc absorbed once, as part of the release.
+**Either of those names at least one file, symbol or
 route**, the comment included, because that is the coordinate the re-test below actually reads and an item
 carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later
 cycle can actually test** — what the reason was measured against and the instrument that measured it — because
@@ -198,10 +203,16 @@ implementer either — so what it licenses is a question to the agent and nothin
   facts grounding could not see** — reviews each PR by reading the diff, drains the gate queue, and merges.
   Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up
   folded into the plan. So is a question a *live* slice asks about a fenced file, which it answers on the same
-  tick, one of four ways: widen that one named path — or, where the grant's subject is every occurrence of
+  tick, one of five ways: widen that one named path — or, where the grant's subject is every occurrence of
   something, every path that extent resolves to — and write the grant down where the diff's reviewer will meet
-  it, route the correction to the sibling that owns the file, return the verdict that it be filed, or stop
-  because the slice needs re-cutting.
+  it, route the correction to the sibling that owns the file, return the verdict that it be filed, stop
+  because the slice needs re-cutting, or say that the premise did not hold and name the ground it was checked
+  against. That last one is the only answer that carries evidence rather than a routing: the other four each
+  say who acts next, and this one says the question dissolved and where it was checked, so a later slice
+  meeting the same passage re-runs that ground instead of re-asking the question — which is why it is owed the
+  check having actually been done and written down, and why the nearest answer it would otherwise be forced
+  into, *the sibling owns it*, is the wrong one rather than the cheap one: it asserts an ownership nobody
+  established and leaves the slice recording a not-affected verdict for a reason that is false.
 - **Implementer** — entered from a dispatch brief (a dispatcher handed it one slice, the worktree to build it
   in, and a scratchpad of its own), or from you telling it to *build / fix / implement* a specific thing. It
   codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it

@@ -99,7 +99,9 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   pass folds and cuts nothing on its own initiative. **Step 1's closed-issue triage now reads the close
   reason first** — its two existing branches both look into the copy for what a fix introduced, which a leaf
   closed as not planned never shipped, so that reason routes the searcher to what replaced it instead. The
-  arc-planning reference's one clause now points at the seat that carries the mechanics.
+  arc-planning reference's one clause now points at the seat that carries the mechanics, and the README's row
+  for this pass now names its four ways in. `co-think`'s routing table is unchanged: it names the third way in
+  by member rather than counting the set, so appending a fourth leaves it accurate.
 
 ## 5.1.2
 

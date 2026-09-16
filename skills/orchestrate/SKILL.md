@@ -226,20 +226,36 @@ filed out of this arc that it did not land, that the loop is not coming back, an
 **a halt owes this exactly as termination does.**
 
 **And one question the close-out answers in writing: did this arc surface a defect or a gap in the pipeline
-itself?** Exactly one of three — **filed**, naming the issue; **none found**; or **not enabled here**. "None
-found" is cheap but must still be written, since an arc that surfaced nothing and one where nobody asked look
+itself?** Exactly one of four, and the order is the preference — **fixed**, closed in this release, naming
+where; **filed**, naming the issue; **none found**; or **not enabled here**. **Fixed is the DEFAULT and it
+clears no bar**: a gap this arc can close in the release it is already shipping is closed there, in the diff
+it is already building, and filing is what is left over. **A *fixed* answer NAMES WHERE IT LANDED** — the
+file the edit went into and the `CHANGELOG.md` entry shipping with it — held to the discipline *filed*
+already demands of an issue number, so *fixed* is never where a claim goes unchecked. **And *fixed* means
+the fix landed in THE TREE THIS ARC IS SHIPPING**, so an arc running in a consuming project cannot answer it
+for a gap in these skills: that is the filing bar's *different arc* below, the routing under it is what is
+left, and a local workaround answered as *fixed* leaves the gap open for every other install. "None found"
+is cheap but must still be written, since an arc that surfaced nothing and one where nobody asked look
 identical afterwards.
 
-- **The bar is an observed failure the finding can name** — a run that broke, a rule read and not followed, a
-  check green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one
-  per arc is worse than never asking. **That bar rations filing; two `wc -w` ceilings bound what a filed rule
-  costs to read** — no shipped file over 30,000 words, and no sub-skill, one spine plus its own references,
-  over 50,000. Both are backstops rather than budgets, and extraction settles only the per-file half: the
-  sub-skill half counts the same words wherever they sit inside its directory.
-- **A finding that clears it is FILED — an artifact with a number, "recorded" is not a second disposition, and
-  the report is never where a finding lives** (*"none found"* needs no artifact). Run *Fold vs. file*'s
-  already-filed search first: an open issue carrying that failure takes the observation as a comment, which
-  **satisfies** filing rather than excepting it, and a version-skew reading —
+- **Filing has TWO halves and needs both: the bar is an observed failure the finding can name, AND the arc
+  genuinely cannot close it.** The first half is a run that broke, a rule read and not followed, a check
+  green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one per
+  arc is worse than never asking. **The second half takes two conditions the corpus already states rather
+  than a new one**: the finding is **genuinely a DIFFERENT ARC**, which is *Fold vs. file*'s own narrow
+  verdict at its own bar, or closing it would **change what the arc IS**, which is what the exits above
+  weigh. **Either one and it is filed; neither, and the arc closes it and answers *fixed*.**
+  **Neither half is a bar LOWERED** — the first rations exactly what it always did, and the second only says
+  which disposition a cleared finding takes. **The observed-failure half rations filing; two `wc -w` ceilings
+  bound what a filed rule costs to read** — no shipped file over 30,000 words, and no sub-skill, one spine
+  plus its own references, over 50,000. Both are backstops rather than budgets, and extraction settles only
+  the per-file half: the sub-skill half counts the same words wherever they sit inside its directory.
+- **A finding that clears both halves is FILED — an artifact with a number, and "recorded" is still not a
+  second disposition: a finding only WRITTEN DOWN dies in the report, where one FIXED and NAMED where it
+  landed has not — it is in the release, in the diff, and in the changelog entry that ships with it**
+  (*"none found"* needs no artifact). Run *Fold vs. file*'s already-filed search first: an open issue
+  carrying that failure takes the observation as a comment, which **satisfies** filing rather than excepting
+  it, and a version-skew reading —
   **the ordinary case being an observer who is behind** — takes the *"none found"* route.
 - **Where it goes is RESOLVED, never remembered** — the **plugin's own repository**, from `repository` in
   `.claude-plugin/plugin.json`; never the consuming tracker unless the finding is about that project, and

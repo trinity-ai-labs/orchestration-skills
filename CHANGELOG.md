@@ -2,6 +2,41 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.2.0
+
+- **An arc's close-out can now say it FIXED the gap it found.** The question it answers in writing — *did this
+  arc surface a defect or a gap in the pipeline itself?* — admitted three answers: *filed*, *none found*, *not
+  enabled here*. An arc that found a gap and closed it in the release it was already shipping had no honest
+  one: *none found* is false, and *filed* manufactures an open issue describing something the release has
+  already closed. There are now **four**, and **fixed** is ranked **first**, because an enumeration's order is
+  read as its preference and fixing is the default.
+- **A *fixed* answer names where it landed** — the file the edit went into and the changelog entry that ships
+  with it — held to the discipline *filed* already demands of an issue number, so it never becomes a place a
+  claim goes unchecked. And it means the fix landed in **the tree the arc is shipping**, so an arc running
+  inside a project that installed this plugin cannot answer *fixed* for a gap in these skills: a local
+  workaround answered that way would leave the gap open for every other install.
+- **Filing stays, and no bar under it is lowered.** What changes is that it is now stated as the second half
+  of a two-part test rather than as the only outcome: a finding is filed when it clears the observed-failure
+  bar **and** the arc genuinely cannot close it — because it is genuinely a different arc, or because closing
+  it would change what the arc IS. Both conditions are words the corpus already had: the first is *Fold vs.
+  file*'s own narrow verdict, the second is what the loop's exits already weigh, and neither bar moves.
+  A finding the arc cannot close is still filed, still needs its observed failure, still resolves to
+  this repository from `repository` in `.claude-plugin/plugin.json`, and is still genericised of every path,
+  symbol, route, branch and client name.
+- **The "recorded is not a disposition" guard is narrowed rather than deleted, and states both directions in
+  the one clause.** A finding only written down still dies in the report; one fixed and named where it landed
+  has not — it is in the release, in the diff, and in the changelog entry that ships with it.
+- **Written at every seat that answers the question.** The loop's spine carries the enumeration, its rank, the
+  two-half filing bar and the narrowed guard. The dispatcher's landing reference carries the same rule in its
+  own compressed paragraph, the seat that binds a dispatcher invoked directly rather than through the loop.
+  *Fold vs. file* says a finding about the pipeline itself takes its two verdicts and which close-out answer
+  each produces — folded is *fixed*, *Adjacent* is *filed* — adding no verdict and widening no bar. And the
+  user-facing page a reader is told to read before installing now says the first answer files nothing at all.
+- **The precedent is one level down and one release back.** The implementer's own reference already says *FIX
+  IT — DO NOT FILE IT. This is the default and it has no bar to clear*, on the argument that writing the
+  sentence describing a defect costs more than deleting the defect. That release made fixing the default at
+  the implementer's seat and left this enumeration untouched; this is the same argument at the loop's.
+
 ## 5.1.2
 
 - **Shipped prose now wraps at the width the corpus already used, and that is the entire change — not one

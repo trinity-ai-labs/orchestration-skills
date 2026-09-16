@@ -193,6 +193,16 @@ into a filing and leaves the arc closing green with the work its goal needed out
 planned smaller than its goal — so the work comes in as phases of this arc, and where that changes what the
 arc IS the loop halts and reports with the re-plan recommended.
 
+**A finding about THE PIPELINE ITSELF is dispositioned here too, and it takes this test's two verdicts** —
+**folded in**, which for a pipeline finding is the arc closing it inside the release it is already shipping,
+or ***Adjacent***, which is filing it — **and each produces the close-out's answer to the arc-level question
+it owes** (`skills/orchestrate/SKILL.md`): **folded → *fixed*, naming where it landed**; ***Adjacent* →
+*filed*, naming the issue**. **The residue runs the other way here**: ordinary work that is neither becomes a
+line in the plan because nobody is carrying it yet, where a pipeline finding the arc CAN close it closes —
+which is why *fixed* is the default rather than the leftover. **This adds no verdict and widens nothing** —
+*Adjacent*'s bar stays the narrow one above, and a finding the arc cannot close is filed on the
+observed-failure bar exactly as it always was.
+
 **Judge the piece the goal needs, not the pile it was found in — split a mixed item at the goal boundary
 BEFORE the verdict.** Findings arrive mixed: the one thing that completes the goal — the check, the guard, the
 last consumer migrated — sitting beside a large adjacent body it touches, the pre-existing instances or the

@@ -233,12 +233,13 @@ on your host.
 
 **Poll every ~10 minutes for divergence**, self-paced with your host's timer (≈600s —
 `skills/procedures/host-tools.md` names it; it is callable right here rather than only from a looping command,
-and the tick is required rather than something you reach for once something looks wrong). Completion arrives
-as a notification anyway; the tick carries three more riders: (a) whether any slice opened a draft PR and
-enqueued, (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you,
-and (c) **answer any question a live slice has queued** (*A live implementer can ASK you to widen its fence*
-below), since an ask is cheap only because the answer comes back on this tick. Each tick, snapshot what each
-agent is touching against its scope:
+and the tick is required rather than something you reach for once something looks wrong). A completion
+notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
+about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
+three more riders: (a) whether any slice opened a draft PR and enqueued, (b) **drain the gate queue**
+(`drain`), so enqueued PRs carry their verdict without waiting for you, and (c) **answer any question a live
+slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
+because the answer comes back on this tick. Each tick, snapshot what each agent is touching against its scope:
 
 - **Snapshot against the FORK POINT (the merge-base), never HEAD and never the integration tip.** Compute it
   ONCE per tick — `FP=$(git -C <wt> merge-base HEAD origin/<integration>)`, re-`fetch` first because the tip
@@ -402,10 +403,24 @@ agent is touching against its scope:
   are not among your instruments, since your listing enumerates the agents YOU spawned and a grandchild is
   invisible from this seat, so a rule conditioned on one is a rule satisfied by guessing. That is a
   **self-suspension** the harness re-invokes, so leave it alone; expect no PR for the first couple of ticks.
-  **Two levels is the whole depth this flow has — you, an implementer, and that implementer's reviewers, which
-  are leaves** — so children under a reviewer in the agent tree are a fan-out nothing authorized, and
-  correcting it means messaging the live implementer, since a reviewer's children leave nothing in the
-  worktree to find later.
+  **This agent is LIVE, never one reported COMPLETED — the completion instrument below fires only on that
+  report, and agent STATE, not tree state, is what keeps the two apart.** **Two levels is the whole depth this
+  flow has — you, an implementer, and that implementer's reviewers, which are leaves** — so children under a
+  reviewer in the agent tree are a fan-out nothing authorized, and correcting it means messaging the live
+  implementer, since a reviewer's children leave nothing in the worktree to find later.
+- **⛔ A sub-agent reported COMPLETED can still be a stall, and none of the instruments above reach it — each
+  compares a LIVE agent tick over tick, and a completed report ends that comparison.** Reuse **the same
+  `$FP`** this tick already computed (*Snapshot against the FORK POINT* above) rather than a second way of
+  finding it: a branch carrying no commit past `$FP`, or no remote branch at all, means this agent **stopped
+  rather than finished**, however clean its report reads. **The lever is the message, matching the preference
+  already stated nearby** (*A stop is not the safe default* above, and the INFRA-stall case below) **— never a
+  stop and never a re-dispatch**: resume the SAME agent, since the tree's work is intact and only the
+  hand-back is missing, and re-dispatching would discard a full build for a hand-back alone. **This fires on
+  the completion signal itself — an event the tick already receives — never as a periodic sweep**: it is not a
+  second divergence check run for its own sake, and a clean read here is not a reason to poll for more. **It
+  cannot fire on the nested sub-agent wait above, because that agent is LIVE, never reported COMPLETED** — the
+  two are separated by agent STATE, never by what the tree looks like, since an uncommitted worktree with no
+  remote branch is that wait's normal shape too.
 - **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
   the same digest mean you cannot see work, not that there is none, so send the message that asks what the
   agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything

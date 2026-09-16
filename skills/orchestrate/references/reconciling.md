@@ -160,7 +160,8 @@ true without it?**
   edit, so the bar is that the item is genuinely another arc, not merely separable.
   **What is neither forced nor a different arc becomes a LINE IN THE PLAN for a later arc rather than a number
   on the board**, since a number bought for work nobody is carrying yet is the filing that turns a run into
-  somebody's inbox. **Say what you filed and why in the cycle's record**, since filing is the one disposition
+  somebody's inbox — **unless it is one EDIT rather than work somebody has to carry, which the verdict below
+  places.** **Say what you filed and why in the cycle's record**, since filing is the one disposition
   that leaves the loop's hands. **Record that why as a falsifiable claim about the TREE — what it was measured
   against, and the instrument that measured it — since a verdict recorded without one cannot be re-examined,
   only re-performed. Write it onto the ISSUE as well, which is the surface the next cycle actually reads.**
@@ -174,6 +175,21 @@ true without it?**
   a comment onto an issue already carrying the failure** — the narrowest thing that intersection is ever
   handed, since a comment records only what is new about the observation.
   **A reason that cannot be written that way is itself the finding.**
+- **Fold on cost** — the goal is true without it, it is not a different arc, **and it is one EDIT rather than
+  work somebody has to carry**. **That third clause is the whole discriminator and the first two are the line
+  above's population exactly**, so weigh it and not the fact that a cycle is running: the tree being open is
+  true of every finding this checklist produces and separates none of them, where *this one is an edit* is a
+  claim about the item that a later cycle can find false. An item that small costs less closed here than the
+  line deferring it costs to write, carry and re-read every cycle; anything needing scoping of its own is
+  what that line is for. **Fold it as *Forced* folds** — a checklist line and no new number, placed by *Where
+  folded work goes* — **and record COST as the reason**: the edit it took here against the unit of work it
+  would have been carried out as, in terms a later cycle can check. **What separates it from the line in the
+  plan above is that the line DEFERS the work and this one DOES it**; what separates it from *Forced* is the
+  reason alone, so borrowing *Forced*'s — that the goal is not true without it — puts a false claim under a
+  right verdict and leaves the next cycle re-running something that was never the reason. **This is the
+  argument this file already makes for a finding the arc CAN close, read onto ordinary work**, and it widens
+  neither verdict above it: *Adjacent*'s two conditions and the order they are read in stand exactly as they
+  are, and *Forced* still takes everything the goal is not true without, at any size.
 
 Run it in the arc's direction — "is the goal true without this?" — never the item's:
 **filing something actually forced ships an arc that does not build, or closes one that never did what it was
@@ -192,6 +208,16 @@ into a filing and leaves the arc closing green with the work its goal needed out
 **Forced AND genuinely an arc in its own right at once is a plan defect rather than a verdict** — the arc was
 planned smaller than its goal — so the work comes in as phases of this arc, and where that changes what the
 arc IS the loop halts and reports with the re-plan recommended.
+
+**A finding about THE PIPELINE ITSELF is dispositioned here too, and it takes two of this test's verdicts** —
+**folded in**, which for a pipeline finding is the arc closing it inside the release it is already shipping,
+or ***Adjacent***, which is filing it — **and each produces the close-out's answer to the arc-level question
+it owes** (`skills/orchestrate/SKILL.md`): **folded → *fixed*, naming where it landed**; ***Adjacent* →
+*filed*, naming the issue**. **The residue runs the other way here**: ordinary work that is neither becomes a
+line in the plan because nobody is carrying it yet, where a pipeline finding the arc CAN close it closes —
+which is why *fixed* is the default rather than the leftover. **This adds no verdict and widens nothing** —
+*Adjacent*'s bar stays the narrow one above, and a finding the arc cannot close is filed on the
+observed-failure bar exactly as it always was.
 
 **Judge the piece the goal needs, not the pile it was found in — split a mixed item at the goal boundary
 BEFORE the verdict.** Findings arrive mixed: the one thing that completes the goal — the check, the guard, the

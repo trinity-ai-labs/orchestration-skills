@@ -23,7 +23,9 @@ Rules from the other passes bind you even when you were invoked directly. Run th
   answers the first while a brief usually asserts the second. **And where two outputs of one command disagree,
   that IS the finding** — reconcile them rather than picking the half that fits the sentence you were writing.
 - **Enumeration cardinality.** Does each list carry the unfiltered count, does that number say what it counts,
-  and did the command filter nothing? `grep … | head -8` exits 0 on eight hits and eighteen alike.
+  did the command filter nothing, and — where the brief's own prose summarises a list it also prints — does
+  that summary's count agree with the list rather than being typed again from an earlier draft?
+  `grep … | head -8` exits 0 on eight hits and eighteen alike.
 - **The verify bar's property.** Read each command against the sentence beside it, on the case the slice is
   *expected* to produce: an instrument with no instances on its target returns an uninformative green.
 - **Field reconciliation.** Nothing in `Verify` may require touching a file `Do NOT touch` fences; fix it here
@@ -233,12 +235,13 @@ on your host.
 
 **Poll every ~10 minutes for divergence**, self-paced with your host's timer (≈600s —
 `skills/procedures/host-tools.md` names it; it is callable right here rather than only from a looping command,
-and the tick is required rather than something you reach for once something looks wrong). Completion arrives
-as a notification anyway; the tick carries three more riders: (a) whether any slice opened a draft PR and
-enqueued, (b) **drain the gate queue** (`drain`), so enqueued PRs carry their verdict without waiting for you,
-and (c) **answer any question a live slice has queued** (*A live implementer can ASK you to widen its fence*
-below), since an ask is cheap only because the answer comes back on this tick. Each tick, snapshot what each
-agent is touching against its scope:
+and the tick is required rather than something you reach for once something looks wrong). A completion
+notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
+about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
+three more riders: (a) whether any slice opened a draft PR and enqueued, (b) **drain the gate queue**
+(`drain`), so enqueued PRs carry their verdict without waiting for you, and (c) **answer any question a live
+slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
+because the answer comes back on this tick. Each tick, snapshot what each agent is touching against its scope:
 
 - **Snapshot against the FORK POINT (the merge-base), never HEAD and never the integration tip.** Compute it
   ONCE per tick — `FP=$(git -C <wt> merge-base HEAD origin/<integration>)`, re-`fetch` first because the tip
@@ -348,7 +351,7 @@ agent is touching against its scope:
   the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
   the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
   message on your next turn, carrying the path, what is wrong with it and a recommendation.
-  **Four answers, and you owe it one:**
+  **Five answers, and you owe it one:**
   - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives
     the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that
     slice's PR before you review its diff — saying in as many words that it supersedes the brief's fence on
@@ -381,6 +384,17 @@ agent is touching against its scope:
     re-judged on its own wording every cycle instead.
   - **Stop, I am re-cutting** — the ask surfaced a boundary that is wrong rather than merely narrow, which is
     the one shape a message cannot express and the stop lever's own test.
+  - **The premise did not hold, and here is what I checked** — you opened the file, rule or symbol the ask
+    rests on and the claim is not true of the tree, so the question dissolves rather than moving: nothing is
+    granted, nothing goes to a sibling, nothing is filed. **This is the one answer that carries EVIDENCE
+    rather than a ROUTING** — the other four each say who acts next, and this one says what you read and
+    where, so the next slice meeting that same passage re-runs your ground instead of re-asking your
+    question. **The ground is RECORDED rather than asserted**: name the file and what you read in it, in the
+    answer and in the places a grant is written — onto the issue while no PR is open, onto that slice's PR
+    before you review its diff. ⛔ **Returning it without having done the check and written it down is the
+    failure this answer exists to prevent rather than an instance of it** — and *the sibling owns it* is not
+    the cheaper route to the same place, since it leaves the asker fenced on an ownership claim that is false
+    and the slice then records a not-affected verdict whose stated reason is the wrong one.
 
   ⚠️ **Answer on the tick you read it — silence is an answer you did not give.** The channel is
   fire-and-forget, so the implementer holds a receipt rather than a reply: it is already working on everything
@@ -402,10 +416,24 @@ agent is touching against its scope:
   are not among your instruments, since your listing enumerates the agents YOU spawned and a grandchild is
   invisible from this seat, so a rule conditioned on one is a rule satisfied by guessing. That is a
   **self-suspension** the harness re-invokes, so leave it alone; expect no PR for the first couple of ticks.
-  **Two levels is the whole depth this flow has — you, an implementer, and that implementer's reviewers, which
-  are leaves** — so children under a reviewer in the agent tree are a fan-out nothing authorized, and
-  correcting it means messaging the live implementer, since a reviewer's children leave nothing in the
-  worktree to find later.
+  **This agent is LIVE, never one reported COMPLETED — the completion instrument below fires only on that
+  report, and agent STATE, not tree state, is what keeps the two apart.** **Two levels is the whole depth this
+  flow has — you, an implementer, and that implementer's reviewers, which are leaves** — so children under a
+  reviewer in the agent tree are a fan-out nothing authorized, and correcting it means messaging the live
+  implementer, since a reviewer's children leave nothing in the worktree to find later.
+- **⛔ A sub-agent reported COMPLETED can still be a stall, and none of the instruments above reach it — each
+  compares a LIVE agent tick over tick, and a completed report ends that comparison.** Reuse **the same
+  `$FP`** this tick already computed (*Snapshot against the FORK POINT* above) rather than a second way of
+  finding it: a branch carrying no commit past `$FP`, or no remote branch at all, means this agent **stopped
+  rather than finished**, however clean its report reads. **The lever is the message, matching the preference
+  already stated nearby** (*A stop is not the safe default* above, and the INFRA-stall case below) **— never a
+  stop and never a re-dispatch**: resume the SAME agent, since the tree's work is intact and only the
+  hand-back is missing, and re-dispatching would discard a full build for a hand-back alone. **This fires on
+  the completion signal itself — an event the tick already receives — never as a periodic sweep**: it is not a
+  second divergence check run for its own sake, and a clean read here is not a reason to poll for more. **It
+  cannot fire on the nested sub-agent wait above, because that agent is LIVE, never reported COMPLETED** — the
+  two are separated by agent STATE, never by what the tree looks like, since an uncommitted worktree with no
+  remote branch is that wait's normal shape too.
 - **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
   the same digest mean you cannot see work, not that there is none, so send the message that asks what the
   agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything

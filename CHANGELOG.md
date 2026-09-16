@@ -2,6 +2,160 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.2.0
+
+- **An arc's close-out can now say it FIXED the gap it found.** The question it answers in writing — *did this
+  arc surface a defect or a gap in the pipeline itself?* — admitted three answers: *filed*, *none found*, *not
+  enabled here*. An arc that found a gap and closed it in the release it was already shipping had no honest
+  one: *none found* is false, and *filed* manufactures an open issue describing something the release has
+  already closed. There are now **four**, and **fixed** is ranked **first**, because an enumeration's order is
+  read as its preference and fixing is the default.
+- **A *fixed* answer names where it landed** — the file the edit went into and the changelog entry that ships
+  with it — held to the discipline *filed* already demands of an issue number, so it never becomes a place a
+  claim goes unchecked. And it means the fix landed in **the tree the arc is shipping**, so an arc running
+  inside a project that installed this plugin cannot answer *fixed* for a gap in these skills: a local
+  workaround answered that way would leave the gap open for every other install.
+- **Filing stays, and no bar under it is lowered.** What changes is that it is now stated as the second half
+  of a two-part test rather than as the only outcome: a finding is filed when it clears the observed-failure
+  bar **and** the arc genuinely cannot close it — because it is genuinely a different arc, or because closing
+  it would change what the arc IS. Both conditions are words the corpus already had: the first is *Fold vs.
+  file*'s own narrow verdict, the second is what the loop's exits already weigh, and neither bar moves.
+  A finding the arc cannot close is still filed, still needs its observed failure, still resolves to
+  this repository from `repository` in `.claude-plugin/plugin.json`, and is still genericised of every path,
+  symbol, route, branch and client name.
+- **The "recorded is not a disposition" guard is narrowed rather than deleted, and states both directions in
+  the one clause.** A finding only written down still dies in the report; one fixed and named where it landed
+  has not — it is in the release, in the diff, and in the changelog entry that ships with it.
+- **Written at every seat that answers the question.** The loop's spine carries the enumeration, its rank, the
+  two-half filing bar and the narrowed guard. The dispatcher's landing reference carries the same rule in its
+  own compressed paragraph, the seat that binds a dispatcher invoked directly rather than through the loop.
+  *Fold vs. file* says a finding about the pipeline itself takes its two verdicts and which close-out answer
+  each produces — folded is *fixed*, *Adjacent* is *filed* — adding no verdict and widening no bar. And the
+  user-facing page a reader is told to read before installing now says the first answer files nothing at all.
+- **Three sentences that stated the in-repo outcome unconditionally are narrowed — a straggler of the fourth
+  answer rather than a second change.** The loop's own opt-in bullet, the key description in
+  `skills/procedures/config-keys.md` and its user-facing counterpart in `docs/per-project-config.md` each
+  said that where the resolved target is the repository the arc is running in, the finding *is filed* — true
+  when filing was the only outcome, and one answer short now that an in-repo arc which closes the gap files
+  nothing. Each now says it files what it did not already close. **The key's own meaning is untouched**: it
+  still gates a crossing, nothing crosses in that case, and absence is still a decided no.
+- **And a pointer in that same page named a section by a number that could be read two ways.** It sent a
+  reader to the loop's spine at *§7*; that file's headings are numbered 0 through 5 with two unnumbered
+  besides, so *§7* is either wrong or a positional count of `##` headings — ambiguous either way, and the
+  ambiguity breaks again at the next heading added. It now names the section by its title, which survives
+  renumbering.
+- **The precedent is one level down and one release back.** The implementer's own reference already says *FIX
+  IT — DO NOT FILE IT. This is the default and it has no bar to clear*, on the argument that writing the
+  sentence describing a defect costs more than deleting the defect. That release made fixing the default at
+  the implementer's seat and left this enumeration untouched; this is the same argument at the loop's.
+- **The dispatcher's tick can now tell a sub-agent that stopped from one that finished.** A completion
+  notification only ever meant the agent stopped running; the tick read it as settling whether the slice
+  landed, and a stalled agent fires the identical notification a finished one does. The tick now checks a
+  completed report against the same fork point it already computes each cycle: no commit past it, or no remote
+  branch at all, is a stall rather than a hand-back. The lever is a message to the same agent, never a stop
+  and never a re-dispatch, since the tree's work is intact and only the hand-back is missing. The instrument
+  fires on the completion signal itself rather than as a new sweep, and it is written apart from the corpus's
+  existing rule against mistaking a live nested sub-agent's wait for a stall — the two are separated by agent
+  state, not by what the tree looks like.
+- **A gate verdict now names the revision it gated, and a reader is told what to do when one doesn't.** An
+  override-mode verdict is free-form prose with every reason to carry more than one commit — a baseline most
+  of all — and nothing required it to say which one it had actually gated, so a verdict naming only its
+  baseline in a comparison table left the dispatcher-side SHA check with no revision to compare against, in
+  the direction that manufactures work: it reports post-gate commits that never happened. The comment now
+  leads with the gated revision and labels every other SHA it carries; a `Gated-At: <sha>` trailer says the
+  same thing in parser-friendly form, worth adopting, never required, and nothing here parses one. Where a
+  verdict still names none, the reader compares its post time against `git log -1 --format=%cI` rather than
+  reaching for the first SHA-shaped token in the text, which is routinely the baseline and would fail the
+  check the same way.
+- **An implementer can no longer reach its commit with a file its scoped check read off disk and git
+  does not hold.** The scoped check compiles the working tree; the diff, the PR and the merge read what git
+  holds, and the gate closes nothing between them because it compiles the same working tree the check did.
+  Before committing, the implementer now sweeps `git ls-files --others --exclude-standard` and accounts for
+  each name it prints — added, or left out with a reason — rather than leaving none of the existing signals
+  to ask at all. An empty result stays the ordinary case: the obligation is to account for each entry, never
+  to add every one, and it sits at the seat that knows what the slice was for rather than becoming a new
+  check.
+- **The pass that authors issues gains a fourth way in: a re-author a live arc reported back.** A running arc
+  reports two size findings back at issue altitude — a ready leaf that cannot be one PR, and N ready leaves
+  that are one PR's worth of one change — and both terminated in a pass whose every way in was written about
+  filing NEW work, so the receiving seat existed only as one clause in the arc-planning reference, naming the
+  event and none of its mechanics. **One statement now covers both directions rather than two procedures that
+  happen to agree**: the leaves the report names are superseded, the plan gains the leaves that replace them,
+  and every superseded leaf leaves the board the same way — a split being one leaf superseded by several and a
+  fold several superseded by one. **Three forks are settled as decisions.** A superseded leaf is **closed as
+  not planned** and never edited into what replaces it, since closed-as-completed says a fix shipped in some
+  release — which is exactly what the pass's own search step reads a closed issue as — and an edit in place
+  loses the report whoever filed it wrote; the replacement takes a **new number**, since an edit reaches one
+  item where each direction has several on one side — several replacements in a split, several originals in a
+  fold — so an inherited number branches both directions instead of carrying either; and the umbrella's
+  checklist is rewritten **before** the close, because that body is the live remaining plan and is re-read
+  every cycle, so an agent arriving between the two writes must still find every leaf that remains named in
+  it. **Both artifacts move, for the leaf going out and the leaf coming in** — the `- [ ] #<leaf>` checklist
+  line and the native sub-issue link — since a parent lookup reads the link while a markdown-only umbrella's
+  fallback reads the checklist, so a superseded leaf keeping either one still reads as live to the reader that
+  keys on it and a replacement given only one is invisible to the other. Step 4 gains the close call, REST for
+  the same reason the other writes there are. **The reversal ships with it**: this answers a report and is
+  never a second route by which a cycle re-cuts the board — the tracker stays the authority and the grounding
+  pass folds and cuts nothing on its own initiative. **Step 1's closed-issue triage now reads the close
+  reason first** — its two existing branches both look into the copy for what a fix introduced, which a leaf
+  closed as not planned never shipped, so that reason routes the searcher to what replaced it instead. The
+  arc-planning reference's one clause now points at the seat that carries the mechanics, and the README's row
+  for this pass now names its four ways in. `co-think`'s routing table is unchanged: it names the third way in
+  by member rather than counting the set, so appending a fourth leaves it accurate.
+- **A fenced-path ask can now be answered with evidence rather than a routing.** The set a dispatcher owes a
+  live slice had four members — *take it*, *the sibling owns it*, *file it*, *stop, I am re-cutting* — and
+  every one of them presumes the finding is real, settling only who acts next. A dispatcher that had opened
+  the file and found the claim untrue of the tree had nothing to return, and the nearest member, *the sibling
+  owns it*, leaves the asker fenced on an ownership claim that is false and the slice recording a
+  not-affected verdict for the wrong reason. The fifth answer is *the premise did not hold, and here is what
+  I checked*: the question dissolved rather than moved, and the answer names the ground it dissolved on, so a
+  later slice meeting the same passage re-runs that ground instead of re-asking the question — a declined ask
+  being re-askable and a routing giving it nothing to test.
+- **It is not a cheap way to decline an ask.** The ground is recorded rather than asserted — the file and
+  what was read in it, in the answer and in the places a grant is already written, the issue while no PR is
+  open and the slice's PR before the diff is reviewed. Returning it with no check behind it is the failure
+  the answer exists to prevent rather than an instance of it, and the asking seat is told to ask for the
+  ground where one comes back without it.
+- **Written at both seats, plus the two that cite the set by its size.** The asking side's *Five answers can
+  come back* in `skills/execute/references/implementer.md`, the deciding side's own bullets in
+  `skills/execute/references/dispatching.md`, the two places in
+  `skills/execute/references/reviewing.md` where an unanswered or late ask is answered on that same set, and
+  the user-facing mental model, which restates the set in its own voice. Each states what separates the new
+  member from the nearest one it would otherwise be forced into.
+- **The placement test gains the verdict for true, tiny, and not goal-completing: fold on COST.** Its two
+  verdicts turn on goal-completeness — *Forced* folds what the goal is not true without, *Adjacent* files
+  what is genuinely another arc — and everything else became a line in the plan for a later arc, which
+  **defers** the work. Doing it and deferring it are not the same outcome, and an item that is one edit is
+  cheaper closed than recorded. It folds as *Forced* folds — a checklist line and no new number — and the
+  record says **cost** rather than borrowing *Forced*'s reason, which would claim the goal was not true
+  without it and is false there.
+- **Its discriminator is that the item is an EDIT, never that a cycle happens to be running.** The first two
+  clauses — goal true without it, not a different arc — are the deferred line's population exactly, so the
+  third is what separates them: an open tree, a loaded context and a running gate are true of every finding
+  the checklist produces and tell two dispositions apart nowhere, where *this one is an edit* is a claim about
+  the item a later cycle can find false. Anything needing scoping of its own is what the line is for.
+- **It generalises the principle the file already held rather than adding a second one beside it.** *Fold vs.
+  file* already says a pipeline finding the arc CAN close it closes, which is why *fixed* is the default
+  rather than the leftover; that argument is untouched and this verdict reads it onto ordinary findings. **It
+  widens nothing above it**: *Adjacent*'s two conditions and the order they are read in stand exactly as they
+  were, and *Forced* still takes everything the goal is not true without, at any size. One four-word repair
+  went with it — the pipeline-finding paragraph said it takes *this test's two verdicts*, a total the third
+  verdict falsified while leaving the claim under it true, so it now takes *two of this test's verdicts* and
+  says what it always said. Both user-facing pages that restate the placement test move with it — the mental
+  model and the hard-rules page — and only that half, since only one of them restates the answer set as well.
+- **A count summarising an enumeration the same document also prints is now the same claim as the list, never
+  a second one.** The existing enumeration rule bound a count to the instrument that produced it — name the
+  command, say what it counts, name what it cannot see — but nothing governed a summary sentence disagreeing
+  with the list it describes further down the same document: the instrument rule could be satisfied in full
+  while the summary contradicted its own table, and nothing read the two against each other. A summary is now
+  **derived** from the list it describes, re-derived on every later edit to either side, or the prose drops
+  the number and points at the list instead, which needs no re-deriving. **Written at three seats**: beside
+  the instrument requirement rather than in a second home, at the dispatcher's own check on a brief's
+  enumerations, which now asks the self-consistency question beside the ones it already asked, and at the
+  pass that authors issues, whose own count-citation bullet now asks it too. **No new check enforces it** —
+  a gate reads neither a prose summary nor the table it describes, which is this rule's own reason for being
+  a rule rather than a checker.
+
 ## 5.1.2
 
 - **Shipped prose now wraps at the width the corpus already used, and that is the entire change — not one

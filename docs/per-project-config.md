@@ -94,13 +94,13 @@ own rather than only a row here.**
 statement — what a finding may and may not contain, why enabling it is consent to file and never consent to
 disclose, and why the close-out says out loud when it has filed. **And *leave* is the operative word**, which
 is why the key has nothing to decide in the plugin's own repository: there the resolved target and the tree
-are the same repository, so an arc files without it — a case that can only ever arise here, and never in a
-project that installed the plugin. Two things belong beside the key itself. It is read only by the skills,
-never by a helper, so nothing in `bin/` behaves differently either way. And its **absence** is a deliberate
-reading rather than a shrug, the opposite one to `sharedResources`: there the unsafe direction is assuming a
-hazard away, so a missing key means the question was never put; here the unsafe direction is acting, so a
-missing key is a no. [`skills/orchestrate/SKILL.md`](../skills/orchestrate/SKILL.md) → §7 is where the
-close-out rule itself lives.
+are the same repository, so an arc files what it did not already close, without it — a case that can only ever
+arise here, and never in a project that installed the plugin. Two things belong beside the key itself. It is
+read only by the skills, never by a helper, so nothing in `bin/` behaves differently either way. And its
+**absence** is a deliberate reading rather than a shrug, the opposite one to `sharedResources`: there the
+unsafe direction is assuming a hazard away, so a missing key means the question was never put; here the unsafe
+direction is acting, so a missing key is a no. [`skills/orchestrate/SKILL.md`](../skills/orchestrate/SKILL.md)
+→ *Repeat, or close out* is where the close-out rule itself lives.
 
 **`integrationBranch` is the one fact no repository states about itself.** It names the branch this project's
 work lands on — `main` where that is also the default branch, the live `release/x.y.z` where work lands on a

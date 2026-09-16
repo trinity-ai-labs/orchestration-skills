@@ -102,6 +102,13 @@ the result on your own draft PR, and never enqueue. **Capture that gate's own ex
 pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
 flow's only evidence a gate ran.
 
+**Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label
+every other SHA it carries, a baseline included, rather than leaving a reader to guess which one you mean.**
+*Review BEFORE you drain, never after* compares the SHA the comment names against the PR's head; an unlabeled
+baseline in that slot is a commit the head will never match, and reads exactly like a verdict that predates
+the last push when nothing did. A `Gated-At: <sha>` trailer says the same thing in a form a machine could
+parse — worth adopting, never required, and nothing in this flow reads one back.
+
 **Tidying that PR's comments goes by IDENTITY and never by position or recency, because ONE account authors
 every party's comments here and `author.login` therefore cannot tell yours from your dispatcher's.** A stale
 verdict naming a superseded head is genuinely worth removing — a reader scanning for the verdict that matches
@@ -120,6 +127,22 @@ handoff never happened. **Run your checks in the foreground, and end your turn a
 only to keep your turn open** — `skills/procedures/host-tools.md` names that wait, and where it is an ended
 turn, ending it while they run hands nothing back and each one re-invokes you as it reports, so a placeholder
 agent, an `echo` or a `sleep` spends a round trip and learns nothing.
+
+**Before you commit, sweep for untracked files and account for each one.** The command is the one this
+corpus already uses: `git ls-files --others --exclude-standard`. For every name it prints, **add it or say
+why it stays out** — scratch, ignored build output, something genuinely unrelated to this slice. **An empty
+result is the ordinary case, not a suspicious one**, and the obligation is to account for each entry, never
+to add every entry the command names.
+
+**This is the one gap none of your other signals can see.** Your scoped check **compiles the working
+tree it finds on disk**; the diff, the PR and the merge **read what git holds**. A file present on disk and
+absent from the index is fully visible to the first and invisible to the second. **The gate does not close
+it either** — it runs inside this same worktree, compiles the same working tree, and reaches the same
+green, while the artifact that actually merges is the PR, which never contained the file. The gate and the
+merge see different trees, and that gap is exactly the width of your untracked set. **Nothing mechanical
+closes it** — a check cannot tell a file that belongs from one that doesn't — so the obligation sits here,
+at the seat that knows what the slice was for, and it is never raised into a rule a gate or the dispatcher
+enforces.
 
 **Then commit in logical blocks.** Stage each self-contained step (a type + its plumbing, a behavior + its
 tests, one cohesive refactor) into its own commit with a mechanism-explaining message. **Never rebase.**
@@ -266,11 +289,18 @@ the question lands on the dispatcher's next turn. So send it and carry straight 
 not depend on the answer — blocking on the send is the stall. **Run out of independent work with no answer and
 you hand back carrying the question**, the fallback rather than the first move.
 
-**Four answers can come back, and none is yours to assume from silence.** *Take it* — act on it exactly as *A
+**Five answers can come back, and none is yours to assume from silence.** *Take it* — act on it exactly as *A
 CORRECTION from your dispatcher…* below says to act on any corrected fact. *The sibling owns it* — leave that
 path alone. *File it* — the verdict is the dispatcher's to return AND the filing is the dispatcher's to
 perform, so that finding leaves your hands rather than landing back in them. *Stop, I am re-cutting* — hand
-back what you have. **No answer ends in a ticket YOU open.**
+back what you have. *The premise did not hold, and here is what I checked* — the question dissolved rather
+than moved, so no path changes hands and nothing is filed;
+**that answer carries the GROUND it was checked against, and your hand-back records THAT as the reason for
+your verdict** rather than an ownership nobody established, which is what separates it from *the sibling owns
+it*, the nearest answer it would otherwise be forced into and one whose reason would be false here. ⚠️
+**An answer asserting the premise is false and naming no ground is not this answer**: ask for the ground,
+since a declined ask is re-askable and the next slice meeting that same passage reaches the same conclusion
+with nothing to re-run. **No answer ends in a ticket YOU open.**
 
 **A *take it* whose subject is every occurrence of something is an ENUMERATION and binds you as one** — the
 enumeration rule below covers a list *a brief* hands you, and a grant is not a brief.

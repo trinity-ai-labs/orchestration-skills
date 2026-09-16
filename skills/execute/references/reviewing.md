@@ -154,6 +154,18 @@ merge. Then verify that correspondence explicitly before merging: compare the SH
 against the PR's current head, since a verdict that predates the last push describes a tree the PR no longer
 carries.
 
+That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
+precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.
+
+**Where the comment names no gated revision at all — no SHA singled out as the one `gate` ran against — do not
+fall back to the first SHA-shaped token in the text.** A verdict has every reason to carry other SHAs, the
+baseline it measured against most of all, and the first token in the comment is routinely that one: a commit
+on the integration branch the PR's head will never equal, which fails this comparison in the direction that
+manufactures work rather than the one that catches a stale verdict. **Compare timestamp against commit time
+instead**: the comment's own post time against HEAD's, taken as one commit rather than the whole log (`git log
+-1 --format=%cI`) — covered where HEAD committed no later than the verdict posted, stale where it committed
+after, the same reading the SHA comparison above gives when one is nameable.
+
 **Judge the diff against the slice's GOAL, and read the review pass's verdict on it rather than deriving your
 own — except on an edit that landed after that pass closed, which the verdict predates and does not reach.** A
 `Goal` states in outcome terms what the slice was for, and it is the only artifact in the run the
@@ -218,14 +230,14 @@ required, even — to say what it did not land. The item stops with you: your mo
 same worktree, a resume message to the same implementer, or an issue **you** file and link, folded into the
 wave plan — that filing being yours to perform rather than the implementer's, which has no filing disposition
 at all — and where the report carries a QUESTION about a fenced path that went unanswered while the slice ran,
-you answer it here on the same four answers, a *take it* becoming a fix agent into that worktree with the
+you answer it here on the same five answers, a *take it* becoming a fix agent into that worktree with the
 fence widened — whose edit lands after any pass that slice ran had already reported, so the round you review
 next is its only reader (*Hard rules* — the follow-up-ownership rule is yours to discharge here, the
 implementer having no filing disposition of its own, and *The epic branch* says which branch the follow-up
 targets while one is live). **Read a hand-back that surfaces an out-of-fence finding for the FIRST time here
 as a raise that came too late, never as merely a late question** — the implementer fixes what it hits and
 raises what a fence stops it from fixing before it pushes, precisely so one reaches you while its tree is open
-and *take it* still costs an edit, so answer this one on those same four answers and name the late raise in
+and *take it* still costs an edit, so answer this one on those same five answers and name the late raise in
 the round you dispatch next, which is the only thing that makes the next hand-back carry questions rather than
 findings. **Forwarding the list to the user is the same defect one level up**, and it is worse from here: you
 are the only party in the run holding the breakdown, the sibling slices, and the wave plan the item has to be

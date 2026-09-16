@@ -31,7 +31,8 @@ a question rather than a default.
   `"env": {"TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/<project>-turbo}"}`. Values are emitted
   unquoted, so a value may use shell expansion. ⚠️ **It covers the install step only.** A cache var the
   *gate* needs must live where **non-interactive** shells read it — a queued gate run, a `drain` and a
-  dispatched agent all run in one — or it reaches your terminal and never a gated PR: `~/.zshenv`, not `~/.zshrc`.
+  dispatched agent all run in one — or it reaches your terminal and never a gated PR: `~/.zshenv`, not
+  `~/.zshrc`.
   **Windows has no equivalent file**; set a real user environment variable (`setx VAR value`), `$PROFILE`
   being interactive-only and the same trap.
 - **`gate`** — the heavy full gate (build + test), run against a queued PR's worktree.

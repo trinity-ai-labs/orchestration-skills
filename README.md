@@ -1,8 +1,11 @@
 # orchestration-skills
 
-The **dev pipeline**, packaged as one plugin for **Claude Code and Codex**: turn an idea into an issue that plans the arc, ground it against the code, then ship it off an integration branch through isolated git worktrees and dispatcher / implementer sub-agents.
+The **dev pipeline**, packaged as one plugin for **Claude Code and Codex**: turn an idea into an issue that
+plans the arc, ground it against the code, then ship it off an integration branch through isolated git
+worktrees and dispatcher / implementer sub-agents.
 
-**One front door, and one command that ships what it plans** — the issue says how big the work is, which decides how many cycles that command runs rather than which command you type:
+**One front door, and one command that ships what it plans** — the issue says how big the work is, which
+decides how many cycles that command runs rather than which command you type:
 
 ```
 rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:orchestrate ─▶ done
@@ -12,7 +15,17 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:or
                                                           standalone issue, whose reconcile finds nothing)
 ```
 
-**Eleven skills in two families, and one front door.** Six **arc** passes ship work into the integration branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for you by the pass before it. Two **project** passes change the project itself and are invoked rather than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls the version and the branch work lands on. The remaining three are **shared homes** every pass may cite and none of which cites back, each admitted on a property naming what has no per-seat form to restate: `/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is; `/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork ban first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures` holds the **procedure** every seat runs identically — the worktree helper's command-line contract, what each config key means and what its absence means, and each host's tool for a capability the flow needs.
+**Eleven skills in two families, and one front door.** Six **arc** passes ship work into the integration
+branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is
+named for you by the pass before it. Two **project** passes change the project itself and are invoked rather
+than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls
+the version and the branch work lands on. The remaining three are **shared homes** every pass may cite and
+none of which cites back, each admitted on a property naming what has no per-seat form to restate:
+`/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is;
+`/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork
+ban first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures`
+holds the **procedure** every seat runs identically — the worktree helper's command-line contract, what each
+config key means and what its absence means, and each host's tool for a capability the flow needs.
 
 | You type | Does |
 |---|---|
@@ -28,9 +41,18 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:or
 | [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass, reached from the loop rather than typed — it is the loop's own dispatcher half rather than a second seat: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review, and merges. It is also where an **implementer** reads its own flow, which is the one half of it a user still enters directly. |
 | [`/pipeline:review`](skills/review/SKILL.md) | An implementer's own quality pass over its **uncommitted** diff, before it commits: one briefed reviewer per dimension it judges the slice needs, each spawned at a tier that is named rather than inherited from the implementer — standard for a reader over one dimension, higher where that dimension is genuinely hard — each reporting what it ran, and all of them weighed by the implementer. |
 
-The loop invokes all three for you — that is what "behind them" means, and there is no size of work at which one of them becomes a command you type instead.
+The loop invokes all three for you — that is what "behind them" means, and there is no size of work at which
+one of them becomes a command you type instead.
 
-The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install. **Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see [Prerequisites](#prerequisites) for which you get) — same arguments, same environment variables, same output, same exit codes, one CLI contract implemented twice. What holds that pair together is the frozen contract in [AGENTS.md](AGENTS.md) and the review of every change to it; what the repo's own gate can and cannot see of it is in [Adding a skill](docs/adding-a-skill.md).
+The plugin also ships the machinery `execute` drives. Claude Code puts a plugin's `bin/` on the `PATH` of
+whichever shell tool it hands you, so these are bare commands once the plugin is enabled — nothing to install.
+**Codex installs the same `bin/` but puts nothing on `PATH`**, so there they are called by absolute path from
+the installed plugin root; the skills carry that rule and neither host needs anything installed. Each helper
+ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see
+[Prerequisites](#prerequisites) for which you get) — same arguments, same environment variables, same output,
+same exit codes, one CLI contract implemented twice. What holds that pair together is the frozen contract in
+[AGENTS.md](AGENTS.md) and the review of every change to it; what the repo's own gate can and cannot see of it
+is in [Adding a skill](docs/adding-a-skill.md).
 
 | Command | What it does |
 |---|---|
@@ -66,26 +88,37 @@ The detail lives in [`docs/`](docs/), one page per topic:
 /plugin install pipeline@trinity-ai-labs
 ```
 
-Then turn on auto-update: `/plugin` → **Marketplaces** → select `trinity-ai-labs` → **Enable auto-update**. It is **off by default for third-party marketplaces**, so without this you never receive anything. Equivalently, set `"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry in `~/.claude/settings.json`.
+Then turn on auto-update: `/plugin` → **Marketplaces** → select `trinity-ai-labs` → **Enable auto-update**. It
+is **off by default for third-party marketplaces**, so without this you never receive anything. Equivalently,
+set `"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry in `~/.claude/settings.json`.
 
-⚠️ **Auto-update delivers a new `version`, not a new commit.** Because `plugin.json` declares `version`, an install is pinned to that string — pushing to `main` without bumping it ships nothing to anyone. CI fails the build if shipped content changes without a bump, so this can't happen silently. See [CHANGELOG.md](CHANGELOG.md).
+⚠️ **Auto-update delivers a new `version`, not a new commit.** Because `plugin.json` declares `version`, an
+install is pinned to that string — pushing to `main` without bumping it ships nothing to anyone. CI fails the
+build if shipped content changes without a bump, so this can't happen silently. See
+[CHANGELOG.md](CHANGELOG.md).
 
-**On Codex**, add this repository as a marketplace and install from it. The marketplace manifest ships at `.agents/plugins/marketplace.json`, so the repository is the marketplace:
+**On Codex**, add this repository as a marketplace and install from it. The marketplace manifest ships at
+`.agents/plugins/marketplace.json`, so the repository is the marketplace:
 
 ```bash
 codex plugin marketplace add trinity-ai-labs/orchestration-skills
 codex plugin add pipeline@trinity-ai-labs
 ```
 
-`codex plugin marketplace add` also takes a local path, which is how you install a checkout you are editing. Codex reads `.codex-plugin/plugin.json` where Claude Code reads `.claude-plugin/plugin.json`; the `skills/` tree is shared, and the repo's gate fails if the two manifests disagree on `version`. Refresh with `codex plugin marketplace upgrade`.
+`codex plugin marketplace add` also takes a local path, which is how you install a checkout you are editing.
+Codex reads `.codex-plugin/plugin.json` where Claude Code reads `.claude-plugin/plugin.json`; the `skills/`
+tree is shared, and the repo's gate fails if the two manifests disagree on `version`. Refresh with
+`codex plugin marketplace upgrade`.
 
-**For developing the plugin itself**, clone it into your skills directory instead — edits then apply live, with no release step:
+**For developing the plugin itself**, clone it into your skills directory instead — edits then apply live,
+with no release step:
 
 ```bash
 git clone https://github.com/trinity-ai-labs/orchestration-skills ~/.claude/skills/pipeline
 ```
 
-Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads as a plugin on the next session. The directory name is the namespace.
+Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads as a plugin on the next
+session. The directory name is the namespace.
 
 **Or load it for one session**, which is the way to test a change:
 
@@ -93,13 +126,16 @@ Any folder under `~/.claude/skills/` with a `.claude-plugin/plugin.json` loads a
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and eight executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows the `pipeline` row with its version and install status.
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and eight
+executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows
+the `pipeline` row with its version and install status.
 
 ### Prerequisites
 
 **Platform support.** Two questions: which language of helper runs, and whether it is on your `PATH`.
 
-**Which language.** Every helper ships in both, because Claude Code does not hand every platform the same shell:
+**Which language.** Every helper ships in both, because Claude Code does not hand every platform the same
+shell:
 
 | Where Claude Code runs | Shell tool you get | Helpers that run there |
 |---|---|---|
@@ -108,14 +144,29 @@ Verify with `/plugin list` on Claude Code — you should see `pipeline`, its ele
 | Native Windows **with** Git for Windows | Bash tool, via Git Bash | `bin/*.sh` |
 | Native Windows **without** Git for Windows | **PowerShell tool — there is no bash at all** | `bin/*.ps1` |
 
-The PowerShell tool is rolling out progressively *alongside* the Bash tool rather than replacing it, so a Windows session can land in either one. That is why both copies ship and why neither may be added alone: a helper that exists in only one language is simply missing from `PATH` for everyone on the other shell, with no error until someone tries to run it.
+The PowerShell tool is rolling out progressively *alongside* the Bash tool rather than replacing it, so a
+Windows session can land in either one. That is why both copies ship and why neither may be added alone: a
+helper that exists in only one language is simply missing from `PATH` for everyone on the other shell, with no
+error until someone tries to run it.
 
-**Whether it is on `PATH`.** Claude Code puts an enabled plugin's `bin/` on the shell tool's `PATH`, so the helpers are bare commands. **Codex does not** — its manifest has no `bin` key — though it does install `bin/` with the rest of the plugin, under `$CODEX_HOME/plugins/cache/<marketplace>/<plugin>/<version>/`. On Codex the helpers are therefore called by absolute path from that root. The skills state this where they invoke a helper, so you should not have to think about it; it matters when you are reading a run that died at its first command.
+**Whether it is on `PATH`.** Claude Code puts an enabled plugin's `bin/` on the shell tool's `PATH`, so the
+helpers are bare commands. **Codex does not** — its manifest has no `bin` key — though it does install `bin/`
+with the rest of the plugin, under `$CODEX_HOME/plugins/cache/<marketplace>/<plugin>/<version>/`. On Codex the
+helpers are therefore called by absolute path from that root. The skills state this where they invoke a
+helper, so you should not have to think about it; it matters when you are reading a run that died at its first
+command.
 
 - **git** (worktrees are built in)
-- **[GitHub CLI](https://cli.github.com/)** (`gh`) authenticated: `gh auth login` — used to file issues and open/merge PRs
-- **A host that loads the plugin** — [Claude Code](https://claude.com/claude-code) or [Codex](https://developers.openai.com/codex); the same `skills/` tree runs on both
-- **A JSON interpreter for the `.sh` helpers only** — bash has no JSON parser, so they shell out to the first of `node`, `python3`, `python`, or `py -3` that works. They *run* each candidate rather than trusting `command -v`, because Windows ships a `python3.exe` alias that is a stub launching the Microsoft Store and returning nothing — a probe that only checks for the name on `PATH` picks it and then fails with an empty config. The `.ps1` helpers need none of this: `ConvertFrom-Json` is built into PowerShell, so that path has no interpreter to be missing in the first place.
+- **[GitHub CLI](https://cli.github.com/)** (`gh`) authenticated: `gh auth login` — used to file issues and
+  open/merge PRs
+- **A host that loads the plugin** — [Claude Code](https://claude.com/claude-code) or
+  [Codex](https://developers.openai.com/codex); the same `skills/` tree runs on both
+- **A JSON interpreter for the `.sh` helpers only** — bash has no JSON parser, so they shell out to the first
+  of `node`, `python3`, `python`, or `py -3` that works. They *run* each candidate rather than trusting
+  `command -v`, because Windows ships a `python3.exe` alias that is a stub launching the Microsoft Store and
+  returning nothing — a probe that only checks for the name on `PATH` picks it and then fails with an empty
+  config. The `.ps1` helpers need none of this: `ConvertFrom-Json` is built into PowerShell, so that path has
+  no interpreter to be missing in the first place.
 - Whatever your project needs to install and test
 
 ---
@@ -127,17 +178,28 @@ The PowerShell tool is rolling out progressively *alongside* the Bash tool rathe
 /pipeline:write-issue add per-workspace model overrides   # → files issue #1042 with its phase map and its verdict
 ```
 
-`write-issue` ends with an explicit handoff line and **stops** — the line names the next command, and you decide whether to run it. It is the same command whatever verdict it just wrote:
+`write-issue` ends with an explicit handoff line and **stops** — the line names the next command, and you
+decide whether to run it. It is the same command whatever verdict it just wrote:
 
 ```
 /pipeline:orchestrate #1042        # → grounds the horizon, dispatches it, reconciles, repeats
 ```
 
-What the verdict decides is how many times that loop goes round: a multi-phase arc runs cycle after cycle, and a standalone issue is one cycle — its horizon is the issue itself, and its reconcile finds nothing left.
+What the verdict decides is how many times that loop goes round: a multi-phase arc runs cycle after cycle, and
+a standalone issue is one cycle — its horizon is the issue itself, and its reconcile finds nothing left.
 
-`orchestrate` runs the arc to completion on its own, cycle after cycle, reporting what it decided each time and how much it has left standing; it comes back to you only for a genuine product or design fork the code and conventions cannot settle, asked in plain chat, one question at a time, with a recommendation — or to halt, which is a report rather than a question and happens when a cycle lands nothing, when what is left of the plan has grown past what you asked for, when work the goal turns out to need is too big for the arc as it was planned, or when two cycles running have each filed at least as many follow-ups as they closed, while follow-ups this arc filed are still outstanding — a backlog being transferred rather than landed. A plan that has fallen short of your goal is not one of those: that direction the loop fixes itself, folding the missing work back in.
+`orchestrate` runs the arc to completion on its own, cycle after cycle, reporting what it decided each time
+and how much it has left standing; it comes back to you only for a genuine product or design fork the code and
+conventions cannot settle, asked in plain chat, one question at a time, with a recommendation — or to halt,
+which is a report rather than a question and happens when a cycle lands nothing, when what is left of the plan
+has grown past what you asked for, when work the goal turns out to need is too big for the arc as it was
+planned, or when two cycles running have each filed at least as many follow-ups as they closed, while
+follow-ups this arc filed are still outstanding — a backlog being transferred rather than landed. A plan that
+has fallen short of your goal is not one of those: that direction the loop fixes itself, folding the missing
+work back in.
 
-**As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings the docs it falsifies along with it, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
+**As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
+the docs it falsifies along with it, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
 
 **By hand:**
 
@@ -146,11 +208,21 @@ setup-worktree.sh fix/toast-position release/0.4.0     # fork a new branch off t
 setup-worktree.sh --existing fix/toast-position        # attach a tree to a branch that already exists
 ```
 
-`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike, and not on Codex at all. **Which directory you add depends on which install you have, and no one line covers both.**
+`bin/` is on `PATH` inside whichever tool Claude Code hands you — Bash tool or PowerShell tool, per the
+platform table under [Prerequisites](#prerequisites) — but not in your own terminal, Bash or PowerShell alike,
+and not on Codex at all. **Which directory you add depends on which install you have, and no one line covers
+both.**
 
-**On a marketplace install there is nothing to add inside Claude Code**, where `bin/` is already on the shell tool's `PATH`. In a plain terminal that install sits at `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/bin` — the same layout under `$CODEX_HOME` on Codex — the path carries the installed **version**, so it moves at every release and any export written here would be stale the day it shipped. Read the current version from `/plugin` and add that directory, or call the helper by its absolute path.
+**On a marketplace install there is nothing to add inside Claude Code**, where `bin/` is already on the shell
+tool's `PATH`. In a plain terminal that install sits at
+`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/bin` — the same layout under `$CODEX_HOME` on Codex
+— the path carries the installed **version**, so it moves at every release and any export written here would
+be stale the day it shipped. Read the current version from `/plugin` and add that directory, or call the
+helper by its absolute path.
 
-**On a clone install** — the one under [Install](#install) — the directory is yours and stable, so it is the one an export can name. Add it somewhere **non-interactive** shells read too (the gate runner, the drain, and dispatched agents are all non-interactive):
+**On a clone install** — the one under [Install](#install) — the directory is yours and stable, so it is the
+one an export can name. Add it somewhere **non-interactive** shells read too (the gate runner, the drain, and
+dispatched agents are all non-interactive):
 
 ```bash
 # zsh — in ~/.zshenv, not ~/.zshrc
@@ -162,9 +234,17 @@ export PATH="$HOME/.claude/skills/pipeline/bin:$PATH"
 setx PATH "$env:USERPROFILE\.claude\skills\pipeline\bin;$env:PATH"
 ```
 
-Both args of the first form are required — no default base, since integration branches roll over and a hardcoded default goes stale. `--existing` is the recovery form, for when a branch outlives its worktree (a close-out that failed at the merge, a tree removed by hand); it takes no base, because an existing branch's base is whatever it already forked from, and it refuses rather than creating a branch that isn't there. It is a flag and never an inference — attaching to a branch you meant to fork fresh is how a worktree ends up quietly behind the integration tip.
+Both args of the first form are required — no default base, since integration branches roll over and a
+hardcoded default goes stale. `--existing` is the recovery form, for when a branch outlives its worktree (a
+close-out that failed at the merge, a tree removed by hand); it takes no base, because an existing branch's
+base is whatever it already forked from, and it refuses rather than creating a branch that isn't there. It is
+a flag and never an inference — attaching to a branch you meant to fork fresh is how a worktree ends up
+quietly behind the integration tip.
 
-**Verify HEAD before you dispatch an agent into either kind of tree.** The helper prints it — `READY: <path>`, then `HEAD: <sha>` — and the comparison that catches a base gone stale under it, plus why the fetch is part of that comparison rather than preparation for it, is in [The hard rules](docs/hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know).
+**Verify HEAD before you dispatch an agent into either kind of tree.** The helper prints it — `READY: <path>`,
+then `HEAD: <sha>` — and the comparison that catches a base gone stale under it, plus why the fetch is part of
+that comparison rather than preparation for it, is in
+[The hard rules](docs/hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know).
 
 ---
 

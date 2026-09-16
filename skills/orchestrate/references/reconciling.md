@@ -1,90 +1,309 @@
 # Reconciling — the checklist, the disposition, and where a fold goes
 
-Reference for `skills/orchestrate/SKILL.md`. **Steps 3 and 4 of the loop are performed out of this file**: the checklist runs against the **merged** tree, then everything it produced goes through *Fold vs. file* and *Where folded work goes*, and *Rewriting the plan* says where the result is written.
+Reference for `skills/orchestrate/SKILL.md`. **Steps 3 and 4 of the loop are performed out of this file**: the
+checklist runs against the **merged** tree, then everything it produced goes through *Fold vs. file* and
+*Where folded work goes*, and *Rewriting the plan* says where the result is written.
 
 ## The reconcile checklist
 
-Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement each time**: a cycle that skips a re-derived step produces exactly the output of one that found nothing.
+Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement
+each time**: a cycle that skips a re-derived step produces exactly the output of one that found nothing.
 
-**1. Coordinate drift.** Every path, symbol, table, route or key named in the remaining plan: does it still resolve against the merged tree? Check them; do not recall them. **A target that does not resolve is stale by definition, not a maybe**, and shape depth keeps the list short but **short is not empty**.
+**1. Coordinate drift.** Every path, symbol, table, route or key named in the remaining plan: does it still
+resolve against the merged tree? Check them; do not recall them. **A target that does not resolve is stale by
+definition, not a maybe**, and shape depth keeps the list short but **short is not empty**.
 
-**2. Vocabulary drift — checked per SENSE, not per string.** For each rename the increment performed, write down the *senses* the old word carried and decide each separately: **a string match cannot tell two senses apart**, so a find-and-replace rewrites the surviving one and the next brief renames what was already correct.
+**2. Vocabulary drift — checked per SENSE, not per string.** For each rename the increment performed, write
+down the *senses* the old word carried and decide each separately: **a string match cannot tell two senses
+apart**, so a find-and-replace rewrites the surviving one and the next brief renames what was already correct.
 
-**3. Revealed forced work.** What does the merged tree now force that **no remaining item owns**? A helper taking a type this arc deletes is forced work the compiler hands to whichever slice hits it first, and **a merged change to `.agents/worktree.json` is the same question with the compiler taken out of it** — provisioning forced *silently*, every gate green while worktrees are still cut from the pre-change file. That window closes only when the change reaches the **main checkout's working tree**, which holds the integration branch — so on an epic it is the epic → integration close-out, not the slice merge inside it, and every worktree cut before then is hand-patched.
+**3. Revealed forced work.** What does the merged tree now force that **no remaining item owns**? A helper
+taking a type this arc deletes is forced work the compiler hands to whichever slice hits it first, and
+**a merged change to `.agents/worktree.json` is the same question with the compiler taken out of it** —
+provisioning forced *silently*, every gate green while worktrees are still cut from the pre-change file. That
+window closes only when the change reaches the **main checkout's working tree**, which holds the integration
+branch — so on an epic it is the epic → integration close-out, not the slice merge inside it, and every
+worktree cut before then is hand-patched.
 
-**4. Falsified assumptions.** `/pipeline:ground` writes `Assumes X (existing pattern in <file>); flag if wrong` into briefs; re-check every one still live against the merged tree, since **a falsified assumption is a plan defect fixed here, not an implementer's problem**.
+**4. Falsified assumptions.** `/pipeline:ground` writes
+`Assumes X (existing pattern in <file>); flag if wrong` into briefs; re-check every one still live against the
+merged tree, since **a falsified assumption is a plan defect fixed here, not an implementer's problem**.
 
-**5. Deferred decisions — a deferral has no owner, so it renews itself in silence.** List every question the increment deliberately left open and re-ask each at the **new** horizon; **a deferral is neither an assumption nor a stale coordinate, so the items above cannot catch it**. The test is **does the merged tree still hold together with it open?** — where it does not it is forced work and gets a slice, and where it does, record that you re-asked.
+**5. Deferred decisions — a deferral has no owner, so it renews itself in silence.** List every question the
+increment deliberately left open and re-ask each at the **new** horizon;
+**a deferral is neither an assumption nor a stale coordinate, so the items above cannot catch it**. The test
+is **does the merged tree still hold together with it open?** — where it does not it is forced work and gets a
+slice, and where it does, record that you re-asked.
 
-**6. Derived state — every item above interrogates the PLAN; this one interrogates the TREE.** Every artifact whose correct contents are a function of the whole tree rather than one slice's files — a ratchet ledger, a regenerated backlog, a generated type, an unimported-exports manifest — gets **re-derived against the merged tip and compared with what is committed there**, by running the project's regenerator rather than reading the file and reasoning about it; a slice declares one in its `Derives` field.
+**6. Derived state — every item above interrogates the PLAN; this one interrogates the TREE.** Every artifact
+whose correct contents are a function of the whole tree rather than one slice's files — a ratchet ledger, a
+regenerated backlog, a generated type, an unimported-exports manifest — gets
+**re-derived against the merged tip and compared with what is committed there**, by running the project's
+regenerator rather than reading the file and reasoning about it; a slice declares one in its `Derives` field.
 
-**7. Scope drift — the items above read the PLAN and the TREE; this one the REQUEST, written in neither.** Compare **the arc's goal in the filer's own words**, quoted rather than recalled, against **what the remaining plan would deliver** if every item landed as written; it fires when the second cannot be stated as an instance of the first. **A fire in THAT direction binds the AGGREGATE, re-opens nothing, and HALTS rather than asking** — *Fold vs. file*'s verdicts stand, so report what the plan has become against what was asked and stop, because re-scoping is the user's. **Run the same comparison the other way as well, since a plan stops matching a request by falling SHORT of it too**: ask whether what has landed plus what remains ADDS UP to the goal, each item being an instance of it saying nothing about whether the sum is it. **That direction re-opens rather than halts** — the shortfall is the loop's own filing rather than anything the user has to re-scope, so every piece the goal is not true without goes through *Fold vs. file* as a finding of this item — whether it was ever filed or not, since the commonest shortfall is work nobody filed anywhere — and comes back in.
+**7. Scope drift — the items above read the PLAN and the TREE; this one the REQUEST, written in neither.**
+Compare **the arc's goal in the filer's own words**, quoted rather than recalled, against
+**what the remaining plan would deliver** if every item landed as written; it fires when the second cannot be
+stated as an instance of the first. **A fire in THAT direction binds the AGGREGATE, re-opens nothing, and
+HALTS rather than asking** — *Fold vs. file*'s verdicts stand, so report what the plan has become against what
+was asked and stop, because re-scoping is the user's. **Run the same comparison the other way as well, since a
+plan stops matching a request by falling SHORT of it too**: ask whether what has landed plus what remains ADDS
+UP to the goal, each item being an instance of it saying nothing about whether the sum is it.
+**That direction re-opens rather than halts** — the shortfall is the loop's own filing rather than anything
+the user has to re-scope, so every piece the goal is not true without goes through *Fold vs. file* as a
+finding of this item — whether it was ever filed or not, since the commonest shortfall is work nobody filed
+anywhere — and comes back in.
 
-**8. Follow-ups filed out of this arc — and this one reads the TRACKER, where a finding can sit looking handled.** Every issue filed **out of** this arc — the loop's own filings under *Fold vs. file*, and those its dispatchers filed under the same follow-up-ownership rule, an implementer having no filing disposition of its own — goes back through *Fold vs. file* whenever its `Follows #<N>` or `Part of #<umbrella>` names a live arc. **Who filed it does not narrow this**, and **filing is how a finding is tracked, not how it is disposed of**: the tree may since have answered it. **Three things go on the desk beside each item before its verdict is re-run, since re-asking the same reader holding the same summary returns the same answer however wrong it was.** **Re-run the recorded reason exactly as written** — a reason that no longer holds is the finding, and one that cannot be written falsifiably at all is the finding twice over. **A reason merely recorded before that bar is neither, so re-record it to the bar as you re-verdict it here** — this item runs on every item filed out of a live arc every cycle, so that population drains rather than firing one flag apiece saying only that it predates the bar, true of all of them and distinguishing none. **An item filed before a coordinate was asked for takes the same path: add the file, symbol or route from the tree as you re-verdict it**, since the finding one clause down is a repair you can make with the tree open and re-fires every cycle until somebody does. **Intersect the files the issue names against the `Owns` of the increment this cycle merged, and its symbols and routes against what those files now hold** — a hit there says the tree has moved under the item, which is the question one clause up rather than a fresh one. **And past the horizon compare area alone, recording a match as a re-intersection SCHEDULED against the plan item it matched, never a verdict** — shape depth carries no owned-file list by design (`skills/glossary/vocabulary/grounding-depth.md`), so an intersection demanded against it either finds nothing to compare and returns an uninformative green or is satisfied by grounding the plan early, rebuilding as a checklist step the one defect this loop exists to prevent. **The disqualifying intersection is the HORIZON's, and step 1 is where it runs**, the one moment those `Owns` are real and the item can still fold before anything dispatches; a match scheduled here is discharged there. **A green disqualifies nothing and confirms nothing** — it failed to disqualify, and the recorded claim's re-run is what tests the verdict. **And an issue naming no file, symbol or route at all is itself the finding**, its reason unfalsifiable by construction.
+**8. Follow-ups filed out of this arc — and this one reads the TRACKER, where a finding can sit looking
+handled.** Every issue filed **out of** this arc — the loop's own filings under *Fold vs. file*, and those its
+dispatchers filed under the same follow-up-ownership rule, an implementer having no filing disposition of its
+own — goes back through *Fold vs. file* whenever its `Follows #<N>` or `Part of #<umbrella>` names a live arc.
+**Who filed it does not narrow this**, and **filing is how a finding is tracked, not how it is disposed of**:
+the tree may since have answered it. **Three things go on the desk beside each item before its verdict is
+re-run, since re-asking the same reader holding the same summary returns the same answer however wrong it
+was.** **Re-run the recorded reason exactly as written** — a reason that no longer holds is the finding, and
+one that cannot be written falsifiably at all is the finding twice over.
+**A reason merely recorded before that bar is neither, so re-record it to the bar as you re-verdict it here**
+— this item runs on every item filed out of a live arc every cycle, so that population drains rather than
+firing one flag apiece saying only that it predates the bar, true of all of them and distinguishing none.
+**An item filed before a coordinate was asked for takes the same path: add the file, symbol or route from the
+tree as you re-verdict it**, since the finding one clause down is a repair you can make with the tree open and
+re-fires every cycle until somebody does. **Intersect the files the issue names against the `Owns` of the
+increment this cycle merged, and its symbols and routes against what those files now hold** — a hit there says
+the tree has moved under the item, which is the question one clause up rather than a fresh one.
+**And past the horizon compare area alone, recording a match as a re-intersection SCHEDULED against the plan
+item it matched, never a verdict** — shape depth carries no owned-file list by design
+(`skills/glossary/vocabulary/grounding-depth.md`), so an intersection demanded against it either finds nothing
+to compare and returns an uninformative green or is satisfied by grounding the plan early, rebuilding as a
+checklist step the one defect this loop exists to prevent. **The disqualifying intersection is the HORIZON's,
+and step 1 is where it runs**, the one moment those `Owns` are real and the item can still fold before
+anything dispatches; a match scheduled here is discharged there. **A green disqualifies nothing and confirms
+nothing** — it failed to disqualify, and the recorded claim's re-run is what tests the verdict.
+**And an issue naming no file, symbol or route at all is itself the finding**, its reason unfalsifiable by
+construction.
 
-**9. The seam map — this one reads the artifact the loop itself CARRIES between cycles.** Take the arc's contract-seam map, which *Rewriting the plan* keeps in the umbrella body, and ask of every seam what the increment did: **closed** it by landing both halves — strike it and say so, since a row that stops appearing is unreadable afterwards; **moved one half without the other**, a live break and forced work under *Revealed forced work*; or **opened** a new one. Then re-read the whole union with this cycle's seams added, not only the rows this increment touched. A seam row is *producer → consumer → the shape between them → what the consumer does with it*, and it is finished only once that last part is answered.
+**9. The seam map — this one reads the artifact the loop itself CARRIES between cycles.** Take the arc's
+contract-seam map, which *Rewriting the plan* keeps in the umbrella body, and ask of every seam what the
+increment did: **closed** it by landing both halves — strike it and say so, since a row that stops appearing
+is unreadable afterwards; **moved one half without the other**, a live break and forced work under *Revealed
+forced work*; or **opened** a new one. Then re-read the whole union with this cycle's seams added, not only
+the rows this increment touched. A seam row is *producer → consumer → the shape between them → what the
+consumer does with it*, and it is finished only once that last part is answered.
 
-**10. What the increment's own agents said — the only item that reads a REPORT rather than an artifact.** Every item above interrogates the plan, the tree, the request, the tracker or the seam map, all of which outlive the run. The hand-backs do not: **an implementer's context dies with the implementer**, and the hand-back is the whole of what survives it. Read each one for the ambiguities it flagged, the follow-ups it filed, its per-doc verdicts — and above all **the review pass's `Rejected` list, which is by construction a list of things somebody noticed and chose not to do.** That list is routed up to the dispatcher deliberately and is consumed nowhere; item 8 cannot catch it, because a rejected finding was never filed. **Read the merged diffs beside it**: a straggler that looked proportionate inside one slice is often only visible once the slices are stacked, which is this seat's advantage and no implementer's.
+**10. What the increment's own agents said — the only item that reads a REPORT rather than an artifact.**
+Every item above interrogates the plan, the tree, the request, the tracker or the seam map, all of which
+outlive the run. The hand-backs do not: **an implementer's context dies with the implementer**, and the
+hand-back is the whole of what survives it. Read each one for the ambiguities it flagged, the follow-ups it
+filed, its per-doc verdicts — and above all **the review pass's `Rejected` list, which is by construction a
+list of things somebody noticed and chose not to do.** That list is routed up to the dispatcher deliberately
+and is consumed nowhere; item 8 cannot catch it, because a rejected finding was never filed.
+**Read the merged diffs beside it**: a straggler that looked proportionate inside one slice is often only
+visible once the slices are stacked, which is this seat's advantage and no implementer's.
 
-**Write the outcome down even when it is empty** — a cycle that found nothing and a cycle where nobody ran the checklist produce identical plans. **Write two *Adjacent* numbers into that same record every cycle, once this cycle's dispositions are made: how many items are still *Adjacent*, and how many CYCLES the oldest of them has been** — one filing a cycle reads as discipline, and a count alone reads as steady state where the age reads as accumulation. **Both are the loop's own to count rather than the tracker's to report**, since the tracker carries no *Adjacent* marker and no notion of a cycle: take the count from the verdicts this loop has recorded, and the age from the increment comments the umbrella has carried since that issue was filed. **The cycle's RATE comes off this same walk and adds no step to it** — item 8 is already reading every issue filed out of this arc, so gather the counts as you go, and let that read cover CLOSED issues as well as open (`--state all`), since a closed one has left the re-disposition set and would otherwise be invisible to the very count it belongs in. **Gathered here, defined there**: *Rewriting the plan* fixes the population, the window and the net's sign, and restating them here is how the two seats drift into counting different things. Each item then goes through *Fold vs. file*, which opens by establishing *why the thing is the way it is*: everything above produces findings, none of it explanations.
+**Write the outcome down even when it is empty** — a cycle that found nothing and a cycle where nobody ran the
+checklist produce identical plans. **Write two *Adjacent* numbers into that same record every cycle, once this
+cycle's dispositions are made: how many items are still *Adjacent*, and how many CYCLES the oldest of them has
+been** — one filing a cycle reads as discipline, and a count alone reads as steady state where the age reads
+as accumulation. **Both are the loop's own to count rather than the tracker's to report**, since the tracker
+carries no *Adjacent* marker and no notion of a cycle: take the count from the verdicts this loop has
+recorded, and the age from the increment comments the umbrella has carried since that issue was filed.
+**The cycle's RATE comes off this same walk and adds no step to it** — item 8 is already reading every issue
+filed out of this arc, so gather the counts as you go, and let that read cover CLOSED issues as well as open
+(`--state all`), since a closed one has left the re-disposition set and would otherwise be invisible to the
+very count it belongs in. **Gathered here, defined there**: *Rewriting the plan* fixes the population, the
+window and the net's sign, and restating them here is how the two seats drift into counting different things.
+Each item then goes through *Fold vs. file*, which opens by establishing *why the thing is the way it is*:
+everything above produces findings, none of it explanations.
 
 ## Fold vs. file
 
-**Establish why a thing is the way it is before you disposition it — this gates everything below.** Trace what looks wrong to what made it that way: the constraint it satisfies, the consumer it exists for, the commit that put it there. **If it has a valid reason and is idiomatic for its context, leave it and record that you checked**; only then fix, raise or file.
+**Establish why a thing is the way it is before you disposition it — this gates everything below.** Trace what
+looks wrong to what made it that way: the constraint it satisfies, the consumer it exists for, the commit that
+put it there. **If it has a valid reason and is idiomatic for its context, leave it and record that you
+checked**; only then fix, raise or file.
 
 **Then the first question is not where the item goes — it is whether it is yours to settle at all.**
 
-- **I can reason out an answer myself → settle it.** **This is the default, and most findings land here** — an existing pattern, a convention `AGENTS.md` states, a plainly obvious default. Write the answer and what it rests on into the cycle's record. **Settling means answering the question, not writing the code**; where it implies work, the placement test places that.
-- **It genuinely needs the user → ask, with the reasoning already done** — a product or design decision the code and conventions cannot settle, the only class that reaches the user as a question, at the bar `skills/orchestrate/SKILL.md`'s *The decide-don't-ask bar* sets.
-- **The scope is genuinely an arc in its own right → file it, saying ON THE ISSUE that it wants a co-think before it is executed — but only where the placement test below has already cleared it.** That note rides with the work rather than coming back as a question, since the bar above leaves no route for a filing to reach the user as one. **Size answers how work is CARRIED, never whether it is IN**, so an item this arc's goal is not true without stays in however large it is: filing neither makes the arc shippable nor makes its goal true, and a forced item too big for the plan it was written into is reported as the plan defect it is — the arc planned smaller than its goal — with the re-plan recommended.
+- **I can reason out an answer myself → settle it.** **This is the default, and most findings land here** — an
+  existing pattern, a convention `AGENTS.md` states, a plainly obvious default. Write the answer and what it
+  rests on into the cycle's record. **Settling means answering the question, not writing the code**; where it
+  implies work, the placement test places that.
+- **It genuinely needs the user → ask, with the reasoning already done** — a product or design decision the
+  code and conventions cannot settle, the only class that reaches the user as a question, at the bar
+  `skills/orchestrate/SKILL.md`'s *The decide-don't-ask bar* sets.
+- **The scope is genuinely an arc in its own right → file it, saying ON THE ISSUE that it wants a co-think
+  before it is executed — but only where the placement test below has already cleared it.** That note rides
+  with the work rather than coming back as a question, since the bar above leaves no route for a filing to
+  reach the user as one. **Size answers how work is CARRIED, never whether it is IN**, so an item this arc's
+  goal is not true without stays in however large it is: filing neither makes the arc shippable nor makes its
+  goal true, and a forced item too big for the plan it was written into is reported as the plan defect it is —
+  the arc planned smaller than its goal — with the re-plan recommended.
 
-**Only what survives reaches the placement test, where the original question decides: is the arc's stated GOAL true without it?**
+**Only what survives reaches the placement test, where the original question decides: is the arc's stated GOAL
+true without it?**
 
-- **Forced** — the goal the arc was filed for is not achieved without it. **Fold it in** as a *named slice with its own wave*, sized and placed like any other. **A fold takes a checklist line in the umbrella body and no NEW number** — the body is the live remaining plan and this loop re-reads it every cycle, so the item is already tracked and a number bought for tracking alone buys nothing. **A placeholder sub-issue is the exception, on one test: the item needs what a line cannot carry, an assignee of its own or a close of its own.** **The rule is *not yet*, never *never*** — a folded item takes its sub-issue when the horizon reaches it and it is ground to slice depth, like every other slice there. **An item folded out of *Adjacent* already HAS a number: it keeps it**, its checklist line links that issue like any other child, and the issue becomes the slice's own when the horizon reaches it rather than a second one being cut beside it.
-- **Adjacent** — the goal is fully met without it **and it is genuinely a DIFFERENT ARC**. **File it and link it**, per `/pipeline:write-issue`, and track it as its own arc; never fold it. ⚠️ **This is the narrow verdict, not the convenient one, and *different arc* is narrower than both *separable* and *real work worth doing*** — either of those read as the bar turns every finding into a number on somebody's board. *Adjacent* costs a whole unit of work — a worktree, a PR, a gate — where folding costs an edit, so the bar is that the item is genuinely another arc, not merely separable. **What is neither forced nor a different arc becomes a LINE IN THE PLAN for a later arc rather than a number on the board**, since a number bought for work nobody is carrying yet is the filing that turns a run into somebody's inbox. **Say what you filed and why in the cycle's record**, since filing is the one disposition that leaves the loop's hands. **Record that why as a falsifiable claim about the TREE — what it was measured against, and the instrument that measured it — since a verdict recorded without one cannot be re-examined, only re-performed. Write it onto the ISSUE as well, which is the surface the next cycle actually reads.** That is the shape this corpus already holds a negative to, a verify bar's *negative* naming the baseline it was measured against and a grounding claim naming what established it: *no file this issue names appears in any horizon slice's `Owns`, by intersection at `<sha>`* is a claim a later cycle can run and find false, where *island plumbing rather than scope* characterises the item rather than the tree and re-reads as reasonable forever. **The default instrument is the intersection the checklist already runs** — the files, symbols and routes the item names, against the horizon's `Owns` — so a first verdict is measured the way every later one re-tests it. **Which means the issue you file names at least one of those three, and so does a comment onto an issue already carrying the failure** — the narrowest thing that intersection is ever handed, since a comment records only what is new about the observation. **A reason that cannot be written that way is itself the finding.**
+- **Forced** — the goal the arc was filed for is not achieved without it. **Fold it in** as a *named slice
+  with its own wave*, sized and placed like any other. **A fold takes a checklist line in the umbrella body
+  and no NEW number** — the body is the live remaining plan and this loop re-reads it every cycle, so the item
+  is already tracked and a number bought for tracking alone buys nothing.
+  **A placeholder sub-issue is the exception, on one test: the item needs what a line cannot carry, an
+  assignee of its own or a close of its own.** **The rule is *not yet*, never *never*** — a folded item takes
+  its sub-issue when the horizon reaches it and it is ground to slice depth, like every other slice there.
+  **An item folded out of *Adjacent* already HAS a number: it keeps it**, its checklist line links that issue
+  like any other child, and the issue becomes the slice's own when the horizon reaches it rather than a second
+  one being cut beside it.
+- **Adjacent** — the goal is fully met without it **and it is genuinely a DIFFERENT ARC**.
+  **File it and link it**, per `/pipeline:write-issue`, and track it as its own arc; never fold it. ⚠️
+  **This is the narrow verdict, not the convenient one, and *different arc* is narrower than both *separable*
+  and *real work worth doing*** — either of those read as the bar turns every finding into a number on
+  somebody's board. *Adjacent* costs a whole unit of work — a worktree, a PR, a gate — where folding costs an
+  edit, so the bar is that the item is genuinely another arc, not merely separable.
+  **What is neither forced nor a different arc becomes a LINE IN THE PLAN for a later arc rather than a number
+  on the board**, since a number bought for work nobody is carrying yet is the filing that turns a run into
+  somebody's inbox. **Say what you filed and why in the cycle's record**, since filing is the one disposition
+  that leaves the loop's hands. **Record that why as a falsifiable claim about the TREE — what it was measured
+  against, and the instrument that measured it — since a verdict recorded without one cannot be re-examined,
+  only re-performed. Write it onto the ISSUE as well, which is the surface the next cycle actually reads.**
+  That is the shape this corpus already holds a negative to, a verify bar's *negative* naming the baseline it
+  was measured against and a grounding claim naming what established it: *no file this issue names appears in
+  any horizon slice's `Owns`, by intersection at `<sha>`* is a claim a later cycle can run and find false,
+  where *island plumbing rather than scope* characterises the item rather than the tree and re-reads as
+  reasonable forever. **The default instrument is the intersection the checklist already runs** — the files,
+  symbols and routes the item names, against the horizon's `Owns` — so a first verdict is measured the way
+  every later one re-tests it. **Which means the issue you file names at least one of those three, and so does
+  a comment onto an issue already carrying the failure** — the narrowest thing that intersection is ever
+  handed, since a comment records only what is new about the observation.
+  **A reason that cannot be written that way is itself the finding.**
 
-Run it in the arc's direction — "is the goal true without this?" — never the item's: **filing something actually forced ships an arc that does not build, or closes one that never did what it was filed for.**
+Run it in the arc's direction — "is the goal true without this?" — never the item's:
+**filing something actually forced ships an arc that does not build, or closes one that never did what it was
+filed for.**
 
-**Compiling, passing and shipping are the FLOOR of that question rather than the bar.** An arc whose goal is *this class of defect stops happening* builds, passes and ships perfectly well without the check that stops it recurring, so read the goal in the words the issue states it in and fold whatever it is not true without, red branch or green. **A milestone, a release line, a shared label or a sibling issue is none of it a substitute** — each puts the work beside the arc without making the arc's goal true, so *out of the arc but shipping alongside it* is the *Adjacent* verdict wearing a softer word, and takes that verdict's narrow bar.
+**Compiling, passing and shipping are the FLOOR of that question rather than the bar.** An arc whose goal is
+*this class of defect stops happening* builds, passes and ships perfectly well without the check that stops it
+recurring, so read the goal in the words the issue states it in and fold whatever it is not true without, red
+branch or green. **A milestone, a release line, a shared label or a sibling issue is none of it a substitute**
+— each puts the work beside the arc without making the arc's goal true, so *out of the arc but shipping
+alongside it* is the *Adjacent* verdict wearing a softer word, and takes that verdict's narrow bar.
 
-**Read *Adjacent*'s two conditions in order, because the first one gates**: weigh an item for size only once the goal is met without it, since *genuinely an arc in its own right* read first turns every heavy forced item into a filing and leaves the arc closing green with the work its goal needed outstanding behind it. **Forced AND genuinely an arc in its own right at once is a plan defect rather than a verdict** — the arc was planned smaller than its goal — so the work comes in as phases of this arc, and where that changes what the arc IS the loop halts and reports with the re-plan recommended.
+**Read *Adjacent*'s two conditions in order, because the first one gates**: weigh an item for size only once
+the goal is met without it, since *genuinely an arc in its own right* read first turns every heavy forced item
+into a filing and leaves the arc closing green with the work its goal needed outstanding behind it.
+**Forced AND genuinely an arc in its own right at once is a plan defect rather than a verdict** — the arc was
+planned smaller than its goal — so the work comes in as phases of this arc, and where that changes what the
+arc IS the loop halts and reports with the re-plan recommended.
 
-**Judge the piece the goal needs, not the pile it was found in — split a mixed item at the goal boundary BEFORE the verdict.** Findings arrive mixed: the one thing that completes the goal — the check, the guard, the last consumer migrated — sitting beside a large adjacent body it touches, the pre-existing instances or the callers nobody has moved. Weighed whole, the pile decides for the piece and the half the arc cannot close without leaves with it; split, each half gets the verdict it earns.
+**Judge the piece the goal needs, not the pile it was found in — split a mixed item at the goal boundary
+BEFORE the verdict.** Findings arrive mixed: the one thing that completes the goal — the check, the guard, the
+last consumer migrated — sitting beside a large adjacent body it touches, the pre-existing instances or the
+callers nobody has moved. Weighed whole, the pile decides for the piece and the half the arc cannot close
+without leaves with it; split, each half gets the verdict it earns.
 
-**An *Adjacent* verdict says the item gets filed; it does not say it needs a NEW number.** Before the create call, search what is already filed — keyed on the failure **shape** rather than the item's words, and over closed issues as well as open (`--state all`). An open issue already carrying the failure takes the observation as a comment; a closed one makes the item a **regression** only where the fix that closed it is present in the copy the failure was observed in — absent, it is version skew and nothing is filed, and where neither is established the item says so rather than picking.
+**An *Adjacent* verdict says the item gets filed; it does not say it needs a NEW number.** Before the create
+call, search what is already filed — keyed on the failure **shape** rather than the item's words, and over
+closed issues as well as open (`--state all`). An open issue already carrying the failure takes the
+observation as a comment; a closed one makes the item a **regression** only where the fix that closed it is
+present in the copy the failure was observed in — absent, it is version skew and nothing is filed, and where
+neither is established the item says so rather than picking.
 
-**A verdict is final for the item; the sum is what gets re-examined** — the checklist's *Scope drift* binds the **aggregate** only, and its *Follow-ups filed out of this arc* re-tests the per-item verdict against a moved tree and the evidence that moved it, so *Adjacent* is this cycle's disposition rather than a discharge.
+**A verdict is final for the item; the sum is what gets re-examined** — the checklist's *Scope drift* binds
+the **aggregate** only, and its *Follow-ups filed out of this arc* re-tests the per-item verdict against a
+moved tree and the evidence that moved it, so *Adjacent* is this cycle's disposition rather than a discharge.
 
-**Three costs sit under this. The third is the one that decides most items and it runs the other way**: a filed item becomes **its own task, with its own worktree, its own PR and its own full gate**. Inside the arc that work is marginal — the tree is open, the context is loaded, the gate is running anyway. Outside it, it is a whole unit of work, and the gate is a real serialized cost this loop already sizes waves against. The other two are that an arc absorbing everything never terminates, and that **filing moves the reasoning from the run with the tree open to a human without it**, a channel the close-out's pipeline-finding question also feeds.
+**Three costs sit under this. The third is the one that decides most items and it runs the other way**: a
+filed item becomes **its own task, with its own worktree, its own PR and its own full gate**. Inside the arc
+that work is marginal — the tree is open, the context is loaded, the gate is running anyway. Outside it, it is
+a whole unit of work, and the gate is a real serialized cost this loop already sizes waves against. The other
+two are that an arc absorbing everything never terminates, and that **filing moves the reasoning from the run
+with the tree open to a human without it**, a channel the close-out's pipeline-finding question also feeds.
 
-**And folding is not absorbing without scrutiny — it is routing INTO scrutiny.** A folded item becomes an item in the remaining plan, so the next cycle grounds it through `/pipeline:ground`, whose own job is to validate the plan, fill what it can and escalate what it cannot. Filing removes it from that entirely: the conversation that would have happened at the next grounding never happens, and the item resurfaces later against a cold tree. So **fold is the default**, and the non-termination worry is answered by the fact that absorbed work still has to survive grounding, which can hand it back out.
+**And folding is not absorbing without scrutiny — it is routing INTO scrutiny.** A folded item becomes an item
+in the remaining plan, so the next cycle grounds it through `/pipeline:ground`, whose own job is to validate
+the plan, fill what it can and escalate what it cannot. Filing removes it from that entirely: the conversation
+that would have happened at the next grounding never happens, and the item resurfaces later against a cold
+tree. So **fold is the default**, and the non-termination worry is answered by the fact that absorbed work
+still has to survive grounding, which can hand it back out.
 
-**When they conflict, lean toward settling**, since non-termination is visible from inside the loop and backlog transfer is not; **settling is not absorbing**, producing a *decision* where folding produces a *slice*. **Whatever you file or ask carries the reasoning and a recommendation, not a fork.**
+**When they conflict, lean toward settling**, since non-termination is visible from inside the loop and
+backlog transfer is not; **settling is not absorbing**, producing a *decision* where folding produces a
+*slice*. **Whatever you file or ask carries the reasoning and a recommendation, not a fork.**
 
-**A filed item leaves the loop's hands only by being handed to a person — an ownership transfer the close-out records, never a decision put to the user mid-run, which the decide-don't-ask bar leaves no route for.** It is the same class that bar already names, reached through the issue channel rather than the chat one, and never a second class beside it. That class has four shapes: a design decision the arc never discussed; a frozen-contract change, or anything else needing re-agreement first; an irreversible or destructive change; and work whose scope is the user's to size. **Everything outside them the loop carries, for as long as it runs**, and an item still *Adjacent* when the plan empties simply leaves as its own tracked arc — so the close-out says which of the two states, **handed over** or **left as its own arc**, a surviving follow-up is in.
+**A filed item leaves the loop's hands only by being handed to a person — an ownership transfer the close-out
+records, never a decision put to the user mid-run, which the decide-don't-ask bar leaves no route for.** It is
+the same class that bar already names, reached through the issue channel rather than the chat one, and never a
+second class beside it. That class has four shapes: a design decision the arc never discussed; a
+frozen-contract change, or anything else needing re-agreement first; an irreversible or destructive change;
+and work whose scope is the user's to size. **Everything outside them the loop carries, for as long as it
+runs**, and an item still *Adjacent* when the plan empties simply leaves as its own tracked arc — so the
+close-out says which of the two states, **handed over** or **left as its own arc**, a surviving follow-up is
+in.
 
 Two riders:
 
-- **"Filed" means filed — and *linked* is one act or two.** **The relation decides which: `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership rule binds this loop as it binds a dispatcher, the two seats that file — **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native call is `skills/glossary/mechanics/sub-issue-link.md`.
-- **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`).
-- **That rule is about SCOPE, and reading it as *a live brief cannot be touched* is how a one-line correction turns into a killed agent.** A live slice whose brief states a wrong **fact** — a number, a path, a name — has not grown and is not diverging; it is working correctly to a premise that is wrong, and the answer is a message to the agent carrying the corrected value. Reserve the stop for the case this rule actually describes, where the scope itself has moved.
+- **"Filed" means filed — and *linked* is one act or two.** **The relation decides which:
+  `Part of #<umbrella>` is containment and takes the body backlink AND the native `sub_issues` POST, while a
+  bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership
+  rule binds this loop as it binds a dispatcher, the two seats that file —
+  **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native
+  call is `skills/glossary/mechanics/sub-issue-link.md`.
+- **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one
+  named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence
+  the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`).
+- **That rule is about SCOPE, and reading it as *a live brief cannot be touched* is how a one-line correction
+  turns into a killed agent.** A live slice whose brief states a wrong **fact** — a number, a path, a name —
+  has not grown and is not diverging; it is working correctly to a premise that is wrong, and the answer is a
+  message to the agent carrying the corrected value. Reserve the stop for the case this rule actually
+  describes, where the scope itself has moved.
 
 ## Where folded work goes — merge surface outranks slice cohesion
 
-One ordered criterion, ordered rather than balanced: **merge surface first, slice cohesion only as a tiebreaker between placements with the same merge surface.** Cohesion putting an item with the live slice that owns its module loses to a merge surface forty files wide.
+One ordered criterion, ordered rather than balanced: **merge surface first, slice cohesion only as a
+tiebreaker between placements with the same merge surface.** Cohesion putting an item with the live slice that
+owns its module loses to a merge surface forty files wide.
 
-**Churn discovered mid-arc goes in a serial wave — one slice, nothing else in flight.** Parallel slices fork from different bases, so a large-footprint change beside them merges textually clean and semantically wrong; and where the shared shape is a **runtime string** — a query key, a table name, a route, a config key — it does not fail to compile at all, splitting one cache entry into two while every gate stays green.
+**Churn discovered mid-arc goes in a serial wave — one slice, nothing else in flight.** Parallel slices fork
+from different bases, so a large-footprint change beside them merges textually clean and semantically wrong;
+and where the shared shape is a **runtime string** — a query key, a table name, a route, a config key — it
+does not fail to compile at all, splitting one cache entry into two while every gate stays green.
 
-**Nothing folded ever joins a wave already dispatched, whatever its size** — a fold is bulk new work rather than the one named path a dispatcher can grant onto a live fence. A small fold is fine in the *next* wave, never the live one.
+**Nothing folded ever joins a wave already dispatched, whatever its size** — a fold is bulk new work rather
+than the one named path a dispatcher can grant onto a live fence. A small fold is fine in the *next* wave,
+never the live one.
 
 ## Rewriting the plan
 
-**The umbrella (`skills/glossary/vocabulary/umbrella.md`) issue body carries the live remaining plan, rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite. **Keep the later-arc lines in a block of their OWN beside that plan, and say on it that the termination test does not read it** — a deferred line filed into the remaining plan blocks an arc that is otherwise done, and one left with no surface at all is dropped at close-out with nothing recording that it was ever noted. **One comment per completed increment records what landed, what it invalidated, that cycle's two *Adjacent* numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there because the age of the oldest is counted in those comments.
+**The umbrella (`skills/glossary/vocabulary/umbrella.md`) issue body carries the live remaining plan,
+rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding
+depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite.
+**Keep the later-arc lines in a block of their OWN beside that plan, and say on it that the termination test
+does not read it** — a deferred line filed into the remaining plan blocks an arc that is otherwise done, and
+one left with no surface at all is dropped at close-out with nothing recording that it was ever noted.
+**One comment per completed increment records what landed, what it invalidated, that cycle's two *Adjacent*
+numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there
+because the age of the oldest is counted in those comments.
 
-**The rate is three more numbers — filed this cycle, closed this cycle, and the NET, which is FILED MINUS CLOSED, so a positive net is the backlog GROWING and a negative one is it shrinking.** Write the sign out that way in the comment rather than leaving the subtraction to be inferred. **Both counts run over ONE population and ONE window, and getting either wrong inverts the net.** The population is every issue filed out of this arc — this loop's own *Adjacent* filings and its dispatchers' alike, exactly the set item 8 walks, since a *filed* count drawn narrower than the *closed* count it is subtracted from scores a cycle flat while the level it is meant to explain climbs. The window is **since the previous increment comment**, so *closed this cycle* is how many of that population have closed since then and never how many stand closed in total, a running total being a subtrahend that grows forever and reports a backlog shrinking while it grows. **Write all three every cycle even where the arc filed nothing and closed nothing**, since a level and an age say how much is standing and how long it has stood but never which way it is moving, and `skills/orchestrate/SKILL.md`'s fifth exit reads the rate rather than the level.
+**The rate is three more numbers — filed this cycle, closed this cycle, and the NET, which is FILED MINUS
+CLOSED, so a positive net is the backlog GROWING and a negative one is it shrinking.** Write the sign out that
+way in the comment rather than leaving the subtraction to be inferred.
+**Both counts run over ONE population and ONE window, and getting either wrong inverts the net.** The
+population is every issue filed out of this arc — this loop's own *Adjacent* filings and its dispatchers'
+alike, exactly the set item 8 walks, since a *filed* count drawn narrower than the *closed* count it is
+subtracted from scores a cycle flat while the level it is meant to explain climbs. The window is
+**since the previous increment comment**, so *closed this cycle* is how many of that population have closed
+since then and never how many stand closed in total, a running total being a subtrahend that grows forever and
+reports a backlog shrinking while it grows. **Write all three every cycle even where the arc filed nothing and
+closed nothing**, since a level and an age say how much is standing and how long it has stood but never which
+way it is moving, and `skills/orchestrate/SKILL.md`'s fifth exit reads the rate rather than the level.
 
-**The body carries one more piece of arc state, and the loop is the only pass positioned to hold it: the arc's contract-seam map, a running union rather than a per-cycle re-derivation.** Seed it from the issue body's `Seams` field, grow it with each cycle's breakdown, keep it in the **body** beside the plan, never assembled from the comment thread; a closed seam leaves it and *The seam map* records why.
+**The body carries one more piece of arc state, and the loop is the only pass positioned to hold it: the arc's
+contract-seam map, a running union rather than a per-cycle re-derivation.** Seed it from the issue body's
+`Seams` field, grow it with each cycle's breakdown, keep it in the **body** beside the plan, never assembled
+from the comment thread; a closed seam leaves it and *The seam map* records why.
 
-Read the issue with `gh issue view <N> --comments`; write the rewritten body and each increment comment through the `gh api` REST endpoints, passing a body read from a file with `--field`, never `--raw-field` — only `--field` expands a leading `@` into the file's contents, and the raw form stores the path and **exits 0 with a comment URL**.
+Read the issue with `gh issue view <N> --comments`; write the rewritten body and each increment comment
+through the `gh api` REST endpoints, passing a body read from a file with `--field`, never `--raw-field` —
+only `--field` expands a leading `@` into the file's contents, and the raw form stores the path and
+**exits 0 with a comment URL**.
 
-**In-chat, with no issue,** the plan and the seam map are **restated in full each cycle** rather than referred back to; past roughly two increments, file an umbrella.
+**In-chat, with no issue,** the plan and the seam map are **restated in full each cycle** rather than referred
+back to; past roughly two increments, file an umbrella.

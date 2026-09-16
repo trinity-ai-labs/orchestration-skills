@@ -1,44 +1,233 @@
 # AGENTS.md
 
-Conventions for anyone — human or agent — working in this repo. `.agents/worktree.json`'s `briefConventions` points here.
+Conventions for anyone — human or agent — working in this repo. `.agents/worktree.json`'s `briefConventions`
+points here.
 
-**State a rule where its reader acts, in as many places as there are readers — but a DEFINITION has one home.** A skill that has to reach into another skill to explain a rule is not finished: restate what its reader needs and stop. Two copies of a rule that drift is a smaller problem than a rule nobody reaches, and every citation across skills is one more thing to keep true. **A definition is the opposite case and the line is what the sentence CLAIMS**: what a thing *is* is identical for every pass and owned by none of them, so copies drift with nothing able to make them agree; what a stance *does* about it differs per stance and is restated. So a shared term is defined once in `skills/glossary/` and cited directly from wherever it is used, and the rule built on it stays where its reader acts. **A GROUND RULE is the second edge, and it is the same argument one level over**: a rule whose statement is identical at every seat has no per-seat form to restate, which is the only thing that would keep N copies honest, so it is stated once in `skills/ground-rules/SKILL.md`, which every pass has its reader open before acting — admitted on that test alone, since a rule that reads differently at two seats belongs at those two seats. **A PROCEDURE is the third edge and it is the same argument once more**: the steps do not change according to who runs them — the command and its flags, the order they run in, the meaning of the values it reads, the host tool that runs it, and what to verify once it has — so it is stated once in `skills/procedures/`, and what a seat DOES about the result stays a rule and stays where its reader acts. `scripts/check.sh` check 12 permits those three edges and still fails every other citation across skills, any of the three citing a pass included; it compares the cited target as a whole path segment by equality, so a fourth cannot arrive by resembling one.
+**State a rule where its reader acts, in as many places as there are readers — but a DEFINITION has one
+home.** A skill that has to reach into another skill to explain a rule is not finished: restate what its
+reader needs and stop. Two copies of a rule that drift is a smaller problem than a rule nobody reaches, and
+every citation across skills is one more thing to keep true. **A definition is the opposite case and the line
+is what the sentence CLAIMS**: what a thing *is* is identical for every pass and owned by none of them, so
+copies drift with nothing able to make them agree; what a stance *does* about it differs per stance and is
+restated. So a shared term is defined once in `skills/glossary/` and cited directly from wherever it is used,
+and the rule built on it stays where its reader acts. **A GROUND RULE is the second edge, and it is the same
+argument one level over**: a rule whose statement is identical at every seat has no per-seat form to restate,
+which is the only thing that would keep N copies honest, so it is stated once in
+`skills/ground-rules/SKILL.md`, which every pass has its reader open before acting — admitted on that test
+alone, since a rule that reads differently at two seats belongs at those two seats.
+**A PROCEDURE is the third edge and it is the same argument once more**: the steps do not change according to
+who runs them — the command and its flags, the order they run in, the meaning of the values it reads, the host
+tool that runs it, and what to verify once it has — so it is stated once in `skills/procedures/`, and what a
+seat DOES about the result stays a rule and stays where its reader acts. `scripts/check.sh` check 12 permits
+those three edges and still fails every other citation across skills, any of the three citing a pass included;
+it compares the cited target as a whole path segment by equality, so a fourth cannot arrive by resembling one.
 
 ## Conventions
 
-- This repo is PUBLIC — anything committed is readable by anyone, so never commit a client or engagement name, a real home path from a private machine, or any identifier belonging to a subject; worked examples in the skills stay generic.
-- **If you cannot state a rule in one line, it is not a rule yet**, and **a reader must be able to act on it without opening anything else.** **Name the failure a rule prevents in a clause that shares its sentence with the action, never in a sentence or a paragraph of its own.** That is the whole boundary, and it is a PROPERTY rather than a list of phrasings: a failure given its own grammatical home is a war story however it is worded, and one carried as a clause of an actionable rule is wanted however it is worded. The test is mechanical — read the sentence or paragraph the failure sits in and ask what the reader is to DO; a unit that carries no action has promoted the failure, and it comes out. `scripts/check.sh` check 11 catches a handful of phrasings that perform that promotion, and it is a **BACKSTOP that does not claim to be the rule**: an enumerated ban is satisfied by every form it omits, so a green there says those phrasings are absent and nothing more. Adjudicate against the property; where you cannot tell, leave it out. **Adding phrasings to that pattern is not how it improves** — the next war story is written in the next shape, and a longer list only makes the green look better. **The war story goes in the PR that fixes it — and so does the link to it.** A tracker coordinate in a skill is an instruction to go read an issue mid-task: obeyed it derails the run, ignored it leaves an agent acting on a rule it does not understand, and both are worse than the rule being absent. So a skill carries the rule and nothing else — no session anecdote, no release number, no commit SHA, no sighting count, and **no issue number**, which `scripts/check.sh` check 9 now fails on rather than validates.
-- **Two ceilings, both `wc -w` over every `*.md` file under `skills/` that git lists as tracked OR untracked-and-not-ignored — a new skill not yet `git add`ed being exactly what these ceilings exist to weigh — enforced at `scripts/check.sh` check 10: no single file over 30,000 words, and no sub-skill — one `skills/<slug>/` spine plus its own references, which is what an agent actually loads — over 50,000.** They are BACKSTOPS, not budgets: the pair catches runaway growth in what one read costs rather than rationing prose, and **the headroom is deliberately not stated as a fraction here** — it moves with every release that adds prose and check 10 prints each sub-skill's total on green, so a figure in this sentence would be a third copy of the rule with nothing measuring it. A change carrying either number over deletes, or splits a whole pass out, to make room. Extraction settles the per-file half alone; the sub-skill half counts the same words wherever they sit inside its directory. **There is no corpus-wide ceiling** — prose behind a pointer costs nothing until the pointer is followed.
-- **A `SKILL.md` is an ordered list of ACTIONS.** Each action names the reference that says how and carries the rules that fire at that action. A rule goes in the reference where the reader cannot perform the action without opening it, and stays on the step where they can — nobody opens a file to write a commit message. A rule firing at no single action goes in one short closing block. `skills/execute/SKILL.md` is the worked example.
-- **A skill cites its own references and three shared homes, and nothing else.** Unbounded cross-skill citation grew a web of references, a checker to validate it and a convention for writing it; state what your reader needs where they act instead. The three exceptions are each admitted on a property naming what has no per-seat form to restate, and the gate compares the cited target as a whole path segment by equality so that a fourth cannot arrive by resembling one: `skills/glossary/` holds a **DEFINITION** — what a thing IS, which every pass needs identically and none owns; `skills/ground-rules/` holds a **RULE whose STATEMENT is identical at every seat**; `skills/procedures/` holds a **PROCEDURE whose STEPS are identical at every seat** — a command and its flags, the order they run in, the meaning of the values it reads, the host tool that runs it, and what to verify once it has. An ordinary rule is none of the three, and it does not become citable because restating it is inconvenient: where two seats would do different things with it, it stays written at both. All three are cited and never cite back, and one of them reaching into a pass fails the gate exactly as any other cross-skill citation does. Where a shipped skill names one, use a `skills/…` path — the one form that resolves in the repo the prose is READ in, since a bare `README.md` or `AGENTS.md` in shipped prose names the reader's file, not ours.
-- **Name the unit beside a number.** `grep -c` counts lines and `grep -o | wc -l` counts occurrences; both are true over one sweep and they diverge wherever a passage names its subject twice. A count a reader checks by looking needs nothing.
-- The shipped/contributor split is a directory: everything under `bin/` SHIPS — eight files today, four helpers (`setup-worktree`, `merge-pr`, `remove-worktree`, `setup-workspace`) each shipped twice, once as `.sh` and once as `.ps1` — because Claude Code puts an enabled plugin's `bin/` on PATH for whichever shell tool it hands the user, so skills invoke those helpers bare, never by path. **That is one host's behaviour, not the rule** — Codex installs `bin/` with the rest of the plugin but puts nothing on PATH, so a helper is called by absolute path there. Shipped prose therefore names the capability and leaves resolution to `skills/procedures/host-tools.md`, the one file allowed to name a host's tools, models and paths. Which half lands on PATH depends on the shell: the Bash tool (WSL, or Git Bash on native Windows) gets the `.sh` half, but a native Windows install with no Git for Windows gets the PowerShell tool instead, where the `.sh` helpers do not exist at all — that gap is the entire reason the `.ps1` ports were written. A bug in either half is a runtime failure discovered on a user's machine at the moment of use. For the `.sh` half, they are bash, and shellcheck reads the dialect from each shebang, so the shebang is the contract and changing it changes what the gate enforces. For the `.ps1` half the equivalent guarantee is PSScriptAnalyzer — run in CI's `check` job on `ubuntu-latest`, which ships `pwsh` and the analyzer preinstalled, and locally by `scripts/check.sh` when `pwsh` is on PATH — together with the parity check that holds both languages to the same contract.
-- A `.ps1` helper DECLARES the session state it relies on rather than inheriting it, because these helpers spend a non-zero exit as a *question* throughout — `git show-ref --verify` asking whether a branch exists, `merge --ff-only` asking whether a fast-forward is possible — so a session with native-command errors switched on makes the probe itself fatal and every hand-rolled `$LASTEXITCODE` check unreachable, and nothing in the gate sees it coming: PSScriptAnalyzer does not model session state, and CI exercises one `pwsh` configuration on `ubuntu-latest`, so a break of this kind reaches the machine whose profile differs and nowhere earlier. These scripts run in a child scope of whatever session invoked them, so a preference variable set in a user's profile is in force inside them — which is why `$PSNativeCommandUseErrorActionPreference` is pinned `$false` beside each helper's `$ErrorActionPreference = 'Stop'`, and why a possibly-absent JSON property is read through a `Get-JsonValue` wrapper rather than directly, since `Set-StrictMode 2.0` turns the plain form into a throw. Neither setting is part of the frozen contract below — they are internal to each script, and adding one to the parity check's contract env list would be widening the contract to describe an implementation detail.
-- Never game a guardrail — a check that fires is a signal to fix the code, not a number to route around — and this repo ships one sanctioned exception to that. `bin/setup-worktree.ps1`'s `Invoke-ProjectInstall` carries a one-function `SuppressMessageAttribute` for `PSAvoidUsingInvokeExpression`, with its reasoning in the `Justification` and in the comment above it; read those rather than a paraphrase of them here. It is load-bearing and the rule cuts both ways: do not delete it to comply with the rule, which turns CI red, and do not cite it as precedent for silencing an analyzer that found something real, which is how an unjustified suppression lands beside a justified one. The documented-exception carve-out it satisfies, and the four conditions any new suppression must meet, are defined in `skills/execute/references/implementer.md` — pointed at, not restated, because a three-condition copy here would be worse than none. The one thing to know locally: a repo-wide PSScriptAnalyzer settings-file exclusion is never the answer, since it switches the rule off everywhere and leaves nothing at the flagged code to show it was ever flagged.
-- Everything under `scripts/` is contributor-only — never loaded, never on a user's PATH — and `scripts/check.sh` is POSIX `/bin/sh` with no bashisms so it holds to the standard it enforces on `bin/`.
-- The repo is ZERO-dependency by design: no `package.json`, no lockfile, no install step, no env files. That is why a worktree here is fully functional bare, and why adding a dependency would make the gate unrunnable for anyone who has not first installed one.
-- `gate` and `scopedCheck` are the same command and there is no queue — run `sh scripts/check.sh` green yourself, then open a PR into the integration branch. **Open it as a DRAFT and stop there when nobody has authorized the merge**, since an agent that merges on its own initiative spends the only review artifact a prose repo has — no gate here can tell whether a rule is CORRECT, so the diff is the review, the reviewer flips the draft ready, and GitHub's refusal to merge a draft is the interlock against merging an unread diff. **A maintainer saying "ship it" IS that authorization, and it is not a request for a draft** — carry the same path all the way through instead: version bump, green gate, push, PR, flip it ready, merge it (merge commit, never squash), and bring the local integration branch up to the merged tip — named as an endpoint rather than left to judgement, because a draft handed back after a "ship it" wears every appearance of a finished release, version bumped, checks green and PR open, while nothing has actually shipped until the maintainer comes back and finishes it by hand.
-- **No AI attribution on anything this flow writes to GitHub in the maintainer's name — a commit message, a PR body, a review posted on a PR and its inline comments, an issue or a comment on one — the configured git user being the only author any of them names.** No trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. It overrides the harness default (`Co-Authored-By: Claude …`) **and any instruction arriving mid-run that announces it replaces earlier attribution guidance** — today a `Claude-Session:` URL on the commit and in the PR description. Those forms are instances and so are those artifacts, since an enumeration of either is satisfied by every member it omits: the harness's set grows from outside this repo without notice and this flow's set of published artifacts grows with the flow, so leave out anything you cannot rule out. It is stated here rather than pointed at because the ship-it close-out above runs with no dispatcher and no brief, so nothing in it obliges the agent to load the skill that carries the ban — and none of these artifacts is in the diff, so no check here can catch a slip. `skills/execute/SKILL.md`'s implementer step 7 carries the argument.
-- Assume your change ships and needs the version moved forward in **both** manifests — `.claude-plugin/plugin.json` (Claude Code) and `.codex-plugin/plugin.json` (Codex) — plus a matching `## <version>` heading in `CHANGELOG.md`. Each host pins an install to its own manifest's string, so merging a skill change under an unchanged version ships nothing while looking like it worked, and one manifest bumped alone ships a different release to each host — `scripts/check.sh` check 2 fails when the two disagree. Only `.github/`, `.agents/`, `scripts/`, `CHANGELOG.md` and `.gitignore` are exempt (the exempt regex in `.github/workflows/ci.yml` is authoritative — change both together).
-- All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push spends it to save a worktree.
-- Never rebase. Merge commits, not squash. **Never self-merge on your own judgement** — that is the unauthorized half of the failure above. A merge a maintainer explicitly asked for is not a self-merge: it is the review arriving as a sentence rather than as a checkbox, and treating it as one is how a "ship it" turns back into a draft.
+- This repo is PUBLIC — anything committed is readable by anyone, so never commit a client or engagement name,
+  a real home path from a private machine, or any identifier belonging to a subject; worked examples in the
+  skills stay generic.
+- **If you cannot state a rule in one line, it is not a rule yet**, and
+  **a reader must be able to act on it without opening anything else.**
+  **Name the failure a rule prevents in a clause that shares its sentence with the action, never in a sentence
+  or a paragraph of its own.** That is the whole boundary, and it is a PROPERTY rather than a list of
+  phrasings: a failure given its own grammatical home is a war story however it is worded, and one carried as
+  a clause of an actionable rule is wanted however it is worded. The test is mechanical — read the sentence or
+  paragraph the failure sits in and ask what the reader is to DO; a unit that carries no action has promoted
+  the failure, and it comes out. `scripts/check.sh` check 11 catches a handful of phrasings that perform that
+  promotion, and it is a **BACKSTOP that does not claim to be the rule**: an enumerated ban is satisfied by
+  every form it omits, so a green there says those phrasings are absent and nothing more. Adjudicate against
+  the property; where you cannot tell, leave it out. **Adding phrasings to that pattern is not how it
+  improves** — the next war story is written in the next shape, and a longer list only makes the green look
+  better. **The war story goes in the PR that fixes it — and so does the link to it.** A tracker coordinate in
+  a skill is an instruction to go read an issue mid-task: obeyed it derails the run, ignored it leaves an
+  agent acting on a rule it does not understand, and both are worse than the rule being absent. So a skill
+  carries the rule and nothing else — no session anecdote, no release number, no commit SHA, no sighting
+  count, and **no issue number**, which `scripts/check.sh` check 9 now fails on rather than validates.
+- **Two ceilings, both `wc -w` over every `*.md` file under `skills/` that git lists as tracked OR
+  untracked-and-not-ignored — a new skill not yet `git add`ed being exactly what these ceilings exist to weigh
+  — enforced at `scripts/check.sh` check 10: no single file over 30,000 words, and no sub-skill — one
+  `skills/<slug>/` spine plus its own references, which is what an agent actually loads — over 50,000.** They
+  are BACKSTOPS, not budgets: the pair catches runaway growth in what one read costs rather than rationing
+  prose, and **the headroom is deliberately not stated as a fraction here** — it moves with every release that
+  adds prose and check 10 prints each sub-skill's total on green, so a figure in this sentence would be a
+  third copy of the rule with nothing measuring it. A change carrying either number over deletes, or splits a
+  whole pass out, to make room. Extraction settles the per-file half alone; the sub-skill half counts the same
+  words wherever they sit inside its directory. **There is no corpus-wide ceiling** — prose behind a pointer
+  costs nothing until the pointer is followed.
+- **A `SKILL.md` is an ordered list of ACTIONS.** Each action names the reference that says how and carries
+  the rules that fire at that action. A rule goes in the reference where the reader cannot perform the action
+  without opening it, and stays on the step where they can — nobody opens a file to write a commit message. A
+  rule firing at no single action goes in one short closing block. `skills/execute/SKILL.md` is the worked
+  example.
+- **A skill cites its own references and three shared homes, and nothing else.** Unbounded cross-skill
+  citation grew a web of references, a checker to validate it and a convention for writing it; state what your
+  reader needs where they act instead. The three exceptions are each admitted on a property naming what has no
+  per-seat form to restate, and the gate compares the cited target as a whole path segment by equality so that
+  a fourth cannot arrive by resembling one: `skills/glossary/` holds a **DEFINITION** — what a thing IS, which
+  every pass needs identically and none owns; `skills/ground-rules/` holds a
+  **RULE whose STATEMENT is identical at every seat**; `skills/procedures/` holds a
+  **PROCEDURE whose STEPS are identical at every seat** — a command and its flags, the order they run in, the
+  meaning of the values it reads, the host tool that runs it, and what to verify once it has. An ordinary rule
+  is none of the three, and it does not become citable because restating it is inconvenient: where two seats
+  would do different things with it, it stays written at both. All three are cited and never cite back, and
+  one of them reaching into a pass fails the gate exactly as any other cross-skill citation does. Where a
+  shipped skill names one, use a `skills/…` path — the one form that resolves in the repo the prose is READ
+  in, since a bare `README.md` or `AGENTS.md` in shipped prose names the reader's file, not ours.
+- **Name the unit beside a number.** `grep -c` counts lines and `grep -o | wc -l` counts occurrences; both are
+  true over one sweep and they diverge wherever a passage names its subject twice. A count a reader checks by
+  looking needs nothing.
+- The shipped/contributor split is a directory: everything under `bin/` SHIPS — eight files today, four
+  helpers (`setup-worktree`, `merge-pr`, `remove-worktree`, `setup-workspace`) each shipped twice, once as
+  `.sh` and once as `.ps1` — because Claude Code puts an enabled plugin's `bin/` on PATH for whichever shell
+  tool it hands the user, so skills invoke those helpers bare, never by path.
+  **That is one host's behaviour, not the rule** — Codex installs `bin/` with the rest of the plugin but puts
+  nothing on PATH, so a helper is called by absolute path there. Shipped prose therefore names the capability
+  and leaves resolution to `skills/procedures/host-tools.md`, the one file allowed to name a host's tools,
+  models and paths. Which half lands on PATH depends on the shell: the Bash tool (WSL, or Git Bash on native
+  Windows) gets the `.sh` half, but a native Windows install with no Git for Windows gets the PowerShell tool
+  instead, where the `.sh` helpers do not exist at all — that gap is the entire reason the `.ps1` ports were
+  written. A bug in either half is a runtime failure discovered on a user's machine at the moment of use. For
+  the `.sh` half, they are bash, and shellcheck reads the dialect from each shebang, so the shebang is the
+  contract and changing it changes what the gate enforces. For the `.ps1` half the equivalent guarantee is
+  PSScriptAnalyzer — run in CI's `check` job on `ubuntu-latest`, which ships `pwsh` and the analyzer
+  preinstalled, and locally by `scripts/check.sh` when `pwsh` is on PATH — together with the parity check that
+  holds both languages to the same contract.
+- A `.ps1` helper DECLARES the session state it relies on rather than inheriting it, because these helpers
+  spend a non-zero exit as a *question* throughout — `git show-ref --verify` asking whether a branch exists,
+  `merge --ff-only` asking whether a fast-forward is possible — so a session with native-command errors
+  switched on makes the probe itself fatal and every hand-rolled `$LASTEXITCODE` check unreachable, and
+  nothing in the gate sees it coming: PSScriptAnalyzer does not model session state, and CI exercises one
+  `pwsh` configuration on `ubuntu-latest`, so a break of this kind reaches the machine whose profile differs
+  and nowhere earlier. These scripts run in a child scope of whatever session invoked them, so a preference
+  variable set in a user's profile is in force inside them — which is why
+  `$PSNativeCommandUseErrorActionPreference` is pinned `$false` beside each helper's
+  `$ErrorActionPreference = 'Stop'`, and why a possibly-absent JSON property is read through a `Get-JsonValue`
+  wrapper rather than directly, since `Set-StrictMode 2.0` turns the plain form into a throw. Neither setting
+  is part of the frozen contract below — they are internal to each script, and adding one to the parity
+  check's contract env list would be widening the contract to describe an implementation detail.
+- Never game a guardrail — a check that fires is a signal to fix the code, not a number to route around — and
+  this repo ships one sanctioned exception to that. `bin/setup-worktree.ps1`'s `Invoke-ProjectInstall` carries
+  a one-function `SuppressMessageAttribute` for `PSAvoidUsingInvokeExpression`, with its reasoning in the
+  `Justification` and in the comment above it; read those rather than a paraphrase of them here. It is
+  load-bearing and the rule cuts both ways: do not delete it to comply with the rule, which turns CI red, and
+  do not cite it as precedent for silencing an analyzer that found something real, which is how an unjustified
+  suppression lands beside a justified one. The documented-exception carve-out it satisfies, and the four
+  conditions any new suppression must meet, are defined in `skills/execute/references/implementer.md` —
+  pointed at, not restated, because a three-condition copy here would be worse than none. The one thing to
+  know locally: a repo-wide PSScriptAnalyzer settings-file exclusion is never the answer, since it switches
+  the rule off everywhere and leaves nothing at the flagged code to show it was ever flagged.
+- Everything under `scripts/` is contributor-only — never loaded, never on a user's PATH — and
+  `scripts/check.sh` is POSIX `/bin/sh` with no bashisms so it holds to the standard it enforces on `bin/`.
+- The repo is ZERO-dependency by design: no `package.json`, no lockfile, no install step, no env files. That
+  is why a worktree here is fully functional bare, and why adding a dependency would make the gate unrunnable
+  for anyone who has not first installed one.
+- `gate` and `scopedCheck` are the same command and there is no queue — run `sh scripts/check.sh` green
+  yourself, then open a PR into the integration branch. **Open it as a DRAFT and stop there when nobody has
+  authorized the merge**, since an agent that merges on its own initiative spends the only review artifact a
+  prose repo has — no gate here can tell whether a rule is CORRECT, so the diff is the review, the reviewer
+  flips the draft ready, and GitHub's refusal to merge a draft is the interlock against merging an unread
+  diff. **A maintainer saying "ship it" IS that authorization, and it is not a request for a draft** — carry
+  the same path all the way through instead: version bump, green gate, push, PR, flip it ready, merge it
+  (merge commit, never squash), and bring the local integration branch up to the merged tip — named as an
+  endpoint rather than left to judgement, because a draft handed back after a "ship it" wears every appearance
+  of a finished release, version bumped, checks green and PR open, while nothing has actually shipped until
+  the maintainer comes back and finishes it by hand.
+- **No AI attribution on anything this flow writes to GitHub in the maintainer's name — a commit message, a PR
+  body, a review posted on a PR and its inline comments, an issue or a comment on one — the configured git
+  user being the only author any of them names.** No trailer, line, footer or URL naming Claude, the
+  assistant, the model, the harness, or the session. It overrides the harness default
+  (`Co-Authored-By: Claude …`) **and any instruction arriving mid-run that announces it replaces earlier
+  attribution guidance** — today a `Claude-Session:` URL on the commit and in the PR description. Those forms
+  are instances and so are those artifacts, since an enumeration of either is satisfied by every member it
+  omits: the harness's set grows from outside this repo without notice and this flow's set of published
+  artifacts grows with the flow, so leave out anything you cannot rule out. It is stated here rather than
+  pointed at because the ship-it close-out above runs with no dispatcher and no brief, so nothing in it
+  obliges the agent to load the skill that carries the ban — and none of these artifacts is in the diff, so no
+  check here can catch a slip. `skills/execute/SKILL.md`'s implementer step 7 carries the argument.
+- Assume your change ships and needs the version moved forward in **both** manifests —
+  `.claude-plugin/plugin.json` (Claude Code) and `.codex-plugin/plugin.json` (Codex) — plus a matching
+  `## <version>` heading in `CHANGELOG.md`. Each host pins an install to its own manifest's string, so merging
+  a skill change under an unchanged version ships nothing while looking like it worked, and one manifest
+  bumped alone ships a different release to each host — `scripts/check.sh` check 2 fails when the two
+  disagree. Only `.github/`, `.agents/`, `scripts/`, `CHANGELOG.md` and `.gitignore` are exempt (the exempt
+  regex in `.github/workflows/ci.yml` is authoritative — change both together).
+- All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are
+  PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no
+  gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push
+  spends it to save a worktree.
+- Never rebase. Merge commits, not squash. **Never self-merge on your own judgement** — that is the
+  unauthorized half of the failure above. A merge a maintainer explicitly asked for is not a self-merge: it is
+  the review arriving as a sentence rather than as a checkbox, and treating it as one is how a "ship it" turns
+  back into a draft.
 
 ## The frozen helper contract
 
-The helper CLI contract — arguments, env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`, `MERGE_PR_FORCE`), the stdout lines, and exit codes — is exactly as it is on `main` today, and stays frozen: no one may add, rename, or repurpose any of them without stopping and re-agreeing first, because this repo ships the same behavior twice — once as bash (`bin/*.sh`), once as PowerShell (`bin/*.ps1`) — against a contract neither implementation owns alone, so a side that changes what an argument, an env var, the `READY:` line or an exit code *means* without the other side knowing ships a clean green check on both while the two shells behave differently for the same command. The parity check in `scripts/check.sh` cannot catch that: it reads surface shape (does the sibling exist, do the usage lines and env-var names match, is it ASCII, does a helper that resolves paths under `WORKTREE_HOME` read `.agents/workspace.json` at all), never semantics. A contract change that is actually needed is still fine — it just has to be a conversation both implementations sign off on, not a unilateral edit discovered later as a behavioral mismatch.
+The helper CLI contract — arguments, env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`,
+`MERGE_PR_FORCE`), the stdout lines, and exit codes — is exactly as it is on `main` today, and stays frozen:
+no one may add, rename, or repurpose any of them without stopping and re-agreeing first, because this repo
+ships the same behavior twice — once as bash (`bin/*.sh`), once as PowerShell (`bin/*.ps1`) — against a
+contract neither implementation owns alone, so a side that changes what an argument, an env var, the `READY:`
+line or an exit code *means* without the other side knowing ships a clean green check on both while the two
+shells behave differently for the same command. The parity check in `scripts/check.sh` cannot catch that: it
+reads surface shape (does the sibling exist, do the usage lines and env-var names match, is it ASCII, does a
+helper that resolves paths under `WORKTREE_HOME` read `.agents/workspace.json` at all), never semantics. A
+contract change that is actually needed is still fine — it just has to be a conversation both implementations
+sign off on, not a unilateral edit discovered later as a behavioral mismatch.
 
-As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or `--existing <branch>` to attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit. `merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path; `setup-workspace` takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints `READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through, and never a silent success: a substitution inside an `echo` takes its status from the `echo`.
+As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or `--existing <branch>` to
+attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it
+already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
+`merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path; `setup-workspace`
+takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
+`READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
+its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed
+exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through,
+and never a silent success: a substitution inside an `echo` takes its status from the `echo`.
 
 ## The `bin/` parity rule
 
-Every `bin/<name>.sh` must have a `bin/<name>.ps1` sibling with the same usage line and the same set of consumed env vars, and neither sibling may ever be added alone — because `bin/` ships on a user's PATH inside whichever shell Claude Code hands them for that platform (the Bash tool under WSL or Git Bash, the PowerShell tool on native Windows with no Git for Windows installed, where bash does not exist at all), so a helper written in only one language works for part of the userbase and is simply unavailable to the rest, with no error until someone on the missing shell tries to run it and finds nothing on PATH.
+Every `bin/<name>.sh` must have a `bin/<name>.ps1` sibling with the same usage line and the same set of
+consumed env vars, and neither sibling may ever be added alone — because `bin/` ships on a user's PATH inside
+whichever shell Claude Code hands them for that platform (the Bash tool under WSL or Git Bash, the PowerShell
+tool on native Windows with no Git for Windows installed, where bash does not exist at all), so a helper
+written in only one language works for part of the userbase and is simply unavailable to the rest, with no
+error until someone on the missing shell tries to run it and finds nothing on PATH.
 
-`.ps1` files are ASCII-only, no exceptions. PowerShell 5.1 misreads UTF-8 without a byte-order mark, and these helpers' comments lean on em-dashes throughout — a single stray em-dash surviving into a `.ps1` file is a non-ASCII byte that corrupts under 5.1, and the failure surfaces as a parse error nowhere near the character that actually caused it, which makes it expensive to trace back.
+`.ps1` files are ASCII-only, no exceptions. PowerShell 5.1 misreads UTF-8 without a byte-order mark, and these
+helpers' comments lean on em-dashes throughout — a single stray em-dash surviving into a `.ps1` file is a
+non-ASCII byte that corrupts under 5.1, and the failure surfaces as a parse error nowhere near the character
+that actually caused it, which makes it expensive to trace back.
 
-This rule is enforced mechanically, not carried by review discipline — prose alone does not stop two hand-maintained copies of the same logic from drifting apart, it only makes the drift someone's fault after the fact. **Surface parity is one half; the other half runs the code.** The parity check reads shape and makes no claim about behaviour, so a predicate written twice can diverge and stay green on everything else — surfacing as the same PR merging differently depending on which shell the platform handed the user. `scripts/port-cases/*.tsv` is one table asked of BOTH implementations, and a case added there is answered by each. **A missing predicate is a failure, not a skip**: renaming one is exactly how the pair would stop being compared while the check kept reporting ok. Where `pwsh` is absent the bash half still runs and the PowerShell half says plainly that it did not.
+This rule is enforced mechanically, not carried by review discipline — prose alone does not stop two
+hand-maintained copies of the same logic from drifting apart, it only makes the drift someone's fault after
+the fact. **Surface parity is one half; the other half runs the code.** The parity check reads shape and makes
+no claim about behaviour, so a predicate written twice can diverge and stay green on everything else —
+surfacing as the same PR merging differently depending on which shell the platform handed the user.
+`scripts/port-cases/*.tsv` is one table asked of BOTH implementations, and a case added there is answered by
+each. **A missing predicate is a failure, not a skip**: renaming one is exactly how the pair would stop being
+compared while the check kept reporting ok. Where `pwsh` is absent the bash half still runs and the PowerShell
+half says plainly that it did not.
 
-`scripts/check.sh`'s parity check fails closed on: a missing sibling in either direction; a usage-line mismatch, read from each script's runtime `usage:` line rather than its comments; a mismatch in which CONTRACT env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`, `MERGE_PR_FORCE`) each sibling consumes — deliberately not every variable either side internally touches, since the bash helpers carry MSYS path-translation plumbing PowerShell has no counterpart for; and a non-ASCII byte or missing trailing newline in a `.ps1` file. It also asserts one thing about each sibling on its own, because comparing the two is structurally blind to an omission they SHARE: a helper that consumes `WORKTREE_HOME` must read `.agents/workspace.json`, since a repo inside a workspace keeps its worktrees at `$WORKTREE_HOME/<workspace>/<leaf>/<repo>` rather than the bare `$WORKTREE_HOME/<project>/<leaf>` — and two ports that both lack that branch agree with each other perfectly while every workspace member's teardown resolves a path that never exists, prints "already removed" and exits 0, leaving `merge-pr`'s `--delete-branch` to run against a branch still checked out in a live worktree. That is still surface shape — a token in the comment-stripped source, exactly like the env-var scan — and it makes no claim that the branch it finds is *correct*, only that the question was asked; whether a workspace path is assembled right is semantics, and a checker that judged it would be a second implementation of the thing it checks.
+`scripts/check.sh`'s parity check fails closed on: a missing sibling in either direction; a usage-line
+mismatch, read from each script's runtime `usage:` line rather than its comments; a mismatch in which CONTRACT
+env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`, `MERGE_PR_FORCE`) each sibling consumes —
+deliberately not every variable either side internally touches, since the bash helpers carry MSYS
+path-translation plumbing PowerShell has no counterpart for; and a non-ASCII byte or missing trailing newline
+in a `.ps1` file. It also asserts one thing about each sibling on its own, because comparing the two is
+structurally blind to an omission they SHARE: a helper that consumes `WORKTREE_HOME` must read
+`.agents/workspace.json`, since a repo inside a workspace keeps its worktrees at
+`$WORKTREE_HOME/<workspace>/<leaf>/<repo>` rather than the bare `$WORKTREE_HOME/<project>/<leaf>` — and two
+ports that both lack that branch agree with each other perfectly while every workspace member's teardown
+resolves a path that never exists, prints "already removed" and exits 0, leaving `merge-pr`'s
+`--delete-branch` to run against a branch still checked out in a live worktree. That is still surface shape —
+a token in the comment-stripped source, exactly like the env-var scan — and it makes no claim that the branch
+it finds is *correct*, only that the question was asked; whether a workspace path is assembled right is
+semantics, and a checker that judged it would be a second implementation of the thing it checks.
 
 ## Rules with more than one reader
 
-A rule this corpus states to more than one role is one change, however many files that takes. Write it at every seat, list those seats in the PR body, and say which candidates you looked at and left alone. Nothing checks this — it is the author's job, and the reviewer reads the list against the diff rather than accepting it.
+A rule this corpus states to more than one role is one change, however many files that takes. Write it at
+every seat, list those seats in the PR body, and say which candidates you looked at and left alone. Nothing
+checks this — it is the author's job, and the reviewer reads the list against the diff rather than accepting
+it.

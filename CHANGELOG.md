@@ -2,6 +2,32 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.1.2
+
+- **Shipped prose now wraps at the width the corpus already used, and that is the entire change — not one
+  word moved.** The longest single line was 4,998 characters and 13 of the 44 shipped files carried a line
+  over 1,500, so a file could not be paged (a line range returned the whole thing), a grep match came back as
+  a whole section, a three-word edit rendered as one whole-line deletion and one whole-line addition, and a
+  line citation located nothing. 34 files are rewrapped to a 110-character maximum; the longest rewrappable
+  prose line is now 116, and the three still over the limit are lines where every remaining break would have
+  landed inside a backticked span or a link.
+- **It is drift being corrected rather than a style being imposed.** The concept map's entries, the ground
+  rules and the procedure entries were already at a 105-to-114 maximum — the band was the convention, and the
+  passes' references had simply left it.
+- **Four things are never rewrapped, and they are the whole risk surface.** Table rows, because a row broken
+  across lines stops being a table; fenced blocks, whose line breaks are content; headings; and blockquotes,
+  which in this corpus are paste-verbatim material — a brief an agent copies out, a sentence it says aloud —
+  and whose continuation marker would also be a word to `wc -w`, the instrument the attention-budget ceilings
+  are measured with.
+- **The correctness property is mechanical, so the proof is a script rather than a reader.** Every file was
+  compared against its fork-point self on four independent axes: the whitespace-split token sequence of the
+  whole file, `wc -w`, a block-record sequence carrying fences, table rows, headings and frontmatter as exact
+  bytes with each paragraph collapsed to one line, and those four block classes compared again as ordered
+  lists. 44 of 44 files are render-identical, 156 table rows and 37 fenced blocks match exactly, and every
+  per-file word count is unchanged — which is what makes the ceilings' own numbers unmoved.
+- **Unchanged:** every rule, every claim and every word. A whitespace-only diff is reviewable exactly while it
+  contains nothing else, which is also why this lands alone and first: every release after it diffs readably.
+
 ## 5.1.1
 
 - **The previous release's rule landed beside fifteen sites still carrying the version it replaced — five of them inside the same file that states the rule correctly.** The implementer's own reference said *FIX IT — DO NOT FILE IT. This is the default and it has no bar to clear.* and then, in its flow summary, told a reader to *sweep outside your fence and raise what you find*; a summary is what a reader follows. The false-claim rule called a claim that turns out false *a finding to report and file*; the fenced-path answer said to file *when that is the answer you get back*; and the no-dispatcher-live case said to *file and link it*. Those four now agree with the body around them: the summary fixes what the slice HIT, a false claim is reported, a returned *file it* verdict is performed by the seat that decided it, and with no dispatcher live the finding goes in the hand-back, which is the whole of what that seat has.

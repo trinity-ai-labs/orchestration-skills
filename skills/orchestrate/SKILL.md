@@ -16,85 +16,253 @@ argument-hint: "[issue # or umbrella # to orchestrate — omit to run the plan a
 
 # Orchestrate — the just-in-time arc loop
 
-**This loop is the pipeline's last leg and the one command a user types for dispatched work of any size** — `/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate` — running an arc to completion one increment at a time. **What the size of the work decides is how many cycles you run, never whether the work comes here**: twenty ready leaves across four phases is many cycles, and a standalone issue is one cycle whose reconcile finds nothing.
+**This loop is the pipeline's last leg and the one command a user types for dispatched work of any size** —
+`/pipeline:co-think` → `/pipeline:write-issue` → `/pipeline:orchestrate` — running an arc to completion one
+increment at a time. **What the size of the work decides is how many cycles you run, never whether the work
+comes here**: twenty ready leaves across four phases is many cycles, and a standalone issue is one cycle whose
+reconcile finds nothing.
 
 ```
 issue / plan  ──/pipeline:orchestrate──▶  ground the horizon · dispatch · reconcile · rewrite the rest  ──▶  repeat until empty
 ```
 
-⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this file does.** Never a fork, at your seat or at any seat you dispatch into.
+⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this
+file does.** Never a fork, at your seat or at any seat you dispatch into.
 
-You are a **loop and the dispatcher it dispatches with — one seat, not two, and not a builder**: you ground an increment, cut its worktrees, dispatch the implementers, watch them, review what comes back, merge it, then read the merged diffs, decide what the arc still needs, and rewrite the plan — never editing a source file yourself. **The defect this fixes:** a front-loaded decomposition writes `file:line` into briefs later waves execute, and a brief naming a path an earlier wave renamed is wrong when run, without erroring.
+You are a **loop and the dispatcher it dispatches with — one seat, not two, and not a builder**: you ground an
+increment, cut its worktrees, dispatch the implementers, watch them, review what comes back, merge it, then
+read the merged diffs, decide what the arc still needs, and rewrite the plan — never editing a source file
+yourself. **The defect this fixes:** a front-loaded decomposition writes `file:line` into briefs later waves
+execute, and a brief naming a path an earlier wave renamed is wrong when run, without erroring.
 
-**This file is a SPINE**: the actions below are in order, each naming the pass or reference that carries the *how* and holding the rules that fire at it. **Steps 3 and 4 are performed out of `skills/orchestrate/references/reconciling.md`**, and a reader who reaches the end of this file without opening it has not finished reading this skill.
+**This file is a SPINE**: the actions below are in order, each naming the pass or reference that carries the
+*how* and holding the rules that fire at it. **Steps 3 and 4 are performed out of
+`skills/orchestrate/references/reconciling.md`**, and a reader who reaches the end of this file without
+opening it has not finished reading this skill.
 
 ---
 
 ## Two grounding depths, and the horizon that separates them
 
-Every item in the plan sits at exactly one of two depths, decided by where the horizon is — never by how important it is or how well you understand it.
+Every item in the plan sits at exactly one of two depths, decided by where the horizon is — never by how
+important it is or how well you understand it.
 
-- **Shape depth** — everything *beyond* the horizon: goal, area, dependency, one line on why it comes after the thing before it. **No `file:line`, no owned files, no do-not-touch boundaries, no framework skill, no model tier, no verify bar.** An item at shape depth is not unfinished.
-- **Slice depth** — <!-- gate-anchor:enum-5:begin -->the horizon *only*: everything `/pipeline:ground` emits — the slice's goal, owned files as real paths, do-not-touch boundaries, artifacts derived, depends-on, framework skill, model tier, brief, verify bar<!-- gate-anchor:enum-5:end --> — grounded against the tree **right now** and dispatched in the same cycle.
+- **Shape depth** — everything *beyond* the horizon: goal, area, dependency, one line on why it comes after
+  the thing before it. **No `file:line`, no owned files, no do-not-touch boundaries, no framework skill, no
+  model tier, no verify bar.** An item at shape depth is not unfinished.
+- **Slice depth** — <!-- gate-anchor:enum-5:begin -->the horizon *only*: everything `/pipeline:ground` emits —
+  the slice's goal, owned files as real paths, do-not-touch boundaries, artifacts derived, depends-on,
+  framework skill, model tier, brief, verify bar<!-- gate-anchor:enum-5:end --> — grounded against the tree
+  **right now** and dispatched in the same cycle.
 
-**The horizon is the next dispatchable set: every remaining READY LEAF of the plan's tree — every remaining item whose dependencies have already landed** — usually a wave, or the dispatchable subset of one whose rest still waits on something unmerged. **A cycle lands whole leaves** (`skills/glossary/vocabulary/umbrella.md`), which is what lets a checklist line tick as work lands — the thing the cycle lands and the thing the tracker holds being the same object, where a cycle landing pieces of a leaf leaves churn as the only countable thing. **It is whatever you are about to ground and dispatch in THIS cycle — it moves outward only as increments land, and it is the only thing that promotes an item to slice depth**: not a well-understood item, not one a user asked about, not a small one. Both errors are silent — grounding early writes coordinates that stop existing, dispatching at shape depth leaves an implementer to invent its scope.
+**The horizon is the next dispatchable set: every remaining READY LEAF of the plan's tree — every remaining
+item whose dependencies have already landed** — usually a wave, or the dispatchable subset of one whose rest
+still waits on something unmerged. **A cycle lands whole leaves** (`skills/glossary/vocabulary/umbrella.md`),
+which is what lets a checklist line tick as work lands — the thing the cycle lands and the thing the tracker
+holds being the same object, where a cycle landing pieces of a leaf leaves churn as the only countable thing.
+**It is whatever you are about to ground and dispatch in THIS cycle — it moves outward only as increments
+land, and it is the only thing that promotes an item to slice depth**: not a well-understood item, not one a
+user asked about, not a small one. Both errors are silent — grounding early writes coordinates that stop
+existing, dispatching at shape depth leaves an implementer to invent its scope.
 
 ---
 
 ## 0. Before the loop: the config precondition
 
-Check for `<repo>/.agents/worktree.json` before step 1 grounds anything. **Missing is a hard stop, not a note**: the helper cuts a **bare** worktree instead of failing (`skills/procedures/config-keys.md`), so an implementer's checks fail for reasons shaped like code defects, and the gate, the conventions and the framework skills are all guesses on top of that. **It is a precondition on the ARC, not the horizon.**
+Check for `<repo>/.agents/worktree.json` before step 1 grounds anything.
+**Missing is a hard stop, not a note**: the helper cuts a **bare** worktree instead of failing
+(`skills/procedures/config-keys.md`), so an implementer's checks fail for reasons shaped like code defects,
+and the gate, the conventions and the framework skills are all guesses on top of that.
+**It is a precondition on the ARC, not the horizon.**
 
-**Four acts, in order, the first three user-facing.** (1) Say plainly the project is not set up and that you are setting it up first. (2) Explain what onboarding does — ground the repo's scripts and CI, write the config, scaffold a gate queue if wanted, verify by cutting worktrees. (3) **Ask for the values that cannot be ground**, `sharedResources` above all: a guessed one is a safety property that looks present and is not. (4) Invoke `/pipeline:setup`, then resume at step 1. **It terminates at a reviewable change you do not merge** — *Rules that fire at no single action* forbids merging and pushing — so hand the config PR over.
+**Four acts, in order, the first three user-facing.** (1) Say plainly the project is not set up and that you
+are setting it up first. (2) Explain what onboarding does — ground the repo's scripts and CI, write the
+config, scaffold a gate queue if wanted, verify by cutting worktrees. (3)
+**Ask for the values that cannot be ground**, `sharedResources` above all: a guessed one is a safety property
+that looks present and is not. (4) Invoke `/pipeline:setup`, then resume at step 1.
+**It terminates at a reviewable change you do not merge** — *Rules that fire at no single action* forbids
+merging and pushing — so hand the config PR over.
 
-**Present but BEHIND is a report, not a stop.** While the config is open, compare the keys it declares against the keys this plugin reads — `examples/worktree.json` in the plugin's own tree is that list, and the only machine-readable copy of it. A key the plugin reads and the config does not declare is named in the dispatch report, with what declaring it would change — then the arc proceeds. **Report the delta and route to `/pipeline:setup`; never rewrite the config here**, since a config edited by the pass that noticed is one nobody reviewed. **Never a stop**: every such key ships with a working fallback, and halting over a value that has one costs more than it saves. It is checked *here* because this is the last moment the config may safely change — a missing `integrationBranch` (`skills/glossary/vocabulary/integration-branch.md`) is the live instance, and it silently makes `epicMerge` inert wherever work lands on the default branch.
+**Present but BEHIND is a report, not a stop.** While the config is open, compare the keys it declares against
+the keys this plugin reads — `examples/worktree.json` in the plugin's own tree is that list, and the only
+machine-readable copy of it. A key the plugin reads and the config does not declare is named in the dispatch
+report, with what declaring it would change — then the arc proceeds. **Report the delta and route to
+`/pipeline:setup`; never rewrite the config here**, since a config edited by the pass that noticed is one
+nobody reviewed. **Never a stop**: every such key ships with a working fallback, and halting over a value that
+has one costs more than it saves. It is checked *here* because this is the last moment the config may safely
+change — a missing `integrationBranch` (`skills/glossary/vocabulary/integration-branch.md`) is the live
+instance, and it silently makes `epicMerge` inert wherever work lands on the default branch.
 
-**A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the config did not follow — and the file is read for **provisioning**, not only for a base, so a dispatcher that merely knows the right branch still cuts every worktree from a stale `install` and stale env symlinks. **Two things produce it and they want opposite remedies, so say which you are looking at.** The project rolled its branch and the config did not follow → `/pipeline:setup` repairs the config. The project is *about to* roll — the last release has landed and the next branch has not been cut → `/pipeline:cut-release` is the pass for that moment, and repairing the config first would write down a branch that is on its way out. **Where the two are indistinguishable, ask; do not pick** — writing `integrationBranch` to whatever branch happens to be checked out is the failure mode, not the fix. Either way, **sync the main checkout before the first cut**, since the helper reads that working copy rather than the remote (`skills/procedures/worktree-helper.md`).
+**A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
+the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
+config did not follow — and the file is read for **provisioning**, not only for a base, so a dispatcher that
+merely knows the right branch still cuts every worktree from a stale `install` and stale env symlinks.
+**Two things produce it and they want opposite remedies, so say which you are looking at.** The project rolled
+its branch and the config did not follow → `/pipeline:setup` repairs the config. The project is *about to*
+roll — the last release has landed and the next branch has not been cut → `/pipeline:cut-release` is the pass
+for that moment, and repairing the config first would write down a branch that is on its way out.
+**Where the two are indistinguishable, ask; do not pick** — writing `integrationBranch` to whatever branch
+happens to be checked out is the failure mode, not the fix. Either way,
+**sync the main checkout before the first cut**, since the helper reads that working copy rather than the
+remote (`skills/procedures/worktree-helper.md`).
 
-**And the window closes at dispatch.** Once worktrees are live the config is **frozen for the arc**: drift is stop-and-report, never repair, because that same working copy is what every later cut is provisioned from and it is shared mutable state.
+**And the window closes at dispatch.** Once worktrees are live the config is **frozen for the arc**: drift is
+stop-and-report, never repair, because that same working copy is what every later cut is provisioned from and
+it is shared mutable state.
 
-**In the repository that ships these skills, and only there, also fix which copy of them you are running.** The installed plugin you loaded is not the tree being edited, and **the rules an arc has just shipped are the ones likeliest to be missing from it**: read the tree's `skills/` copy of any rule you act on, trust the tree where the two disagree, and say in the close-out which copy you ran from.
+**In the repository that ships these skills, and only there, also fix which copy of them you are running.**
+The installed plugin you loaded is not the tree being edited, and **the rules an arc has just shipped are the
+ones likeliest to be missing from it**: read the tree's `skills/` copy of any rule you act on, trust the tree
+where the two disagree, and say in the close-out which copy you ran from.
 
 ## 1. Ground the horizon → `/pipeline:ground`
 
-On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out where the horizon falls **from the issue's phase map**: the ready children of the earliest phase whose dependencies have all landed. **A standalone issue has neither a phase map nor children, and the same sentence answers it: the horizon is that issue.** Read at N=1 that is the general rule rather than a case carved out of it — the ready leaves of the earliest phase, where the plan is one leaf in one phase — so you run one cycle, and its reconcile has no PLAN left to find anything in. **It still runs, and it still reads the tree and the tracker**: where the merged increment forces work nothing owns, that is the loop going round again rather than an exception to it, which is the whole reason this case is not carved out. **Establishing the horizon is the first cycle's work, not a precondition for starting.** Then invoke `/pipeline:ground` against that horizon and nothing else, telling it the rest stays at shape depth — **it grounds each of those issues as the one slice it already is and never cuts one into two**, so a breakdown coming back with more slices than the horizon had issues is a defect to send back rather than a plan to dispatch. **And when it reports back the other way — this leaf cannot be one PR — that is yours to answer here, not to hand to whoever filed the issue**: re-author that leaf as children at issue altitude through `/pipeline:write-issue`, rewrite the checklist line, and carry on into this cycle, since halting or asking the filer spends the arc's own finding on a person who is not holding the tree. **The report that N ready leaves are one PR's worth of one change is yours in this same seat and answered the same way** — re-author them as one leaf at issue altitude through `/pipeline:write-issue`, collapse their checklist lines to its one line, ground it as one slice, and carry on into this cycle. **Never by briefing one implementer on two issues**, which is one PR closing two tracked items.
+On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out
+where the horizon falls **from the issue's phase map**: the ready children of the earliest phase whose
+dependencies have all landed. **A standalone issue has neither a phase map nor children, and the same sentence
+answers it: the horizon is that issue.** Read at N=1 that is the general rule rather than a case carved out of
+it — the ready leaves of the earliest phase, where the plan is one leaf in one phase — so you run one cycle,
+and its reconcile has no PLAN left to find anything in. **It still runs, and it still reads the tree and the
+tracker**: where the merged increment forces work nothing owns, that is the loop going round again rather than
+an exception to it, which is the whole reason this case is not carved out.
+**Establishing the horizon is the first cycle's work, not a precondition for starting.** Then invoke
+`/pipeline:ground` against that horizon and nothing else, telling it the rest stays at shape depth —
+**it grounds each of those issues as the one slice it already is and never cuts one into two**, so a breakdown
+coming back with more slices than the horizon had issues is a defect to send back rather than a plan to
+dispatch. **And when it reports back the other way — this leaf cannot be one PR — that is yours to answer
+here, not to hand to whoever filed the issue**: re-author that leaf as children at issue altitude through
+`/pipeline:write-issue`, rewrite the checklist line, and carry on into this cycle, since halting or asking the
+filer spends the arc's own finding on a person who is not holding the tree.
+**The report that N ready leaves are one PR's worth of one change is yours in this same seat and answered the
+same way** — re-author them as one leaf at issue altitude through `/pipeline:write-issue`, collapse their
+checklist lines to its one line, ground it as one slice, and carry on into this cycle.
+**Never by briefing one implementer on two issues**, which is one PR closing two tracked items.
 
-**Once the horizon is ground and BEFORE step 2 dispatches it, intersect every item still *Adjacent* against those fresh `Owns`** — the one moment in the cycle when the paths are real and the item can still fold, which is why the reconcile checklist's *Follow-ups filed out of this arc* sends its disqualifying half here and why a match it scheduled is discharged here. **A hit disqualifies *Adjacent* without re-opening the goal question**: the item edits what a slice about to dispatch edits, so it is not separable, and the placement test's remaining outcome is to fold it — into the plan, re-ground with the horizon, never bolted onto the wave now going out.
+**Once the horizon is ground and BEFORE step 2 dispatches it, intersect every item still *Adjacent* against
+those fresh `Owns`** — the one moment in the cycle when the paths are real and the item can still fold, which
+is why the reconcile checklist's *Follow-ups filed out of this arc* sends its disqualifying half here and why
+a match it scheduled is discharged here. **A hit disqualifies *Adjacent* without re-opening the goal
+question**: the item edits what a slice about to dispatch edits, so it is not separable, and the placement
+test's remaining outcome is to fold it — into the plan, re-ground with the horizon, never bolted onto the wave
+now going out.
 
-**Read UP before you read DEEP: establish whether the issue is a sub-issue and read the parent before grounding the child.** `/pipeline:ground` runs that check for you; what you owe it is the instruction to, because step 4 makes an umbrella's body the arc's live remaining plan and missing the parent starts a second plan for one arc.
+**Read UP before you read DEEP: establish whether the issue is a sub-issue and read the parent before
+grounding the child.** `/pipeline:ground` runs that check for you; what you owe it is the instruction to,
+because step 4 makes an umbrella's body the arc's live remaining plan and missing the parent starts a second
+plan for one arc.
 
 ## 2. Dispatch it — you are the dispatcher → `/pipeline:execute`
 
-**This is not a handoff to another seat: that pass's dispatcher is you, and invoking it is how you enter the half of your own seat that holds the machine** — the worktrees, the epic branch, each slice's brief and scratchpad, resolving its model tier onto a host model, the gate, the PR review and merge-not-squash. **Read it and hold all of it**, since no later step re-teaches any of it. **Two verdicts arrive with the issue rather than being decided in this step**: the epic branch's, carried down and never re-decided, and the model **TIER** ground per slice by the pass step 1 just ran, which you resolve rather than decide — that pass carries how to raise or lower one. **The WAVE'S WIDTH reaches you the same way and is yours to decide**: that pass recommends one and states the evidence it holds, and you settle it against the queue, what is already live and what this host can take, recording your reason where you depart from it.
+**This is not a handoff to another seat: that pass's dispatcher is you, and invoking it is how you enter the
+half of your own seat that holds the machine** — the worktrees, the epic branch, each slice's brief and
+scratchpad, resolving its model tier onto a host model, the gate, the PR review and merge-not-squash.
+**Read it and hold all of it**, since no later step re-teaches any of it.
+**Two verdicts arrive with the issue rather than being decided in this step**: the epic branch's, carried down
+and never re-decided, and the model **TIER** ground per slice by the pass step 1 just ran, which you resolve
+rather than decide — that pass carries how to raise or lower one. **The WAVE'S WIDTH reaches you the same way
+and is yours to decide**: that pass recommends one and states the evidence it holds, and you settle it against
+the queue, what is already live and what this host can take, recording your reason where you depart from it.
 
-⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are launched.** Interval, purpose and requirement are settled **here**, because an instruction reached only by a pointer is one a reader can skip while satisfying every step in front of them, and **no reading of the timer tool's own description reaches this requirement**, its polling warning being about polling for completion. What each tick reads, what it drains, answers and syncs, and the two levers it feeds — the message before the stop — are that pass's own, and you are in it.
+⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you
+owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host
+gives you, at ≈600s, callable right here rather than only from a looping command.
+**Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch
+report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are
+launched.** Interval, purpose and requirement are settled **here**, because an instruction reached only by a
+pointer is one a reader can skip while satisfying every step in front of them, and
+**no reading of the timer tool's own description reaches this requirement**, its polling warning being about
+polling for completion. What each tick reads, what it drains, answers and syncs, and the two levers it feeds —
+the message before the stop — are that pass's own, and you are in it.
 
 ## 3. Reconcile against the merged tree → `skills/orchestrate/references/reconciling.md`
 
-Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can falsify anything.
+Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
+MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
+falsify anything.
 
 ## 4. Rewrite the remaining plan → `skills/orchestrate/references/reconciling.md`
 
-Everything the checklist produced is dispositioned by that file's *Fold vs. file*, placed by its *Where folded work goes*, and written back as its *Rewriting the plan* says — **the remaining plan is rewritten in place, not amended**, and it lives with the arc's contract-seam map in the umbrella issue body, as state rather than history, at the depth *Two grounding depths* assigns.
+Everything the checklist produced is dispositioned by that file's *Fold vs. file*, placed by its *Where folded
+work goes*, and written back as its *Rewriting the plan* says — **the remaining plan is rewritten in place,
+not amended**, and it lives with the arc's contract-seam map in the umbrella issue body, as state rather than
+history, at the depth *Two grounding depths* assigns.
 
 ## 5. Repeat, or close out
 
-Back to step 1 with the horizon moved. **A cycle that finds nothing left is how this loop ENDS, and never a case to carve out of it** — on a standalone issue that is the first cycle and on a twenty-leaf arc it is the last, and the steps that ran to get there were the same ones either way.
+Back to step 1 with the horizon moved. **A cycle that finds nothing left is how this loop ENDS, and never a
+case to carve out of it** — on a standalone issue that is the first cycle and on a twenty-leaf arc it is the
+last, and the steps that ran to get there were the same ones either way.
 
-**The close-out reports what the arc ABSORBED — once, as part of the release, never as items to adjudicate.** Scope growing inside an arc is expected, so what the close-out owes is a record of the findings this arc folded and landed **and of the lines it noted for a later arc**, written into the close-out report and the release entry that ships with it; a list handed over as open questions is the filing channel doing the asking *The decide-don't-ask bar* forbids, and a deferred line left out of this record dies with the arc that noticed it.
+**The close-out reports what the arc ABSORBED — once, as part of the release, never as items to adjudicate.**
+Scope growing inside an arc is expected, so what the close-out owes is a record of the findings this arc
+folded and landed **and of the lines it noted for a later arc**, written into the close-out report and the
+release entry that ships with it; a list handed over as open questions is the filing channel doing the asking
+*The decide-don't-ask bar* forbids, and a deferred line left out of this record dies with the arc that noticed
+it.
 
-**Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed on the integration branch at step 2. **And the arc's issues are closed — the tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's closing keywords, which fire only where that PR's base is the repository's **default** branch and never fire later.
+**Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
+integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
+increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
+on the integration branch at step 2. **And the arc's issues are closed — the tracker is part of termination,
+not a courtesy after it**; close them yourself rather than trusting a PR's closing keywords, which fire only
+where that PR's base is the repository's **default** branch and never fire later.
 
-**Five exits, and only one is finishing**: an empty plan and a green close-out **terminates**; **a cycle that lands nothing halts** — a remaining plan identical to the one it started with, since nothing else stops the loop; the checklist's *Scope drift* **halts where the plan has grown PAST what was asked**, the exit that does not look like one because it fires on a loop landing work cleanly; **a forced item the arc was planned smaller than halts it too**, once absorbing it would change what the arc IS, reported with the re-plan recommended; and **two consecutive cycles at a net of zero or more halt it as well — but only while items this arc filed are still *Adjacent***, the net being *filed minus closed* off the record `skills/orchestrate/references/reconciling.md` says to write, so a backlog that has stopped shrinking across two cycles is an arc transferring work rather than landing it, reported with the re-plan recommended like any other halt. **Read that *only while* as a condition on the halt and never as a note beside it**, since an arc that has filed nothing scores 0 − 0 = 0 every cycle and would otherwise halt on its second cycle for having filed nothing. **Scope drift's other direction is not an exit at all** — a plan falling SHORT re-opens and the loop carries on — so read which direction fired before you treat a fire as a stop. **Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue filed out of this arc that it did not land, that the loop is not coming back, and **which state *Fold vs. file* left it in**. **They are not among the issues the close-out closes**, and **a halt owes this exactly as termination does.**
+**Five exits, and only one is finishing**: an empty plan and a green close-out **terminates**;
+**a cycle that lands nothing halts** — a remaining plan identical to the one it started with, since nothing
+else stops the loop; the checklist's *Scope drift* **halts where the plan has grown PAST what was asked**, the
+exit that does not look like one because it fires on a loop landing work cleanly;
+**a forced item the arc was planned smaller than halts it too**, once absorbing it would change what the arc
+IS, reported with the re-plan recommended; and **two consecutive cycles at a net of zero or more halt it as
+well — but only while items this arc filed are still *Adjacent***, the net being *filed minus closed* off the
+record `skills/orchestrate/references/reconciling.md` says to write, so a backlog that has stopped shrinking
+across two cycles is an arc transferring work rather than landing it, reported with the re-plan recommended
+like any other halt. **Read that *only while* as a condition on the halt and never as a note beside it**,
+since an arc that has filed nothing scores 0 − 0 = 0 every cycle and would otherwise halt on its second cycle
+for having filed nothing. **Scope drift's other direction is not an exit at all** — a plan falling SHORT
+re-opens and the loop carries on — so read which direction fired before you treat a fire as a stop.
+**Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue
+filed out of this arc that it did not land, that the loop is not coming back, and
+**which state *Fold vs. file* left it in**. **They are not among the issues the close-out closes**, and
+**a halt owes this exactly as termination does.**
 
-**And one question the close-out answers in writing: did this arc surface a defect or a gap in the pipeline itself?** Exactly one of three — **filed**, naming the issue; **none found**; or **not enabled here**. "None found" is cheap but must still be written, since an arc that surfaced nothing and one where nobody asked look identical afterwards.
+**And one question the close-out answers in writing: did this arc surface a defect or a gap in the pipeline
+itself?** Exactly one of three — **filed**, naming the issue; **none found**; or **not enabled here**. "None
+found" is cheap but must still be written, since an arc that surfaced nothing and one where nobody asked look
+identical afterwards.
 
-- **The bar is an observed failure the finding can name** — a run that broke, a rule read and not followed, a check green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one per arc is worse than never asking. **That bar rations filing; two `wc -w` ceilings bound what a filed rule costs to read** — no shipped file over 30,000 words, and no sub-skill, one spine plus its own references, over 50,000. Both are backstops rather than budgets, and extraction settles only the per-file half: the sub-skill half counts the same words wherever they sit inside its directory.
-- **A finding that clears it is FILED — an artifact with a number, "recorded" is not a second disposition, and the report is never where a finding lives** (*"none found"* needs no artifact). Run *Fold vs. file*'s already-filed search first: an open issue carrying that failure takes the observation as a comment, which **satisfies** filing rather than excepting it, and a version-skew reading — **the ordinary case being an observer who is behind** — takes the *"none found"* route.
-- **Where it goes is RESOLVED, never remembered** — the **plugin's own repository**, from `repository` in `.claude-plugin/plugin.json`; never the consuming tracker unless the finding is about that project, and never the version-pinned plugin cache, which is not a git repository at all.
-- **Filing upstream is OFF unless the project turned it on, and a MISSING KEY IS A NO** — `.agents/worktree.json`'s `upstreamFindings` (`skills/procedures/config-keys.md`). **Not enabled, the question is still asked and answered in writing** — *not enabled here* — and the finding goes to the maintainer in the run's report in full, the one place a report may house one. **Where the resolved target IS the repository the arc is running in the key does not apply and the finding is FILED**, since the key gates a crossing and nothing crosses: compare the manifest's `repository` against the arc's origin by owner and name, never as URL strings, and treat an unreadable origin as different.
-- ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — the issue body, its title, and every comment on it name the configured git user alone: no trailer, line, footer or URL naming Claude, the assistant, the model, the harness, or the session. The named forms and the named artifacts are both instances rather than the extent, since an enumeration of either is satisfied by every member it omits, so leave out anything you cannot rule out.
-- **Genericising is a LEAK GUARD, not tidiness, and binds whether or not the project opted in.** The tracker is public: a finding **keeps** the failure's shape, the counts and the conclusion, and **never** a file path, a symbol, a route, a branch name, a client or engagement name, or a home directory. **Opt-in is consent to FILE, never to DISCLOSE**, and **each count names its unit**. **The coordinate a filed FOLLOW-UP carries is not an exception here** — that one serves the loop's re-disposition inside the arc's own tracker, where this one crosses into a repository the arc is not running in.
+- **The bar is an observed failure the finding can name** — a run that broke, a rule read and not followed, a
+  check green over a tree it never saw; an improvement that would be nice is not one, and manufacturing one
+  per arc is worse than never asking. **That bar rations filing; two `wc -w` ceilings bound what a filed rule
+  costs to read** — no shipped file over 30,000 words, and no sub-skill, one spine plus its own references,
+  over 50,000. Both are backstops rather than budgets, and extraction settles only the per-file half: the
+  sub-skill half counts the same words wherever they sit inside its directory.
+- **A finding that clears it is FILED — an artifact with a number, "recorded" is not a second disposition, and
+  the report is never where a finding lives** (*"none found"* needs no artifact). Run *Fold vs. file*'s
+  already-filed search first: an open issue carrying that failure takes the observation as a comment, which
+  **satisfies** filing rather than excepting it, and a version-skew reading —
+  **the ordinary case being an observer who is behind** — takes the *"none found"* route.
+- **Where it goes is RESOLVED, never remembered** — the **plugin's own repository**, from `repository` in
+  `.claude-plugin/plugin.json`; never the consuming tracker unless the finding is about that project, and
+  never the version-pinned plugin cache, which is not a git repository at all.
+- **Filing upstream is OFF unless the project turned it on, and a MISSING KEY IS A NO** —
+  `.agents/worktree.json`'s `upstreamFindings` (`skills/procedures/config-keys.md`).
+  **Not enabled, the question is still asked and answered in writing** — *not enabled here* — and the finding
+  goes to the maintainer in the run's report in full, the one place a report may house one.
+  **Where the resolved target IS the repository the arc is running in the key does not apply and the finding
+  is FILED**, since the key gates a crossing and nothing crosses: compare the manifest's `repository` against
+  the arc's origin by owner and name, never as URL strings, and treat an unreadable origin as different.
+- ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — the issue body,
+  its title, and every comment on it name the configured git user alone: no trailer, line, footer or URL
+  naming Claude, the assistant, the model, the harness, or the session. The named forms and the named
+  artifacts are both instances rather than the extent, since an enumeration of either is satisfied by every
+  member it omits, so leave out anything you cannot rule out.
+- **Genericising is a LEAK GUARD, not tidiness, and binds whether or not the project opted in.** The tracker
+  is public: a finding **keeps** the failure's shape, the counts and the conclusion, and **never** a file
+  path, a symbol, a route, a branch name, a client or engagement name, or a home directory.
+  **Opt-in is consent to FILE, never to DISCLOSE**, and **each count names its unit**.
+  **The coordinate a filed FOLLOW-UP carries is not an exception here** — that one serves the loop's
+  re-disposition inside the arc's own tracker, where this one crosses into a repository the arc is not running
+  in.
 
 ---
 
@@ -102,6 +270,40 @@ Back to step 1 with the horizon moved. **A cycle that finds nothing left is how 
 
 Three rules bind the loop at any moment rather than at one step, so they sit here rather than on one.
 
-- ⛔ **The decide-don't-ask bar. Wave assignment, sizing, every filing and every decision to FOLD are this loop's calls to make and report**, not questions to put to the user: **the loop decides, folds, acts and reports**, and records what it decided. Escalate exactly one class — **a product or design fork the code and conventions cannot settle** — in plain chat, **one question at a time, with your recommendation and why**. Two things are specific to a loop: **the bar is applied once per cycle, so setting it slightly too low multiplies**, and **this loop has two channels to the user** — most of what reaches one arrives as a *filed issue* rather than a question in chat, **which is why the issue channel is not a place to put a decision**: a filing handed over for someone to adjudicate is that one class arriving by the larger channel with no bar policing it, and an arc that files three items per item it closes hands back three decisions per close. **Read that multiplication off the cycle's record rather than off your sense of it, and read the RATE for it** — the record carries how many of the arc's filed items are still *Adjacent*, how many cycles the oldest has been, and that cycle's filed, closed and net, and a multiplication is a flow, so it shows up in the rate while a level rising by one a cycle reads as noise.
-- ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table, a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify bar**, grepping the *old literal* across the whole tree, fixtures, snapshots, generated files, docs and config included, and proving either zero hits or that every survivor is deliberate — since no check an implementer runs can see a literal in a fixture. It **attaches to a shape of slice, not to a change**, and **goes in at grounding time**, never at review.
-- ⛔ **The boundaries. No implementation code, ever** — take an implementer's turn on the item that "would take a second" and nobody is holding the loop. **Never ground beyond the horizon**, the single rule the whole skill exists to enforce: a `file:line` three waves out rebuilds the exact defect this loop replaces, while looking like diligence. **Don't reopen the goal** — the loop reshapes *how* the arc gets there, never *what it is for*, and a changed goal is a new issue; the checklist's *Scope drift* is its converse rather than a tension with it, holding the goal fixed and asking whether the plan has drifted. **Don't re-slice what is already dispatched** — a dispatched slice's SCOPE is fixed for the life of its worktree, since an UNAUTHORIZED widening simply IS the divergence the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`), so a scope change means stopping that agent and dispatching a fresh one into the same worktree with a tighter brief. **A named path the dispatcher itself grants on the slice's own ask is not that**, the grant being the authorization divergence is defined by the absence of — and no implementer widens its own fence. **That is a rule about the slice's scope and not about the brief's every word**: a live slice whose brief states a wrong FACT — a number, a path, a name, a bar set at the wrong value — has not grown and is not diverging, and the answer there is a message to the running agent carrying the corrected value, never a kill. **Read the two levers before you reach for either**, since the destructive one is the one this bullet names and the other is the one you will want far more often. **And no merging, no rebasing, no direct push, no self-merge.**
+- ⛔ **The decide-don't-ask bar. Wave assignment, sizing, every filing and every decision to FOLD are this
+  loop's calls to make and report**, not questions to put to the user:
+  **the loop decides, folds, acts and reports**, and records what it decided. Escalate exactly one class —
+  **a product or design fork the code and conventions cannot settle** — in plain chat,
+  **one question at a time, with your recommendation and why**. Two things are specific to a loop:
+  **the bar is applied once per cycle, so setting it slightly too low multiplies**, and
+  **this loop has two channels to the user** — most of what reaches one arrives as a *filed issue* rather than
+  a question in chat, **which is why the issue channel is not a place to put a decision**: a filing handed
+  over for someone to adjudicate is that one class arriving by the larger channel with no bar policing it, and
+  an arc that files three items per item it closes hands back three decisions per close.
+  **Read that multiplication off the cycle's record rather than off your sense of it, and read the RATE for
+  it** — the record carries how many of the arc's filed items are still *Adjacent*, how many cycles the oldest
+  has been, and that cycle's filed, closed and net, and a multiplication is a flow, so it shows up in the rate
+  while a level rising by one a cycle reads as noise.
+- ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table,
+  a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify
+  bar**, grepping the *old literal* across the whole tree, fixtures, snapshots, generated files, docs and
+  config included, and proving either zero hits or that every survivor is deliberate — since no check an
+  implementer runs can see a literal in a fixture. It **attaches to a shape of slice, not to a change**, and
+  **goes in at grounding time**, never at review.
+- ⛔ **The boundaries. No implementation code, ever** — take an implementer's turn on the item that "would take
+  a second" and nobody is holding the loop. **Never ground beyond the horizon**, the single rule the whole
+  skill exists to enforce: a `file:line` three waves out rebuilds the exact defect this loop replaces, while
+  looking like diligence. **Don't reopen the goal** — the loop reshapes *how* the arc gets there, never *what
+  it is for*, and a changed goal is a new issue; the checklist's *Scope drift* is its converse rather than a
+  tension with it, holding the goal fixed and asking whether the plan has drifted.
+  **Don't re-slice what is already dispatched** — a dispatched slice's SCOPE is fixed for the life of its
+  worktree, since an UNAUTHORIZED widening simply IS the divergence the dispatcher polls for
+  (`skills/glossary/vocabulary/divergence.md`), so a scope change means stopping that agent and dispatching a
+  fresh one into the same worktree with a tighter brief. **A named path the dispatcher itself grants on the
+  slice's own ask is not that**, the grant being the authorization divergence is defined by the absence of —
+  and no implementer widens its own fence. **That is a rule about the slice's scope and not about the brief's
+  every word**: a live slice whose brief states a wrong FACT — a number, a path, a name, a bar set at the
+  wrong value — has not grown and is not diverging, and the answer there is a message to the running agent
+  carrying the corrected value, never a kill. **Read the two levers before you reach for either**, since the
+  destructive one is the one this bullet names and the other is the one you will want far more often.
+  **And no merging, no rebasing, no direct push, no self-merge.**

@@ -1,37 +1,251 @@
 ## The mental model
 
-**An arc is a loop, not a plan you write once — and it is one loop whether it holds one ready leaf or twenty.** `/pipeline:orchestrate` grounds only the **horizon** — the next dispatchable increment, meaning every remaining item whose dependencies have already landed — dispatches it, then **reconciles** everything still outstanding against the tree that increment actually produced, rewrites what remains, and goes round again until the plan is empty and the close-out is green.
+**An arc is a loop, not a plan you write once — and it is one loop whether it holds one ready leaf or
+twenty.** `/pipeline:orchestrate` grounds only the **horizon** — the next dispatchable increment, meaning
+every remaining item whose dependencies have already landed — dispatches it, then **reconciles** everything
+still outstanding against the tree that increment actually produced, rewrites what remains, and goes round
+again until the plan is empty and the close-out is green.
 
-**The plan those items sit in is a two-level tree of tasks — an umbrella and its sub-issues, the children being leaves — and it is cut once, when the issues are authored.** `/pipeline:write-issue` is the pass that decides how many children there are and what each one is; every pass after it walks to the ready leaves and grounds them, adding no level and no leaf the plan does not already hold. **One sub-issue is one slice is one worktree is one PR**, as a constraint rather than a default, and the horizon is the set of ready leaves. That is what lets a cycle tick a checklist line as it runs: the thing a cycle lands and the thing the tracker holds are the same object, where a cycle landing pieces of an issue moves real work while the board stands still and leaves churn as the only countable thing. An issue grounding shows cannot be one PR is reported back to the plan as a defect in how it was filed — the umbrella gains another child, authored at the altitude issues are authored at — and never re-cut by the pass that found it. N ready leaves grounding shows are one PR's worth of one change go back the same way, the leaves re-authored as one at the altitude issues are authored at rather than merged by the pass that found them, since one slice spanning two tracked items breaks that same identity from the other side — one artifact ticks both lines, so neither item's `Verify` was ever scored on its own and the board cannot say what was reviewed. That is the whole loop, and it is why an arc is one command rather than a schedule you maintain. **A standalone issue runs that same loop once** — the horizon is the issue itself, `/pipeline:ground` grounds it, `/pipeline:execute` ships it, and the reconcile that follows finds no remainder. Nothing is skipped and nothing is carved out: it is the loop read at one leaf.
+**The plan those items sit in is a two-level tree of tasks — an umbrella and its sub-issues, the children
+being leaves — and it is cut once, when the issues are authored.** `/pipeline:write-issue` is the pass that
+decides how many children there are and what each one is; every pass after it walks to the ready leaves and
+grounds them, adding no level and no leaf the plan does not already hold.
+**One sub-issue is one slice is one worktree is one PR**, as a constraint rather than a default, and the
+horizon is the set of ready leaves. That is what lets a cycle tick a checklist line as it runs: the thing a
+cycle lands and the thing the tracker holds are the same object, where a cycle landing pieces of an issue
+moves real work while the board stands still and leaves churn as the only countable thing. An issue grounding
+shows cannot be one PR is reported back to the plan as a defect in how it was filed — the umbrella gains
+another child, authored at the altitude issues are authored at — and never re-cut by the pass that found it. N
+ready leaves grounding shows are one PR's worth of one change go back the same way, the leaves re-authored as
+one at the altitude issues are authored at rather than merged by the pass that found them, since one slice
+spanning two tracked items breaks that same identity from the other side — one artifact ticks both lines, so
+neither item's `Verify` was ever scored on its own and the board cannot say what was reviewed. That is the
+whole loop, and it is why an arc is one command rather than a schedule you maintain.
+**A standalone issue runs that same loop once** — the horizon is the issue itself, `/pipeline:ground` grounds
+it, `/pipeline:execute` ships it, and the reconcile that follows finds no remainder. Nothing is skipped and
+nothing is carved out: it is the loop read at one leaf.
 
-Every item in the plan therefore sits at one of **two grounding depths**, decided by where the horizon is and by nothing else:
+Every item in the plan therefore sits at one of **two grounding depths**, decided by where the horizon is and
+by nothing else:
 
 | Depth | Applies to | Carries |
 |---|---|---|
 | **Slice depth** | the horizon, and only the horizon | <!-- gate-anchor:enum-6:begin -->The slice's goal, owned files as real paths, do-not-touch boundaries, the artifacts the slice derives, depends-on, the framework skill to open with, the model tier, the brief, the verify bar<!-- gate-anchor:enum-6:end --> — grounded against the tree as it stands *right now* and dispatched in the same cycle. Where a query produced the owned list, the count that query returned **unfiltered** rides beside it, and the two file lists are then read asymmetrically: the owned list is a **floor** on what the change must reach, the boundaries a **ceiling** on what it may edit — a ceiling the slice may always ask to have raised and only the dispatcher may raise, for a named path, on the record. And a path belongs to **at most one slice of a wave**: two slices needing one file are one slice or two waves, never a noted collision, since nothing downstream compares two owned lists and each gates green alone. **The model tier is DECIDED at this depth**, by the seat that just read the code, with one line of why — the dispatcher resolves it onto a host model, may raise it on what the grounding could not see with its reason beside it and nobody's permission, and may lower it only with a written reason in the brief — and the brief it writes also **recommends** whether the slice warrants a review pass, on the same reading, which the dispatcher may override with a reason of its own: a recommendation rather than a tenth field, since the seat that priced that fan-out as a wave's dominant term is the one that had the slice's real files in front of it |
 | **Shape depth** | everything beyond it | Goal, area, what it waits on, one line on why it comes after the thing before it — and **no `file:line`, no owned files, no boundaries, no model tier, no verify bar** |
 
-Reaching the horizon is the only thing that promotes an item from one depth to the other — not a well-understood item, not a small one, not one you were asked about. Both mistakes are silent. A coordinate grounded three waves early names a path an intervening wave has since moved: nothing errors, the brief still reads well, and the implementer opens a tree where the target is not there, finds the nearest plausible thing, and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
+Reaching the horizon is the only thing that promotes an item from one depth to the other — not a
+well-understood item, not a small one, not one you were asked about. Both mistakes are silent. A coordinate
+grounded three waves early names a path an intervening wave has since moved: nothing errors, the brief still
+reads well, and the implementer opens a tree where the target is not there, finds the nearest plausible thing,
+and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the
+implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
 
-After every increment merges, the loop re-checks the rest of the plan against the merged tree, down a fixed checklist — stated once in [`/pipeline:orchestrate`](../skills/orchestrate/SKILL.md) rather than re-derived each cycle — whose items include coordinates that no longer resolve, renames whose *senses* the plan still uses the old word for, work the tree now forces that no remaining item owns, and assumptions the increment falsified. Each thing it finds, it first traces down to why the code is the way it is, and then asks whether it can reason out an answer itself. **Most of them it settles on the spot**, because the answer is a few greps away — that is the default, and settling is not the same as growing the increment. What is genuinely left it folds into a named slice with its own wave when the arc's goal is not true without it (shipping being the floor of that question rather than the bar, and size deciding only how the work is carried). **Scope growing inside an arc is expected, so the loop absorbs what it finds rather than handing it back**: it files only what is genuinely a *different arc* — narrower than separable and narrower than real work worth doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a different arc becomes a line in the plan for a later arc rather than a number on the board, since a number bought for work nobody is carrying yet is what turns a run into somebody's inbox, and the close-out reports what the arc absorbed once, as part of the release. **Either of those names at least one file, symbol or route**, the comment included, because that is the coordinate the re-test below actually reads and an item carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later cycle can actually test** — what the reason was measured against and the instrument that measured it — because the loop re-disposes everything it filed on every subsequent cycle, and a reason that only characterises the item re-reads as reasonable forever, so re-asking the same reader holding the same summary returns the same verdict however wrong it was. What moves such a verdict is a fact rather than a second opinion: the files, symbols and routes the filed issue names, intersected against the owned files of the work about to be dispatched, since an item editing what a dispatchable slice edits is not separable however its description reads. Past the horizon there are no such paths to intersect — that is what shape depth means — so an *area* match there schedules the re-check for the cycle that item reaches the horizon rather than deciding anything now. Each cycle's record then carries how many of the arc's filed items are still outstanding, how many cycles the oldest has been, and that cycle's rate — how many it filed, how many it closed, and the net of the two, which is filed minus closed, so a positive net means the backlog grew — since one a cycle reads as discipline, only the age reads as accumulation, and only the rate says which way the pile is moving. It decides wave assignment, fold-vs-file, sizing and every filing itself — a filing is never put to you as a decision to make — and asks you only about a product or design fork the code and conventions cannot settle. The one thing it checks every cycle and never decides itself is whether the remaining plan still answers what you asked for — every fold can be individually forced and the sum still drift away from the request, so where the plan has grown past what you asked it halts and reports rather than unfolding work it already called forced, and the re-scope is yours. It halts on the rate as well: two cycles running at a net of zero or more, with items the arc filed still outstanding, is an arc transferring backlog rather than landing it, so it stops and reports with a re-plan recommended — and an arc that has filed nothing is not in that state, since a net of zero out of nothing filed and nothing closed is no backlog to transfer. Falling short is the other direction and the loop's own doing rather than yours to re-scope, so that one it fixes itself: whatever the goal is not true without comes back in.
+After every increment merges, the loop re-checks the rest of the plan against the merged tree, down a fixed
+checklist — stated once in [`/pipeline:orchestrate`](../skills/orchestrate/SKILL.md) rather than re-derived
+each cycle — whose items include coordinates that no longer resolve, renames whose *senses* the plan still
+uses the old word for, work the tree now forces that no remaining item owns, and assumptions the increment
+falsified. Each thing it finds, it first traces down to why the code is the way it is, and then asks whether
+it can reason out an answer itself. **Most of them it settles on the spot**, because the answer is a few greps
+away — that is the default, and settling is not the same as growing the increment. What is genuinely left it
+folds into a named slice with its own wave when the arc's goal is not true without it (shipping being the
+floor of that question rather than the bar, and size deciding only how the work is carried).
+**Scope growing inside an arc is expected, so the loop absorbs what it finds rather than handing it back**: it
+files only what is genuinely a *different arc* — narrower than separable and narrower than real work worth
+doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the
+tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a
+different arc becomes a line in the plan for a later arc rather than a number on the board, since a number
+bought for work nobody is carrying yet is what turns a run into somebody's inbox, and the close-out reports
+what the arc absorbed once, as part of the release. **Either of those names at least one file, symbol or
+route**, the comment included, because that is the coordinate the re-test below actually reads and an item
+carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later
+cycle can actually test** — what the reason was measured against and the instrument that measured it — because
+the loop re-disposes everything it filed on every subsequent cycle, and a reason that only characterises the
+item re-reads as reasonable forever, so re-asking the same reader holding the same summary returns the same
+verdict however wrong it was. What moves such a verdict is a fact rather than a second opinion: the files,
+symbols and routes the filed issue names, intersected against the owned files of the work about to be
+dispatched, since an item editing what a dispatchable slice edits is not separable however its description
+reads. Past the horizon there are no such paths to intersect — that is what shape depth means — so an *area*
+match there schedules the re-check for the cycle that item reaches the horizon rather than deciding anything
+now. Each cycle's record then carries how many of the arc's filed items are still outstanding, how many cycles
+the oldest has been, and that cycle's rate — how many it filed, how many it closed, and the net of the two,
+which is filed minus closed, so a positive net means the backlog grew — since one a cycle reads as discipline,
+only the age reads as accumulation, and only the rate says which way the pile is moving. It decides wave
+assignment, fold-vs-file, sizing and every filing itself — a filing is never put to you as a decision to make
+— and asks you only about a product or design fork the code and conventions cannot settle. The one thing it
+checks every cycle and never decides itself is whether the remaining plan still answers what you asked for —
+every fold can be individually forced and the sum still drift away from the request, so where the plan has
+grown past what you asked it halts and reports rather than unfolding work it already called forced, and the
+re-scope is yours. It halts on the rate as well: two cycles running at a net of zero or more, with items the
+arc filed still outstanding, is an arc transferring backlog rather than landing it, so it stops and reports
+with a re-plan recommended — and an arc that has filed nothing is not in that state, since a net of zero out
+of nothing filed and nothing closed is no backlog to transfer. Falling short is the other direction and the
+loop's own doing rather than yours to re-scope, so that one it fixes itself: whatever the goal is not true
+without comes back in.
 
-You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for Trinity, `release/x.x.x`) and nothing else, ever — every other branch, slice *or* epic, lives in its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that sits inside a polyrepo workspace (`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`, so a task spanning several member repos lands as one directory laid out the way the workspace is. Every helper resolves both layouts — a teardown that knew only the first would look at a path that never exists for a workspace member, report the tree already gone, and exit 0. That is the one rule the whole layout follows: the main checkout is the only shared mutable state here, and a branch parked in it is a branch several sessions can move under each other. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration branch → delete branch + worktree.
+You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for
+Trinity, `release/x.x.x`) and nothing else, ever — every other branch, slice *or* epic, lives in its own
+worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that sits inside a polyrepo workspace
+(`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`, so a task spanning several
+member repos lands as one directory laid out the way the workspace is. Every helper resolves both layouts — a
+teardown that knew only the first would look at a path that never exists for a workspace member, report the
+tree already gone, and exit 0. That is the one rule the whole layout follows: the main checkout is the only
+shared mutable state here, and a branch parked in it is a branch several sessions can move under each other.
+`WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a
+worktree path there ends up carrying a whole dependency tree
+(`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows'
+260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on
+the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push →
+PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration
+branch → delete branch + worktree.
 
-**One optional second level: the epic branch.** **The verdict is written in the issue** — `/pipeline:write-issue` answers it on the two rules below while it is planning the arc, and every pass after carries that answer rather than deriving one of its own; `/pipeline:execute` owns the branch's lifecycle. Two rules reach for it. A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. And **any** multi-slice work reaches for it by default even when every intermediate state would ship, because landing one change on the shared branch as N separate merges costs something regardless of that: an epic that turns out wrong is N merges to unpick instead of one to revert, the two halves of a contract seam are far easier to compare while both are still converging somewhere you control, and where shipped content must move a version — this repo included — N merges into the branch that releases are N releases for one change. Two further costs, a live slice's base moving under its siblings and a shared branch left carrying merged trees no single gate ever ran, land only when the slices actually run concurrently. Whichever rule fires, an **epic branch** is cut from the integration branch **into a worktree of its own** — `setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a whole in that worktree once they have all landed — when the merges actually produced a tree the slice gates did not already cover, which is a one-command check rather than a habit — and it reaches the integration branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule, [Per-project config](per-project-config.md#per-project-config) the key). Neither rule is a slice count, and neither is "the integration branch is busy": the first asks whether a partial state is *broken*, and the second keys on one change decomposed into slices rather than on other sessions' traffic. It buys isolation and costs deferred conflicts, so the dispatcher merges the integration branch back into it — in that same worktree — on the same tick that drains the gate queue, mandatory, and the more so now that the second rule fires on every multi-slice arc. One naming constraint comes with the worktree: the epic branch's **leaf** (everything past the last slash) has to be one no slice will reuse, because the leaf is the worktree's directory name and a second branch resolving to the same path would be handed the epic's own tree instead of a new one. `setup-worktree` refuses that instead of reporting it as a success — it reads back which branch the tree is actually on and, where that is not the branch asked for, names both and exits non-zero rather than printing `READY:`. **Single-slice work never cuts one**, and the flow above is unchanged when there isn't one — including its docs, which on an epic instead land once at the end: each slice records what its change made false, a closing docs slice writes those against the final tree with the whole picture in view, and the epic cannot close while an entry is outstanding — except for what the deferral cannot absorb, which is settled by a test rather than by a count: **where a checker can tell a reference is stale without reading the sentence around it, the slice that broke it fixes it in its own PR.** A **structural coordinate** the slice itself moved is the case every repo has, because a gate that validates path citations reds at its first step, before the slice's own work is ever evaluated; what else falls on that side moves with what a given repo's own docs gate actually resolves. And the fix is the whole fix: a fact in that same sentence the slice's own change moved is corrected along with it, since reverting the reference only hands that gate back what it reds on. One more thing an epic changes for as long as it lives: every slice PR is based on the epic branch rather than on the default branch, so GitHub's closing keywords are inert for all of them, and nothing closes an issue but the dispatcher's own hand-close at each merge — a board that has not moved is not evidence that nothing has landed. When the epic is the first kind — knowingly red until the last consumer migrates — cutting the branch is only half the step: a `transient-red/<epic-slug>` marker ref is pushed beside it, because a project's commit-time tooling cannot read a plan and the ref graph is the only place it can learn the window is open. It is deleted with the epic branch, which is what closes the window again.
+**One optional second level: the epic branch.** **The verdict is written in the issue** —
+`/pipeline:write-issue` answers it on the two rules below while it is planning the arc, and every pass after
+carries that answer rather than deriving one of its own; `/pipeline:execute` owns the branch's lifecycle. Two
+rules reach for it. A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must
+follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished
+change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. And
+**any** multi-slice work reaches for it by default even when every intermediate state would ship, because
+landing one change on the shared branch as N separate merges costs something regardless of that: an epic that
+turns out wrong is N merges to unpick instead of one to revert, the two halves of a contract seam are far
+easier to compare while both are still converging somewhere you control, and where shipped content must move a
+version — this repo included — N merges into the branch that releases are N releases for one change. Two
+further costs, a live slice's base moving under its siblings and a shared branch left carrying merged trees no
+single gate ever ran, land only when the slices actually run concurrently. Whichever rule fires, an
+**epic branch** is cut from the integration branch **into a worktree of its own** —
+`setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and
+one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a
+whole in that worktree once they have all landed — when the merges actually produced a tree the slice gates
+did not already cover, which is a one-command check rather than a habit — and it reaches the integration
+branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash
+instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule,
+[Per-project config](per-project-config.md#per-project-config) the key). Neither rule is a slice count, and
+neither is "the integration branch is busy": the first asks whether a partial state is *broken*, and the
+second keys on one change decomposed into slices rather than on other sessions' traffic. It buys isolation and
+costs deferred conflicts, so the dispatcher merges the integration branch back into it — in that same worktree
+— on the same tick that drains the gate queue, mandatory, and the more so now that the second rule fires on
+every multi-slice arc. One naming constraint comes with the worktree: the epic branch's **leaf** (everything
+past the last slash) has to be one no slice will reuse, because the leaf is the worktree's directory name and
+a second branch resolving to the same path would be handed the epic's own tree instead of a new one.
+`setup-worktree` refuses that instead of reporting it as a success — it reads back which branch the tree is
+actually on and, where that is not the branch asked for, names both and exits non-zero rather than printing
+`READY:`. **Single-slice work never cuts one**, and the flow above is unchanged when there isn't one —
+including its docs, which on an epic instead land once at the end: each slice records what its change made
+false, a closing docs slice writes those against the final tree with the whole picture in view, and the epic
+cannot close while an entry is outstanding — except for what the deferral cannot absorb, which is settled by a
+test rather than by a count: **where a checker can tell a reference is stale without reading the sentence
+around it, the slice that broke it fixes it in its own PR.** A **structural coordinate** the slice itself
+moved is the case every repo has, because a gate that validates path citations reds at its first step, before
+the slice's own work is ever evaluated; what else falls on that side moves with what a given repo's own docs
+gate actually resolves. And the fix is the whole fix: a fact in that same sentence the slice's own change
+moved is corrected along with it, since reverting the reference only hands that gate back what it reds on. One
+more thing an epic changes for as long as it lives: every slice PR is based on the epic branch rather than on
+the default branch, so GitHub's closing keywords are inert for all of them, and nothing closes an issue but
+the dispatcher's own hand-close at each merge — a board that has not moved is not evidence that nothing has
+landed. When the epic is the first kind — knowingly red until the last consumer migrates — cutting the branch
+is only half the step: a `transient-red/<epic-slug>` marker ref is pushed beside it, because a project's
+commit-time tooling cannot read a plan and the ref graph is the only place it can learn the window is open. It
+is deleted with the epic branch, which is what closes the window again.
 
-**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: a dispatcher read this diff and is merging it. **And the reasoning behind that flip is written down where it outlives the conversation that produced it**: each round of the review loop the dispatcher posts the verdict it has just formed onto the PR as a **review** — event `COMMENT`, findings threaded on the lines they concern, attributed to the maintainer `gh` is authenticated as — so a PR that took three rounds carries three reviews in order, the needs-changes ones naming what the next round was dispatched to fix and the satisfied one sitting immediately ahead of the flip. The event is `COMMENT` because GitHub refuses `APPROVE` and `REQUEST_CHANGES` on a self-authored PR and every PR in this flow is — which the dispatcher observes rather than declares, comparing the PR's author against the authenticated account — and because the flip already carries the approval a second signature would only duplicate. A posted review is a different artifact from the gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge — and where that merge fails it puts the flag straight back with `gh pr ready <n> --undo`, but only where *this* run is what set it, so a PR that arrived already ready keeps the state it came with rather than being pushed into a draft nobody asked for. The flag must not survive a merge that failed: a non-draft PR that is not being merged right this second reads, everywhere else in this flow, as a diff a dispatcher approved. A green gate says the suite passed; it cannot say the agent solved the right problem. And a grant that lands after a slice's review pass has closed produces an edit that pass never read, so the dispatcher's own read of the diff is the only reader it gets, and the slice's hand-back is what flags which edit that is. One PR in the flow has no implementer behind it and so no hand-back to promote: the epic branch's closing PR into the integration branch, which the orchestrator authors and then merges. It is a draft carrying a gate comment like every other, because it opens *first* and the integrated close-out check is enqueued against it — green before the **merge**, which is the step that actually puts the change set on the shared branch, rather than before the open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was already reviewed as its own draft PR.
+**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate
+reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is
+gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: a
+dispatcher read this diff and is merging it. **And the reasoning behind that flip is written down where it
+outlives the conversation that produced it**: each round of the review loop the dispatcher posts the verdict
+it has just formed onto the PR as a **review** — event `COMMENT`, findings threaded on the lines they concern,
+attributed to the maintainer `gh` is authenticated as — so a PR that took three rounds carries three reviews
+in order, the needs-changes ones naming what the next round was dispatched to fix and the satisfied one
+sitting immediately ahead of the flip. The event is `COMMENT` because GitHub refuses `APPROVE` and
+`REQUEST_CHANGES` on a self-authored PR and every PR in this flow is — which the dispatcher observes rather
+than declares, comparing the PR's author against the authenticated account — and because the flip already
+carries the approval a second signature would only duplicate. A posted review is a different artifact from the
+gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that
+sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge — and
+where that merge fails it puts the flag straight back with `gh pr ready <n> --undo`, but only where *this* run
+is what set it, so a PR that arrived already ready keeps the state it came with rather than being pushed into
+a draft nobody asked for. The flag must not survive a merge that failed: a non-draft PR that is not being
+merged right this second reads, everywhere else in this flow, as a diff a dispatcher approved. A green gate
+says the suite passed; it cannot say the agent solved the right problem. And a grant that lands after a
+slice's review pass has closed produces an edit that pass never read, so the dispatcher's own read of the diff
+is the only reader it gets, and the slice's hand-back is what flags which edit that is. One PR in the flow has
+no implementer behind it and so no hand-back to promote: the epic branch's closing PR into the integration
+branch, which the orchestrator authors and then merges. It is a draft carrying a gate comment like every
+other, because it opens *first* and the integrated close-out check is enqueued against it — green before the
+**merge**, which is the step that actually puts the change set on the shared branch, rather than before the
+open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was already
+reviewed as its own draft PR.
 
-**And a gate comment says nothing about the implementer either — which is a distinction you only need in one mode, and it is the mode where the comment is most visible.** On a project that declares no queue the implementer runs the gate itself, so its verdict comment lands on the PR the dispatcher is already watching *before* the hand-back, which arrives through another channel entirely — and the hand-back is the step that says the implementer has stopped working. So the merge, which tears down the tree that implementer may still be standing in, waits on the hand-back and never on the comment. The absence direction is a caution rather than a rule: a bare PR is not evidence a gate ran, not evidence that none did, and not evidence about the implementer either — so what it licenses is a question to the agent and nothing else.
+**And a gate comment says nothing about the implementer either — which is a distinction you only need in one
+mode, and it is the mode where the comment is most visible.** On a project that declares no queue the
+implementer runs the gate itself, so its verdict comment lands on the PR the dispatcher is already watching
+*before* the hand-back, which arrives through another channel entirely — and the hand-back is the step that
+says the implementer has stopped working. So the merge, which tears down the tree that implementer may still
+be standing in, waits on the hand-back and never on the comment. The absence direction is a caution rather
+than a rule: a bare PR is not evidence a gate ran, not evidence that none did, and not evidence about the
+implementer either — so what it licenses is a question to the agent and nothing else.
 
-`/pipeline:execute` is where one increment gets shipped, and it runs in one of **two roles — decided by how it was entered, not by how the work looks**:
+`/pipeline:execute` is where one increment gets shipped, and it runs in one of
+**two roles — decided by how it was entered, not by how the work looks**:
 
-- **Dispatcher** — entered from `/pipeline:orchestrate`'s loop, which invokes it once per cycle to dispatch the increment it has just grounded, and from nowhere else: this is the loop's own dispatcher half rather than a second seat it hands work to, which is why there is no command you type to reach it. It does **not** write code. It makes + verifies a worktree per slice **and a scratchpad per slice, named in the brief**, dispatches implementer sub-agents in parallel — **naming each child's model tier in the spawn rather than letting it default to whatever the dispatcher itself is running, and resolving rather than re-deciding the tier the grounding pass wrote, which it may raise with its reason beside it and lower only with a written reason in the brief — and deciding the WAVE'S WIDTH against the width that pass recommended, going narrower or wider with its reason recorded, since the queue, what is already live and what the host can take are the facts grounding could not see** — reviews each PR by reading the diff, drains the gate queue, and merges. Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up folded into the plan. So is a question a *live* slice asks about a fenced file, which it answers on the same tick, one of four ways: widen that one named path — or, where the grant's subject is every occurrence of something, every path that extent resolves to — and write the grant down where the diff's reviewer will meet it, route the correction to the sibling that owns the file, return the verdict that it be filed, or stop because the slice needs re-cutting.
-- **Implementer** — entered from a dispatch brief (a dispatcher handed it one slice, the worktree to build it in, and a scratchpad of its own), or from you telling it to *build / fix / implement* a specific thing. It codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**, since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a verdict per doc it checked. Work it finds outside its owned files it **fixes**, in the PR it already has open, each repair in its own commit — it opens no GitHub issue in any circumstance — and where a **fence** is what stopped it, it **asks** the dispatcher first while both are alive — the default for anything outside that fence, sent once with a recommendation and answered by a receipt rather than a reply so the slice keeps working; where the answer that comes back is *file it* the dispatcher performs that filing, and where no dispatcher is live to answer the finding goes in the hand-back, which is the whole of what that seat has. It fixes what it HIT while doing its slice rather than going looking for more, and raises what it cannot fix before it pushes, since push is the last moment at which an answer is still an edit in an open tree rather than a fix agent sent back into the worktree.
+- **Dispatcher** — entered from `/pipeline:orchestrate`'s loop, which invokes it once per cycle to dispatch
+  the increment it has just grounded, and from nowhere else: this is the loop's own dispatcher half rather
+  than a second seat it hands work to, which is why there is no command you type to reach it. It does **not**
+  write code. It makes + verifies a worktree per slice **and a scratchpad per slice, named in the brief**,
+  dispatches implementer sub-agents in parallel — **naming each child's model tier in the spawn rather than
+  letting it default to whatever the dispatcher itself is running, and resolving rather than re-deciding the
+  tier the grounding pass wrote, which it may raise with its reason beside it and lower only with a written
+  reason in the brief — and deciding the WAVE'S WIDTH against the width that pass recommended, going narrower
+  or wider with its reason recorded, since the queue, what is already live and what the host can take are the
+  facts grounding could not see** — reviews each PR by reading the diff, drains the gate queue, and merges.
+  Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up
+  folded into the plan. So is a question a *live* slice asks about a fenced file, which it answers on the same
+  tick, one of four ways: widen that one named path — or, where the grant's subject is every occurrence of
+  something, every path that extent resolves to — and write the grant down where the diff's reviewer will meet
+  it, route the correction to the sibling that owns the file, return the verdict that it be filed, or stop
+  because the slice needs re-cutting.
+- **Implementer** — entered from a dispatch brief (a dispatcher handed it one slice, the worktree to build it
+  in, and a scratchpad of its own), or from you telling it to *build / fix / implement* a specific thing. It
+  codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it
+  falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**,
+  since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped
+  check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a
+  verdict per doc it checked. Work it finds outside its owned files it **fixes**, in the PR it already has
+  open, each repair in its own commit — it opens no GitHub issue in any circumstance — and where a **fence**
+  is what stopped it, it **asks** the dispatcher first while both are alive — the default for anything outside
+  that fence, sent once with a recommendation and answered by a receipt rather than a reply so the slice keeps
+  working; where the answer that comes back is *file it* the dispatcher performs that filing, and where no
+  dispatcher is live to answer the finding goes in the hand-back, which is the whole of what that seat has. It
+  fixes what it HIT while doing its slice rather than going looking for more, and raises what it cannot fix
+  before it pushes, since push is the last moment at which an answer is still an edit in an open tree rather
+  than a fix agent sent back into the worktree.
 
-Dispatched work enters at **`/pipeline:orchestrate`** whatever its size, where working out where the horizon falls is the loop's first cycle rather than something you have to settle before entering it. **How big the work is, is settled in the issue** — `/pipeline:write-issue` writes that verdict beside the phase map, and every pass after it carries the answer rather than deriving one of its own — and what it decides is how many cycles the loop runs, never which command you type. A standalone issue has neither a phase map nor children, so the horizon is that issue, the loop runs one cycle, and its reconcile finds nothing outstanding.
+Dispatched work enters at **`/pipeline:orchestrate`** whatever its size, where working out where the horizon
+falls is the loop's first cycle rather than something you have to settle before entering it.
+**How big the work is, is settled in the issue** — `/pipeline:write-issue` writes that verdict beside the
+phase map, and every pass after it carries the answer rather than deriving one of its own — and what it
+decides is how many cycles the loop runs, never which command you type. A standalone issue has neither a phase
+map nor children, so the horizon is that issue, the loop runs one cycle, and its reconcile finds nothing
+outstanding.
 
 ### Why this shape
-- **Just-in-time grounding** → `orchestrate` grounds one increment at a time, against the tree that increment's implementers will actually open, then re-grounds what remains once it has merged. A plan grounded once up front is at its most accurate the moment before any of it runs and decays from there: every wave that lands moves coordinates the later waves were written against, and nothing about that decay raises an error.
-- **Isolated worktrees** → parallel tasks never collide *in the tree*; each has its own checkout, branch and `node_modules`. Isolation stops at the filesystem, though: a worktree still shares every resource that lives outside it — a database, a Redis instance, a cache directory, a fixed port — so a project whose checks touch one declares it in `sharedResources` ([Per-project config](per-project-config.md#per-project-config)), and a resource that stays shared is a fan-out this flow has to narrow rather than widen. **That key is not the whole remedy for the class, and cannot be**, because it reaches only what the project's *checks* touch. What the *agent* writes about its own run — a gate log, a captured exit status, intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives each slice its own and names it in the brief, the same way it gives each slice a worktree.
-- **A durable gate queue** → implementers enqueue and hand back rather than waiting, so a wide fan-out never serializes on a gate lock and a dying agent can't strand committed work.
-- **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one place that trade is worth re-opening, because that branch is scaffolding rather than history — [The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) is where what a project may declare there is stated.
+- **Just-in-time grounding** → `orchestrate` grounds one increment at a time, against the tree that
+  increment's implementers will actually open, then re-grounds what remains once it has merged. A plan
+  grounded once up front is at its most accurate the moment before any of it runs and decays from there: every
+  wave that lands moves coordinates the later waves were written against, and nothing about that decay raises
+  an error.
+- **Isolated worktrees** → parallel tasks never collide *in the tree*; each has its own checkout, branch and
+  `node_modules`. Isolation stops at the filesystem, though: a worktree still shares every resource that lives
+  outside it — a database, a Redis instance, a cache directory, a fixed port — so a project whose checks touch
+  one declares it in `sharedResources` ([Per-project config](per-project-config.md#per-project-config)), and a
+  resource that stays shared is a fan-out this flow has to narrow rather than widen.
+  **That key is not the whole remedy for the class, and cannot be**, because it reaches only what the
+  project's *checks* touch. What the *agent* writes about its own run — a gate log, a captured exit status,
+  intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no
+  config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives
+  each slice its own and names it in the brief, the same way it gives each slice a worktree.
+- **A durable gate queue** → implementers enqueue and hand back rather than waiting, so a wide fan-out never
+  serializes on a gate lock and a dying agent can't strand committed work.
+- **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
+  once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
+  place that trade is worth re-opening, because that branch is scaffolding rather than history —
+  [The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) is where what a project
+  may declare there is stated.

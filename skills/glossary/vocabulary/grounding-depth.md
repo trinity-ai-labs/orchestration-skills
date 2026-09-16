@@ -19,7 +19,8 @@ after the thing before it. **No `file:line`, no owned-file list, no do-not-touch
 skill, no model tier, no verify bar.** An item at shape depth is not an unfinished item; it is deliberately
 ungrounded, because grounding it now is what goes stale.
 
-**Slice depth** — the horizon only, and it is what ONE LEAF carries, ground whole. The full set a dispatchable slice carries: **`Goal`, `Owns`,
+**Slice depth** — the horizon only, and it is what ONE LEAF carries, ground whole. The full set a dispatchable
+slice carries: **`Goal`, `Owns`,
 `Do NOT touch`, `Derives`, depends-on, the framework skill to open with, the model tier, the brief, and the
 verify bar** — grounded against the tree as it stands now.
 

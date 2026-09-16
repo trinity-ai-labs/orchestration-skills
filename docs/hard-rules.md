@@ -42,7 +42,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   placeholder agent, an `echo` or a `sleep` made so a turn does not end is banned by its purpose rather than
   its tool, since each is a paid round trip that learns nothing and a placeholder's own completion wakes the
   agent into spawning the next — while a host call that blocks until a child reports, or a tick or watch a
-  pass requires, returns something the agent acts on and is not one of these.
+  pass requires, returns something the agent acts on and is not one of these. **Where a host gives neither
+  that re-invocation nor such a blocking call, there is a third branch**: ending the turn loses the handoff
+  with nothing coming to restore it, so the agent hands back on what has landed and names which children are
+  still out rather than waiting silently.
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files,
   boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding
   more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the
@@ -108,11 +111,17 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   still there to read.
 - **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic
   branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
-- **Implementers never run the full gate, never mark their own PRs ready, and never merge their own PRs** —
-  they enqueue; a runner gates and comments the verdict; the dispatcher reviews the diff, posts the verdict it
-  formed onto the PR as a review on each round of that loop, marks it ready, and merges. On a project that
-  declares no queue ([Per-project config](per-project-config.md#per-project-config)) the implementer runs the
-  gate itself and comments the result — that is the default there rather than a grant — and the
+- **Implementers never run the full gate, never enqueue one, never mark their own PRs ready, and never merge
+  their own PRs** — they push, open a draft PR and hand back; the dispatcher then posts the verdict it formed
+  onto the PR as a review on each round of that loop, and **enqueues only once it is satisfied with the
+  code**, a runner gating it and commenting its own verdict before the dispatcher marks it ready and merges.
+  Holding the ticket back until then is what keeps a gate off a tree a fix round is about to rewrite, nothing
+  being able to take a ticket back, and it is the shape an epic's close-out has always had — draft PR first,
+  gate enqueued against it. **All of that is the default QUEUE mode.** Where a slice is put in override gate
+  mode, and on a project that declares no queue at all
+  ([Per-project config](per-project-config.md#per-project-config)), the implementer runs the gate itself and
+  comments the result, and **no ticket exists at any point** — in the second of those that is the default
+  rather than a grant — and the
   **implementer's** half of the line is unchanged: still a draft, still never its own merge. The dispatcher's
   half does not go unchanged with it — there the verdict comment arrives *before* the hand-back rather than
   after it, so it is not the signal that the implementer is done, and *Where the review approval lives* in
@@ -138,7 +147,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   the files open. So **filing is a verdict the dispatcher returns rather than a disposition the implementer
   reaches for — and the implementer opens no issue in any circumstance, the no-dispatcher-live case included,
   where the finding goes in its hand-back instead**, and the dispatcher absorbs the question because it alone
-  holds the sibling map and the wave. **The ask is the implementer's and the grant is the dispatcher's** — no
+  holds the sibling map and the wave. **The reviewers an implementer's quality pass dispatches have no filing
+  disposition either, and every one of those briefs says so with the reason beside it** — a reader whose whole
+  deliverable is a report spends that same unit of work on what one line of that report settles, and a ban
+  written only at the seat describing the briefs reaches no reviewer at all. A filing from either of them
+  leaves nothing in the worktree, so it is caught on the tracker rather than on a clean `git status`.
+  **The ask is the implementer's and the grant is the dispatcher's** — no
   slice widens its own fence, since a live slice that grows is indistinguishable from one diverging unless the
   party running the divergence check is the one that granted the growth, and the grant is written where a
   later reader finds it rather than dying with the run as a message would — on the issue behind it while no PR
@@ -207,9 +221,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   of flags saying only *this one predates the rule*, true of all of them and distinguishing none.
   **A reason that cannot be written to the bar at all is still the finding**, which is the case that bar was
   set for. And each cycle's record carries how many of the arc's filed items are still outstanding, how many
-  cycles the oldest has been, and that cycle's rate — how many it filed, how many it closed, and the net of
-  the two, which is filed minus closed, so a positive net means the backlog grew — because a level and an age
-  say how much is standing and how long it has stood but never which way it is moving. What genuinely gets
+  cycles the oldest has been, and that cycle's rate — how many it filed, how many of the PLAN's items it
+  closed, how many of its OWN findings it closed, and the net of the first two, which is filed minus plan
+  closes, so a positive net means the backlog grew against the plan — because a level and an age
+  say how much is standing and how long it has stood but never which way it is moving, and because an arc
+  working only on what it found itself closes as many as it files, which counted together would read as its
+  healthiest cycle while the plan has not moved. What genuinely gets
   handed over is held to that same bar — a decision on something the arc never discussed, a change that needs
   re-agreement before it is made, an irreversible one, or scope only you can size — and an arc that leaves one
   behind says so on the issue at close-out, so a filed issue you come across is never ambiguous between "the

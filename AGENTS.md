@@ -47,7 +47,8 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
 - **Two ceilings, both `wc -w` over every `*.md` file under `skills/` that git lists as tracked OR
   untracked-and-not-ignored — a new skill not yet `git add`ed being exactly what these ceilings exist to weigh
   — enforced at `scripts/check.sh` check 10: no single file over 30,000 words, and no sub-skill — one
-  `skills/<slug>/` spine plus its own references, which is what an agent actually loads — over 50,000.** They
+  `skills/<slug>/` spine plus its own references, counted as that whole DIRECTORY rather than as what any one
+  agent loads, since an agent loads the spine plus whichever references it is sent to — over 50,000.** They
   are BACKSTOPS, not budgets: the pair catches runaway growth in what one read costs rather than rationing
   prose, and **the headroom is deliberately not stated as a fraction here** — it moves with every release that
   adds prose and check 10 prints each sub-skill's total on green, so a figure in this sentence would be a

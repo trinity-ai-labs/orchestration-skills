@@ -72,8 +72,11 @@ dispatched, since an item editing what a dispatchable slice edits is not separab
 reads. Past the horizon there are no such paths to intersect — that is what shape depth means — so an *area*
 match there schedules the re-check for the cycle that item reaches the horizon rather than deciding anything
 now. Each cycle's record then carries how many of the arc's filed items are still outstanding, how many cycles
-the oldest has been, and that cycle's rate — how many it filed, how many it closed, and the net of the two,
-which is filed minus closed, so a positive net means the backlog grew — since one a cycle reads as discipline,
+the oldest has been, and that cycle's rate — how many it filed, how many of the PLAN's own items it closed,
+how many of its OWN findings it closed, and the net of the first two, which is filed minus plan closes, so a
+positive net means the backlog grew against the plan. The two kinds of close are counted apart because an arc
+that only ever works on what it found itself closes as many as it files, and added together that arc reads as
+its healthiest while the plan stands still. One filing a cycle reads as discipline,
 only the age reads as accumulation, and only the rate says which way the pile is moving. It decides wave
 assignment, fold-vs-file, sizing and every filing itself — a filing is never put to you as a decision to make
 — and asks you only about a product or design fork the code and conventions cannot settle. The one thing it
@@ -83,7 +86,9 @@ grown past what you asked it halts and reports rather than unfolding work it alr
 re-scope is yours. It halts on the rate as well: two cycles running at a net of zero or more, with items the
 arc filed still outstanding, is an arc transferring backlog rather than landing it, so it stops and reports
 with a re-plan recommended — and an arc that has filed nothing is not in that state, since a net of zero out
-of nothing filed and nothing closed is no backlog to transfer. Falling short is the other direction and the
+of nothing filed and nothing closed is no backlog to transfer. The closes that net reads are the plan's; an
+arc closing only its own findings does not buy its way out of that halt with them. Falling short is the other
+direction and the
 loop's own doing rather than yours to re-scope, so that one it fixes itself: whatever the goal is not true
 without comes back in.
 
@@ -218,9 +223,12 @@ implementer either — so what it licenses is a question to the agent and nothin
   codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it
   falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**,
   since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped
-  check, opens a **draft** PR, enqueues the gate, and **hands back — it never merges its own PR**, reporting a
-  verdict per doc it checked. Work it finds outside its owned files it **fixes**, in the PR it already has
-  open, each repair in its own commit — it opens no GitHub issue in any circumstance — and where a **fence**
+  check, opens a **draft** PR, and **hands back — it never enqueues the gate and it never merges its own PR**,
+  reporting a verdict per doc it checked. The gate ticket is the dispatcher's, raised after it has read the
+  diff, and in a project that gates in-line there is no ticket at all. Work it finds outside its owned files
+  it **fixes**, in the PR it already has
+  open, each repair in its own commit — it opens no GitHub issue in any circumstance, and neither does any
+  reviewer it dispatches — and where a **fence**
   is what stopped it, it **asks** the dispatcher first while both are alive — the default for anything outside
   that fence, sent once with a recommendation and answered by a receipt rather than a reply so the slice keeps
   working; where the answer that comes back is *file it* the dispatcher performs that filing, and where no
@@ -253,8 +261,10 @@ outstanding.
   intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no
   config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives
   each slice its own and names it in the brief, the same way it gives each slice a worktree.
-- **A durable gate queue** → implementers enqueue and hand back rather than waiting, so a wide fan-out never
-  serializes on a gate lock and a dying agent can't strand committed work.
+- **A durable gate queue** → implementers hand back rather than waiting and the dispatcher enqueues once it
+  has read the diff, so a wide fan-out never serializes on a gate lock, nothing gates a tree that is about to
+  be rewritten, and a dying agent can't strand committed work — its branch and draft PR are pushed before the
+  hand-back either way.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
   place that trade is worth re-opening, because that branch is scaffolding rather than history —

@@ -193,13 +193,15 @@ and how much it has left standing; it comes back to you only for a genuine produ
 conventions cannot settle, asked in plain chat, one question at a time, with a recommendation — or to halt,
 which is a report rather than a question and happens when a cycle lands nothing, when what is left of the plan
 has grown past what you asked for, when work the goal turns out to need is too big for the arc as it was
-planned, or when two cycles running have each filed at least as many follow-ups as they closed, while
+planned, or when two cycles running have each filed at least as many follow-ups as they closed items of the
+plan — closes of its own findings counted separately and not read here — while
 follow-ups this arc filed are still outstanding — a backlog being transferred rather than landed. A plan that
 has fallen short of your goal is not one of those: that direction the loop fixes itself, folding the missing
 work back in.
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
-the docs it falsifies along with it, greens the scoped check, opens a draft PR, enqueues the gate, hands back.
+the docs it falsifies along with it, greens the scoped check, opens a draft PR and hands back — the gate
+ticket is the dispatcher's, raised once it has read that diff.
 
 **By hand:**
 

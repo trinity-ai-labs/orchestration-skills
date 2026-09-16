@@ -53,6 +53,9 @@ sits at rather than grounding**: it asks how big a piece is, never which files i
   worktree, install, gate run and review pass and comes back mid-arc as a report to re-author it together with
   its neighbours, where one too big is reported back to you mid-arc and re-planned against a colder tree;
   neither direction is a cut anyone downstream can make for you.
+  **Both reports are answered at one seat** — `skills/write-issue/SKILL.md`'s
+  *A re-author reported back from a live arc is a fourth way in*, which carries the mechanics: what the
+  replacement is, and what becomes of the leaves it supersedes.
 
 ## Epic or one slice — answer it in one line, every time
 

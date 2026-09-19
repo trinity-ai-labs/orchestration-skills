@@ -37,9 +37,10 @@ slice, and where it does, record that you re-asked.
 
 **6. Derived state — every item above interrogates the PLAN; this one interrogates the TREE.** Every artifact
 whose correct contents are a function of the whole tree rather than one slice's files — a ratchet ledger, a
-regenerated backlog, a generated type, an unimported-exports manifest — gets
-**re-derived against the merged tip and compared with what is committed there**, by running the project's
-regenerator rather than reading the file and reasoning about it; a slice declares one in its `Derives` field.
+regenerated backlog, a generated type, an unimported-exports manifest — gets **re-derived against the merged
+tip and compared with what is committed there**, by running the project's regenerator — in a worktree cut from
+that tip, never in the main checkout, which every session's close-out fast-forwards and several sessions write
+to at once — rather than reading the file and reasoning about it; a slice declares one in its `Derives` field.
 
 **7. Scope drift — the items above read the PLAN and the TREE; this one the REQUEST, written in neither.**
 Compare **the arc's goal in the filer's own words**, quoted rather than recalled, against

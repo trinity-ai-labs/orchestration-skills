@@ -2,6 +2,38 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.3.2
+
+- **The integration gate no longer runs in the main checkout, in either gate mode.** The reference for gating
+  the integrated whole sent that gate, and the install before it, into the main checkout as "a tree like any
+  other". It is the one tree every session writes to: each close-out fast-forwards it, so nobody can hold it
+  frozen for a gate, and anything a project keys on the checkout path is shared by every agent gating there.
+  Two sessions both following that rule gated there at overlapping times and destroyed each other's runs. One
+  suite's database refresh re-migrated a per-path test database to a new schema under a suite already running,
+  which reported 487 failures of 2188 on a column that had not existed when it started, while the second run
+  saw unrelated failures as the first truncated tables under it. Neither red was real — the same commit was
+  green at 2188/0 in a dedicated worktree — and neither failure output pointed at the cause, so the cost was
+  two discarded full-suite runs plus the investigation that established that.
+- **The gate now runs in a tree only the dispatcher writes to.** Where an epic branch holds the merges, that
+  is the epic's own worktree, already the arc's gate target, and the old rule's unconditional install survives
+  there — immediately before the gate or its enqueue, since every slice close-out fast-forwards that tree
+  without installing. Where the merges landed on the integration branch itself, the dispatcher cuts a
+  throwaway tree from its tip, gates there — by hand, or as the PR-less ticket's worktree — and tears it down
+  once the verdict is in, which for a ticket means once it has settled; the branch, never pushed, is deleted
+  with `-d` from the main checkout, which refuses exactly when something was committed on it.
+- **A queue did not make this safe on its own.** The runner gates the ticket's worktree and the machine-wide
+  slot serialises gate against gate, but nothing said which tree a PR-less integration ticket names, and where
+  no epic branch holds the merges the only tree standing on the integration branch was the main checkout —
+  which another session's close-out moves mid-gate, so the queue's own frozen-worktree rule could not be held
+  there. One rule now covers both modes.
+- **Two sentences beside it followed the tree.** A derived artifact the regenerator rewrites in a throwaway
+  tree goes back as a fix rather than as a commit on the gate branch, which nothing merges and which would
+  have the gate run on a tree the integration branch never holds. And a gate branch is named at its cut, after
+  the wave's ledger watch was armed, so the enqueue now checks that the watch's set holds the branch the
+  ticket carries and arms a replacement carrying it where it does not — the epic branch included, which that
+  set held only where the dispatcher had put it there.
+- **The hard-rules page states the rule for a human reader**, beside the other worktree rules.
+
 ## 5.3.1
 
 - **The vendor-neutral rule gains a check, and the check derives its extent instead of remembering it.**

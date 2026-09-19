@@ -392,11 +392,13 @@ So whenever a merge — auto-clean OR conflicted — touches a structure 2+ slic
 *each other* — whatever should be parallel (twin branches, every case of a switch, all handlers of an event,
 the reducer vs the renderer) must have received the **same** treatment from each slice. Honor the
 **shared invariant** the breakdown handed you, if any. Fix drift forward as a small, clearly-messaged
-merge-reconcile commit, then re-verify the interaction — enqueue an integration gate, PR-less if the merged
-tree has no PR (*Gate the integrated whole*), and run one directly only where there is no queue to put it in
-**or a runner that refuses the PR-less ticket** — two conditions, because a project with a working queue can
-still be the second (*Gate the integrated whole*). Resolve actual conflicts by
-**merging the branch's own PR base into it, in its worktree**
+merge-reconcile commit — in the epic worktree where one holds the merges, and as a fix of its own where the
+merges landed on the integration branch, since the gate's own tree there is a throwaway carrying no commit and
+the main checkout is nobody's to code in (*Gate the integrated whole*) — then re-verify the interaction —
+enqueue an integration gate, PR-less if the merged tree has no PR (*Gate the integrated whole*), and run one
+directly only where there is no queue to put it in **or a runner that refuses the PR-less ticket** — two
+conditions, because a project with a working queue can still be the second (*Gate the integrated whole*).
+Resolve actual conflicts by **merging the branch's own PR base into it, in its worktree**
 (`git fetch && git merge origin/<the PR's base>`, keep BOTH concerns) — never rebase. Merge the base the PR
 actually targets, not the integration branch by reflex: for a slice based on an epic branch those are
 different branches, and merging the integration branch straight into the slice drags in commits the epic has

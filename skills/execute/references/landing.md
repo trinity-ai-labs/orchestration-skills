@@ -46,29 +46,71 @@ back empty or not.** An artifact whose correct contents are a function of the wh
 one branch — a ratchet ledger, a backlog a checker regenerates, a generated type, an unimported-exports
 manifest — is the thing per-slice gates structurally could not have covered: each slice was correct about its
 own files, and the artifact derives from all of them. Run the project's own regenerator against the merged tip
-and commit what it writes, or send the delta back as a fix. The breakdown names these per slice in its
-`Derives` field, so the list arrives with it rather than being reconstructed here.
+**in the tree the next paragraph has you gate in** — cut one for this even where the `^2` diff came back empty
+and no gate follows — and never in the main checkout; commit what it writes where that tree is the epic
+worktree, and from a throwaway gate tree send the delta back as a fix instead, since nothing merges that
+branch. The breakdown names these per slice in its `Derives` field, so the list arrives with it rather than
+being reconstructed here.
 
-**Install the tree you are about to gate — unconditionally, and the main checkout is a tree like any other.**
-This gate runs against the merged tip of the integration branch, which is the **main checkout**: the
-longest-lived tree in the flow, fast-forwarded by `merge-pr.sh` on every close-out without ever installing,
-while other sessions merge `package.json` and lockfile changes onto that branch continuously. Run the
-project's `install` (`skills/procedures/config-keys.md`) there immediately before the gate — the same command
-`setup-worktree.sh` runs when it cuts a tree, and a no-op in a project that declares none, this repo included.
-**The conditional version is the trap:** you cannot tell from the merge's own diff whether a dependency
-arrived, because that fast-forward means every range you might compare against is unreliable in both
-directions. The diagnostic order is *The epic branch* → *Mechanics*' rule applied to this tree:
-**on an integration gate a module-resolution failure is a stale install until proven otherwise** — install and
-re-run before reading a line of the diff.
+**Gate the integrated whole in a tree only you write to, and that is never the main checkout** — in either
+gate mode, whether you run the gate or a runner does, since the main checkout is the one piece of shared
+mutable state in the flow (`skills/procedures/worktree-helper.md`): every session's close-out fast-forwards
+it, so nobody can hold it frozen for a gate, and whatever a project keys on the checkout path — a per-tree
+test database, a cache, a generated artifact — is shared by every agent gating there at once, so two gates
+that overlap there corrupt each other's runs in both directions with neither failure output naming the cause.
+Where an epic branch holds the merges, that tree is the epic's own worktree, the arc's gate target (*The epic
+branch* → *Mechanics*) — and one you hold still yourself while its ticket is outstanding, landing no slice
+close-out and no tick merge in it, since `merge-pr.sh` fast-forwards that tree too and the frozen-worktree
+rule covers it like any other (*Draining the gate queue*). Where the merges landed on the integration branch
+itself, cut a throwaway tree from its tip with
+`setup-worktree.sh gate/integration-gate-<epoch> <integration-branch>` — the epoch from `date +%s` keeps that
+leaf off every slice's directory and every other gate's, and a cut that prints `worktree already exists:`
+handed you a tree it did not make, so re-cut on a fresh epoch rather than gate in one another session is
+standing in — verify it like any cut (*Worktree creation*'s four invariants), and gate there, by hand or as
+the ticket below.
+
+**Install the epic worktree immediately before you gate it or enqueue its ticket — unconditionally.** Run the
+project's `install` (`skills/procedures/config-keys.md`) there, since that tree outlives every merge landing
+in it and `merge-pr.sh` fast-forwards it on every slice close-out without ever installing, while other
+sessions land `package.json` and lockfile changes on the integration branch the tick merges into it; and run
+it before the enqueue, because an install rewrites dependencies wholesale and a tree whose ticket has not
+settled is frozen. It is the same command `setup-worktree.sh` runs when it cuts a tree — so a throwaway tree,
+installed by its cut and written to by nobody after it, needs no second one — and a no-op in a project that
+declares none, this repo included. **The conditional version is the trap:** you cannot tell from the merge's
+own diff whether a dependency arrived, because that fast-forward means every range you might compare against
+is unreliable in both directions. The diagnostic order is *The epic branch* → *Mechanics*' rule applied to
+that tree: **on an integration gate in the epic worktree a module-resolution failure is a stale install until
+proven otherwise** — install and re-run before reading a line of the diff, where a throwaway tree's `READY:`
+line has already proven its own install current and the same failure there is a defect to read.
+
+**A throwaway gate tree carries no commit of its own, and you tear it down once you hold the verdict you will
+act on** — for a ticket, only once that ticket has settled, since the tree is frozen until then (*Draining the
+gate queue*); by hand, once you have the gate's exit status **and have read the log it wrote there**, which
+the removal deletes with the tree. `remove-worktree.sh integration-gate-<epoch>` removes the tree and leaves
+its branch, so delete the branch next, from the main checkout and with `-d`, never `-D`:
+`git -C <main-checkout> branch -d gate/integration-gate-<epoch>` — the branch was never pushed and has no
+upstream, so `-d` judges it against the integration branch that checkout stands on, whose local tip it was cut
+from and which only moves forward, and succeeds exactly when nothing was committed on it, a refusal naming a
+commit to rescue rather than a flag to force. So anything you would commit on the merged tip — a derived
+artifact the regenerator above rewrote, a merge-reconcile fix (*Merging a shared hotspot*) — goes back as a
+fix from a throwaway tree, never onto the gate branch, and the gate is cut again from the tip that fix lands
+on: a commit there reaches no branch anyone merges, and the gate would run on a tree the integration branch
+never holds.
 
 **Enqueue it rather than running it — the tree has no PR, and the ticket shape admits that.** In a project
-whose runner takes the ticket this gate goes in as a **PR-less ticket**:
-`enqueue --branch <branch> --worktree <worktree>`, with no `--pr-number` and no `--pr-url` — those two fields
-are optional on a ticket precisely so this gate can be recorded like any other. A runner claims it, gates that
-worktree behind the machine-wide slot, and settles it into `done/` with the verdict written on the ticket; the
-only step it skips is the comment, because there is no PR to put one on. So
-**you read the verdict off the ticket**, not off a shell's exit status, and the ledger watch already armed for
-the wave sees it settle by `branch` (*Wait on your own tickets settling — one Monitor over the queue's
+whose runner takes the ticket this gate goes in as a **PR-less ticket** on the tree above:
+`enqueue --branch <branch> --worktree <worktree>`, naming the epic branch and the epic worktree where one
+holds the merges and the gate branch and its throwaway tree otherwise — never the main checkout, where another
+session's close-out moves the tree mid-gate and the frozen-worktree rule cannot be held — with no
+`--pr-number` and no `--pr-url`; those two fields are optional on a ticket precisely so this gate can be
+recorded like any other. A runner claims it, gates that worktree behind the machine-wide slot, and settles it
+into `done/` with the verdict written on the ticket; the only step it skips is the comment, because there is
+no PR to put one on. So **you read the verdict off the ticket**, not off a shell's exit status, and the ledger
+watch armed for the wave sees it settle by `branch` only where that branch is in the watch's set — so before
+you enqueue, check that the set holds the branch this ticket carries, and where it does not, arm a replacement
+with that branch added and stop the old one a poll later rather than at once, since a replacement primes what
+is already in `done/` as history and a sibling settling in that window would fall between the two, where one
+settling in the overlap merely prints twice (*Wait on your own tickets settling — one Monitor over the queue's
 ledger*; a PR-less ticket carries no `prNumber`, so print the branch as its handle). Then fire **one** drain
 and react only if the ticket is still sitting unclaimed in `queue/` a couple of polls later — do not
 pre-flight whether a runner is already draining, because the two instruments for that question are the ones
@@ -85,9 +127,9 @@ condition that case does not satisfy** — the project *has* a queue, and that q
 ticket a PR is attached to — so a dispatcher reading them is pushed away from the hand-run gate by an
 instruction that is emphatic about it (*The durable gate queue*: in a project whose runner will take them, no
 gate is run by hand) and toward an enqueue that cannot accept the ticket. That is why the clauses now name
-**two** conditions rather than one. Run the gate yourself in that worktree, capture its own exit status
-(*Where you do run a gate yourself*), and say in the close-out that this verdict has no ticket behind it.
-**Only the mid-arc gate is reachable this way**: the epic's close-out gate sits behind a draft PR and
+**two** conditions rather than one. Run the gate yourself in the tree that ticket named, capture its own exit
+status (*Where you do run a gate yourself*), and say in the close-out that this verdict has no ticket behind
+it. **Only the mid-arc gate is reachable this way**: the epic's close-out gate sits behind a draft PR and
 therefore always has a `--pr-number` to carry, so it enqueues on any runner.
 
 *The two halves of that rollout fail in OPPOSITE directions, and the safe one is the one that strands you.*
@@ -131,8 +173,9 @@ another gate — before the close-out gate, merge the integration branch INTO th
 merge the tick already runs, *The cost* above; that cadence buys this, not just bounded conflicts). Then the
 epic already contains everything the integration branch has, the gate covers the exact tree the closing merge
 will produce, and that merge's `^2` diff comes back empty. Skip the cadence and it won't, and the gate moves
-to *after* the closing merge, on the shared branch, where a cross-slice break is found only once every slice
-has already landed on it.
+to *after* the closing merge, on the shared branch — in a throwaway tree cut from its tip, the close-out
+having torn the epic worktree down — where a cross-slice break is found only once every slice has already
+landed on it.
 
 **And when that closing merge is a squash, the same reasoning has a consequence: the cadence stops being
 advisory.** A squash commit has no second parent, so there is no `^2` to read at all — the tree comparison

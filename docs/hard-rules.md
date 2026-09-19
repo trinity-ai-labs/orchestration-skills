@@ -70,6 +70,18 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **Never** use a harness parameter or any auto worktree provisioner that makes the worktree for you — they
   seed worktrees at a **stale base** and put them in the wrong place. Only `setup-worktree.sh` makes
   worktrees.
+- **The integrated whole is gated in a tree only the dispatcher writes to, and never in the main checkout** —
+  in either gate mode, whether the dispatcher runs that gate or a runner does, since every session's close-out
+  fast-forwards the main checkout, so nobody can hold it frozen for a gate, and whatever a project keys on the
+  checkout path — a per-tree test database, a cache, a generated artifact — is shared by every agent gating
+  there at once, so two gates that overlap there corrupt each other's runs in both directions and neither
+  failure output names the cause. Where an epic branch holds the merges, that tree is the epic's own worktree,
+  installed immediately before that gate or its enqueue because `merge-pr.sh` fast-forwards it on every slice
+  close-out without installing, and held still while its ticket is outstanding. Where the merges landed on the
+  integration branch itself, the dispatcher cuts a throwaway tree from its tip with `setup-worktree.sh`, gates
+  there — by hand, or as the PR-less ticket's worktree — and once the verdict is in, which for a ticket means
+  once it has settled, removes the tree with `remove-worktree.sh` and deletes its branch, which was never
+  pushed and carries no commit: a derived artifact regenerated there goes back as a fix instead.
 - **Always verify HEAD before dispatching an agent into a worktree, and fetch first — the fetch is part of the
   check, not preparation for it.** The helper prints what it made — `READY: <path>`, then `HEAD: <sha>` — and,
   when it is forking a new branch, withholds both unless the tree it is about to hand back *contains* the

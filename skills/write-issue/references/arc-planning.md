@@ -65,18 +65,24 @@ lifecycle; the verdict is yours, because you are the pass that sets the phases i
 - **Two rules reach for one, and they answer different questions.** *Would a partial state on the shared
   branch be broken?* — where any intermediate state leaves the integration branch unshippable, say so at any
   width from two phases up and name that state: a foundational change every consumer must follow, or a seam
-  whose halves land in different phases. *What does landing one change as N separate merges cost, whether or
-  not each state would ship?* — **multi-phase work defaults to an epic**, because N merges into the shared
-  branch cost base churn under every live worktree, an integration signal that reds on every sibling merge,
-  N-way revert granularity and one release per merge. Answer the first even where the second has already
-  fired: it is what decides whether the epic is **knowingly red**.
-- **Neither rule is a count of phases, and neither is a busy integration branch** — counting measures how long
-  a partial state sits on the branch rather than whether it is broken, and the second rule keys on
-  **one change decomposed into phases**, so unrelated one-off fixes side by side are not an epic.
-- **Where neither rule fires, write "one slice" and why** — an unanswered question reads as a no, and nothing
+  whose halves land in different phases. *What does landing the arc as N separate merges cost, whether or
+  not each state would ship?* — **an arc of more than one item defaults to an epic** — unrelated fixes
+  grouped into one release included, since grouping them is what makes them one arc — because N merges into
+  the shared branch cost base churn under every live worktree, an integration signal that reds on every
+  sibling merge, N-way revert granularity and one release per merge. Answer the first even where the second
+  has already fired: it is what decides whether the epic is **knowingly red**.
+- **Neither rule is a busy integration branch, and the first is not a count of phases** — counting measures
+  how long a partial state sits on the branch rather than whether it is broken. The second keys on the
+  **arc**: separate one-item arcs run side by side are each one slice and cut nothing, while the same fixes
+  filed as one arc are its items and take the default.
+- **Where the arc is one item, write "one slice" and why** — an unanswered question reads as a no, and nothing
   downstream can tell a verdict you decided from one you skipped. **One slice never cuts a branch**, so say
   that in the same line and the seat that reads it provisions off the integration branch without re-deriving
-  the verdict.
-- **A stated instruction settles it — the rules above are for when nobody has decided.** "Do it as an epic"
-  means the verdict is made: record it as made and plan against it. A decision procedure never overrides a
-  stated instruction, and once the call is made this reference is read for how, not for a second opinion.
+  the verdict. **Merging a multi-item arc into the integration branch item by item is the exception**, and
+  only the user's instruction for this arc takes it: write "merge as it goes" and that it was asked for, or
+  the seat that reads the verdict cuts the default.
+- **A stated instruction settles it for the arc it was given for — the rules above are for when nobody has
+  decided this one.** "Do it as an epic" or "merge as it goes" means the verdict is made: record it as made
+  and plan against it. The next arc starts from the rules above again unless the user says otherwise for it.
+  A decision procedure never overrides a stated instruction, and once the call is made this reference is read
+  for how, not for a second opinion.

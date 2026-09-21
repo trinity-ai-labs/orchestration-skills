@@ -273,7 +273,8 @@ running.** Single-slice work never cuts an epic branch, so in a project whose in
 such a PR goes straight to the default branch, and `Closes #<n>` in its body fires the instant it merges.
 **That is the right moment only if this one PR settles the whole issue** — and an increment is not an arc:
 `orchestrate` grounds one horizon per cycle, so an arc can run several cycles whose increments are each a
-single slice, cutting no epic branch and basing every one of those PRs on the default branch. A keyword
+single slice, and where the user asked that arc to merge as it goes rather than cut its default epic branch,
+every one of those PRs bases on the default branch. A keyword
 written into the first of them closes the issue while the cycles after it are still outstanding, and the same
 shape reaches an umbrella that a sub-issue's PR happens to name. The loop counts the tracker in its
 termination check, so an issue closed early is a false "done" in exactly the artifact it reads back to decide

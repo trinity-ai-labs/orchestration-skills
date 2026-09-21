@@ -18,9 +18,10 @@ take it from the main checkout's current branch **and say in your report that yo
 integration branch is a base every worktree of the arc forks from, so it is a fact worth stating rather than
 one to leave implicit. Never hardcode a version. One task → one worktree → commit, push, PR back into it →
 merge → **sync the local integration branch first**, then delete the branch and its worktree.
-**One optional level sits above it: the epic branch** (`skills/glossary/vocabulary/epic-branch.md` defines
-one; `skills/execute/references/worktrees-and-branches.md` carries its mechanics); single-slice work never
-cuts one. Per-project values live in each repo's own config
+**One level sits above it: the epic branch** (`skills/glossary/vocabulary/epic-branch.md` defines one;
+`skills/execute/references/worktrees-and-branches.md` carries its mechanics) — cut by default for any arc of
+more than one slice, merging each slice into the integration branch as it lands being the exception a user
+asks for, and never for single-slice work. Per-project values live in each repo's own config
 (`skills/execute/references/per-project-config.md`).
 
 **Parallelization is the default, and the project's `sharedResources` decides whether it holds**: where no
@@ -129,8 +130,9 @@ below is `skills/procedures/host-tools.md`.
 
 ### 1. Set up → `skills/execute/references/worktrees-and-branches.md`
 
-Decide the branch level — the integration branch, or an epic branch cut from it when the increment is more
-than one slice — then cut **one worktree per slice and verify all four invariants** before anything is
+Decide the branch level — an epic branch cut from the integration branch when the ARC is more than one slice,
+unless the user asked this arc to merge each slice as it lands, and the integration branch itself when the
+arc is one slice — then cut **one worktree per slice and verify all four invariants** before anything is
 dispatched into it.
 
 ### 2. Dispatch and watch → `skills/execute/references/dispatching.md`

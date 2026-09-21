@@ -88,9 +88,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     and B needs A, hand both to one agent and let it do A then B in the same worktree. Two slices, two
     worktrees, two gate runs and a wave boundary to express "do these in order" is machinery for something a
     single agent expresses by doing them in order.
-- **Skill to invoke first** — the framework skill the implementer opens with, from `AGENTS.md`/config. For
-  Trinity, **app = `frameworks:solid`, sidecar = `frameworks:effect-v3`**; a full-stack slice invokes both, a
-  pure docs/config slice none.
+- **Skill to invoke first** — the framework skill the implementer opens with: the skill of each
+  `frameworkSkills` entry whose `when` matches the slice's area, and none where no entry matches or the
+  project declares none. For Trinity, **app = `frameworks:solid`, sidecar = `frameworks:effect-v3`**; a
+  full-stack slice invokes both, a pure docs/config slice none.
 - **Model** — **standard tier** (well-scoped, mechanical, mirrors an existing pattern) or **top tier** (subtle
   algorithms, design-heavy, tricky concurrency, security-sensitive, large cross-cutting), with one line of
   *why*; name the tier, never a host's model id. **This field is where the tier is DECIDED, and you are the
@@ -164,11 +165,14 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
   - **A bar that ships a COMMAND states the property in words as well, and you CHECK the command against the
     property on a case the slice is expected to produce** — an instrument narrower than its property fails a
     correct slice, a wider one passes an incorrect one, and only the narrow direction is ever visible.
-  - **A whole-package or whole-suite check named here is the RUNNER's to execute, never the implementer's**:
-    when the bar names the gate it is fixing the ticket's **gate mode**, so write it that way (*gate in the
-    default mode, not `--mode docs`*) rather than as a command line. **The only check an implementer may be
-    told to run directly is a single targeted test file**; route anything wider through the project's cached
-    runner (Trinity: `pnpm check`, or `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
+  - **A whole-package or whole-suite check named here is the GATE's, never a run the implementer makes while
+    it builds** — a runner executes it on the ticket where the project declares `enqueue`/`drain`, and the
+    implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar
+    names the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you
+    write it that way (*gate in the default mode, not `--mode docs`*) rather than as a command line.
+    **The only check an implementer may be told to run directly is a single targeted test file**; route
+    anything wider through the project's cached runner (Trinity: `pnpm check`, or
+    `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
   - **A bar that asserts a NEGATIVE names what it is measured against** — *X is unchanged*, *no new Y*, *that
     grep comes back empty* are claims about a difference, and the end an implementer reaches for is its own
     previous commit, which sits **inside** the change. Make the baseline the **fork point** unless you name
@@ -208,8 +212,10 @@ issue rather than a re-cut, in either direction. Where two ready issues can't av
 sequence them across waves — and **one shared OWNED path already forces that, however light the overlap
 looks**, since the `Owns` constraint above is absolute where this trigger is a matter of degree.
 
-**Size against the gate, not against an idealized infinite machine.** `/pipeline:execute` drains the queue one
-PR at a time behind a slim machine-wide slot, so N slices means N sequential gate runs plus N review passes —
+**Size against the gate, not against an idealized infinite machine.** Where the project declares
+`enqueue`/`drain`, `/pipeline:execute` drains the queue one PR at a time behind a slim machine-wide slot, so N
+slices means N sequential gate runs; where it declares neither, each implementer runs its own, so N slices
+means N gate runs with no slot between them. Either way add N review passes —
 and a review pass is **several fresh readers rather than one unit beside the worktree and the install, up to
 one per dimension, with how many fire that pass's own per-slice call** — so the reader cost is N times that
 count rather than N times one — **and the `Brief` field above is where each slice says whether it fires that
@@ -219,10 +225,11 @@ fan at all, which is the only place in this pass the dominant term can be argued
 - **A gate run's cost is proportional to what the slice CHANGED, because of the shared build cache**, so
   **prefer package-disjoint slices** and keep an edit to a low-level shared package — which invalidates every
   dependent however small the diff — in a *tight Wave-0 slice*.
-- **Beside that serialized gate sits CONTENTION, and it is the one axis `sharedResources` structurally cannot
+- **Beside that gate sits CONTENTION, and it is the one axis `sharedResources` structurally cannot
   carry** — that key reads a project's *declared* list and CPU is never on one, so what you state is the shape
   rather than the key. Concurrent implementers, their review readers and their targeted test runs all contend
-  with whatever the runner is gating at the same moment, and a suite with thin timeout headroom reds on load
+  with whatever is gating at the same moment — the runner's one gate in a queued project, every sibling's own
+  in an in-line one — and a suite with thin timeout headroom reds on load
   alone — a failure that is real, reproducible and nothing to do with the change under it.
   **The reversal is the tell, and a width argued without it sends someone chasing a ghost**: the same commit
   reds under concurrent implementers and passes on a quiet machine, so this is a cost of the width you
@@ -240,14 +247,16 @@ fan at all, which is the only place in this pass the dominant term can be argued
   directory or fixed port. Read `sharedResources` in the project's `.agents/worktree.json`:
   `"isolatedBy": null` says the resource stays shared, and the key **missing entirely** says nobody has been
   asked — not an answer, and not a no. The drained gate does not cover it: the slot serializes *gates* and
-  never sees the implementers' `scopedCheck` and targeted test runs. Size the wave against the resource — one
+  never sees the implementers' `scopedCheck` and targeted test runs, and a project declaring no
+  `enqueue`/`drain` has no slot at all. Size the wave against the resource — one
   live slice touching it, the rest sequenced.
 - **Gate once on the merged tip and the binding constraint moves to the dispatcher's own capacity to read N
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *scoped* per-commit check implementers run is NOT the sizing cost; the **drained full gate** is. Size
-  against the *actual* `gate`, cache and drain model you read in config.
+- The *scoped* per-commit check implementers run is NOT the sizing cost; the **full gate** is — drained where
+  the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size against
+  the *actual* `gate`, cache and gate mode you read in config.
 
 ## The closing check — read a slice's fields against each other, and against what the project will accept
 

@@ -85,9 +85,39 @@ default. Seven items have one of those shapes and go into every brief close to v
 **foreground-handoff rule** (b). Any future addition with either shape goes the same way.
 **The count is stated here and nowhere else.**
 
+**What the project's config changes in a brief — read `<repo>/.agents/worktree.json`, then write each row's
+case into the brief with the SETTING named beside what it makes the implementer do**: *"Gate mode: in-line —
+this project declares no `enqueue`/`drain`, so you run `gate` once, in the foreground, and comment the result
+on your draft PR"*, since a rule handed over with no setting beside it reads as the only case there is. What a
+key MEANS, and what its absence means, is `skills/procedures/config-keys.md`; this table is only what each
+value does to a brief, and every pasted block below whose right form depends on a row takes that row's case.
+
+| Setting | Value | What the brief says |
+|---|---|---|
+| `enqueue` + `drain` | both declared — **queue mode** | Scoped check only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
+| | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there; nobody enqueues anything. No ban block. |
+| `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
+| | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
+| pre-commit hook — observed, not declared: `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath` | an executable hook runs `scopedCheck` | Commits are held to the scoped check by the hook. |
+| | none, or it runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
+| `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
+| | absent | No formatter step, and the brief says the project has none. |
+| `docsPaths` | declared | The docs block names each path with its `when`. |
+| | absent | The docs block names `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory. |
+| `frameworkSkills` | an entry whose `when` matches the slice's area | Step 0 names that skill beside `pipeline:execute`. |
+| | no entry matches, or absent | Step 0 names `pipeline:execute` alone. |
+| `briefConventions` | declared | The parts that bite this slice, beside `AGENTS.md`'s. |
+| | absent | `AGENTS.md`'s alone. |
+| `integrationBranch` | declared | The fork point and the hand-off block's PR base — the epic branch instead where the arc cut one. |
+| | absent | The main checkout's current branch, and the brief says it was inferred. |
+| `sharedResources` | an entry with `isolatedBy: null` | One live slice on that resource, and the width with its reason in every brief of the wave. |
+| | `[]`, or only non-null entries | The default fan-out; nothing to say. |
+| | missing — nobody has asked, which is not `[]` | No licence to fan out: the width you chose, with its reason, in every brief of the wave, and the key reported as unasked. |
+
 Your brief carries the **task-specific context the skill can't know**, plus the items above:
-- **Step 0 skills.** `pipeline:execute` as implementer, plus any framework reference skill the task touches,
-  as an explicit first step: standard-tier agents won't reach for them unprompted.
+- **Step 0 skills.** `pipeline:execute` as implementer, plus the skill of every `frameworkSkills` entry whose
+  `when` matches the task's area — none where no entry matches — as an explicit first step: standard-tier
+  agents won't reach for them unprompted.
 - **Dispatching into the repository that SHIPS these skills? Say which copy of them is authoritative.** Step 0
   loads the **installed** plugin, never the tree the implementer stands in, and
   **the rules an arc has just shipped are the ones most likely missing from that copy.** So put one sentence
@@ -142,12 +172,14 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   to re-take** — a slice re-measuring what you hold spends a run for nothing, and one that reads the
   instruction after its first edit has to move its tree off its own work to reach the fork point.
   **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before
-  you dispatch, since an implementer runs the suite at most once and in the default gate mode never: a
-  recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result only where it names
-  every failure — **which is a field on the ticket, the failure set by identifier, so a red verdict IS a
-  usable baseline where that field is filled in and a failing tail alone still is not** — and where it is
-  not, you gate that commit as a PR-less ticket on the worktree you are about to dispatch into, dispatching
-  once it settles. **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a
+  you dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run —
+  and in queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that
+  result only where it names every failure — **which is a field on the ticket, the failure set by identifier,
+  so a red verdict IS a usable baseline where that field is filled in and a failing tail alone still is
+  not** — and where it is not, you gate that commit on the worktree you are about to dispatch into, as a
+  PR-less ticket where the project declares `enqueue`/`drain` and by running `gate` there yourself where it
+  declares neither, dispatching once it settles.
+  **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a
   replayed step says the task's inputs hash to a result already recorded green and says nothing about running
   here, so a green whose steps all replayed establishes the tree unchanged for that task rather than a suite
   that covered it, and it is blind to exactly the environmental and shared-resource reds a fresh execution
@@ -160,24 +192,30 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the
   plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this
   brief and swap *report the change you need* for *bring them in line*** — pasted unqualified, the block below
-  tells every slice to write the page the map gave to one of them. Paste this:
+  tells every slice to write the page the map gave to one of them. Paste this, substituting `<the doc set>`
+  by the `docsPaths` row — each declared path with its `when` where the project declares them, and
+  `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory where it declares none:
 
-  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover the repo's doc set (`README.md`, `AGENTS.md`/`CLAUDE.md`, any docs directory). Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
+  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 
   **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
   path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
   second entry for what the change ADDED that no doc describes.
-- **Gate mode for this slice.** Gate mode decides **who runs the gate and when** — nothing else. The DEFAULT:
-  the implementer runs only the scoped check, pushes, opens a draft PR and hands back; **you enqueue its
-  ticket once you have read the diff** (*Review BEFORE you drain, never after* in
-  `skills/execute/references/reviewing.md` states that order, and the epic close-out has taken this shape all
-  along — draft PR first, gate enqueued against it, per
-  `skills/execute/references/worktrees-and-branches.md`), and a runner gates it later. Override when the slice
-  is foundational or cross-cutting, or when there is no dispatcher to drain:
-  then tell the implementer to run the full `gate` itself, in the foreground,
-  **post the result as a comment on its own PR**, and — in neither mode — enqueue anything. Both modes end in
-  a draft PR carrying a gate comment: whether the diff was *read* is your call.
+- **Gate mode for this slice — the project's `enqueue`/`drain` decide it, and it decides who runs the gate
+  and when, nothing else.** Name the setting in the brief beside its case:
+  - **Queue mode — the project declares `enqueue` and `drain`:** the implementer runs only the scoped check,
+    pushes, opens a draft PR and hands back; **you enqueue its ticket once you have read the diff**
+    (*Review BEFORE you drain, never after* in `skills/execute/references/reviewing.md` states that order,
+    and the epic close-out has taken this shape all along — draft PR first, gate enqueued against it, per
+    `skills/execute/references/worktrees-and-branches.md`), and a runner gates it later.
+  - **In-line mode — the project declares neither, or you override a slice that is foundational or
+    cross-cutting, or whose ticket no dispatcher will be there to drain, saying so in its brief:** tell the
+    implementer to run the full `gate` itself, once, in the foreground, and **post the result as a comment
+    on its own PR** — no ticket exists to enqueue.
+
+  In neither mode does the implementer enqueue anything, and both end in a draft PR carrying a gate comment:
+  whether the diff was *read* is your call.
 
   ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge
   or tear down.** That covers override mode and any project with no queue
@@ -186,7 +224,9 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still
   be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
 
-  For a DEFAULT-mode slice paste the ban; it overrides the "verify by running the tests" instinct:
+  **Where the project declares `enqueue`/`drain` paste the ban**, which overrides the "verify by running the
+  tests" instinct; **in in-line mode leave it out**, since it forbids the one `gate` run that mode asks for,
+  and the brief says instead that this run is the only full-suite run the slice makes:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`). Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
@@ -205,32 +245,43 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   forked them — so read `git log` on the branch before you read the report.
 - **The commit ordering — set by the review decision above.** A review slice commits LAST, since the pass acts
   only on the *uncommitted* diff; a skip-review slice commits in logical blocks as the work lands, and is told
-  so. For a review slice paste:
+  so. For a review slice paste this, its `<formatter sentence>` by the `format` row — *"Then run `<format>` in
+  WRITE mode, and THEN commit, in logical self-contained blocks."* where the project declares one, and *"This
+  project declares no `format`, so there is no formatter step: commit, in logical self-contained blocks."*
+  where it declares none:
 
-  > **Review slice:** Do NOT commit as you go — write the ENTIRE change uncommitted (cheap checks while you work are fine). When the code is done run `/pipeline:review` over your full uncommitted diff: it dispatches a fresh reviewer per dimension and each one reports; YOU hold the tree, change nothing in it until the last report has landed, commit nothing, and decide which findings to apply. Then run the auto-formatter in WRITE mode, and THEN commit, in logical self-contained blocks.
+  > **Review slice:** Do NOT commit as you go — write the ENTIRE change uncommitted (cheap checks while you work are fine). When the code is done run `/pipeline:review` over your full uncommitted diff: it dispatches a fresh reviewer per dimension and each one reports; YOU hold the tree, change nothing in it until the last report has landed, commit nothing, and decide which findings to apply. `<formatter sentence>`
 
-  The pre-commit hook holds commits to the scoped check either way, and only *checks* formatting rather than
-  fixing it.
-- **The foreground-handoff rule — it goes in EVERY brief, whatever the gate mode.** The ban above reaches only
-  a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on it.
+  **Commits are held to the scoped check either way, in whichever case the hook row names** — by a pre-commit
+  hook that runs `scopedCheck`, which only *checks* formatting rather than fixing it, or, where none does, by
+  the implementer running `scopedCheck` itself before each commit.
+- **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
+  scoped check and the one targeted test file, and in in-line mode the one `gate` run as well. The ban above
+  reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on
+  it.
   **Its second half is the wait on the slice's own sub-agents, written for a host that re-invokes an agent as
   each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended turn, put
   your host's blocking wait in its place, and **where it gives neither, put the third branch in the brief
   instead**: an ended turn there loses the hand-back with nothing coming to re-invoke it, so the slice reports
   on what has landed and names the children still out.
 
-  > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result; the pre-commit hook runs `scopedCheck` on `git commit` anyway. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
+  > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
 - **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
   `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless
   the brief names the right one. Paste this, substituting the slice's branch leaf:
 
   > **Before anything clears or moves your tree, commit the work or stash it with `git stash push -u -m "pipeline-stash/<branch-leaf>/$(date +%s): <why>"`, and restore only the entry that marker names** (`skills/ground-rules/SKILL.md`, rule 7, has the restore command). Never hold work in a patch or a file outside git, and never run a bare `git stash pop`.
 - **The push-then-draft-PR handoff.** The order is what keeps a mid-flight death from losing anything. Paste
-  this into every brief — **whatever the gate mode**, since the ticket has left it — **substituting the
-  literal branch name you cut this worktree from**, an implementer left to work it out being able to send its
-  PR at the wrong branch.
+  this into every brief — in both gate modes, **its `<gate-mode sentence>` by the `enqueue`/`drain` row** —
+  **substituting the literal branch name you cut this worktree from**, an implementer left to work it out
+  being able to send its PR at the wrong branch. The gate-mode sentence is, in queue mode, *"Gate mode: queue
+  — this project declares `enqueue`/`drain`, so the gate ticket is your dispatcher's, raised once it has read
+  your diff: do NOT run the full gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
+  this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
+  the draft PR is open run `gate` a single time, in the foreground, and comment its result on that PR,
+  leading with the SHA it ran against."*
 
-  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing**: the gate ticket is your dispatcher's, raised once it has read your diff. Do NOT run the full gate, do NOT wait for one, do NOT mark your own PR ready. Never leave committed work unpushed, or a pushed branch without a draft PR.
+  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
 - **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
   banned strings is a claim about a set the harness extends without notice and an enumeration of banned
   artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer
@@ -251,8 +302,9 @@ and the tick is required rather than something you reach for once something look
 notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
 about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
 three more riders: (a) whether any slice opened a draft PR and handed back, which is when you read its diff
-and enqueue its ticket, (b) **drain the gate queue** (`drain`), so the tickets you have raised carry their
-verdict without waiting for you, and (c) **answer any question a live
+and — where the project declares `enqueue` — enqueue its ticket, (b) where it declares `drain`,
+**drain the gate queue**, so the tickets you have raised carry their verdict without waiting for you, and (c)
+**answer any question a live
 slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
 because the answer comes back on this tick. Each tick, snapshot what each agent is touching against its scope:
 
@@ -420,8 +472,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   (`skills/procedures/host-tools.md` names your host's stop tool), then
   **dispatch a fresh plain agent into the SAME worktree path** with a tighter brief naming what it strayed
   into and telling it to revert the bad edits, **its tier named for that round rather than carried from the
-  slice's** — reverting named edits is cheaper than the build was. **If one opened its draft PR + enqueued**,
-  stop rescheduling it and move into the drain, review and merge loop.
+  slice's** — reverting named edits is cheaper than the build was. **If one has already opened its draft PR
+  and handed back**, stop rescheduling it and move into the review and merge loop.
 - **⛔ Don't mistake a legitimate nested sub-agent wait for a stall.** On a host whose wait on sub-agents is an
   ended turn (`skills/procedures/host-tools.md`), an implementer that spawned children ends its turn while
   they run, **and that ended turn is a wait, not its hand-back**, whether or not your host notifies you of it.
@@ -475,7 +527,9 @@ beside the `$FP` it was taken against**, since the stall check is a comparison a
 measurement: a prompt that ships without it ships a tick whose stall question cannot be asked.
 
 Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once you have enqueued the tickets your
-slices' diffs earned** — how the drain runs, and how you wait on your own tickets.
+slices' diffs earned** — how the drain runs, and how you wait on your own tickets — in a project that
+declares `enqueue`/`drain`; one declaring neither has no queue to drain and no ticket to wait on, and only
+the tick's other riders below reach it: the integration-branch sync, the stash sweep and the epic merge.
 
 ## Draining the gate queue
 On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from

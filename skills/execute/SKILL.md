@@ -23,8 +23,9 @@ one; `skills/execute/references/worktrees-and-branches.md` carries its mechanics
 cuts one. Per-project values live in each repo's own config
 (`skills/execute/references/per-project-config.md`).
 
-**Default to parallelization**: independent tasks run concurrently in their own worktrees, and nothing an
-implementer runs serializes on a lock.
+**Parallelization is the default, and the project's `sharedResources` decides whether it holds**: where no
+entry's `isolatedBy` is `null`, independent tasks run concurrently in their own worktrees and nothing an
+implementer runs serializes on a lock; where one is, the slices touching that resource run one at a time.
 
 ## First: which role are you?
 
@@ -36,8 +37,9 @@ differently, and both mistakes are silent.
   not — **do NOT write the implementation yourself.**
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a
   user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand
-  it back, and **you do not run the full gate, do not mark your own PR ready, and do not merge it**: that flag
-  is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
+  it back; **you run the full gate only in in-line mode — once, where the project declares no
+  `enqueue`/`drain` or your brief puts you there — and you never mark your own PR ready or merge it**: that
+  flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
 **One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than
 typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against
@@ -84,28 +86,32 @@ Three things then change for the dispatcher:
 
 ## The durable gate queue
 
-The heavy gate (`gate` = build + full test suite) is CPU-saturating, so
-**the dispatcher enqueues and the dispatcher drains — an implementer does neither**. An implementer holds
-itself to the cheap **scoped check** (format-check + lint + typecheck, enforced by the pre-commit hook),
-pushes, opens its **draft PR** and hands back; **you enqueue that slice's ticket (`enqueue`) once you have
-read its diff**, since nothing should gate a tree you are about to have rewritten — which is the order
-phase 3 already asks for, *review BEFORE you drain*. **Nothing is at risk in the gap**: the branch is pushed
-and the PR open before you are handed anything, so the work is durable in git and a ticket nobody queued
-costs a gate run's latency rather than work. A runner (`drain`) then claims tickets **one at a time**, in
-each ticket's own worktree behind a slim machine-wide slot, gating in the mode that ticket declared
-(*Gate mode*) and commenting the verdict on the PR while leaving it draft.
+The heavy gate (`gate` = build + full test suite) is CPU-saturating, and **the project's `enqueue`/`drain`
+decide who runs it** (`skills/execute/references/per-project-config.md`). Either way an implementer holds
+itself to the cheap **scoped check** (format-check + lint + typecheck) — enforced by a pre-commit hook where
+one runs it, and run by the implementer before each commit where none does — pushes, and opens its
+**draft PR**.
 
-**That is the DEFAULT QUEUE MODE and none of it reaches a project without one**: where the project declares
-no `enqueue` and no `drain`, or a slice sits in override gate mode, the implementer gates in-line on its own
-draft PR and **no ticket exists at all** (`skills/execute/references/per-project-config.md`).
+- **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
+  neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since
+  nothing should gate a tree you are about to have rewritten — which is the order phase 3 already asks for,
+  *review BEFORE you drain*. **Nothing is at risk in the gap**: the branch is pushed and the PR open before
+  you are handed anything, so the work is durable in git and a ticket nobody queued costs a gate run's
+  latency rather than work. A runner (`drain`) then claims tickets **one at a time**, in each ticket's own
+  worktree behind a slim machine-wide slot, gating in the mode that ticket declared (*Gate mode*) and
+  commenting the verdict on the PR while leaving it draft.
+- **In-line mode — neither declared, or a slice explicitly put in override mode:** the implementer runs
+  `gate` once on its own draft PR, comments the verdict and hands back, and **no ticket exists at all**.
 
-**So EVERY gate in this flow is one of yours — in a project whose runner will take them, no gate is run by
+**In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
 its own draft PR, which has taken this shape all along — draft, enqueue, gate comment, posted review, merge
 (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration gate** as a **PR-less
 ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a slice's **suite
 baseline** as a PR-less ticket on its worktree before anything is dispatched into it. A runner scaffolded
-before that ticket type refuses it, and only there is a hand-run gate sanctioned.
+before that ticket type refuses it, and only there is a hand-run gate sanctioned. **In a project declaring
+no `enqueue`/`drain`** those three of yours are run by hand in their own worktree, and each slice's is its
+implementer's.
 
 ---
 
@@ -129,7 +135,8 @@ dispatched into it.
 
 ### 2. Dispatch and watch → `skills/execute/references/dispatching.md`
 
-Write each brief, dispatch, arm the tick, and drain the gate queue on that same tick.
+Write each brief — every setting that changes it named in it, by the reference's table — dispatch, arm the
+tick, and, where the project declares `drain`, drain the gate queue on that same tick.
 
 ⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and
 reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing
@@ -145,8 +152,10 @@ nothing. The reference carries the test.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 
-Read the diff and post the verdict you form onto the PR as a review each round; **enqueue that slice's gate
-only once the code is final**, then read the verdict the runner comments.
+Read the diff and post the verdict you form onto the PR as a review each round. **Where the project declares
+`enqueue`, enqueue that slice's gate only once the code is final**, then read the verdict the runner
+comments; **where it does not**, the implementer's own verdict is already on the PR, and its hand-back, not
+that comment, is what you wait on before you merge.
 
 ⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
 says a gate finished, not that anyone read the change.
@@ -177,8 +186,10 @@ reference.
    your fork point is it and is never re-taken, and one you missed is read through git or asked for, and taken
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
-   ⛔ **Never run the full suite** — no `gate`, no whole-package test, no raw sweep, foreground or background.
-   One targeted test file is the widest run you get, unless your gate mode says otherwise.
+   ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
+   foreground or background. One targeted test file is the widest run you get; the one full run you ever
+   make is in-line mode's `gate`, at step 7, where the project declares no `enqueue`/`drain` or your brief
+   puts you there.
 4. **Update the docs your change made stale.**
 5. **Fix what is wrong outside your owned files, in this PR.** Not a sweep and not a report: repair what you
    HIT while doing the slice, each in its own commit. Only two things go to your dispatcher instead — a fix
@@ -201,9 +212,9 @@ reference.
    reason beside it** — a reader that files spends a whole unit of work on what one line in its report to you
    settles, and the ban is stated at that seat or it reaches no reviewer.
 7. **Commit, push, open a draft PR, gate in-line where your mode says so, hand back.**
-   ⛔ **You enqueue nothing.** In the default queue mode your dispatcher enqueues your ticket once it has read
-   your diff; in override mode there is no ticket at all. Either way what you hand back is a pushed branch and
-   a draft PR.
+   ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
+   ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
+   is a pushed branch and a draft PR.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or

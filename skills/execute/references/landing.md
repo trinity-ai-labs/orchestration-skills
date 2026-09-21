@@ -152,8 +152,9 @@ rather than a summary of the log: a green you cannot quote is one nobody can che
 **This is the reading for a gate nobody drained, and in a project with a queue that is now almost none of
 them** — both gates this section used to have you run by hand are enqueued above, on a runner that takes their
 tickets. What is left is two cases. A project that declares no `enqueue` and no `drain` at all (*Per-project
-config*), where every gate is hand-run: a slice in **override gate mode**, and this section's own two gates
-where there is no queue to put them in. And, **in a project whose queue works**, the mid-arc integration gate
+config*), where every gate is hand-run: each slice's, gated **in-line** by its implementer — as a slice put
+in override mode is in a project that has a queue — and this section's own two gates where there is no queue
+to put them in. And, **in a project whose queue works**, the mid-arc integration gate
 by itself, where the runner refuses the PR-less ticket (*A runner scaffolded before the PR-less ticket REJECTS
 it*) — the one case in which this reading is needed by a dispatcher who has every reason to believe it does
 not apply to them. There an implementer's or a dispatcher's own reading of that status *becomes* the comment
@@ -358,7 +359,8 @@ answers, in that order of preference — **fixed**, closed in this release and n
 **filed**, naming the issue; **none found**; or **not enabled here**, where
 `.agents/worktree.json`'s `upstreamFindings` is anything but exactly `true`, in which case the finding goes to
 the maintainer in the run's report instead. **Fixed is the default and clears no bar**: a gap closable in the
-release already being shipped is closed there and names the file and the changelog entry it landed in, held
+release already being shipped is closed there and names the file and — where the project declares
+`changelog` — the changelog entry it landed in, held
 to the discipline filing demands of a number — and it is available only where that release IS this tree, so
 an arc inside a consuming project answers it for nothing in these skills. Filing is what is left
 and it takes **both** halves: the bar is an **observed failure the finding can name** — a run

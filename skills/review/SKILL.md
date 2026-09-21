@@ -32,7 +32,9 @@ that edits. Surfacing is where an independent reader earns its keep; deciding is
 context a reviewer lacks and N readers with a veto produce thrash.
 
 This is the **narrow, early** tier. The broad tier is not yours: the dispatcher reads your PR's diff,
-and the drained gate runs the full build and suite over the committed result. So this is neither a
+and the gate runs the full build and suite over the committed result — a runner's, drained, where the
+project declares `enqueue`/`drain`, and the caller's own single in-line run after it commits where it
+declares neither. So this is neither a
 second gate nor a PR review, and it is not for a committed range or someone else's PR — it is the last
 thing that happens while the change is still entirely yours.
 
@@ -185,9 +187,10 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 - Comments restating the code, which go; comments explaining a non-obvious *why* or *how*, which stay.
 - Where the diff departs from the conventions of the files it is already in.
 
-**Not formatting or import order, though** — the formatter owns those, and the caller runs it in write
-mode immediately before committing. Nor **subjective style** that reduces neither reuse, complexity,
-nor cost.
+**Not formatting or import order, though** — where the project declares `format` the formatter owns
+those and the caller runs it in write mode immediately before committing, and where it declares none they
+are the scoped check's and the project's stated conventions', which the Conventions dimension reads. Nor
+**subjective style** that reduces neither reuse, complexity, nor cost.
 
 #### Conventions
 
@@ -286,8 +289,9 @@ at most, a **single targeted test file** run directly, where one covers what you
 project's config for the actual command rather than assuming one. If an edit breaks a check, fix the
 cause or revert that edit — never suppress the check.
 
-⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one PR at a time, and
-running it here saturates the machine the gate is queued for. Backgrounding a banned run does not make
+⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one run per PR — a
+runner's where the project declares `enqueue`/`drain`, the caller's own after it commits where it declares
+neither — and running it here saturates the machine that run needs. Backgrounding a banned run does not make
 it allowed. **No reviewer runs one either**, which is why no brief you write names a test command.
 
 ⛔ **Never background a check and end your turn on it.** The run that actually stalls this pass is a
@@ -340,7 +344,8 @@ ones you judged this slice did not need. Keep it short enough to read at a glanc
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget
   already spent — read the finding it came with, and report that the run happened, since the seat that
-  enqueues the real ticket is the one that can size around it.
+  runs the real gate is the one that can size around it: the dispatcher enqueuing its ticket where the
+  project declares `enqueue`/`drain`, the caller itself where it declares neither.
 
 Then hand back to whatever called you. The commit, the push, the PR, the gate ticket, the verdict
 posted onto that PR, and whatever raising a flagged item becomes all belong to the flow that called
@@ -414,9 +419,10 @@ tree until told that it is.
 **The gate stays the caller's one fixed budget, and the ban on a reviewer running it is the BACKSTOP
 behind that positive frame rather than the mechanism** — a reader told only *don't*, holding a finding one
 command would confirm and handed no verification state, reads the ban as a formality. Say WHY in the
-brief and what it costs: a reviewer that runs the gate saturates the machine the real gate is queued for,
+brief and what it costs: a reviewer that runs the gate saturates the machine the real gate needs,
 produces a green nobody reads, double-spends a run you have already paid for, and leaves the seat that
-enqueues the real ticket sizing it against a run nobody told it about. **So every brief also asks the
+runs the real gate — the dispatcher's ticket or the caller's own in-line run, by the project's
+`enqueue`/`drain` — sizing it against a run nobody told it about. **So every brief also asks the
 reviewer to report what it RAN** — the
 commands behind its findings, at the granularity your own verification line carries — and you carry that
 per reviewer into your report, which is what makes a blank there a fact rather than a silence.

@@ -29,9 +29,10 @@ worktree before acting on it, `diff` the two where one looks wrong, and say whic
 
 **The flow is: take any baseline your slice needs → write all the code → update the docs it changed → fix what
 you HIT outside your owned files, in this PR → (`/pipeline:review` if this slice warrants it) → commit → push
-→ draft PR → hand back.** The gate ticket is **not in that flow** — your dispatcher enqueues it after it has
-read your diff, and in override gate mode there is none. Run only *cheap* checks: format, a scoped
-lint/typecheck (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
+→ draft PR → (in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
+where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
+in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
+(`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
 **one targeted test file run directly** — the widest test execution you get.
 
 **A baseline your slice needs is taken FIRST — before your first edit — and only once.**
@@ -91,24 +92,33 @@ reviewer performed leaves nothing in your tree**, so it is read off the tracker 
 `git status`, the finding comes back into the pass's own flagged list, and the number goes in your hand-back
 by name.
 
-**Format in write mode right before committing** — the scoped check only format-*checks*.
-**Formatter output is always committed, never reverted**: your files' formatting folds into the change,
-unrelated files' into a `chore(format)` commit.
+**Where the project declares `format`, run it in write mode right before committing** — the scoped check only
+format-*checks*; where it declares none there is no formatter step, and formatting is whatever the scoped
+check and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
+your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
-**You do NOT run the full gate — and the ban is on the WORK, not the command name.** Your commits are held
-only to the cheap **scoped check** (format-check + lint + typecheck), which the pre-commit hook enforces.
-Never run the full suite or any whole-package test run **by any invocation** — not `gate`, not
-`turbo run test`, not a raw `vitest` sweep, not a package `test` script — and
-**backgrounding it is still running it**. Never wait on a gate, **never mark your own PR ready, in any mode,
-on any result** (that flag is the dispatcher's signature that it read your diff), and **never merge it**.
+**Your commits are held to the cheap scoped check (format-check + lint + typecheck) whichever case the
+pre-commit hook is in** — by the hook, where an executable `pre-commit` in
+`$(git rev-parse --git-path hooks)`, a path that follows `core.hooksPath`, runs `scopedCheck`; and by you,
+running `scopedCheck` in the foreground before each commit, where none does.
 
-**The one exception covers only WHO runs the gate — override gate mode**, never self-granted: the brief or
-dispatching user **explicitly** puts this slice there, or the project declares no `enqueue` and no `drain`,
-where *Per-project config* makes in-line gating the default. Then run `gate` once, in the foreground, comment
-the result on your own draft PR, and never enqueue — which you never do in the default mode either, the ticket
-there being your dispatcher's to raise after it reads your diff. **Capture that gate's own exit status, never
-a pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
-flow's only evidence a gate ran.
+**Who runs the full gate is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
+self-granted, never inferred:
+
+- **Queue mode — the project declares `enqueue` and `drain`: you do NOT run the full gate, and the ban is on
+  the WORK, not the command name.** Never run the full suite or any whole-package test run
+  **by any invocation** — not `gate`, not `turbo run test`, not a raw `vitest` sweep, not a package `test`
+  script — and **backgrounding it is still running it**. Never wait on a gate either: the ticket is your
+  dispatcher's, raised after it reads your diff.
+- **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this
+  slice there (override mode):** once your draft PR is open, run `gate` a single time, in the foreground, and
+  comment the result on it. That one run is the only full-suite run you make, and every other run the
+  queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
+  `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this flow's only
+  evidence a gate ran.
+
+**In both you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
+signature that it read your diff), **and never merge it**.
 
 **Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label
 every other SHA it carries, a baseline included, rather than leaving a reader to guess which one you mean.**
@@ -172,10 +182,10 @@ alone, since an enumerated ban is satisfied by every member it omits — where y
 ## The handoff, and the repairs you fold in before it
 
 **The handoff — push, draft PR, hand back.** Everything that outlives you is a git object before you hand
-back, so a death anywhere in it loses nothing — and **the gate ticket is not yours in either mode**: in the
-default queue mode your dispatcher enqueues it once it has read your diff, since nothing should gate a tree it
-may be about to have rewritten, and in override gate mode there is no ticket at all. **You never run
-`enqueue`.**
+back, so a death anywhere in it loses nothing — and **the gate ticket is not yours in either mode**: where the
+project declares `enqueue`/`drain` your dispatcher enqueues it once it has read your diff, since nothing
+should gate a tree it may be about to have rewritten, and in in-line mode there is no ticket at all, your one
+`gate` run landing between the draft PR and the hand-back. **You never run `enqueue`.**
 
 1. **Push** all your commits.
 2. **Open a DRAFT PR** targeting the branch your worktree was cut from — your brief names it

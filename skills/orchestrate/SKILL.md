@@ -238,7 +238,8 @@ itself?** Exactly one of four, and the order is the preference — **fixed**, cl
 where; **filed**, naming the issue; **none found**; or **not enabled here**. **Fixed is the DEFAULT and it
 clears no bar**: a gap this arc can close in the release it is already shipping is closed there, in the diff
 it is already building, and filing is what is left over. **A *fixed* answer NAMES WHERE IT LANDED** — the
-file the edit went into and the `CHANGELOG.md` entry shipping with it — held to the discipline *filed*
+file the edit went into and, where the project declares `changelog`, the entry shipping with it in the file
+or directory that key names — held to the discipline *filed*
 already demands of an issue number, so *fixed* is never where a claim goes unchecked. **And *fixed* means
 the fix landed in THE TREE THIS ARC IS SHIPPING**, so an arc running in a consuming project cannot answer it
 for a gap in these skills: that is the filing bar's *different arc* below, the routing under it is what is

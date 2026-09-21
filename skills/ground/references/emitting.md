@@ -15,7 +15,7 @@ the field run between them, so leave them where they are and copy neither into w
 
 ```
 ## Grounding: <plan title>
-Integration branch: <the project's declared integrationBranch>   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice)
+Integration branch: <the project's declared integrationBranch>   ·   Epic branch: <epic-branch>, per the issue's verdict (or: none — one slice; or: none — the user asked this arc to merge as it goes)
 Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 
 ### Parallelization plan (the issue's phase order carried forward — dependency shape, not grounding)

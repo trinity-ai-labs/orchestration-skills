@@ -121,29 +121,35 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **Never rebase.** No boundary, no exception, and no key to declare one. A branch that has fallen behind
   takes its base merged *in*; conflicts are resolved at merge time, in the worktree, while both sides are
   still there to read.
-- **Branch from the branch the work converges on, not `main`.** That is the integration branch, or the epic
-  branch when a multi-slice epic has cut one. A PR targets the same branch its worktree came from.
-- **Implementers never run the full gate, never enqueue one, never mark their own PRs ready, and never merge
-  their own PRs** — they push, open a draft PR and hand back; the dispatcher then posts the verdict it formed
-  onto the PR as a review on each round of that loop, and **enqueues only once it is satisfied with the
-  code**, a runner gating it and commenting its own verdict before the dispatcher marks it ready and merges.
-  Holding the ticket back until then is what keeps a gate off a tree a fix round is about to rewrite, nothing
-  being able to take a ticket back, and it is the shape an epic's close-out has always had — draft PR first,
-  gate enqueued against it. **All of that is the default QUEUE mode.** Where a slice is put in override gate
-  mode, and on a project that declares no queue at all
-  ([Per-project config](per-project-config.md#per-project-config)), the implementer runs the gate itself and
-  comments the result, and **no ticket exists at any point** — in the second of those that is the default
-  rather than a grant — and the
-  **implementer's** half of the line is unchanged: still a draft, still never its own merge. The dispatcher's
-  half does not go unchanged with it — there the verdict comment arrives *before* the hand-back rather than
-  after it, so it is not the signal that the implementer is done, and *Where the review approval lives* in
-  [The mental model](mental-model.md#the-mental-model) is where that is argued.
+- **Branch from the branch the work converges on, not `main`.** That is the epic branch, which an arc of more
+  than one slice cuts by default, or the integration branch — for a one-slice arc, and for a multi-slice arc
+  whose user asked it to merge each slice as it lands, an instruction that covers that arc and not the next.
+  A PR targets the same branch its worktree came from.
+- **Implementers never enqueue a gate, never mark their own PRs ready, and never merge their own PRs — and
+  whether they run the full gate is the project's `enqueue`/`drain` to say**
+  ([Per-project config](per-project-config.md#per-project-config)). **Where the project declares both —
+  queue mode —** an implementer never runs it: it pushes, opens a draft PR and hands back; the dispatcher then
+  posts the verdict it formed onto the PR as a review on each round of that loop, and **enqueues only once it
+  is satisfied with the code**, a runner gating it and commenting its own verdict before the dispatcher marks
+  it ready and merges. Holding the ticket back until then is what keeps a gate off a tree a fix round is about
+  to rewrite, nothing being able to take a ticket back, and it is the shape an epic's close-out has always
+  had — draft PR first, gate enqueued against it. **Where it declares neither — in-line mode, which a
+  dispatcher can also put a single slice in — the implementer runs the gate once itself and comments the
+  result on its draft PR, and no ticket exists at any point.** The implementer's half reads the same in both:
+  still a draft, still never its own merge. The dispatcher's does not — in-line, the verdict comment arrives
+  *before* the hand-back rather than after it, so it is not the signal that the implementer is done, and
+  *Where the review approval lives* in [The mental model](mental-model.md#the-mental-model) is where that is
+  argued.
   **A comment an implementer removes from that PR, it removes by IDENTITY** — reading the comment and naming
   its id, and leaving one it cannot establish it wrote — since one account authors every party's comments
   there, so `author.login` separates none of them and a positional test like *the verdict before the current
   one* takes the dispatcher's own fence grant as readily as a stale verdict; tidying a superseded verdict
   stays wanted, and the dispatcher reads each grant back off the PR rather than trusting a write it made
   earlier to have survived.
+- **Every commit is held to the project's scoped check, and whether a pre-commit hook does that is read off
+  the repository rather than declared** — where a hook runs the scoped check the hook holds commits to it,
+  and where none does the implementer runs the scoped check itself before each commit. There is no config key
+  for it, since the hook's presence is something any pass can observe.
 - **A fence is a ceiling on what a slice may EDIT, never a wall on what it may RAISE.** An implementer that
   finds something wrong in a file its brief fenced off asks its dispatcher while both are still alive, and it
   **fixes what it HIT while doing its slice rather than going looking for more** — the unlisted middle between

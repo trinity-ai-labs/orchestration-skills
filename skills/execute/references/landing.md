@@ -152,8 +152,9 @@ rather than a summary of the log: a green you cannot quote is one nobody can che
 **This is the reading for a gate nobody drained, and in a project with a queue that is now almost none of
 them** — both gates this section used to have you run by hand are enqueued above, on a runner that takes their
 tickets. What is left is two cases. A project that declares no `enqueue` and no `drain` at all (*Per-project
-config*), where every gate is hand-run: a slice in **override gate mode**, and this section's own two gates
-where there is no queue to put them in. And, **in a project whose queue works**, the mid-arc integration gate
+config*), where every gate is hand-run: each slice's, gated **in-line** by its implementer — as a slice put
+in override mode is in a project that has a queue — and this section's own two gates where there is no queue
+to put them in. And, **in a project whose queue works**, the mid-arc integration gate
 by itself, where the runner refuses the PR-less ticket (*A runner scaffolded before the PR-less ticket REJECTS
 it*) — the one case in which this reading is needed by a dispatcher who has every reason to believe it does
 not apply to them. There an implementer's or a dispatcher's own reading of that status *becomes* the comment
@@ -272,7 +273,8 @@ running.** Single-slice work never cuts an epic branch, so in a project whose in
 such a PR goes straight to the default branch, and `Closes #<n>` in its body fires the instant it merges.
 **That is the right moment only if this one PR settles the whole issue** — and an increment is not an arc:
 `orchestrate` grounds one horizon per cycle, so an arc can run several cycles whose increments are each a
-single slice, cutting no epic branch and basing every one of those PRs on the default branch. A keyword
+single slice, and where the user asked that arc to merge as it goes rather than cut its default epic branch,
+every one of those PRs bases on the default branch. A keyword
 written into the first of them closes the issue while the cycles after it are still outstanding, and the same
 shape reaches an umbrella that a sub-issue's PR happens to name. The loop counts the tracker in its
 termination check, so an issue closed early is a false "done" in exactly the artifact it reads back to decide
@@ -358,7 +360,8 @@ answers, in that order of preference — **fixed**, closed in this release and n
 **filed**, naming the issue; **none found**; or **not enabled here**, where
 `.agents/worktree.json`'s `upstreamFindings` is anything but exactly `true`, in which case the finding goes to
 the maintainer in the run's report instead. **Fixed is the default and clears no bar**: a gap closable in the
-release already being shipped is closed there and names the file and the changelog entry it landed in, held
+release already being shipped is closed there and names the file and — where the project declares
+`changelog` — the changelog entry it landed in, held
 to the discipline filing demands of a number — and it is available only where that release IS this tree, so
 an arc inside a consuming project answers it for nothing in these skills. Filing is what is left
 and it takes **both** halves: the bar is an **observed failure the finding can name** — a run

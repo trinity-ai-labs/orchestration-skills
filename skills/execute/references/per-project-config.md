@@ -15,24 +15,27 @@ onboarded first.
 
 ## Gate mode
 
-Two independent readings, both properties of the **ticket** and set at enqueue —
-**never inferred from the branch name**, since a rename must not silently change how a PR is gated.
+Two independent readings, **never inferred from the branch name**, since a rename must not silently change how
+a PR is gated — in queue mode both are properties of the **ticket**, set at enqueue.
 
-**Who runs the gate.** By default the implementer runs `scopedCheck`, pushes, opens a **draft** PR and hands
-back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it and
-comments the verdict. **Override gate mode** is the other: the implementer runs `gate` itself, in the
-foreground, comments the result on its own draft PR, and **no ticket is created at all**. Two routes: a
-dispatcher's brief or the dispatching user **explicitly** puts a slice there, never
-self-granted, **or the project declares no `enqueue` and no `drain`, where in-line gating is the DEFAULT
-rather than a grant.** **The implementer's half reads the same in both, and in neither of them does it
-enqueue**: still a draft at hand-back, never
-marked ready by the implementer, never its own merge. In-line, though, the verdict lands *before* the
-hand-back — wait for it before you tear down the tree or merge (*The PR review loop*).
+**Who runs the gate — the project's `enqueue`/`drain` decide it:**
 
-**Which gate runs.** A project may offer a lighter gate for a prose-only slice (Trinity: `--mode docs` →
-`pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a real
-install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces the
-full gate.
+- **Queue mode — both declared:** the implementer runs `scopedCheck`, pushes, opens a **draft** PR and hands
+  back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it
+  and comments the verdict.
+- **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
+  dispatcher's brief or the dispatching user EXPLICITLY puts there (override mode), never self-granted:** the
+  implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR, and
+  **no ticket is created at all**. The verdict lands *before* the hand-back — wait for the hand-back before
+  you tear down the tree or merge (*The PR review loop*).
+
+**The implementer's half reads the same in both, and in neither does it enqueue**: still a draft at
+hand-back, never marked ready by the implementer, never its own merge.
+
+**Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (Trinity: `--mode docs`
+→ `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
+real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
+the full gate.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &
@@ -50,8 +53,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
   for the ticket once it has read the diff, ends with committed work and no handoff.
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
-- **A `sharedResources` entry whose `isolatedBy` is `null`** → **"default to parallelization" does not hold in
-  this project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
+- **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
+  project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's
   `scopedCheck` and targeted test file is uncovered and concurrent — and with **no queue** there is no slot at
   all, so the exposure is the whole fan-out. Narrow the wave to one live slice against that resource, or
@@ -65,8 +68,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 A shared cache only helps commands that invoke the runner (turbo/nx/bazel): `scopedCheck` and `gate` do. The
 binary called **directly** — `vitest`, `tsc`, `eslint` — or a script shelling straight to it
 **bypasses the cache and always runs cold**, locally and in the drained gate. So route every whole-package or
-whole-suite run that is *supposed to happen* — the drained gate, an integration gate, an override-mode slice —
-through the cached command (`turbo run <task> --filter=<pkg>`, or the project's `scopedCheck`), and say so in
-briefs and `AGENTS.md`. Routing, not permission: for a default-mode implementer those runs are banned outright
-(`skills/execute/SKILL.md`'s Implementer section). Reserve a direct-binary run for a **single targeted file**;
-an `AGENTS.md` documenting the raw form as a package default is a leak to fix.
+whole-suite run that is *supposed to happen* — the drained gate, an integration gate, an in-line slice's gate
+— through the cached command (`turbo run <task> --filter=<pkg>`, or the project's `scopedCheck`), and say so
+in briefs and `AGENTS.md`. Routing, not permission: for a queue-mode implementer those runs are banned
+outright (`skills/execute/SKILL.md`'s Implementer section). Reserve a direct-binary run for a **single
+targeted file**; an `AGENTS.md` documenting the raw form as a package default is a leak to fix.

@@ -63,18 +63,21 @@ you):
 ## The epic branch
 
 
-Reference for `skills/execute/SKILL.md`. **Read it when the increment is more than one slice** — when to cut
-it, what it costs, where the docs go, the mechanics.
+Reference for `skills/execute/SKILL.md`. **Read it when the arc is more than one slice** — when to cut it,
+what it costs, where the docs go, the mechanics.
 
 `skills/glossary/vocabulary/epic-branch.md` defines an **epic branch**. Single-slice work never cuts one, and
 the rest of the playbook reads the same when there isn't one.
 
 ## Two rules reach for one
 
-Either fires on its own; when neither does, slices merge into the integration branch as they land.
-**And when the user has already decided, neither runs** — "do it as an epic" settles the branch: read this
-file for the **mechanics**, cut it, point the slices at it. A skill's decision procedure never overrides a
-stated instruction.
+Either fires on its own, and Rule 2 fires on every arc of more than one slice, so an arc of one slice is the
+only one that cuts nothing and merges straight into the integration branch.
+**And where the user has stated which it is FOR THIS ARC, neither runs** — "do it as an epic" settles the
+branch: read this file for the **mechanics**, cut it, point the slices at it; "merge each slice as it lands"
+settles it the other way. A skill's decision procedure never overrides a stated instruction, and the
+instruction covers the arc it was given for: the next arc starts from these two rules again unless the user
+says otherwise for it.
 
 **Rule 1 — the shippability trigger.** *Does any intermediate state leave the integration branch in a
 condition you would not ship?* If yes, cut one, at any width from two slices up.
@@ -92,10 +95,12 @@ makes the epic **knowingly red** until its last consumer migrates, which opens t
 window (*Mechanics*). "No" leaves a branch that is isolation and nothing else, strictly gated throughout, with
 no window and no marker ref.
 
-**Rule 2 — the multi-slice default. Multi-slice work defaults to an epic branch**, whether or not every
-intermediate state would ship. The condition is **one change decomposed into slices** — never a slice count,
-never how you dispatch them; unrelated one-slice fixes side by side are branch traffic, not an arc, and cut
-nothing. Five costs land on the shared branch whenever it fires:
+**Rule 2 — the multi-slice default. An arc of more than one slice cuts an epic branch by default**, whether or
+not every intermediate state would ship — unrelated fixes grouped into one release included, since grouping
+them is what makes them one arc. The condition is the ARC, never how you dispatch it: separate single-slice
+arcs run side by side are each one slice and cut nothing. **Merging each slice into the integration branch
+as it lands is the exception, taken only when the user asks for it for this arc**, since five costs land on
+the shared branch whenever a multi-slice arc does:
 
 - **Base churn** — every live slice's base moves under every other; an epic branch bounds that to its own
   slices.
@@ -109,7 +114,9 @@ nothing. Five costs land on the shared branch whenever it fires:
   is a release, with the version file and changelog a hotspot every slice touches.
 
 **`ground` recommends; you decide and act.** It produces the seam map, so it is the pass positioned to see
-whether two halves must land together; a breakdown recommending nothing means no epic branch.
+whether two halves must land together — Rule 1's question. A breakdown recommending nothing on a multi-slice
+arc still gets an epic branch by Rule 2, since silence is not the user asking to merge as it goes, and one
+saying *one slice* gets none.
 
 ## The cost
 

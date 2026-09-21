@@ -2,6 +2,40 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.5.0
+
+- **Every instruction whose right form depends on a project setting now names that setting and says what each
+  of its values means.** `skills/execute/references/dispatching.md` gains one table, *What the project's
+  config changes in a brief*, keyed by `enqueue`/`drain`, `gate` and `scopedCheck`, the pre-commit hook,
+  `format`, `docsPaths`, `frameworkSkills`, `briefConventions`, `integrationBranch` and `sharedResources`,
+  each row saying what the brief tells the implementer with the setting named in the brief itself. The pasted
+  blocks take their row's case: the push-then-draft-PR hand-off carries a gate-mode sentence for each mode
+  rather than telling every implementer not to run the gate, which was wrong in any project that declares no
+  queue, where the implementer is the one who gates; the review-slice block's formatter step follows
+  `format`; the docs block follows `docsPaths`; and the no-full-suite ban is pasted where the project declares
+  `enqueue`/`drain` and left out where it gates in-line. Every other seat that stated one case as the only one
+  is rewritten as the named cases of the setting that decides it — the implementer's gate rule, formerly a
+  ban with its exception in a later paragraph, the dispatch-side gate-mode section beside it, which now names
+  queue mode and in-line mode with override as one route into the second, the spine's queue section, the
+  review pass's drained gate,
+  grounding's sizing against a slot, the Step 0 framework skill, parallelization under `sharedResources`, and
+  the close-out's hardcoded `CHANGELOG.md`. `docs/hard-rules.md`, `docs/mental-model.md`,
+  `docs/per-project-config.md` and the README's implementer line say the same.
+- **Whether a pre-commit hook holds commits to the scoped check is read off the repository, never assumed.**
+  Every seat that said the hook enforces `scopedCheck` now states both cases: where an executable `pre-commit`
+  in `$(git rev-parse --git-path hooks)` runs it, commits are held to it; where none does, the implementer
+  runs `scopedCheck` itself before each commit. No config key was added for it, since a pass can observe the
+  hook directly.
+- **An arc of more than one slice now cuts an epic branch by default, and merging each slice into the
+  integration branch as it lands is the exception, taken when the user asks for it.** Unrelated fixes grouped
+  into one release are included, since grouping them is what makes them one arc, and a breakdown that
+  recommends nothing on a multi-slice arc still gets one, where before it meant none; separate single-slice
+  arcs run side by side still cut nothing. The epic verdict's reference in `write-issue`, the branch rules in
+  `execute`, the breakdown template in `ground` and the docs all say so.
+- **A stated instruction overriding a default covers the arc it was given for, not the next one.** "Do it as
+  an epic" or "merge as it goes" settles the branch for that arc, and the next arc starts from the rules again
+  unless the user says otherwise for it.
+
 ## 5.4.0
 
 - **There is no longer a line for a later arc.** What is neither forced nor a different arc now folds in

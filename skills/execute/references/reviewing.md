@@ -19,13 +19,13 @@ the shell said — which is how a piped gate's exit 0 got read as green.
 which one you mean.** In a project with a queue, the epic's close-out gate and the mid-arc integration gate
 are both enqueued now (*Gate the integrated whole*). So: **paths that produce no durable record at all go 3 →
 1.** A hand-run gate is the only one that writes no streamed log, no ticket and no ledger entry, and it is
-left in **two** places rather than one: a project that declares no queue, where an override-mode slice is the
-whole of it, and a queued project whose runner refuses the PR-less ticket, where the mid-arc integration gate
-alone falls back to it (*Gate the integrated whole*). **Paths that produce no PR comment go 3 → 2.** The
-close-out gains one, on the very PR the verdict is about; a PR-less integration ticket does not and never
-will, because there is no PR; and an override-mode slice's comment is one the agent *writes* rather than one
-it reads. So the mid-arc gate does not leave this section's scope — what changes is what you read:
-**the verdict on its ticket in `done/`, not a shell's exit status.**
+left in **two** places rather than one: in-line mode — every gate in a project that declares no queue, a
+slice's own included, and a slice put in override mode in one that does — and a queued project whose runner
+refuses the PR-less ticket, where the mid-arc integration gate alone falls back to it (*Gate the integrated
+whole*). **Paths that produce no PR comment go 3 → 2.** The close-out gains one, on the very PR the verdict is
+about; a PR-less integration ticket does not and never will, because there is no PR; and an in-line slice's
+comment is one the agent *writes* rather than one it reads. So the mid-arc gate does not leave this section's
+scope — what changes is what you read: **the verdict on its ticket in `done/`, not a shell's exit status.**
 
 - **A gate spans every workspace — read every package's result, never one package's summary.** `gate` runs the
   task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types). A `Failed: <pkg>#test`
@@ -59,7 +59,7 @@ it reads. So the mid-arc gate does not leave this section's scope — what chang
   narrow the wave, not to touch a diff.
 
 - **The gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
-  a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an override-mode agent's own gate
+  a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
   comment on its PR reporting a full green with zero failures — and on the close-out/integration slice,
   independently re-run the previously-red files yourself before you believe it. Nothing else attests to a
   gate, and an empty PR conversation means nothing has. Read the comment and its failure set; the draft flag
@@ -111,9 +111,10 @@ confirm the marker is visible (`git for-each-ref refs/heads/transient-red refs/r
 naming the ref you pushed) and that the project's own detector agrees the window is open. One check, once per
 epic.
 
-In that window a drained ticket's gate will exit non-zero on the pre-existing baseline failures until every
-consumer migrates, and the runner will comment that failure on the PR. That's expected, **not** a real block.
-Read the runner's output as: the compile half (typecheck + lint) is GREEN, the task's OWN new/affected tests
+In that window a slice's gate — a drained ticket's where the project declares `enqueue`/`drain`, the
+implementer's own in in-line mode — will exit non-zero on the pre-existing baseline failures until every
+consumer migrates, and its comment on the PR will carry that failure. That's expected, **not** a real block.
+Read the gate's output as: the compile half (typecheck + lint) is GREEN, the task's OWN new/affected tests
 are GREEN, and there are NO failures beyond the baseline SET that pre-dated this task on its fork point (file +
 test names, not a count — fixing one stale test and breaking a new one keeps the count identical but is still
 a regression; the absolute count drifts between tasks forked at different tips and as consumers migrate). If
@@ -130,7 +131,8 @@ does not do.
 
 ## The PR review loop
 Each implementer opens **its own draft PR** back to the branch its worktree was cut from — the integration
-branch, or the epic branch when the epic has one; the runner comments the gate's verdict on it. That comment
+branch, or the epic branch when the epic has one; the gate's verdict is commented on it — by the runner where
+the project declares `enqueue`/`drain`, by the implementer itself in in-line mode. That comment
 is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* merge it, because
 marking it ready is your signature that you read the diff. So **review each PR and actually read the code
 involved**, not just the agent's summary or the green comment. Read the diff: verify correctness, that it does
@@ -153,17 +155,16 @@ the same drain, nothing does.
 **Review BEFORE you enqueue, and drain after — never the other way round.** Reviewing is where you decide
 whether the code changes, so a ticket raised first is both wasted (a full serialized gate burned on code you
 are about to replace) and *unsafe*: the fix agent you dispatch next would edit a worktree that ticket has
-already frozen, and nothing takes a ticket back (see *Draining the gate queue*). **The order per PR, in the
-default queue mode, is: implementer hands back a draft PR → you read the diff first → post that round's
-verdict as a review → needs changes? dispatch the fix agent NOW, while there is still no ticket → re-review →
-and only once the code is final do you ENQUEUE, then drain** — so the gate verdict corresponds to the exact
-commit you are going to merge. A fix round after a ticket has settled re-pushes and is re-enqueued the same
-way, that raise being yours too. **In override gate mode, and in a project declaring no queue, there is no
-ticket at any point** and the verdict comment is already on the PR when the hand-back arrives
-(`skills/execute/references/per-project-config.md`). Then verify that correspondence explicitly before
-merging: compare the SHA the gate comment names
-against the PR's current head, since a verdict that predates the last push describes a tree the PR no longer
-carries.
+already frozen, and nothing takes a ticket back (see *Draining the gate queue*). **The order per PR in queue
+mode — the project declares `enqueue`/`drain` — is: implementer hands back a draft PR → you read the diff
+first → post that round's verdict as a review → needs changes? dispatch the fix agent NOW, while there is
+still no ticket → re-review → and only once the code is final do you ENQUEUE, then drain** — so the gate
+verdict corresponds to the exact commit you are going to merge. A fix round after a ticket has settled
+re-pushes and is re-enqueued the same way, that raise being yours too. **In in-line mode — a project declaring
+no queue, or a slice put in override mode — there is no ticket at any point** and the verdict comment is
+already on the PR when the hand-back arrives (`skills/execute/references/per-project-config.md`). Then verify
+that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
+head, since a verdict that predates the last push describes a tree the PR no longer carries.
 
 That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
 precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.
@@ -331,15 +332,15 @@ gh api repos/{owner}/{repo}/pulls/<n>/reviews \
 finding that opens with `@` as a filename; only the line number needs `-F`, which types a bare number as a
 JSON integer. **Verify after**: refetch the review and confirm the body is the markdown, not the literal path.
 
-**A posted review is a DIFFERENT artifact from the runner's gate comment, and posting one as the other loses
-it.** The gate comment is a plain PR comment carrying a pass or the failing tail, and a review put on the PR
-as one more of those sits in the conversation among them; a review renders as the review OF that PR and
-threads its findings against the lines they concern. **A finding whose line is not in this PR's diff goes in
-the BODY** — the API rejects the entire review, creating nothing, when any inline comment names a line outside
-the diff, and the findings worth posting here (a seat the change missed, a doc it falsified) are routinely
-outside it. **Everything else goes inline and the summary goes in the body** — your verdict against the
-slice's `Goal`, what the hand-back's `Rejected` list raised and what you made of it, and what the next round
-is being dispatched to fix.
+**A posted review is a DIFFERENT artifact from the gate comment, whoever posted that, and posting one as the
+other loses it.** The gate comment is a plain PR comment carrying a pass or the failing tail, and a review put
+on the PR as one more of those sits in the conversation among them; a review renders as the review OF that PR
+and threads its findings against the lines they concern. **A finding whose line is not in this PR's diff goes
+in the BODY** — the API rejects the entire review, creating nothing, when any inline comment names a line
+outside the diff, and the findings worth posting here (a seat the change missed, a doc it falsified) are
+routinely outside it. **Everything else goes inline and the summary goes in the body** — your verdict against
+the slice's `Goal`, what the hand-back's `Rejected` list raised and what you made of it, and what the next
+round is being dispatched to fix.
 
 **One review per ROUND, never a single one at the end.** A **needs-changes** review is posted and the loop
 re-enters exactly as it does below, the fix agent going out against a finding now written on the PR as well as
@@ -417,15 +418,18 @@ pushed branch exactly this way. A textually-clean auto-merge drops a line just a
 to find: a freeze-line dropped out of a parked-state check reads as a clean merge and reaps a healthy queued
 job.
 
-## On the gate — the runner gates; you read the diff
-**The RUNNER runs `gate` once per PR — that IS the gate.** `gate` is the HEAVY full suite: build + the entire
-test run, serialized behind the slim machine-wide slot (`scripts/gate-slot.mjs` for Trinity) so concurrent
-gates can't saturate the box. Implementers don't run it (their commits are held only to the cheap scoped check
-by the pre-commit hook), and release-branch PRs typically get no CI — so the runner's drained gate is what
-stands in for CI.
+## On the gate — one run per PR; you read the diff
+**One `gate` run per PR IS the gate, and the project's `enqueue`/`drain` say whose it is**: the RUNNER's,
+drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs` for Trinity) so concurrent
+gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
+with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
+the entire test run. Beyond that one run an implementer's commits are held only to the cheap scoped check —
+by a pre-commit hook where one runs it, by the implementer before each commit where none does — and
+release-branch PRs typically get no CI, so that gate run is what stands in for CI.
 
-**Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The runner's green comment
-is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**, which for a merged tree with no PR is
+**Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,
+the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
+which for a merged tree with no PR is
 a PR-less ticket (*Gate the integrated whole*), and by hand only where there is no queue or the runner refuses
 that ticket — only for a genuine reason: the runner never got to a ticket, or a
 **merge integrates branches that weren't tested together** (one integration gate on the merged result). That

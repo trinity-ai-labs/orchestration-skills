@@ -108,17 +108,20 @@ the length. Setting `WORKTREE_HOME` yourself overrides the default on every plat
 PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration
 branch → delete branch + worktree.
 
-**One optional second level: the epic branch.** **The verdict is written in the issue** —
-`/pipeline:write-issue` answers it on the two rules below while it is planning the arc, and every pass after
-carries that answer rather than deriving one of its own; `/pipeline:execute` owns the branch's lifecycle. Two
-rules reach for it. A multi-slice epic that is only correct *as a whole* — a schema swap every consumer must
+**One second level, cut by default for any arc of more than one slice: the epic branch.** **The verdict is
+written in the issue** — `/pipeline:write-issue` answers it on the two rules below while it is planning the
+arc, unless you have said which it is for that arc, and every pass after carries that answer rather than
+deriving one of its own; `/pipeline:execute` owns the branch's lifecycle. What you say covers the arc you said
+it for, and the next arc starts from the rules again. Two rules reach for it. A multi-slice epic that is only
+correct *as a whole* — a schema swap every consumer must
 follow, two halves of one contract — would otherwise leave the integration branch carrying a half-finished
 change set for the entire run, with everyone else's worktrees cut from whatever state it happens to be in. And
-**any** multi-slice work reaches for it by default even when every intermediate state would ship, because
-landing one change on the shared branch as N separate merges costs something regardless of that: an epic that
-turns out wrong is N merges to unpick instead of one to revert, the two halves of a contract seam are far
+**any** arc of more than one slice reaches for it by default — unrelated fixes grouped into one release
+included, since grouping them is what makes them one arc — even when every intermediate state would ship,
+because landing an arc on the shared branch as N separate merges costs something regardless of that: an arc
+that turns out wrong is N merges to unpick instead of one to revert, the two halves of a contract seam are far
 easier to compare while both are still converging somewhere you control, and where shipped content must move a
-version — this repo included — N merges into the branch that releases are N releases for one change. Two
+version — this repo included — N merges into the branch that releases are N releases for one arc. Two
 further costs, a live slice's base moving under its siblings and a shared branch left carrying merged trees no
 single gate ever ran, land only when the slices actually run concurrently. Whichever rule fires, an
 **epic branch** is cut from the integration branch **into a worktree of its own** —
@@ -128,12 +131,14 @@ whole in that worktree once they have all landed — when the merges actually pr
 did not already cover, which is a one-command check rather than a habit — and it reaches the integration
 branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash
 instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule,
-[Per-project config](per-project-config.md#per-project-config) the key). Neither rule is a slice count, and
-neither is "the integration branch is busy": the first asks whether a partial state is *broken*, and the
-second keys on one change decomposed into slices rather than on other sessions' traffic. It buys isolation and
-costs deferred conflicts, so the dispatcher merges the integration branch back into it — in that same worktree
-— on the same tick that drains the gate queue, mandatory, and the more so now that the second rule fires on
-every multi-slice arc. One naming constraint comes with the worktree: the epic branch's **leaf** (everything
+[Per-project config](per-project-config.md#per-project-config) the key). Neither rule is "the integration
+branch is busy": the first asks whether a partial state is *broken*, and the second keys on the arc rather
+than on other sessions' traffic — separate one-slice arcs run side by side cut nothing. Merging a multi-slice
+arc into the integration branch slice by slice is the exception, taken when you ask for it for that arc. It
+buys isolation and costs deferred conflicts, so the dispatcher merges the integration branch back into it — in
+that same worktree — on the same tick it watches the slices on, mandatory, and the more so now that the second
+rule fires on every multi-slice arc. One naming constraint comes with the worktree: the epic branch's **leaf**
+(everything
 past the last slash) has to be one no slice will reuse, because the leaf is the worktree's directory name and
 a second branch resolving to the same path would be handed the epic's own tree instead of a new one.
 `setup-worktree` refuses that instead of reporting it as a success — it reads back which branch the tree is
@@ -178,11 +183,12 @@ says the suite passed; it cannot say the agent solved the right problem. And a g
 slice's review pass has closed produces an edit that pass never read, so the dispatcher's own read of the diff
 is the only reader it gets, and the slice's hand-back is what flags which edit that is. One PR in the flow has
 no implementer behind it and so no hand-back to promote: the epic branch's closing PR into the integration
-branch, which the orchestrator authors and then merges. It is a draft carrying a gate comment like every
-other, because it opens *first* and the integrated close-out check is enqueued against it — green before the
-**merge**, which is the step that actually puts the change set on the shared branch, rather than before the
-open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was already
-reviewed as its own draft PR.
+branch, which the orchestrator authors and then merges. It is a draft like every other, because it opens
+*first* and the integrated close-out check runs against it — enqueued, its verdict commented there, where the
+project declares a queue, and run by the dispatcher in the epic's own worktree where it declares none — green
+before the **merge**, which is the step that actually puts the change set on the shared branch, rather than
+before the open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was
+already reviewed as its own draft PR.
 
 **And a gate comment says nothing about the implementer either — which is a distinction you only need in one
 mode, and it is the mode where the comment is most visible.** On a project that declares no queue the
@@ -205,7 +211,8 @@ implementer either — so what it licenses is a question to the agent and nothin
   tier the grounding pass wrote, which it may raise with its reason beside it and lower only with a written
   reason in the brief — and deciding the WAVE'S WIDTH against the width that pass recommended, going narrower
   or wider with its reason recorded, since the queue, what is already live and what the host can take are the
-  facts grounding could not see** — reviews each PR by reading the diff, drains the gate queue, and merges.
+  facts grounding could not see** — reviews each PR by reading the diff, drains the gate queue where the
+  project declares one, and merges.
   Unfinished work a slice reports is its move to make — a fix agent, a resume, or a filed and linked follow-up
   folded into the plan. So is a question a *live* slice asks about a fenced file, which it answers on the same
   tick, one of five ways: widen that one named path — or, where the grant's subject is every occurrence of
@@ -224,8 +231,10 @@ implementer either — so what it licenses is a question to the agent and nothin
   falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**,
   since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped
   check, opens a **draft** PR, and **hands back — it never enqueues the gate and it never merges its own PR**,
-  reporting a verdict per doc it checked. The gate ticket is the dispatcher's, raised after it has read the
-  diff, and in a project that gates in-line there is no ticket at all. Work it finds outside its owned files
+  reporting a verdict per doc it checked. Where the project declares `enqueue`/`drain` the gate ticket is the
+  dispatcher's, raised after it has read the diff; where it declares neither there is no ticket at all, and
+  the implementer runs the gate once itself, on its draft PR, before it hands back. Work it finds outside its
+  owned files
   it **fixes**, in the PR it already has
   open, each repair in its own commit — it opens no GitHub issue in any circumstance, and neither does any
   reviewer it dispatches — and where a **fence**
@@ -261,10 +270,10 @@ outstanding.
   intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no
   config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives
   each slice its own and names it in the brief, the same way it gives each slice a worktree.
-- **A durable gate queue** → implementers hand back rather than waiting and the dispatcher enqueues once it
-  has read the diff, so a wide fan-out never serializes on a gate lock, nothing gates a tree that is about to
-  be rewritten, and a dying agent can't strand committed work — its branch and draft PR are pushed before the
-  hand-back either way.
+- **A durable gate queue, where a project declares one** → implementers hand back rather than waiting and the
+  dispatcher enqueues once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
+  gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
+  draft PR are pushed before the hand-back either way.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
   place that trade is worth re-opening, because that branch is scaffolding rather than history —

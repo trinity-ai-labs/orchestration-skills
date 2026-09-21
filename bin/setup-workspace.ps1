@@ -36,7 +36,12 @@
 # <branch>  the branch to create in EVERY named repo. One name across all of them,
 #           so the PRs are obviously one change.
 # [repo]    which members to cut. Name them explicitly when you know the task's
-#           surface; each repo you skip is one install you don't pay for.
+#           surface; each repo you skip is one install you don't pay for. Naming a
+#           repo that OWNS a cross-repo contract also cuts every consumer of it
+#           (see "Contract closure" below), and --exclude cannot drop one while its
+#           owner is in the task. A task in ONE repo is not this helper's: run
+#           setup-worktree.ps1 <branch> <base> inside that repo instead. It lands in
+#           this same workspace layout and applies no closure.
 # --exclude the inverse: everything in the default set except these. Better when a
 #           task touches most of the workspace and you want to drop one.
 #
@@ -251,7 +256,13 @@ foreach ($contract in @(Get-JsonValue -Object $manifest -Name 'crossRepoContract
         $consumer = [string]$consumer
         if (-not $consumer -or $Repos -contains $consumer) { continue }
         if ($Exclude -contains $consumer) {
-            Exit-WithError "'$consumer' consumes a contract owned by '$owner', which this task includes - it cannot be excluded.`n  Either drop '$owner' from the task, or keep '$consumer' in it."
+            # Single quotes are PowerShell's own escaping inside a single-quoted string
+            # literal (doubled, never backslash-escaped) - needed because the suggested
+            # command below quotes these two paths that way, and a repo name or root path
+            # holding an apostrophe would otherwise break the pasted command.
+            $ownerPath = "$Root/$owner".Replace("'", "''")
+            $scriptPath = "$Here/setup-worktree.ps1".Replace("'", "''")
+            Exit-WithError "'$consumer' consumes a contract owned by '$owner', which this task includes - it cannot be excluded.`n  Either drop '$owner' from the task, or keep '$consumer' in it - or, if this task is`n  only '$owner', cut it alone with no contract closure:`n    Push-Location -LiteralPath '$ownerPath'; & '$scriptPath' $Branch $Base; Pop-Location"
         }
         $Repos += $consumer
         Write-Output "including:  $consumer (consumes a contract owned by $owner)"

@@ -22,7 +22,12 @@
 # <branch>  the branch to create in EVERY named repo. One name across all of
 #           them, so the PRs are obviously one change.
 # [repo]    which members to cut. Name them explicitly when you know the task's
-#           surface; each repo you skip is one install you don't pay for.
+#           surface; each repo you skip is one install you don't pay for. Naming a
+#           repo that OWNS a cross-repo contract also cuts every consumer of it
+#           (see "Contract closure" below), and --exclude cannot drop one while its
+#           owner is in the task. A task in ONE repo is not this helper's: run
+#           setup-worktree.sh <branch> <base> inside that repo instead. It lands in
+#           this same workspace layout and applies no closure.
 # --exclude the inverse: everything in the default set except these. Better when
 #           a task touches most of the workspace and you want to drop one.
 #
@@ -244,7 +249,9 @@ while IFS=$'\t' read -r owner consumers; do
     contains "$c" "${REPOS[@]}" && continue
     if contains "$c" ${EXCLUDE[@]+"${EXCLUDE[@]}"}; then
       die "'$c' consumes a contract owned by '$owner', which this task includes — it cannot be excluded.
-  Either drop '$owner' from the task, or keep '$c' in it."
+  Either drop '$owner' from the task, or keep '$c' in it — or, if this task is
+  only '$owner', cut it alone with no contract closure:
+    REPO=\"$ROOT/$owner\" \"$HERE/setup-worktree.sh\" $BRANCH $BASE"
     fi
     REPOS+=("$c")
     echo "including:  $c (consumes a contract owned by $owner)"

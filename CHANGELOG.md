@@ -2,6 +2,13 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.6.1
+
+- **`AGENTS.md` now states the one squash this repo performs.** It said "merge commits, not squash" with no
+  exception, in the conventions list and in the ship-it close-out, while `.agents/worktree.json` declares
+  `"epicMerge": "squash"` and `merge-pr` squashes an epic branch merging into `main` accordingly. Both
+  places now name that exception and say the config wins on how a merge lands.
+
 ## 5.6.0
 
 - **The squash that collapses an epic takes the close-out PR's title and body as its commit message.**

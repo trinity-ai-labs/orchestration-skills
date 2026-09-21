@@ -203,14 +203,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   version and the observation is skew rather than a defect, so nothing is filed; where it cannot tell which,
   it says that instead of guessing. Only what nothing describes becomes a new linked issue.
   **And an arc absorbs what it finds rather than handing it back: it files only what is genuinely a DIFFERENT
-  ARC** — narrower than separable and narrower than real work worth doing — since what is neither forced nor a
-  different arc becomes a line in the plan for a later arc rather than a number on the board, and an arc
-  filing three items per item it closes hands you back three decisions per close. **What the arc is already
-  carrying is the one thing that line does not take: something true, not needed for the goal, and one EDIT
-  rather than work somebody has to carry is folded in on COST** — done inside the run because that is cheaper
-  than the line deferring it, the test being that the item is an edit and never that a cycle is running, since
-  the second is true of everything the loop finds — **and the reason recorded is that cost, never
-  the goal-completeness a forced item is folded on**, which would put a false claim under a right verdict.
+  ARC** — narrower than separable and narrower than real work worth doing — since an arc filing three items
+  per item it closes hands you back three decisions per close. **What is neither forced nor a different arc
+  is folded in and landed before the arc closes, whatever its size — never parked as a line for a later arc**,
+  because the umbrella that line would sit on is closed by the arc's own last act and nothing reads a closed
+  issue again; **the reason recorded is the one it earned, never the goal-completeness a forced item is
+  folded on**, which would put a false claim under a right verdict. **An umbrella body still carrying a
+  finding nothing owns is a plan that is not empty**, so the arc cannot report green over it.
   **A filing is never put to you as a decision to make**; scope growing inside an arc is expected, and the
   close-out reports what it absorbed once, as part of the release. **And whatever is filed into the arc's own
   tracker names at least one file, symbol or route — the comment onto an existing issue included, which is the

@@ -2,6 +2,29 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.4.0
+
+- **There is no longer a line for a later arc.** What is neither forced nor a different arc now folds in
+  under one verdict, *Fold the rest* — replacing *Fold on cost* — whatever its size: an edit rides the next
+  wave and anything bigger takes a slice of its own, but either way it lands before the arc closes rather
+  than sitting in a block beside the umbrella body, where the loop's own last act closes the umbrella and
+  nothing reads a closed issue again.
+- **Termination now reads the umbrella body for what it still holds.** A finding still carried there that no
+  checklist line, linked issue or recorded settle owns leaves the remaining plan not empty, so the loop will
+  not terminate over it; the close-out in turn no longer records a list of findings deferred, because no
+  disposition defers one any more.
+- **`setup-workspace` now says what naming a repo pulls in.** Its usage header states that naming a repo
+  that owns a cross-repo contract also cuts every consumer of it, whether or not the task changes that
+  contract, and that a task confined to one repo is `setup-worktree <branch> <base>` run inside that repo,
+  which lands in the same workspace layout and applies no closure. Its `--exclude` refusal gains a third
+  option printing that exact command, filled in, by absolute path so it also works on Codex, where `bin/`
+  is not on PATH — in both the bash and PowerShell ports. Neither change touches the frozen contract — no
+  new argument, env var, stdout line or exit code, only the helper's own usage and stderr text.
+  `skills/execute/SKILL.md`'s *Polyrepo workspaces* tells a dispatcher the same thing in prose, and the
+  README helper row does too, so both doc surfaces stay in step with the CLI. The issue's optional third
+  fix — a warning when closure more than doubles the repo count —
+  was declined, since the `including:` line it would have touched is itself a frozen stdout line.
+
 ## 5.3.2
 
 - **The integration gate no longer runs in the main checkout, in either gate mode.** The reference for gating

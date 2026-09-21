@@ -67,7 +67,10 @@ finished reading this skill.**
 
 In a **workspace** — sibling repos released together under one `.agents/workspace.json` at a root that is not
 itself a git repo — `setup-workspace.sh <branch> [repo ...]`, or `--exclude <repo,repo>`, cuts one worktree
-per member under the **same branch name in every one**. Name the repos a task touches; each is an install.
+per member under the **same branch name in every one**. Name the repos a task touches; each is an install
+— **and naming a repo that owns a cross-repo contract also cuts every consumer of it**, so a slice that
+touches ONE member is cut with the worktree helper run inside that member, which lands in the same
+workspace layout and applies no closure.
 Three things then change for the dispatcher:
 
 - **Verify HEAD in every member — and fetch in every member too**: that comparison reads a remote-tracking

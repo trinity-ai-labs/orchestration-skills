@@ -129,10 +129,11 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   prose repo has — no gate here can tell whether a rule is CORRECT, so the diff is the review, the reviewer
   flips the draft ready, and GitHub's refusal to merge a draft is the interlock against merging an unread
   diff. **A maintainer saying "ship it" IS that authorization, and it is not a request for a draft** — carry
-  the same path all the way through instead: version bump, green gate, push, PR, flip it ready, merge it (a
-  merge commit, or the squash `.agents/worktree.json` declares for an epic branch merging into `main`), and
-  bring the local integration branch up to the merged tip — named as an endpoint rather than left to
-  judgement, because a draft handed back after a "ship it" wears every appearance of a finished release,
+  the same path all the way through instead: version bump where the change touches shipped content and none
+  where it is internal (the versioning bullet below draws that line), green gate, push, PR, flip it ready,
+  merge it (a merge commit, or the squash `.agents/worktree.json` declares for an epic branch merging into
+  `main`), and bring the local integration branch up to the merged tip — named as an endpoint rather than left
+  to judgement, because a draft handed back after a "ship it" wears every appearance of a finished release,
   version bumped, checks green and PR open, while nothing has actually shipped until the maintainer comes back
   and finishes it by hand.
 - **No AI attribution on anything this flow writes to GitHub in the maintainer's name — a commit message, a PR
@@ -147,13 +148,16 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   pointed at because the ship-it close-out above runs with no dispatcher and no brief, so nothing in it
   obliges the agent to load the skill that carries the ban — and none of these artifacts is in the diff, so no
   check here can catch a slip. `skills/execute/SKILL.md`'s implementer step 7 carries the argument.
-- Assume your change ships and needs the version moved forward in **both** manifests —
-  `.claude-plugin/plugin.json` (Claude Code) and `.codex-plugin/plugin.json` (Codex) — plus a matching
-  `## <version>` heading in `CHANGELOG.md`. Each host pins an install to its own manifest's string, so merging
-  a skill change under an unchanged version ships nothing while looking like it worked, and one manifest
-  bumped alone ships a different release to each host — `scripts/check.sh` check 2 fails when the two
-  disagree. Only `.github/`, `.agents/`, `scripts/`, `CHANGELOG.md` and `.gitignore` are exempt (the exempt
-  regex in `.github/workflows/ci.yml` is authoritative — change both together).
+- **A change that touches anything outside the exempt list below moves the version forward, and only such a
+  change does** — in **both** manifests, `.claude-plugin/plugin.json` (Claude Code) and
+  `.codex-plugin/plugin.json` (Codex), plus a matching `## <version>` heading in `CHANGELOG.md`. Each host pins
+  an install to its own manifest's string, so merging a skill change under an unchanged version ships nothing
+  while looking like it worked, and one manifest bumped alone ships a different release to each host —
+  `scripts/check.sh` check 2 fails when the two disagree. **A change confined to the exempt list is internal
+  and merges with no bump and no CHANGELOG entry**, since a version cut for it ships nothing to an install
+  and still costs a release. Exempt: `.github/`, `.agents/`, `scripts/`, `AGENTS.md`, `CHANGELOG.md` and
+  `.gitignore` — the exempt regex in `.github/workflows/ci.yml` is authoritative, so change both together, and
+  where CI demands a bump for a file no installed plugin loads, the list is what is wrong, not the version.
 - All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are
   PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no
   gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push

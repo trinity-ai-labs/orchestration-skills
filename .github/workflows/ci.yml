@@ -188,9 +188,10 @@ jobs:
           #
           # Everything under .claude-plugin/ — plugin.json above all — counts as shipped.
           #
-          # Why each entry earns its place on the list — in every case because
-          # Claude Code never loads it and it never reaches a user's install, so
-          # demanding a bump for it would fail a PR that ships nothing:
+          # Why each entry earns its place on the list — in every case because an
+          # installed plugin never loads, runs or reads it (an install copies the
+          # whole repo, so being present there is not the test), so demanding a
+          # bump for it would fail a PR that ships nothing:
           #   .github/      CI config; runs on a runner, never on a user's machine.
           #   .agents/      this repo's OWN worktree.json — contributor tooling read
           #                 by a dispatcher working here, never by an installed
@@ -198,9 +199,11 @@ jobs:
           #   scripts/      the contributor gate. Unlike bin/, which Claude Code puts
           #                 on a user's PATH, nothing under scripts/ is shipped or
           #                 invocable by a user.
+          #   AGENTS.md     this repo's contributor conventions — read by whoever
+          #                 works HERE, never by an installed plugin.
           #   CHANGELOG.md  describes a bump; requiring one to describe one is circular.
           #   .gitignore    changes nothing about an install.
-          exempt='^(\.github/|\.agents/|scripts/|CHANGELOG\.md|\.gitignore)'
+          exempt='^(\.github/|\.agents/|scripts/|AGENTS\.md|CHANGELOG\.md|\.gitignore)'
           changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"

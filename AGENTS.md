@@ -129,11 +129,12 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   prose repo has — no gate here can tell whether a rule is CORRECT, so the diff is the review, the reviewer
   flips the draft ready, and GitHub's refusal to merge a draft is the interlock against merging an unread
   diff. **A maintainer saying "ship it" IS that authorization, and it is not a request for a draft** — carry
-  the same path all the way through instead: version bump, green gate, push, PR, flip it ready, merge it
-  (merge commit, never squash), and bring the local integration branch up to the merged tip — named as an
-  endpoint rather than left to judgement, because a draft handed back after a "ship it" wears every appearance
-  of a finished release, version bumped, checks green and PR open, while nothing has actually shipped until
-  the maintainer comes back and finishes it by hand.
+  the same path all the way through instead: version bump, green gate, push, PR, flip it ready, merge it (a
+  merge commit, or the squash `.agents/worktree.json` declares for an epic branch merging into `main`), and
+  bring the local integration branch up to the merged tip — named as an endpoint rather than left to
+  judgement, because a draft handed back after a "ship it" wears every appearance of a finished release,
+  version bumped, checks green and PR open, while nothing has actually shipped until the maintainer comes back
+  and finishes it by hand.
 - **No AI attribution on anything this flow writes to GitHub in the maintainer's name — a commit message, a PR
   body, a review posted on a PR and its inline comments, an issue or a comment on one — the configured git
   user being the only author any of them names.** No trailer, line, footer or URL naming Claude, the
@@ -157,10 +158,12 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no
   gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push
   spends it to save a worktree.
-- Never rebase. Merge commits, not squash. **Never self-merge on your own judgement** — that is the
-  unauthorized half of the failure above. A merge a maintainer explicitly asked for is not a self-merge: it is
-  the review arriving as a sentence rather than as a checkbox, and treating it as one is how a "ship it" turns
-  back into a draft.
+- Never rebase. Merge commits, not squash — **except the one merge `.agents/worktree.json` decides instead: an
+  epic branch merging back into `main` is squashed, because the config declares `"epicMerge": "squash"` and
+  `merge-pr` reads it.** On how a merge lands, the config wins over this file. **Never self-merge on your own
+  judgement** — that is the unauthorized half of the failure above. A merge a maintainer explicitly asked for
+  is not a self-merge: it is the review arriving as a sentence rather than as a checkbox, and treating it as
+  one is how a "ship it" turns back into a draft.
 
 ## The frozen helper contract
 

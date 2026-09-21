@@ -13,15 +13,16 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   checklist line, linked issue or recorded settle owns leaves the remaining plan not empty, so the loop will
   not terminate over it; the close-out in turn no longer records a list of findings deferred, because no
   disposition defers one any more.
-- **`setup-workspace`'s usage header now states the closure a cross-repo contract change carries**: naming a
-  repo that owns such a contract also cuts in every consumer of it, and a task confined to one repo is
-  `setup-worktree <branch> <base>` run inside that repo — landing in the same workspace layout, and applying
-  no closure. Its `--exclude` refusal gains a third option printing that exact command, filled in, by
-  absolute path so it also works on Codex, where `bin/` is not on PATH — in both the bash and PowerShell
-  ports. Neither change touches the frozen contract — no new argument, env var, stdout line or exit code,
-  only the helper's own usage and stderr text. `skills/execute/SKILL.md`'s *Polyrepo workspaces* tells a
-  dispatcher the same thing in prose, and the README helper row does too, so both doc surfaces stay in step
-  with the CLI. The issue's optional third fix — a warning when closure more than doubles the repo count —
+- **`setup-workspace` now says what naming a repo pulls in.** Its usage header states that naming a repo
+  that owns a cross-repo contract also cuts every consumer of it, whether or not the task changes that
+  contract, and that a task confined to one repo is `setup-worktree <branch> <base>` run inside that repo,
+  which lands in the same workspace layout and applies no closure. Its `--exclude` refusal gains a third
+  option printing that exact command, filled in, by absolute path so it also works on Codex, where `bin/`
+  is not on PATH — in both the bash and PowerShell ports. Neither change touches the frozen contract — no
+  new argument, env var, stdout line or exit code, only the helper's own usage and stderr text.
+  `skills/execute/SKILL.md`'s *Polyrepo workspaces* tells a dispatcher the same thing in prose, and the
+  README helper row does too, so both doc surfaces stay in step with the CLI. The issue's optional third
+  fix — a warning when closure more than doubles the repo count —
   was declined, since the `including:` line it would have touched is itself a frozen stdout line.
 
 ## 5.3.2

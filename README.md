@@ -200,8 +200,10 @@ has fallen short of your goal is not one of those: that direction the loop fixes
 work back in.
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
-the docs it falsifies along with it, greens the scoped check, opens a draft PR and hands back — the gate
-ticket is the dispatcher's, raised once it has read that diff.
+the docs it falsifies along with it, greens the scoped check, opens a draft PR and hands back. Where the
+project declares a gate queue (`enqueue`/`drain`) the gate ticket is the dispatcher's, raised once it has read
+that diff; where it declares none, Claude runs the gate once itself and comments the result on that draft PR
+before handing back.
 
 **By hand:**
 

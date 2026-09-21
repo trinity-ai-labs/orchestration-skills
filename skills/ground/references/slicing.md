@@ -353,6 +353,8 @@ plan for one arc, and nothing marks which of the two a later reader took.
     sized and a page that is right on neither branch. **On an epic the falsification ledger already is that
     regime**, so name on this axis the shared pages the closing docs slice will write and leave the pen there
     — handing a live sibling a shared page mid-arc is the edit that slice was told to record rather than make.
+    **Where that closing docs work is several slices rather than one, name on this axis which of them owns
+    the ledger entries that route to no page**, since an entry handed to all of them is answered by none.
 - **Shared hotspots — hoist the seam in Wave 0, don't just name the conflict.**
   **3+ slices all extending one structure** — a control loop's `tick()`, a reducer, an event handler, an
   exhaustive switch — is a decomposition smell: they fork off different bases, so the merges come out

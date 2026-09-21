@@ -66,15 +66,21 @@ removes the last thing that would have led anyone to look.
 rewrite it.** The entry — *"this change makes paragraph Y of `<doc>` false"* — goes in your report; one
 closing docs slice writes against the final tree (*The epic branch* → *Docs land at the end*).
 **The ledger takes TWO entries**: beside each falsification, record what you added that no doc describes,
-marked **needing new prose**. **The inversion covers prose, not coordinates** — a path your slice moved you
+marked **needing new prose**. **Each entry names the file, symbol or route it is about, and one you cannot
+anchor you mark `unanchored` in the entry itself**, while you still know what you meant — whoever answers the
+ledger routes each entry by that coordinate, and an entry carrying none reaches nobody.
+**The inversion covers prose, not coordinates** — a path your slice moved you
 repoint here, since a docs gate validating path citations reds before your own checks run.
 
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run
 it, do NOT commit as you go: hold the change uncommitted, run the pass over your *full uncommitted* diff, wait
 until every reviewer has reported before you change anything, apply what you accept, and only then commit —
-against a clean tree it sees nothing and the review never happens. Otherwise commit in blocks as the work
-lands. **Park held work in a stash carrying your marker, and restore it by that marker, never a blind pop**
-(`skills/ground-rules/SKILL.md`, rule 7, has the commands).
+against a clean tree it sees nothing and the review never happens. **A pass that reports `Review: PARKED`
+has not finished reading your tree**: leave it uncommitted, push nothing, open no PR, and hand back the
+parked report in place of the handoff below — its readers were refused by the host's concurrent ceiling
+rather than failed, and your dispatcher resumes you when capacity frees. Otherwise commit in blocks as the
+work lands. **Park held work in a stash carrying your marker, and restore it by that marker, never a blind
+pop** (`skills/ground-rules/SKILL.md`, rule 7, has the commands).
 
 ⛔ **Never a quality pass that FORKS its reviewers, and never one that hands a reviewer this brief** — a fork
 inherits it and carries out its *commit, push, PR, hand back* imperatives for you before you get your turn
@@ -111,8 +117,9 @@ self-granted, never inferred:
   script — and **backgrounding it is still running it**. Never wait on a gate either: the ticket is your
   dispatcher's, raised after it reads your diff.
 - **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this
-  slice there (override mode):** once your draft PR is open, run `gate` a single time, in the foreground, and
-  comment the result on it. That one run is the only full-suite run you make, and every other run the
+  slice there (override mode):** once your draft PR is open, run `gate` a single time, in the foreground —
+  detached and polled in this same turn where it outlasts one tool call (*Never background a check* below) —
+  and comment the result on it. That one run is the only full-suite run you make, and every other run the
   queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
   `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this flow's only
   evidence a gate ran.
@@ -140,7 +147,12 @@ duplicate to tidy, and it is tidied on this same test** — by the id you read, 
 
 **Never background a check and end your turn on it.** This is keyed to the HANDOFF, not the run, so it reaches
 the checks you ARE allowed to run: the stall does not care which one it was, only that the turn ended and the
-handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back.**
+handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back** — a command
+you started, whatever detached it, does not re-invoke you when it exits the way a child's report does, so a
+turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call,
+raise that call's timeout to its limit first; past the limit, detach the check with its exit status written
+into its own log, and poll that log with foreground calls in this same turn until the `EXIT=` line
+appears** — `skills/procedures/host-tools.md` has the limit and the form.
 **Sub-agents you spawned are the opposite case: wait on them the way your host wakes you, never by a call made
 only to keep your turn open** — `skills/procedures/host-tools.md` names that wait, and where it is an ended
 turn, ending it while they run hands nothing back and each one re-invokes you as it reports, so a placeholder
@@ -181,11 +193,13 @@ alone, since an enumerated ban is satisfied by every member it omits — where y
 
 ## The handoff, and the repairs you fold in before it
 
-**The handoff — push, draft PR, hand back.** Everything that outlives you is a git object before you hand
-back, so a death anywhere in it loses nothing — and **the gate ticket is not yours in either mode**: where the
-project declares `enqueue`/`drain` your dispatcher enqueues it once it has read your diff, since nothing
-should gate a tree it may be about to have rewritten, and in in-line mode there is no ticket at all, your one
-`gate` run landing between the draft PR and the hand-back. **You never run `enqueue`.**
+**The handoff — push, draft PR, hand back.** A review pass that PARKED skips all three and hands back its
+parked report instead (*Whether you run `/pipeline:review`* above). Otherwise everything that outlives you
+is a git object before you hand back, so a death anywhere in it loses nothing — and **the gate ticket is not
+yours in either mode**: where the project declares `enqueue`/`drain` your dispatcher enqueues it once it has
+read your diff, since nothing should gate a tree it may be about to have rewritten, and in in-line mode there
+is no ticket at all, your one `gate` run landing between the draft PR and the hand-back. **You never run
+`enqueue`.**
 
 1. **Push** all your commits.
 2. **Open a DRAFT PR** targeting the branch your worktree was cut from — your brief names it

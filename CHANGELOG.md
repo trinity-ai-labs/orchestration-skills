@@ -2,6 +2,50 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.6.0
+
+- **The squash that collapses an epic takes the close-out PR's title and body as its commit message.**
+  `merge-pr` now passes `gh pr merge` a `--subject` of the PR's title with `(#<n>)` and the PR's body as the
+  body, in both the bash and PowerShell ports, rather than leaving the message to the repository's squash
+  settings — whose GitHub default pastes every commit on the branch, trailers included, into the one commit
+  that survives. A title or body that cannot be read falls back to a real merge commit, as an uncapturable
+  epic tip already does. Both ports hand over the body byte for byte — bash reads it through a template and
+  pipes it with nothing appended, PowerShell writes it to a UTF-8 file without a BOM — and PowerShell escapes
+  an embedded quote in the subject, backslashes before it included, where the session passes native arguments
+  the legacy way. No argument, env var, stdout line or exit code changed. The hand-run form in `landing.md`,
+  the `epicMerge` key and the docs say the same.
+- **Waiting on a command and waiting on a sub-agent are now two rules, each naming its own subject.** The
+  foreground-handoff block pasted into every brief no longer carries the sub-agent wait as an exception
+  inside the ban on backgrounding, which let a backgrounded command read as the exception; it states that a
+  command's exit re-invokes nothing, so a turn ended on one is the hand-back, and gives the permitted route
+  for a check that outlasts one tool call — raise the timeout, then detach it with its exit status written
+  into its own log and poll that log in the same turn. `host-tools.md` carries the per-call limit, the exact
+  detach-and-poll form, and when a sub-agent is reported completed. The implementer, the review pass, the
+  spine, the in-line gate sentence every brief carries and `docs/hard-rules.md` say the same, and the
+  dispatcher's completion check now reads an in-line-mode draft PR with no gate verdict as a stopped agent
+  to resume.
+- **A dispatcher has a recovery path for an implementer the host will not resume.** It reads the slice's
+  state from the worktree rather than the dead agent's report — commits past the fork point, uncommitted
+  paths, its stash entries, the remote branch, and any merge, rebase or lock left mid-flight, found through
+  `git rev-parse --git-path` since a worktree's `.git` is a file — then relaunches a fresh implementer into
+  the same worktree carrying what it verified, restarting from the fork point only where the tree cannot be
+  trusted. The stall bullet that says never to re-dispatch now points there for a resume the host refuses.
+- **A review spawn the host refuses for its concurrent-agent ceiling is a reader that has not gone out yet,
+  not one that failed.** The review pass spawns it again once its own readers free their slots, and where
+  none is still out it parks — tree untouched, nothing committed or pushed — handing back `Review: PARKED`.
+  The dispatcher's completion check reads that report instead of the tree and resumes parked slices on
+  capacity, one per event in the order they parked. `host-tools.md` carries the ceiling, its default and the
+  refusal's text; the implementer, the spine and `docs/hard-rules.md` carry the park.
+- **An absence is not a reason to remove or narrow something.** A reviewer's *nothing produces this* is
+  evidence about the producers it searched, while a type or guard is also a contract with its consumers, so a
+  finding argued from one names what it searched, and the implementer weighing it, the dispatcher granting a
+  flagged one and the dispatcher answering a live slice's ask all grep the tests naming that symbol first.
+- **Every falsification-ledger entry names the file, symbol or route it is about, or says it is
+  `unanchored`**, and where the closing docs work is split across parallel slices every entry goes to exactly
+  one of them, with one named owner for the entries that route to none. The epic's ledger check now tests
+  each entry against the merged tree by its identifying constants and counts the homes — none unanswered, one
+  answered, two written twice.
+
 ## 5.5.0
 
 - **Every instruction whose right form depends on a project setting now names that setting and says what each

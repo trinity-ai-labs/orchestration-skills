@@ -328,15 +328,18 @@ worktree is gone:
   **The one PR this step reads differently is an epic → integration close-out in a project that declared
   `"epicMerge": "squash"`** — the exception in full at *The epic branch* → *Mechanics*, including both
   conditions it depends on, so check them there before doing this by hand rather than deciding from the
-  branch's name. **The hand-run form is `gh pr merge <n> --squash`, and it is NOT
-  `--squash --delete-branch`:** the branch has to outlive the merge so what landed can be compared against
-  what was gated. Then `git diff --quiet <the epic tip you captured BEFORE the merge> <the squash commit>` —
-  capture that sha first, because after the squash the PR no longer points at a branch anything will hold for
-  you — and delete the branch, local and remote, **only** if that comes back empty. Git's "not yet merged"
-  warning fires here on every squashed close-out and is answered by that comparison rather than overridden by
-  you; if the comparison does not pass, or you could not make it, stop and leave both copies of the branch
-  alone. This is the whole reason to prefer `merge-pr.sh`: it captures the tip, compares, and refuses to
-  delete on a mismatch, in one command with no step you can drop.
+  branch's name. **The hand-run form is
+  `gh pr merge <n> --squash --subject "<the PR's title> (#<n>)" --body-file <a file holding the PR's body>`,
+  and it is NOT `--squash --delete-branch`:** the message goes in explicitly because left out it is whatever
+  the repository's squash setting says, whose GitHub default pastes every commit on the branch into the body,
+  and the branch has to outlive the merge so what landed can be compared against what was gated. Then
+  `git diff --quiet <the epic tip you captured BEFORE the merge> <the squash commit>` — capture that sha
+  first, because after the squash the PR no longer points at a branch anything will hold for you — and delete
+  the branch, local and remote, **only** if that comes back empty. Git's "not yet merged" warning fires here
+  on every squashed close-out and is answered by that comparison rather than overridden by you; if the
+  comparison does not pass, or you could not make it, stop and leave both copies of the branch alone. This is
+  the whole reason to prefer `merge-pr.sh`: it captures the tip, compares, and refuses to delete on a
+  mismatch, in one command with no step you can drop.
 3. **Sync the local base branch — anchored to the MAIN checkout, never `&&`-chained, and without switching if
    you can avoid it.** `gh pr merge` advances the branch only on the *remote*; the local copy in the main
    checkout does NOT move, and syncing it is what keeps the next worktree from forking off a stale HEAD. When

@@ -197,7 +197,7 @@ different question and this pass's own.
 | `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |
 | `changelog` | The one file a new section is prepended to, **or the directory a per-version file is created in** where the project keeps one changelog file per release. Not a member of `bumpFiles` — a different operation |
 | `docsPaths` | `{path, when}` per doc tree: where it lives, and what kind of change makes it stale |
-| `epicMerge` | History policy — **omit** unless the project wants one commit per arc. Note that without `integrationBranch` it does nothing wherever work lands on the default branch |
+| `epicMerge` | History policy — **omit** unless the project wants one commit per arc, whose message is then the close-out PR's title and body. Note that without `integrationBranch` it does nothing wherever work lands on the default branch |
 
 **`sharedResources` is a claim Step 4 has to falsify, which is what fixes its shape.** Each entry is
 `{resource, isolatedBy}`: `resource` names the thing; `isolatedBy` names the project's mechanism *and the

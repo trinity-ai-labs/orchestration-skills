@@ -139,6 +139,10 @@ involved**, not just the agent's summary or the green comment. Read the diff: ve
 what the issue/plan intended, that the scope is right, and scrutinize anything the agent flagged or where it
 went wider than the planned files. A green gate and a confident agent report are necessary but
 **not sufficient** — the merge decision is yours and must be grounded in the actual changed code.
+**A flagged removal or narrowing argued from an absence — *nothing produces this*, *no caller passes that* —
+is granted only after you grep the tests for that symbol yourself**, since a search of producers says nothing
+about the contract a test pins, and a grant made on one is refused by the gate instead, on a PR nothing
+connects back to your grant.
 
 **A hand-back report is evidence about its own half and hearsay about the other.** An implementer can tell you
 what it built; it cannot tell you what its counterpart now expects, because it never saw the counterpart. So

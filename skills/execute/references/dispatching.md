@@ -258,14 +258,18 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 - **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
   scoped check and the one targeted test file, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on
-  it.
-  **Its second half is the wait on the slice's own sub-agents, written for a host that re-invokes an agent as
-  each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended turn, put
-  your host's blocking wait in its place, and **where it gives neither, put the third branch in the brief
-  instead**: an ended turn there loses the hand-back with nothing coming to re-invoke it, so the slice reports
-  on what has landed and names the children still out.
+  it. **It states the two waits as two rules, each naming its own subject** — a command the slice started,
+  whose exit re-invokes nothing, and a sub-agent it spawned, whose report does — since one sentence carrying
+  the second as an exception to the first lets a backgrounded command pass as the exception.
+  **Its long-check sentence is the permitted route for a gate that outlasts one tool call**, the common case
+  in in-line mode on a long suite, where a bare prohibition leaves backgrounding reading as the only route.
+  **Its closing two sentences are the wait on the slice's own sub-agents, written for a host that re-invokes
+  an agent as each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended
+  turn, put your host's blocking wait in its place, and **where it gives neither, put the third branch in the
+  brief instead**: an ended turn there loses the hand-back with nothing coming to re-invoke it, so the slice
+  reports on what has landed and names the children still out.
 
-  > **Run every check in the FOREGROUND, and end your turn at the hand-back — never on a wait, save the one on sub-agents you spawned.** Do not background a check or command (a harness background flag, `&`, `nohup`) and end your turn on its result. **Wait on those sub-agents by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
+  > **Run every check and command in the FOREGROUND, and end your turn only at the hand-back.** A command you started — whatever detached it: a harness background flag, `&`, `nohup` — does not re-invoke you when it exits the way a child's report does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call, raise that call's timeout to its limit first; past the limit, detach it with its exit status written into its own log and poll that log with foreground calls in this same turn until the `EXIT=` line appears** (`skills/procedures/host-tools.md` has the limit and the exact form). **Sub-agents you spawned are the one different wait: wait on them by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
 - **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
   `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless
   the brief names the right one. Paste this, substituting the slice's branch leaf:
@@ -278,8 +282,9 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   — this project declares `enqueue`/`drain`, so the gate ticket is your dispatcher's, raised once it has read
   your diff: do NOT run the full gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
   this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
-  the draft PR is open run `gate` a single time, in the foreground, and comment its result on that PR,
-  leading with the SHA it ran against."*
+  the draft PR is open run `gate` a single time, in the foreground — detached and polled in this same turn
+  where it outlasts one tool call — and comment its result on that PR, leading with the SHA it ran
+  against."*
 
   > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
 - **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
@@ -416,7 +421,10 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
   the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
   message on your next turn, carrying the path, what is wrong with it and a recommendation.
-  **Five answers, and you owe it one:**
+  **An ask to remove or narrow something on an absence — *nothing produces this*, *no caller passes that* —
+  is answered only after you grep the tests naming that symbol**, and a test pinning the wider shape makes
+  the answer *The premise did not hold*, since a search of producers says nothing about the contract a test
+  pins. **Five answers, and you owe it one:**
   - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives
     the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that
     slice's PR before you review its diff — saying in as many words that it supersedes the brief's fence on
@@ -490,15 +498,37 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   compares a LIVE agent tick over tick, and a completed report ends that comparison.** Reuse **the same
   `$FP`** this tick already computed (*Snapshot against the FORK POINT* above) rather than a second way of
   finding it: a branch carrying no commit past `$FP`, or no remote branch at all, means this agent **stopped
-  rather than finished**, however clean its report reads. **The lever is the message, matching the preference
+  rather than finished**, however clean its report reads. **In in-line mode a draft PR carrying no
+  gate-verdict comment is the same shape** — the gate runs between the PR and the hand-back, so an agent that
+  ended its turn on a detached gate leaves a pushed branch, an open PR and no verdict; name the gate's log in
+  the resume. **The lever is the message, matching the preference
   already stated nearby** (*A stop is not the safe default* above, and the INFRA-stall case below) **— never a
   stop and never a re-dispatch**: resume the SAME agent, since the tree's work is intact and only the
-  hand-back is missing, and re-dispatching would discard a full build for a hand-back alone. **This fires on
+  hand-back is missing, and re-dispatching would discard a full build for a hand-back alone.
+  **A report reading `Review: PARKED` is the one this instrument reads instead of the tree**: that slice's
+  review pass found its readers refused by the host's concurrent ceiling with none of its own left out, and
+  a parked tree has exactly the no-commit shape above, so resuming it at once only has it refused and parked
+  again. **Resume it on CAPACITY** — on the next hand-back from any slice in the wave, or at the next tick —
+  **one parked slice per event, in the order they parked**, since resuming them together rebuilds the
+  collision that parked them. **A resume your host refuses** is the next bullet's case. **This fires on
   the completion signal itself — an event the tick already receives — never as a periodic sweep**: it is not a
   second divergence check run for its own sake, and a clean read here is not a reason to poll for more. **It
   cannot fire on the nested sub-agent wait above, because that agent is LIVE, never reported COMPLETED** — the
   two are separated by agent STATE, never by what the tree looks like, since an uncommitted worktree with no
   remote branch is that wait's normal shape too.
+- **⛔ An agent your host REFUSES to resume leaves you no lever on the agent, so recover the SLICE from its
+  worktree — never from that agent's last report.** Read the state yourself: `git -C <wt> status`,
+  `git -C <wt> log --oneline $FP..HEAD`, the stash entries carrying that slice's
+  `pipeline-stash/<branch-leaf>/` marker, whether the branch is on the remote, and whether
+  `git -C <wt> rev-parse --git-path <name>` names an existing `MERGE_HEAD`, `rebase-merge`, `rebase-apply` or
+  `index.lock` — a worktree's `.git` is a file, so a literal `.git/<name>` finds nothing. Finish or abort an
+  operation left mid-flight, and remove a lock only once no git process is running in that tree, before
+  anything else touches it. **Then dispatch a fresh implementer into the SAME worktree path**, its tier named
+  for what is left, with the slice's brief plus what you verified — the commits past `$FP`, the uncommitted
+  paths, and which brief items those already satisfy — so it builds on them rather than redoing them.
+  **Restart from `$FP` only where what is there cannot be trusted**, making the work a git object first
+  (`skills/ground-rules/SKILL.md`, rules 6 and 7), and write which you chose, and why, on the slice's issue or
+  PR, since the agent that knew is gone and that comment is the only record.
 - **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
   the same digest mean you cannot see work, not that there is none, so send the message that asks what the
   agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything
@@ -515,7 +545,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   sweep for test binaries and a log's mtime all fall silent on an agent that is editing code.
 - **An INFRA stall — a task FAILING with "Agent stalled: no progress for Ns (stream watchdog did not recover)"
   — loses nothing.** The worktree including uncommitted work persists; one resume to the SAME agent, restating
-  the remaining finish-order, recovers it. Never a redispatch. **That is the same preference the correction
+  the remaining finish-order, recovers it. Never a redispatch — where your host refuses that resume, the
+  refused-resume bullet above recovers the slice instead. **That is the same preference the correction
   lever states above, and this is the case where it is least ambiguous** — nothing about the slice changed, so
   there is nothing a new agent could be told that the live one does not already know.
 
@@ -557,8 +588,8 @@ never gate and never enqueue at all.
   Monitor over the queue's ledger* below. ⚠️ **Detaching the drain is not in tension with the
   check-backgrounding ban** — *The foreground-handoff rule* above, and
   `skills/execute/references/implementer.md` → *Never background a check and end your turn on it*.
-  **That ban is keyed to ending a turn on a CHECK'S RESULT**; a dispatcher's turn ends on the tick, on no
-  result at all.
+  **That ban binds the seat whose ended turn IS its hand-back** — a dispatched agent's; a dispatcher's turn
+  ends on the tick, hands nothing back, and waits on no result at all.
 - **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains
   from *different* dispatchers are safe by construction, so don't coordinate, just drain. To read the queue's
   state rather than work it, that is `drain --status`.
@@ -600,7 +631,7 @@ never gate and never enqueue at all.
 - **Reconcile the local integration branch on every tick.** A dropped sync leaves it behind the remote and the
   next worktree forks off a stale HEAD. One anchored fast-forward, idempotent and near-instant:
   `git -C <main-checkout> fetch origin && git -C <main-checkout> pull --prune --ff-only`.
-- **Sweep for outstanding parked work on the same tick:**
+- **Sweep for outstanding stashed work on the same tick:**
   ```sh
   git stash list --format='%gd %gs' | grep -F 'pipeline-stash/'
   ```

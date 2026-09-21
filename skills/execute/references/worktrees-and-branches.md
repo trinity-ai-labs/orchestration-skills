@@ -154,9 +154,19 @@ merge-holder is least equipped to resolve. Deferring wholesale fails too:
   from the inherited entries alone.** Last in the arc's phase map, depending on every other slice, writing
   against the final tree; its brief tells it to derive rows from the arc's landed diff and **reconcile** them
   against the ledger.
+- **Every entry names the file, symbol or route it is about, or says it is `unanchored`** — written into the
+  entry by the slice that recorded it, which is the one seat that still knows what it meant, since whoever
+  answers the ledger routes by that coordinate.
+- **Where the closing docs work is split across parallel slices, every entry goes to exactly ONE of them, and
+  one is named owner of every entry that routes to none.** *Check if it is yours*, handed to several, is a
+  question nobody is assigned to answer: each can correctly conclude the entry is a sibling's, and all of
+  them report clean over a mechanism documented nowhere.
 - **The epic cannot close with a non-empty ledger.** Every entry is answered by the closing slice's PR, and
   the epic → integration PR does not open while any remains — a precondition over the **open**, where the
-  close-out gate is one over the **merge**.
+  close-out gate is one over the **merge**. **Test each entry against the merged tree by its identifying
+  constants — a symbol, a lifetime, a limit — never by the ledger's own wording, and count the homes**: none
+  is an entry still unanswered, one is answered, and two is one mechanism written into two pages, which every
+  reader of either page takes for coverage.
 
 **Three carve-outs.** A **docs-only slice** writes inline: its diff *is* the closing slice's work.
 **Single-slice work has no end of an epic** — docs ship in the same PR as the behaviour. The third reaches
@@ -246,7 +256,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before either** (*Docs
   land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
   **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT and enqueue the gate
-  against it**, naming the epic worktree as the ticket's worktree.
+  against it**, naming the epic worktree as the ticket's worktree. **Under `"epicMerge": "squash"` that PR's
+  title and body become the arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
@@ -289,6 +300,12 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
     for byte, the tree the close-out gate ran on, **and only then is the branch deleted**, local and remote.
     Non-empty, or unanswerable, ⇒ the close-out **stops** with both copies intact, so re-running resumes from
     that check.
+  - **The squash commit's message is the close-out PR's, passed explicitly — never the repository's squash
+    setting.** `merge-pr` hands `gh pr merge` the PR's title with `(#<n>)` appended as the subject and the
+    PR's body as the body, so the one commit that survives says what the reviewed PR says; left to the
+    repository, GitHub's default setting concatenates every commit on the branch into that body, trailers
+    included. **A PR whose title or body cannot be read falls back to `merge`**, like an epic tip that cannot
+    be captured, since a squash whose message a remote setting decides is the defect this removes.
   - **What it costs: the arc's individual commits stop reaching the integration branch.** They survive on the
     epic branch until it is deleted and in each slice's PR, but `git blame` afterwards lands on the squash
     commit for every line the arc touched.

@@ -36,6 +36,15 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   being a property of the wave rather than of any slice in it. **All three are one principle and it is worth
   reading as one: the pass that reads the code RECOMMENDS, and the seat that holds the machine DECIDES** —
   what changes between them is only which facts each seat is the one holding.
+- **A dispatched agent runs every check and command in the foreground and ends its turn only at its
+  hand-back — a command it started is never something it waits on by ending the turn.** Its ended turn IS
+  its hand-back, and a detached command's exit re-invokes nothing the way a child's report does, so a turn
+  ended on one hands back with no verdict in it. Where a check outlasts one tool call the agent raises that
+  call's timeout to its limit and, past it, detaches the check with its exit status written into its own log
+  and polls that log in the same turn until the exit line appears
+  ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has the form). The sub-agents it
+  spawned are the one wait an ended turn serves, which is the next rule; a dispatcher's detached drain is
+  neither, since its turn ends on a tick and hands nothing back.
 - **An agent waiting on sub-agents it dispatched waits the way its host wakes it, and never by a call made
   only to keep its turn open.** Where the host re-invokes the agent as each child reports, the wait is an
   ended turn with no tool call, and that ended turn hands nothing back to whoever dispatched the agent. A
@@ -46,6 +55,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   that re-invocation nor such a blocking call, there is a third branch**: ending the turn loses the handoff
   with nothing coming to restore it, so the agent hands back on what has landed and names which children are
   still out rather than waiting silently.
+- **A review reader the host refuses because too many agents are already running has not gone out yet — it
+  has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
+  them is still out it PARKS rather than dropping the dimension: tree untouched, nothing committed, pushed or
+  PR'd, and a hand-back reading `Review: PARKED` with the dimensions still to go. The dispatcher reads that
+  report rather than the tree, which looks exactly like a stall's, and resumes parked slices on capacity — the
+  next hand-back or tick, one parked slice per event, in the order they parked. Nobody reads a refused
+  dimension in its place: the author is the party worst placed to ask what its own diff could lose.
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files,
   boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding
   more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the
@@ -265,13 +281,15 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no
   forcing feedback, and the one a hand-run close-out drops. At the one boundary the rule above names it
-  squashes instead, holds the branch back from `--delete-branch`, and deletes it only once the landed tree
-  matches the epic tip that was gated — which is a further reason to prefer the helper over a hand-run
-  close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR settled
-  yourself, through the REST endpoint rather than `gh issue close` — the high-level `gh issue` writes go
-  through GraphQL and hit rate limits exactly when you are closing a batch of them. GitHub's closing keywords
-  are interpreted only when the PR's base is the repo's **default** branch, so a PR into an epic branch or
-  into an integration branch that isn't the default closes nothing, and the hand-close is the whole mechanism.
+  squashes instead, with the close-out PR's title and body as the commit's message rather than whatever the
+  repository's squash setting says, holds the branch back from `--delete-branch`, and deletes it only once the
+  landed tree matches the epic tip that was gated — which is a further reason to prefer the helper over a
+  hand-run close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR
+  settled yourself, through the REST endpoint rather than `gh issue close` — the high-level `gh issue` writes
+  go through GraphQL and hit rate limits exactly when you are closing a batch of them. GitHub's closing
+  keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an epic
+  branch or into an integration branch that isn't the default closes nothing, and the hand-close is the whole
+  mechanism.
   Where the integration branch simply **is** `main`, a PR based on it targets the default branch and they do
   fire: the hand-close is then a harmless no-op, but a stray `Closes #<n>` closes that issue the moment that
   PR merges — too early, if the arc still has cycles to run.

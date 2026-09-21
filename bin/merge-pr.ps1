@@ -430,7 +430,7 @@ function Get-PrField {
 # so the preflight's FIRST answer is free; only an answer that has not settled yet
 # costs a further call.
 $prJson = Invoke-InMainCheckout {
-    $raw = & gh pr view $Pr --json state,baseRefName,headRefName,headRefOid,mergeCommit,mergeable
+    $raw = & gh pr view $Pr --json state,baseRefName,headRefName,headRefOid,mergeCommit,mergeable,title,body
     if ($LASTEXITCODE -ne 0) { return $null }
     return (($raw | Out-String).Trim())
 }
@@ -652,8 +652,19 @@ this run's working directory ($((Get-Location).Path)) is INSIDE the worktree thi
 # capture it therefore falls back to "merge" as well: without that commit the
 # squash path has no substitute for the ancestry check it breaks, and a squash
 # whose result cannot be verified is exactly the unrecoverable case above.
+#
+# The PR's title and body are captured with it, in the batch read above, and for
+# the same reason: they ARE the squash commit's message, passed to `gh pr merge`
+# explicitly. Left out, GitHub takes the message from the repository's squash
+# settings, which this flow neither declares nor reads - and GitHub's default for
+# the body concatenates every commit on the branch, trailers included, into the one
+# commit that survives. A PR with no title falls back to "merge" like the tip: a
+# squash whose message is whatever a remote setting says is the defect being
+# removed.
 $MergeMode = 'merge'
 $EpicTip = ''
+$SquashTitle = ''
+$SquashBody = ''
 # `-ceq`, not `-eq`: PowerShell's default string comparison ignores case, so `-eq`
 # would accept "Squash" and "SQUASH" where the bash sibling's `=` accepts neither.
 # Observed on this very pair before the fix - the .ps1 squashed a config the .sh
@@ -697,9 +708,13 @@ if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge
             # value.
             $tip = ''
             if ($PrView.headRefOid) { $tip = [string]$PrView.headRefOid }
-            if ($tip) {
+            $title = ''
+            if ($PrView.title) { $title = [string]$PrView.title }
+            if ($tip -and $title) {
                 $MergeMode = 'squash'
                 $EpicTip = $tip
+                $SquashTitle = $title
+                if ($PrView.body) { $SquashBody = [string]$PrView.body }
                 Write-Output "merge-pr: '$HeadBranch' is an epic branch ($slicePrs merged slice PR(s) targeted it) and this project declares epicMerge=squash - it collapses into one commit on '$BaseBranch'."
             }
         }
@@ -833,8 +848,27 @@ if ($State -eq 'MERGED') {
     # replaces the ancestry guarantee a squash destroys - and a branch already
     # deleted by the same call that squashed it could not be kept if the comparison
     # came back wrong.
+    #
+    # The squash's message goes in explicitly - the PR's title with its number, as
+    # GitHub writes a squash subject, and the PR's body from a file - so the commit
+    # says what the reviewed PR says rather than what the repository's squash
+    # setting says. The body goes through a file written as UTF-8 without a BOM
+    # rather than through the pipeline, since Windows PowerShell 5.1 encodes what it
+    # pipes to a native command as ASCII and would turn every non-ASCII character in
+    # it into '?'. The subject is still an argument, and PowerShell before 7.3 passes
+    # a native command an embedded double quote unescaped, so a title carrying one
+    # would reach gh stripped; there, and only there, it is escaped by hand, the way
+    # the Windows command-line parser reads it back: each backslash run directly
+    # before a quote doubled, then the quote escaped - a bare replace would leave a
+    # title's own `\"` as an even run, which that parser reads as a closing quote.
+    $bodyFile = ''
     if ($MergeMode -eq 'squash') {
-        $MergeArgs = @('--squash')
+        $subject = "$SquashTitle (#$Pr)"
+        $argPassing = Get-Variable -Name PSNativeCommandArgumentPassing -ValueOnly -ErrorAction SilentlyContinue
+        if (-not $argPassing -or $argPassing -eq 'Legacy') { $subject = $subject -replace '(\\*)"', '$1$1\"' }
+        $bodyFile = [System.IO.Path]::GetTempFileName()
+        [System.IO.File]::WriteAllText($bodyFile, $SquashBody, (New-Object System.Text.UTF8Encoding $false))
+        $MergeArgs = @('--squash', '--subject', $subject, '--body-file', $bodyFile)
         Write-Output "merge-pr: merging PR #$Pr (squash - the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
     } else {
         $MergeArgs = @('--merge', '--delete-branch')
@@ -846,6 +880,7 @@ if ($State -eq 'MERGED') {
         & gh pr merge $Pr @GhMergeArgs
         if ($LASTEXITCODE -ne 0) { $script:MergeFailed = $true }
     }
+    if ($bodyFile) { Remove-Item -LiteralPath $bodyFile -Force -ErrorAction SilentlyContinue }
     if ($script:MergeFailed) {
         # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
         # being merged right this second reads, everywhere else in this flow, as a

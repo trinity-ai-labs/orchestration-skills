@@ -164,13 +164,15 @@ true without it?**
   and *real work worth doing*** — either of those read as the bar turns every finding into a number on
   somebody's board. *Adjacent* costs a whole unit of work — a worktree, a PR, a gate — where folding costs an
   edit, so the bar is that the item is genuinely another arc, not merely separable.
-  **What is neither forced nor a different arc becomes a LINE IN THE PLAN for a later arc rather than a number
-  on the board**, since a number bought for work nobody is carrying yet is the filing that turns a run into
-  somebody's inbox — **unless it is one EDIT rather than work somebody has to carry, which the verdict below
-  places.** **Say what you filed and why in the cycle's record**, since filing is the one disposition
-  that leaves the loop's hands. **Record that why as a falsifiable claim about the TREE — what it was measured
-  against, and the instrument that measured it — since a verdict recorded without one cannot be re-examined,
-  only re-performed. Write it onto the ISSUE as well, which is the surface the next cycle actually reads.**
+  **What is neither forced nor a different arc is FOLDED by the verdict below, never parked as a line for a
+  later arc** — the umbrella holding such a line is closed by this loop's own last act and nothing reads a
+  closed issue again, so the line deletes the work on a delay while the arc reports green — **and never a
+  number on the board either**, since a number bought for work nobody is carrying yet is the filing that
+  turns a run into somebody's inbox. **Say what you filed and why in the cycle's record**, since filing is
+  the one disposition that leaves the loop's hands. **Record that why as a falsifiable claim about the TREE —
+  what it was measured against, and the instrument that measured it — since a verdict recorded without one
+  cannot be re-examined, only re-performed. Write it onto the ISSUE as well, which is the surface the next
+  cycle actually reads.**
   That is the shape this corpus already holds a negative to, a verify bar's *negative* naming the baseline it
   was measured against and a grounding claim naming what established it: *no file this issue names appears in
   any horizon slice's `Owns`, by intersection at `<sha>`* is a claim a later cycle can run and find false,
@@ -181,21 +183,17 @@ true without it?**
   a comment onto an issue already carrying the failure** — the narrowest thing that intersection is ever
   handed, since a comment records only what is new about the observation.
   **A reason that cannot be written that way is itself the finding.**
-- **Fold on cost** — the goal is true without it, it is not a different arc, **and it is one EDIT rather than
-  work somebody has to carry**. **That third clause is the whole discriminator and the first two are the line
-  above's population exactly**, so weigh it and not the fact that a cycle is running: the tree being open is
-  true of every finding this checklist produces and separates none of them, where *this one is an edit* is a
-  claim about the item that a later cycle can find false. An item that small costs less closed here than the
-  line deferring it costs to write, carry and re-read every cycle; anything needing scoping of its own is
-  what that line is for. **Fold it as *Forced* folds** — a checklist line and no new number, placed by *Where
-  folded work goes* — **and record COST as the reason**: the edit it took here against the unit of work it
-  would have been carried out as, in terms a later cycle can check. **What separates it from the line in the
-  plan above is that the line DEFERS the work and this one DOES it**; what separates it from *Forced* is the
-  reason alone, so borrowing *Forced*'s — that the goal is not true without it — puts a false claim under a
-  right verdict and leaves the next cycle re-running something that was never the reason. **This is the
-  argument this file already makes for a finding the arc CAN close, read onto ordinary work**, and it widens
-  neither verdict above it: *Adjacent*'s two conditions and the order they are read in stand exactly as they
-  are, and *Forced* still takes everything the goal is not true without, at any size.
+- **Fold the rest** — the goal is true without it and it is not a different arc. **Fold it as *Forced*
+  folds** — a checklist line and no new number, placed by *Where folded work goes* — **in a phase of its
+  own where it fits no phase the plan already has, and whatever its size**: one edit rides the next wave,
+  work somebody has to carry takes a slice of its own, and either lands before the arc terminates.
+  **Record as the reason the verdict it actually earned** — that the goal is true without it, and what
+  makes it this arc's rather than another's, in terms a later cycle can check — since borrowing *Forced*'s
+  reason puts a false claim under a right verdict and leaves the next cycle re-running something that was
+  never the reason. **Where absorbing it would change what the arc IS, it was a different arc all along**
+  and takes *Adjacent* at that verdict's narrow bar; nothing between the two is deferred. **This widens
+  neither verdict above it**: *Adjacent*'s two conditions and the order they are read in stand exactly as
+  they are, and *Forced* still takes everything the goal is not true without, at any size.
 
 Run it in the arc's direction — "is the goal true without this?" — never the item's:
 **filing something actually forced ships an arc that does not build, or closes one that never did what it was
@@ -219,9 +217,9 @@ arc IS the loop halts and reports with the re-plan recommended.
 **folded in**, which for a pipeline finding is the arc closing it inside the release it is already shipping,
 or ***Adjacent***, which is filing it — **and each produces the close-out's answer to the arc-level question
 it owes** (`skills/orchestrate/SKILL.md`): **folded → *fixed*, naming where it landed**; ***Adjacent* →
-*filed*, naming the issue**. **The residue runs the other way here**: ordinary work that is neither becomes a
-line in the plan because nobody is carrying it yet, where a pipeline finding the arc CAN close it closes —
-which is why *fixed* is the default rather than the leftover. **This adds no verdict and widens nothing** —
+*filed*, naming the issue**. **The residue runs the same way here as for ordinary work**: what is neither
+forced nor a different arc is folded, so a pipeline finding the arc CAN close it closes — which is why
+*fixed* is the default rather than the leftover. **This adds no verdict and widens nothing** —
 *Adjacent*'s bar stays the narrow one above, and a finding the arc cannot close is filed on the
 observed-failure bar exactly as it always was.
 
@@ -307,9 +305,10 @@ never the live one.
 **The umbrella (`skills/glossary/vocabulary/umbrella.md`) issue body carries the live remaining plan,
 rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding
 depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite.
-**Keep the later-arc lines in a block of their OWN beside that plan, and say on it that the termination test
-does not read it** — a deferred line filed into the remaining plan blocks an arc that is otherwise done, and
-one left with no surface at all is dropped at close-out with nothing recording that it was ever noted.
+**The body holds that plan and nothing parked beside it: every finding leaves a cycle as a checklist line, a
+linked *Adjacent* issue, or a settle recorded with what it rests on**, since the loop's own last act closes
+this issue and nothing reads a closed issue again — **so a finding the body carries that none of the three
+owns makes the remaining plan NOT empty**, and the termination test reads it that way.
 **One comment per completed increment records what landed, what it invalidated, that cycle's two *Adjacent*
 numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there
 because the age of the oldest is counted in those comments.

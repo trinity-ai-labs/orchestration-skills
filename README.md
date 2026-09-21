@@ -58,7 +58,7 @@ is in [Adding a skill](docs/adding-a-skill.md).
 |---|---|
 | `setup-worktree.sh` · `.ps1` | Creates a worktree — or attaches one to an existing branch with `--existing` — symlinks the project's env files, exports its env, installs deps |
 | `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each — the members named outright plus the consumers of any contract one of them owns, or the default set less `--exclude <repo,repo>`, with `--dry-run` printing the resolved member set and creating nothing |
-| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local base branch — and, at the epic boundary only and only where the project opted in, squash instead and verify the landed tree against the gated one before deleting the branch |
+| `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit, fast-forward the local base branch — and, at the epic boundary only and only where the project opted in, squash instead — the PR's title and body as the commit's message — and verify the landed tree against the gated one before deleting the branch |
 | `remove-worktree.sh` · `.ps1` | Safely tear down a worktree — found by branch leaf in either layout, bare or workspace member, or named outright by absolute path — killing processes rooted in it first, and stopping loudly rather than reporting a clean no-op when the tree it was asked for is registered somewhere it did not look |
 
 ---

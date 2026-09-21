@@ -229,7 +229,8 @@ implementer either — so what it licenses is a question to the agent and nothin
   in, and a scratchpad of its own), or from you telling it to *build / fix / implement* a specific thing. It
   codes in its worktree, updates the docs its change falsifies — or, on a slice of an epic, records *what* it
   falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**,
-  since a new surface falsifies nothing and would otherwise reach that slice from nobody — greens the scoped
+  since a new surface falsifies nothing and would otherwise reach that slice from nobody, each entry naming
+  the file, symbol or route it is about or marked `unanchored` — greens the scoped
   check, opens a **draft** PR, and **hands back — it never enqueues the gate and it never merges its own PR**,
   reporting a verdict per doc it checked. Where the project declares `enqueue`/`drain` the gate ticket is the
   dispatcher's, raised after it has read the diff; where it declares neither there is no ticket at all, and

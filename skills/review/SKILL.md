@@ -99,6 +99,20 @@ out once per dimension at a cost nobody chose. **A reader handed one dimension o
 standard-tier work**, whatever tier this slice is being built at; a dimension you judge genuinely hard on
 this diff you may still spawn higher, saying so in your report.
 
+**A spawn your host REFUSES because too many agents are already running is a reader that has not gone out
+yet, never one that failed** — a wave's slices reach this step at about the same moment, so the host's
+concurrent ceiling (`skills/procedures/host-tools.md` names it and the refusal's text) lands here first, and
+read as a failure it drops a dimension from a diff that is still uncommitted and still cheap to fix.
+**Retry it on your OWN freed slots**: the dimensions that did go out hold slots you can wait on, so wait for
+them as step 3 opens by saying, then spawn the refused dimensions again — not the retry a refusal's own text
+warns off, since the running count has demonstrably dropped in between — and they join the count you wait
+for, so the tree stays frozen until the last report lands. **Where none of your readers is still out, PARK**:
+nothing of yours is left to wait on and nothing you can free, so stop without degrading — tree untouched,
+nothing committed, nothing pushed, no PR — and report the pass as parked (step 4); a resume re-enters HERE,
+at the spawn of the dimensions still to go, holding the reports already in, never at the start of the pass.
+**Never read a refused dimension yourself instead**: the author is the party worst placed to ask what could
+be deleted, and agreement between separate readers is the evidence this pass exists to produce.
+
 | Reviewer | Reads | What makes its reading different |
 |---|---|---|
 | Goal and stragglers | the diff against the slice's goal, and the change's call sites tree-wide | measures completeness against an intent rather than quality against a standard, and is the one lens that reads outside the diff by default |
@@ -213,6 +227,11 @@ The case common enough to have earned its own line is **an existing suppression*
 already reviewed on the PR that introduced it, so a report calling for its removal to look tidy is
 asking for a behavior change nobody wanted; a reviewer that believes one is wrong says so and says why.
 The odd-looking guard, the redundant check and the narrower type fail the same way.
+**An absence is not a reason**: *nothing produces this*, *no caller passes that* and *this branch is
+unreachable* are claims about the producers a reviewer searched, while a type, a guard or a branch is also a
+contract with its consumers — so a finding that removes or narrows something on an absence names what it
+searched, producers only or producers and the tests naming that symbol, and a test pinning the wider shape
+answers it the other way.
 
 ### When the diff in front of you IS this corpus
 
@@ -251,12 +270,17 @@ and learns nothing. **Where your host gives NEITHER of those two, ending your tu
 you are waiting for, so report on what has landed and name the dimensions still out as still out** —
 `skills/procedures/host-tools.md` is where you read which branch is yours, and a blank row there is the
 third until your own tool list says otherwise. A reviewer that fails or stalls has landed with nothing:
-weigh the rest, and name that dimension in your report as one that did not report.
+weigh the rest, and name that dimension in your report as one that did not report. **A spawn your host
+refused never started, so it is not this case** — step 2's refusal rule carries it, and this freeze holds
+across a park exactly as it holds across a wait.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
 consciously reject the rest. **You apply nothing on anyone's behalf**: nothing lands in this tree you
 did not decide on, and a finding you are not the party to act on is reported rather than delegated.
+**Before you apply a removal or a narrowing argued from an absence, grep the tests for the symbol it
+touches** — a test pinning the wider shape is the contract, and a finding that searched only producers has
+said nothing about it.
 
 **Before you weigh a single finding, read the TREE the reviewers ran against** — `git status` and
 `git log` against the fork point from step 1. A reviewer that edited, committed, pushed, opened a PR,
@@ -297,7 +321,10 @@ it allowed. **No reviewer runs one either**, which is why no brief you write nam
 ⛔ **Never background a check and end your turn on it.** The run that actually stalls this pass is a
 *permitted* one, so the ban above cannot reach it: your whole budget is allowed, and the stall shape
 does not care which run it was — the turn ends, and the caller never gets the report. So this rule is
-keyed to the handoff rather than to the ban. Both of your checks run in the **foreground**, and this
+keyed to the handoff rather than to the ban. Both of your checks run in the **foreground**
+— **where one can outlast a single tool call, raise that call's timeout to its limit, and past the limit
+detach it with its exit status written into its own log and poll that log with foreground calls in this same
+turn until the exit line appears** (`skills/procedures/host-tools.md` has the limit and the form) — and this
 pass ends at its report, never at a wait — a wait on the reviewers you dispatched ends a TURN, never the
 pass. **It reaches checks and commands and NOT those reviewers**: you wait on ALL of them the way this
 step opens by saying, and reading this ban as reaching them leaves you with one reader again.
@@ -307,7 +334,11 @@ step opens by saying, and reading this ban as reaching them leaves you with one 
 ## 4. Report — Goal, Applied, Rejected, Flagged, Verification
 
 Report to the caller in prose, covering five things, and name the dimensions you dispatched and the
-ones you judged this slice did not need. Keep it short enough to read at a glance:
+ones you judged this slice did not need. Keep it short enough to read at a glance.
+**A pass that PARKED (step 2) reports that first, in these words — `Review: PARKED` — followed by the
+dimensions still to go and the reports already held, and nothing under Applied**, since its tree is frozen
+and its caller's next step is a resume, never a commit; the marker is the one thing that tells a parked slice
+from a stalled one, whose trees look the same.
 
 - **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice
   carried none, say that rather than supplying one. **This report is the only route that verdict has

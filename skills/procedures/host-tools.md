@@ -17,6 +17,10 @@ list and say so in your report.**
 | Reach the agent that SPAWNED you, from inside a sub-agent | `SendMessage`, `to: "main"` — from a BACKGROUND sub-agent | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
 | Persistent watch over a ledger directory | `Monitor`, whose command runs in **zsh** on macOS | **not established — read your tool list** |
+| Longest single foreground command | the shell tool's `timeout`, up to 600000 ms (default 120000) | **not established — read your tool list** |
+| When a sub-agent is reported completed | when it stops with no live background children of its own — one that ended its turn to wait on its children is not reported | **not established — read your tool list** |
+| A command you detached, seen from inside a sub-agent | its exit re-invokes nothing: the sub-agent's ended turn is its hand-back, reported completed with the command still running — observed, not documented | **not established — read your tool list** |
+| Concurrent sub-agent ceiling | 20 running at once by default, changed by `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`; an over-cap spawn is REFUSED, not queued, with `Concurrent subagent limit reached. You can run N subagents at once. Do not retry.` | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |
@@ -43,6 +47,27 @@ not** — that address resolves from a sub-agent dispatched in the BACKGROUND, w
 but does not require, so a foreground dispatch has no channel and the row is not the one to read. **And
 the listing row runs one way only**: a sub-agent is not given the tool that enumerates live agents, so it
 cannot discover an address the way a spawning agent discovers one.
+
+⚠️ **A check that outlasts one foreground call is detached with its exit status written INSIDE the detached
+shell, then polled with foreground calls in the same turn:**
+
+```sh
+nohup sh -c '{ <check>; } > check.log 2>&1; echo "EXIT=$?" >> check.log' >/dev/null 2>&1 &
+for i in $(seq 1 55); do grep -q '^EXIT=' check.log && break; sleep 10; done; tail -n 40 check.log
+```
+
+Run the second line as its own call with its timeout at the limit above, and again until the tail shows the
+`EXIT=` line — each call returns the log, so it is a watch whose result you act on rather than a call made to
+keep a turn open. **The braces put the whole check under one redirect**, since a redirect on an `&&` chain
+binds to its last command alone and the rest of the output never reaches the log; **and the exit line goes
+inside `sh -c`**, since outside it `&` detaches only the last command and the line lands nowhere. On a shell
+without these, any equivalent that writes the whole check's output and its own exit status into its log does
+the job.
+
+⚠️ **The ceiling row answers why a spawn failed before you decide what failed.** A refusal there is a
+capacity answer about the whole session and says nothing about the child you asked for; spawning succeeds
+again once the running count drops below the limit, so an agent whose own children are still running has
+slots it can wait on, and one with none has nothing to free.
 
 ⛔ **On Codex set `model` AND `reasoning_effort` on every spawn** — `model` alone silently resets effort to
 that model's default, so a slice meant for the top tier runs at a tier nobody chose. Spawning needs

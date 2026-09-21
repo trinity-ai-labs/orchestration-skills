@@ -94,7 +94,9 @@ a question rather than a default.
   governs exactly one merge — an epic branch collapsing back into the integration branch it was cut
   from — **and only where the head branch is not that integration branch**, which is what
   `integrationBranch` is read to establish. Absent, unreadable, unrecognised, or anything not exactly the
-  lowercase `squash` means `merge`. **Omit it** unless the project wants one commit per arc.
+  lowercase `squash` means `merge`. **Omit it** unless the project wants one commit per arc. **A squash takes
+  its message from the close-out PR** — the title with `(#<n>)` as the subject, the body as the body —
+  rather than from the repository's own squash-message setting.
   ⚠️ **Without `integrationBranch` declared this key does nothing wherever work lands on the default
   branch**: the older test asks whether the PR's base is the repository's default branch, which the
   genuine epic boundary fails in exactly those projects.

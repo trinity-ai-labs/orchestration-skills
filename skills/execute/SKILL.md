@@ -213,10 +213,16 @@ reference.
    ⛔ **Every reviewer's brief also states that a GitHub issue is not a disposition available to it, with the
    reason beside it** — a reader that files spends a whole unit of work on what one line in its report to you
    settles, and the ban is stated at that seat or it reaches no reviewer.
+   ⛔ **A pass that reports `Review: PARKED` has not finished reading, so it is not followed by a commit** —
+   its readers were refused by the host's concurrent ceiling rather than failed; skip step 7 and hand back
+   that report, tree uncommitted, for your dispatcher to resume you once capacity frees.
 7. **Commit, push, open a draft PR, gate in-line where your mode says so, hand back.**
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
-   is a pushed branch and a draft PR.
+   is a pushed branch and a draft PR — a parked review pass being the one hand-back that carries neither.
+   ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
+   ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
+   polled in this same turn (`skills/execute/references/implementer.md` has how).
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or

@@ -193,19 +193,21 @@ Back to step 1 with the horizon moved. **A cycle that finds nothing left is how 
 case to carve out of it** — on a standalone issue that is the first cycle and on a twenty-leaf arc it is the
 last, and the steps that ran to get there were the same ones either way.
 
-**The close-out reports what the arc ABSORBED — once, as part of the release, never as items to adjudicate.**
-Scope growing inside an arc is expected, so what the close-out owes is a record of the findings this arc
-folded and landed **and of the lines it noted for a later arc**, written into the close-out report and the
-release entry that ships with it; a list handed over as open questions is the filing channel doing the asking
-*The decide-don't-ask bar* forbids, and a deferred line left out of this record dies with the arc that noticed
-it.
+**The close-out reports what the arc ABSORBED — once, as part of the release, never as items to
+adjudicate.** Scope growing inside an arc is expected, so what the close-out owes is a record of the
+findings this arc folded and landed, written into the close-out report and the release entry that ships
+with it — **and no list of findings deferred, since no disposition defers one**; a list handed over as open
+questions is the filing channel doing the asking *The decide-don't-ask bar* forbids.
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **And the arc's issues are closed — the tracker is part of termination,
-not a courtesy after it**; close them yourself rather than trusting a PR's closing keywords, which fire only
-where that PR's base is the repository's **default** branch and never fire later.
+on the integration branch at step 2. **A finding the umbrella body still carries that no checklist line,
+linked issue or recorded settle owns is a remaining plan that is NOT empty**, since closing that umbrella
+is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
+tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
+closing keywords, which fire only where that PR's base is the repository's **default** branch and never
+fire later.
 
 **Five exits, and only one is finishing**: an empty plan and a green close-out **terminates**;
 **a cycle that lands nothing halts** — a remaining plan identical to the one it started with, since nothing

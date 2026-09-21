@@ -53,13 +53,13 @@ floor of that question rather than the bar, and size deciding only how the work 
 files only what is genuinely a *different arc* — narrower than separable and narrower than real work worth
 doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the
 tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a
-different arc becomes a line in the plan for a later arc rather than a number on the board, since a number
-bought for work nobody is carrying yet is what turns a run into somebody's inbox — unless it is one edit
-rather than work somebody has to carry, where something true and not needed for the goal is folded in on
-**cost** and done now, closing it costing less than the line deferring it costs to write, carry and re-read.
-The test there is that the item is an edit, never that a cycle is open, which is true of everything the loop
-finds and separates none of it; and the reason recorded is that cost rather than the goal-completeness reason
-a forced item is folded on. And the close-out reports what the arc absorbed once, as part of the release.
+different arc is folded in too, whatever its size — as a phase of its own where it fits none the plan has —
+rather than parked as a line for a later arc, because the umbrella such a line would sit on is closed by the
+loop's own last act and nothing reads a closed issue again; nor does it become a number on the board, since
+a number bought for work nobody is carrying yet is what turns a run into somebody's inbox. The reason
+recorded is the one it earned rather than the goal-completeness reason a forced item is folded on, and an
+umbrella body still carrying a finding nothing owns is a plan that is not empty. And the close-out reports
+what the arc absorbed once, as part of the release.
 **Either of those names at least one file, symbol or
 route**, the comment included, because that is the coordinate the re-test below actually reads and an item
 carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later

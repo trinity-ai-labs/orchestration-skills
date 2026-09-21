@@ -535,8 +535,18 @@ fi
 # falls back to "merge" as well: without that commit the squash path has no
 # substitute for the ancestry check it breaks, and a squash whose result cannot be
 # verified is exactly the unrecoverable case above.
+#
+# The PR's title and body are captured here too, and for the same reason: they ARE
+# the squash commit's message, passed to `gh pr merge` explicitly. Left out, GitHub
+# takes the message from the repository's squash settings, which this flow neither
+# declares nor reads — and GitHub's default for the body concatenates every commit
+# on the branch, trailers included, into the one commit that survives. A title or
+# body that cannot be read falls back to "merge" like the tip: a squash whose
+# message is whatever a remote setting says is the defect being removed.
 MERGE_MODE="merge"
 EPIC_TIP=""
+SQUASH_TITLE=""
+SQUASH_BODY=""
 if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge)" = "squash" ]; then
   INTEGRATION_BRANCH=$(integration_branch)
   # The repository's DEFAULT branch is only consulted where no integration branch is
@@ -568,7 +578,15 @@ if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerg
     esac
     if [ "$SLICE_PRS" -gt 0 ]; then
       EPIC_TIP=$( pr_field headRefOid 2>/dev/null || true )
-      if [ -n "$EPIC_TIP" ]; then
+      SQUASH_TITLE=$( pr_field title 2>/dev/null || true )
+      # The body is read through a template rather than `-q`, which appends a newline
+      # of its own, and a trailing sentinel keeps the substitution from stripping the
+      # body's own trailing newlines — so what reaches the commit is the PR's bytes
+      # exactly, as the PowerShell sibling's JSON read gives it, an empty body included.
+      SQUASH_BODY=$( cd "$MAIN" && gh pr view "$PR" --json body --template '{{.body}}' 2>/dev/null && printf x ) \
+        || { SQUASH_BODY=""; SQUASH_TITLE=""; }
+      SQUASH_BODY=${SQUASH_BODY%x}
+      if [ -n "$EPIC_TIP" ] && [ -n "$SQUASH_TITLE" ]; then
         MERGE_MODE="squash"
         echo "merge-pr: '$HEAD_BRANCH' is an epic branch ($SLICE_PRS merged slice PR(s) targeted it) and this project declares epicMerge=squash — it collapses into one commit on '$BASE_BRANCH'."
       fi
@@ -679,14 +697,21 @@ else
   # replaces the ancestry guarantee a squash destroys — and a branch already
   # deleted by the same call that squashed it could not be kept if the comparison
   # came back wrong.
+  #
+  # The squash's message goes in explicitly — the PR's title with its number, as
+  # GitHub writes a squash subject, and the PR's body on stdin — so the commit says
+  # what the reviewed PR says rather than what the repository's squash setting says.
+  # The body rides stdin, written with `printf '%s'` so nothing is appended to it,
+  # rather than an argument, so its newlines and quotes need no escaping; on the
+  # merge path nothing reads it.
   if [ "$MERGE_MODE" = "squash" ]; then
-    MERGE_ARGS=(--squash)
+    MERGE_ARGS=(--squash --subject "$SQUASH_TITLE (#$PR)" --body-file -)
     echo "merge-pr: merging PR #$PR (squash — the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
   else
     MERGE_ARGS=(--merge --delete-branch)
     echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
   fi
-  if ! ( cd "$MAIN" && gh pr merge "$PR" "${MERGE_ARGS[@]}" ); then
+  if ! ( cd "$MAIN" && printf '%s' "$SQUASH_BODY" | gh pr merge "$PR" "${MERGE_ARGS[@]}" ); then
     # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
     # being merged right this second reads, everywhere else in this flow, as a diff
     # a dispatcher approved — so leaving it set would have the PR wearing a

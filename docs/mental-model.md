@@ -185,6 +185,20 @@ is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is
 means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it has been
 read by nobody but the seat that built it.
 
+**A third artifact can now sit on a PR, and unlike those two it can predate the flip by an arbitrary
+amount.** Three config keys — `autoMergeTrivial`, `autoMergeLeaves` and `autoMergeEpic`, one per merge
+checkpoint ([Per-project config](per-project-config.md#per-project-config)) — decide whether the dispatcher
+merges once its own pipeline is satisfied or holds and waits for a human to approve. Where a checkpoint's
+flag holds it, everything up to the merge runs exactly as it always has and the merge alone does not: the
+dispatcher posts a plain **comment** saying the pipeline is satisfied and that this checkpoint's flag is
+holding the merge, and the PR stays a **draft**, because the flip and the merge are one atomic step and a PR
+left ready but unmerged is precisely the stale-approval state that step exists to prevent. **That comment is
+no more an approval than the gate's comment is** — the same distinction, one sentence: it says this flow has
+nothing left to do, never that anyone approved the merge. So a PR can sit for minutes or for weeks carrying a
+panel review, a gate comment, a satisfied dispatcher review and this one, still a draft and still unapproved,
+until a human merges it on GitHub or tells the assistant to go ahead — and only then does `merge-pr.sh` flip
+it, one line above `gh pr merge`, as it always did.
+
 A posted review is a different artifact from the
 gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that
 sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge — and

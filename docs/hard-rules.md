@@ -280,6 +280,19 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   and being run from inside, or as the copy inside, the very worktree the close-out has to tear down, since
   that teardown kills every process rooted in the tree. So the directory to stand in is the **main checkout**,
   never the PR's own worktree; `remove-worktree.sh` refuses the same two shapes for the same reason.
+- **Check whether the merge is the flow's to make before you close out — the one exception to the command
+  below, and a project declares it rather than anyone deciding it at merge time.** Three per-checkpoint keys
+  in the repo's own config ([Per-project config](per-project-config.md#per-project-config)) answer it:
+  `autoMergeTrivial` for a standalone single-slice arc's PR, `autoMergeLeaves` for a slice of a multi-slice
+  epic merging into the epic branch, `autoMergeEpic` for the epic's own close-out into the integration
+  branch — the first two defaulting to `true`, the last to `false`. **Where the checkpoint's flag holds it,
+  everything upstream still runs**: none of the three touches whether a review pass or a gate happens. What
+  the dispatcher does instead of merging is post one comment saying the pipeline is satisfied and that this
+  checkpoint's flag is holding the merge, and stop — **with the PR still a draft, no `gh pr ready` and no
+  `merge-pr.sh`**, since a PR flipped ready and left unmerged is exactly the stale approval that flip's
+  placement one line above the merge exists to prevent. Nothing after the merge runs either, issue closes and
+  the base-branch sync included. A human merges it on GitHub or says to go ahead, and the command below then
+  runs unmodified.
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
   preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no

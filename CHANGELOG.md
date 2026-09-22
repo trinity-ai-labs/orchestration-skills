@@ -2,6 +2,13 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.9.1
+
+- **The PR review loop's opening now says it covers the close-out PR too.** `skills/execute/references/reviewing.md`
+  described the loop only through the ordinary slice-PR case, leaving the orchestrator's own run of that same
+  loop over the epic's close-out PR unstated at the point the loop is introduced. It now says so there: the
+  orchestrator substitutes itself for "the implementer" throughout, authoring that PR and then merging it.
+
 ## 5.9.0
 
 - **The epic close-out PR now gets a full `/pipeline:review` panel before it gates.** The epic → integration

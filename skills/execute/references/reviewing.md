@@ -136,6 +136,10 @@ the project declares `enqueue`/`drain`, by the implementer itself in in-line mod
 is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* merge it, because
 marking it ready is your signature that you read the diff.
 
+**This exact loop is what the orchestrator runs over the epic's own close-out PR too, substituting itself
+for "the implementer" throughout** — there is no separate implementer behind that PR to open it and hand a
+draft back, so the orchestrator authors it and then merges it (*The epic branch* → *Mechanics*).
+
 **Where the slice ran `/pipeline:review`, that PR already carries a review when this loop opens** — posted by
 the implementer's own panel against this same diff, event `COMMENT`, before you have read anything. It is
 **evidence and never a substitute**: it was written from the seat that also wrote the code, so your own read

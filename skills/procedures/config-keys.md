@@ -100,6 +100,24 @@ a question rather than a default.
   ⚠️ **Without `integrationBranch` declared this key does nothing wherever work lands on the default
   branch**: the older test asks whether the PR's base is the repository's default branch, which the
   genuine epic boundary fails in exactly those projects.
+- **`autoMergeTrivial`** — whether a **standalone single-slice arc's** PR into the integration branch merges
+  as soon as this flow's own pipeline is satisfied — build, the review pass, the gate, the read of the
+  diff — or is held there until a human approves it explicitly. **Absent means `true`**, which is how this
+  flow has always behaved. **It gates the MERGE and nothing upstream of it**: a `false` leaves every review
+  and every gate running exactly as they would have, this key and the two below deciding only whether the
+  merge that follows them happens on this flow's own authority.
+- **`autoMergeLeaves`** — the same question for a slice that is **one of several children of a multi-slice
+  epic**, merging into the **epic branch** rather than the integration branch
+  (`skills/glossary/vocabulary/epic-branch.md`). **Absent means `true`**, since nothing user-facing ships
+  until the epic branch itself lands.
+- **`autoMergeEpic`** — the same question for the **epic branch's own close-out merge into the integration
+  branch**. **Absent means `false`** — the one of the three whose absence HOLDS rather than merges, since
+  this is the merge that actually puts the combined work on the shared branch.
+  ⚠️ **It is unrelated to `epicMerge` above, which the similar names invite you to conflate**: `epicMerge`
+  picks that one merge's MECHANICS — a squash or a real merge commit — and `merge-pr` reads it while
+  performing the merge; `autoMergeEpic` picks whether that merge happens without a human saying so, and is
+  read **before** `merge-pr` is invoked at all, by a pass rather than by the helper. Either is set without
+  the other, and setting one says nothing about the other.
 - **`sharedResources`** — what the checks touch **outside** the worktree, and how each worktree gets its
   own: `{resource, isolatedBy}` entries. `resource` names the thing — a database, a Redis instance, a
   cache directory, a fixed port; `isolatedBy` names the project's mechanism *and the entry point it sits

@@ -156,6 +156,14 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     the new fixture goes red, point the test's mock back at the old symbol, reverse the rename and confirm the
     formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an implementer
     can report with nothing behind it.
+  - **A reversal MOVES the implementer's tree, so a bar that names one names the mechanic beside it, or the
+    seat performing it reaches for whatever is quickest** — a blind pop off a stack every worktree of the
+    repo shares, a copy of the file parked outside git where one `rm` ends it: git holds the work first
+    (`skills/ground-rules/SKILL.md`, rule 6 — committed where it is ready, stashed under that seat's own
+    marker where it is not), then the breaking edit, the one targeted test, and the restore from that commit
+    or that marked entry. **Or write the bar so the reversal runs against the FORK POINT instead**, where
+    the pre-change code is already a commit and no tree has to move at all — the cheaper of the two whenever
+    the slice's own base still carries the behaviour being broken.
   - **When the bar asserts agreement with a consumer the slice does not own, name the INSTRUMENT as well as
     the property, and make it the entry point the production caller reaches** — otherwise the cheapest
     instrument is a local reimplementation that diverges on the day the test was supposed to fire, and calling

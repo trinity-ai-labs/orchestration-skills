@@ -181,6 +181,17 @@ asks a reviewer to change anything.
   assertion checked against the value that configured its own mock, a constant asserted against itself, a
   check the implementation could never violate — is not coverage: it passes on a broken change exactly as it
   passes on a correct one. Report it as a defect in the test, not as ground the diff has covered.
+- **A reversal is never yours to PERFORM and never yours to delegate.** Confirming that a new test fails
+  against the pre-change code means mutating a tree your caller holds and your sibling readers are reading
+  at this same moment, so even a transient and correctly marked move of it hands one of them a tree nobody
+  briefed it on — which is why your brief leaves you no command that moves or clears one, a bar set by this
+  pass's own concurrency and stricter than what a seat working alone in its own worktree is held to. You are
+  also the last agent in your chain, so there is nobody to hand it to either
+  (`skills/ground-rules/SKILL.md`, rule 2). **Ask the caller for the reversal the implementer already
+  ran** — the verification state your brief carries is where it lands — **or report in your finding that
+  none was run**, which is a finding rather than a gap in yours. ⚠️ **"Confirmed by reading the diff" is an
+  UNRUN reversal and is reported as one**: a diff shows what the change did, never what the test does when
+  the change is taken back out.
 - Anything that would fail only in combination with a sibling slice's half of a contract. Nothing here
   can test that, so **name it** — the caller forwards it to the dispatcher, who can.
 - **Comments the diff rewrote or moved, checked against the code they describe.** A comment asserting

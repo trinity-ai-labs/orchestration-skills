@@ -2,7 +2,10 @@
 
 Entry in `skills/procedures/SKILL.md`. **What each key in `<repo>/.agents/worktree.json` MEANS, and what
 its absence means.** Every value here is per-repo and cannot be derived from the tree you are standing
-in, so read the file rather than inferring it: `cat <repo>/.agents/worktree.json`.
+in, so read the file rather than inferring it: `cat <repo>/.agents/worktree.json`. **Two keys are also
+declared one level up, in a workspace's `.agents/workspace.json`** — `integrationBranch` and
+`briefConventions`, each with its own entry below saying how the two layers combine; every other key is
+the repo's own alone.
 
 Each project declares its specifics in **its own repo**, so the config travels with the clone and is
 reviewed alongside the change that alters it. **`setup-worktree` reads `envFiles`, `env` and `install`;
@@ -44,8 +47,13 @@ a question rather than a default.
   means the project has no queue**, which is a supported shape rather than a gap.
 - **`frameworkSkills`** — `{skill, when}` pairs naming the framework skill each area opens with, so a
   brief can name one without anyone guessing the stack.
-- **`briefConventions`** — project conventions to bake into every dispatched brief: compat policy,
-  comment style, test-invocation rules.
+- **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates
+  it, baked into every dispatched brief: whether concurrent gating is parallel-safe here,
+  how `gate` and `scopedCheck` relate, how branches are named, what a PR targets, the order a change
+  crossing a contract lands in. **General coding conventions are excluded BY NAME** — naming, layering,
+  library usage, comment style — since a second copy of them here is what gets read instead of the
+  `AGENTS.md` a diff is actually judged against, and the two drift with nothing comparing them. Point at
+  that file, and declare only what a dispatch would get wrong without it.
 - **`upstreamFindings`** — whether a finding may leave this project. `true` lets an arc's close-out file a
   pipeline finding against **the plugin's own repository**, resolved from `repository` in
   `.claude-plugin/plugin.json`. **Absent, `false`, or anything not exactly `true` means no** — a settled
@@ -64,6 +72,16 @@ a question rather than a default.
   never sets it behaves exactly as it did. ⚠️ **A project that MOVES this branch — cutting
   `release/0.5.0` once `0.4.0` ships — updates the key in the same PR that cuts it**, one reviewed line.
   The alternative is a pattern, and a pattern has to be resolved, which is inference again.
+- **`briefConventions` in `.agents/workspace.json`** — the same narrow kind one level up, declared once
+  for every member of a workspace: the conventions that hold across repos released together — branch
+  naming, what a PR targets, the order a change crossing a repo boundary lands in. **Declared and
+  human-reviewed exactly as `integrationBranch` is, never derived and never regenerated**, since a
+  regenerated value carries whatever one machine's docs happened to say into every member's brief.
+  **It is CONCATENATED with a member's own and never replaces it** — the workspace's text first, the
+  repo's own second, and where the two seem to disagree the repo's own is the one to follow.
+  **The two layers are independent, so each is carried wherever it exists**: this one alone reaches a
+  member declaring none of its own, and absent it a member's own key is read exactly as it is in a repo
+  with no workspace above it. It is read where a brief is composed, never by a helper.
 - **`bumpFiles`** — every file whose version STRING moves when a change ships, as a claim of
   **completeness**: searching finds some, and nothing tells you the search found them all. ⚠️ **It answers
   WHICH, never WHETHER** — the decision to bump arrives from a person or a pass, and this only says

@@ -56,7 +56,11 @@ A **containing folder of sibling repos** — no `.git` at the root, several chil
 `.agents/workspace.json` there plus a `.agents/worktree.json` per member, and every step below runs per
 member. **`integrationBranch` there is DECLARED and belongs under review** — it names the branch every
 member's work lands on, `merge-pr` reads it, and a value regenerated from whatever branch a machine happened
-to be on gives two engineers different merges for the same repos. The rest of the manifest is
+to be on gives two engineers different merges for the same repos.
+**`briefConventions` there is the second declared key and belongs under review the same way** — of the same
+narrow pipeline-dispatch-facts kind as a member's own (`skills/procedures/config-keys.md`), it is surfaced
+here as a CANDIDATE for the maintainer to confirm and never auto-written, a regenerated value carrying
+whatever one machine's docs happened to say into every member's brief. The rest of the manifest is
 **derived and regenerated** per machine: `members` from the children holding a `.git`, and the remainder from
 the workspace's docs — **never inferring a contract from resemblance**, which silently switches off contract
 closure. Verify with `setup-workspace.sh --dry-run <branch>`: the member set, and whether naming a contract's
@@ -196,7 +200,7 @@ different question and this pass's own.
 | `enqueue` / `drain` | Step 3 — **omit both** with no queue |
 | `format` | The formatter in *write* mode |
 | `frameworkSkills` | `{skill, when}` per area, from the deps imported |
-| `briefConventions` | Only what `AGENTS.md` doesn't already say — point at it, and state only the gotchas that would cost a run |
+| `briefConventions` | Pipeline-dispatch facts only — parallel-safety for concurrent gating, how `gate` and `scopedCheck` relate, branch naming, what a PR targets, the order a contract-crossing change lands in. Coding conventions stay `AGENTS.md`'s: point at that file and state only the gotchas that would cost a run |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
 | `integrationBranch` | The branch this project's work lands on — a literal name the maintainer confirms, never a pattern and never read off the default branch. **Omit** where they will not confirm one: absence keeps the older behaviour, and a guessed branch is the value here whose error is silent and durable, since every worktree of every later arc forks from it |
 | `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |

@@ -9,7 +9,7 @@ description: >-
   says to run a review pass for the slice, and whenever you are asked to review, tighten, simplify
   or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
   over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
-  efficiency, altitude and a project's stated conventions — then weighs what they report, applies
+  efficiency, altitude and a project's stated rules and conventions — then weighs what they report, applies
   what it judges right, posts its findings onto the PR as a review, and reports what it rejected.
 ---
 
@@ -105,7 +105,8 @@ step — read it before you write the first brief.
 
 **How many fire is your call, decided per slice the way the model tier already is.** Seven possible
 reviewers makes selection the cost control: a mechanical rename or a one-line fix does not earn seven
-readers, and a slice with no stated conventions to check against earns six at most. Say in your report
+readers, and a slice with no stated rules or conventions to check against earns six at most. Say in your
+report
 which dimensions you ran and which you judged the slice did not need.
 
 **Their TIER is the other half of that same selection, so name it in each spawn rather than leave it to
@@ -137,7 +138,7 @@ be deleted, and agreement between separate readers is the evidence this pass exi
 | Simplification | the diff against itself | asks what could be deleted, which is the one question the author is worst placed to ask about their own work |
 | Efficiency | the diff's loops, lookups and I/O | the only lens with a quantity behind its verdict rather than a judgement |
 | Altitude | the diff against the layer each piece belongs in | reads placement and naming, not behaviour — a correct line in the wrong layer passes every other lens |
-| Conventions *(where a project states rules worth a pass)* | the diff against the project's stated conventions and its gate | reads a rulebook rather than code |
+| Rules & Conventions *(where a project states rules worth a pass)* | the diff against the project's stated conventions and its gate | reads a rulebook rather than code |
 
 **Reuse, simplification, efficiency and altitude look mergeable and are not, and merging them spends
 the one thing N readers buy.** When three of them land on the same site by three different routes, that
@@ -234,13 +235,16 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 
 **Not formatting or import order, though** — where the project declares `format` the formatter owns
 those and the caller runs it in write mode immediately before committing, and where it declares none they
-are the scoped check's and the project's stated conventions', which the Conventions dimension reads. Nor
+are the scoped check's and the project's stated conventions', which the Rules & Conventions dimension
+reads. Nor
 **subjective style** that reduces neither reuse, complexity, nor cost.
 
-#### Conventions
+#### Rules & Conventions
 
 - The project's stated rules, as written down — a contributor guide, an agents file, a repo README,
-  whatever that project promulgates — checked against the diff clause by clause.
+  whatever that project promulgates — and the trees those files point at, checked against the diff clause
+  by clause, and **never `briefConventions`**, which carries how this flow dispatches and gates rather than
+  anything a diff can depart from (`skills/procedures/config-keys.md`).
 - What the project's own gate would say. **Read the gate's rules rather than running it — you were
   dispatched to produce a claim about this diff for the caller to test, so a gate run answers a different
   question, and your brief already carries what the caller ran and what came back** — and report the

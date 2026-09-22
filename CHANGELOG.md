@@ -2,6 +2,34 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.8.0
+
+- **`/pipeline:review` now runs against the real PR and posts a real review onto it.** The pass used to read
+  an implementer's uncommitted tree just before it committed, and its verdict reached one reader — the
+  implementer's own conversation. It now runs once the implementer has committed, pushed and opened its draft
+  PR, reads that PR's diff (`gh pr diff`) rather than a locally computed one, and posts its findings back
+  onto the PR as a `gh pr review --comment`. Every review this flow already ran becomes a durable artifact
+  attached to the diff, at no added cost: the panel still runs exactly once per slice.
+- **The implementer's order is commit → push → draft PR → review pass → one more commit if it finds
+  something.** `skills/execute/SKILL.md` and `skills/execute/references/implementer.md` carry the new
+  sequence, and the dispatcher's brief block in `skills/execute/references/dispatching.md` no longer tells a
+  review slice to hold its change uncommitted. A pass that finds nothing ends the slice on the commit round
+  it already has, and the pass never re-triggers itself on a fix round — an explicit request for another
+  pass on an already-reviewed PR still runs like any other invocation.
+- **The reviewer-posting ban gains one narrow, named exception.** A reviewer still posts nothing at all; the
+  pass itself may post exactly one review, event `COMMENT` — the only event GitHub allows on the
+  self-authored PRs this flow opens — and nothing else: no arbitrary commit, no merge, no issue, no formatter
+  in write mode, never a fork.
+- **A dispatcher now has two routes to a slice's rejected findings.** The hand-back carries the narrative and
+  the posted review carries the same findings on the PR itself; where the two disagree the posted review is
+  the one bound to the diff. A panel review is evidence and never a substitute for the dispatcher's own read,
+  it is not the implementer's to tidy away, and the `draft → ready` flip remains the only thing that means a
+  dispatcher read the diff and is merging it.
+- **A parked pass now hands back an open PR.** `Review: PARKED` still means the host's concurrent ceiling
+  refused the readers, but the slice's branch is pushed and its draft PR open by then, so the tree carries
+  the finished shape and only the marker tells the two apart — an open PR is never itself evidence a slice
+  finished.
+
 ## 5.7.0
 
 - **A tautological test is now a named defect on both sides of the implementer/reviewer split.** An

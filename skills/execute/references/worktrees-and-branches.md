@@ -249,6 +249,10 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   slice PR based on the epic branch closes out identically, leaving the main checkout untouched. The one
   difference: the epic branch is checked out on every slice merge, so the helper fast-forwards it
   **inside that worktree** (`merge --ff-only`) instead of moving the ref from outside.
+  **What decides whether that close-out runs at all is `autoMergeLeaves`, not `autoMergeEpic`** — a slice of
+  this epic is a leaf and merges into this branch, while `autoMergeEpic` reaches only this branch's own merge
+  into the integration branch below. Both readings, and what to do where either holds, are in
+  *Merge & cleanup* and in the close-out bullet below respectively.
 - **Hand-close the issues the work resolved — an epic withdraws the fallback for every slice at once.** A
   slice PR bases on the epic branch, not the repository's **default** branch, so its closing keyword is inert
   (*Merge & cleanup* carries the mechanics). **So while an epic runs the board is not the arc's progress
@@ -300,8 +304,24 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **Gate AFTER the fix round, never before it**, since a ticket raised first both burns a serialized gate on
   code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
   able to take a ticket back. Where the project declares **no queue**, gate the epic
-  branch in its own worktree yourself and read its exit status. Then merge it with `merge-pr.sh` like any
-  other — the one PR with no implementer behind it, so no hand-back to promote.
+  branch in its own worktree yourself and read its exit status.
+
+  **Then one check stands between that green gate and the merge — `autoMergeEpic`
+  (`skills/procedures/config-keys.md`), read here, after the gate and before the helper.**
+  ⚠️ **Absent means `false`, and this is the one place in this file where a project that has declared
+  nothing does NOT proceed** — the other two merge-automation keys default to `true` and this one defaults to
+  holding, because this merge is the one that actually puts the arc's combined work on the shared branch.
+  **Where it is `true`**, merge it with `merge-pr.sh` like any other — the one PR with no implementer behind
+  it, so no hand-back to promote. **Where it is held**, post **one comment** on the close-out PR saying the
+  pipeline is satisfied — ledger empty, panel review landed, any fix round in, gate green — and that
+  `autoMergeEpic` is holding the merge, and stop there. **That PR stays a DRAFT: never call `gh pr ready` on
+  it and never call `merge-pr.sh`**, the ready flip living one line above the merge precisely so a PR can
+  never sit around wearing a review it has outgrown (*Merge & cleanup*). Nothing after the merge runs either
+  — the epic worktree stays up, the epic branch and its `transient-red/<epic-slug>` marker stay, the local
+  integration branch is not synced, and the arc's issues stay open. The arc is not finished and says so: a
+  close-out whose merge has not happened is not green, so the loop's termination check is unsatisfied with no
+  special case added to it. When the approval arrives — a human merging it on GitHub, or telling this flow to
+  go ahead — `merge-pr.sh <n>` runs completely unmodified, squash and all where the project declared one.
 - **This closing merge is the ONE merge a project may collapse, and it is an option a project declares — never
   a judgement anyone makes at merge time.** Every other merge here is a real merge commit with no opt-out. A
   project on a long-lived release branch may prefer one commit per arc for this scaffolding branch, and says

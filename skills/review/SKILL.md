@@ -183,11 +183,11 @@ asks a reviewer to change anything.
   passes on a correct one. Report it as a defect in the test, not as ground the diff has covered.
 - **A reversal is never yours to PERFORM and never yours to delegate.** Confirming that a new test fails
   against the pre-change code means mutating a tree your caller holds and your sibling readers are reading
-  at this same moment, so even a transient and correctly marked move of it hands one of them a tree nobody
-  briefed it on — which is why your brief leaves you no command that moves or clears one, a bar set by this
-  pass's own concurrency and stricter than what a seat working alone in its own worktree is held to. You are
-  also the last agent in your chain, so there is nobody to hand it to either
-  (`skills/ground-rules/SKILL.md`, rule 2). **Ask the caller for the reversal the implementer already
+  at this same moment, which is why your brief leaves you no command that moves or clears one — a bar set by
+  this pass's own concurrency, and stricter than what a seat working alone in its own worktree is held to,
+  where the same marked stash is sanctioned. You are also the last agent in your chain, so there is nobody
+  to hand it to either (`skills/ground-rules/SKILL.md`, rule 2). **Ask the caller for the reversal the
+  implementer already
   ran** — the verification state your brief carries is where it lands — **or report in your finding that
   none was run**, which is a finding rather than a gap in yours. ⚠️ **"Confirmed by reading the diff" is an
   UNRUN reversal and is reported as one**: a diff shows what the change did, never what the test does when
@@ -486,13 +486,17 @@ diff, its one dimension, and WHAT YOU HAVE ALREADY RUN with what it returned —
 imperatives**,
 since inheriting those imperatives is the whole of what made a fork dangerous and a fresh agent handed
 them by hand is a fork with extra steps. **That sixth item is what leaves a reader no reason to reach for
-a command of its own** — name the scoped check and its result, and the one targeted test file by path and
-its result — since a reviewer handed no verification state has a live reason to go and establish some,
-and one handed it has none. **The results are the CHEAP ones you ran while building**: format, the scoped
+a command of its own** — name the scoped check and its result, the one targeted test file by path and its
+result, and **whether the verify bar's reversal ran, by which mechanic, and what it showed** — since a
+reviewer handed no verification state has a live reason to go and establish some, and one handed it has
+none. **The results are the CHEAP ones you ran while building**: format, the scoped
 lint and typecheck, that single test file. You write these briefs BEFORE this pass's own verify step,
 which runs after you have applied findings, so there is no post-findings verification yet to hand down
-and none to promise. **Where no test file covers this change, the brief says so in those words** — that
-is verification state too, and a line left out reads as an oversight rather than as an absence.
+and none to promise. **Where no test file covers this change, and where no reversal was run, the brief says
+so in those words** — that is verification state too, and a line left out reads as an oversight rather than
+as an absence. **The reversal is the one item on that list a reviewer cannot go and establish for itself**,
+since performing one moves the tree and no reviewer here may, so a brief silent about it leaves the only
+seat that could confirm the bar with nothing to confirm it from.
 
 **That brief names ONE tree: every repository path in it is inside the assigned worktree or relative to
 it, and where an instruction genuinely needs the repository rather than a checkout it names the REF**,

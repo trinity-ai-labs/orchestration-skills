@@ -158,12 +158,15 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     can report with nothing behind it.
   - **A reversal MOVES the implementer's tree, so a bar that names one names the mechanic beside it, or the
     seat performing it reaches for whatever is quickest** — a blind pop off a stack every worktree of the
-    repo shares, a copy of the file parked outside git where one `rm` ends it: git holds the work first
-    (`skills/ground-rules/SKILL.md`, rule 6 — committed where it is ready, stashed under that seat's own
-    marker where it is not), then the breaking edit, the one targeted test, and the restore from that commit
-    or that marked entry. **Or write the bar so the reversal runs against the FORK POINT instead**, where
-    the pre-change code is already a commit and no tree has to move at all — the cheaper of the two whenever
-    the slice's own base still carries the behaviour being broken.
+    repo shares, a copy of the file parked outside git where one `rm` ends it. **A reversal needs the new
+    test STANDING while the code under it is pre-change, and that is what decides which mechanic the bar can
+    ask for** (`skills/ground-rules/SKILL.md`, rules 6 and 7): the commit shape — commit, break, run the one
+    targeted test, restore with `git checkout -- <file>` or from that commit — or a marked stash of the
+    production file alone, whose push is itself the break and whose pop restores it. A bar that instead asks
+    for the whole tree stashed has asked for the new test to be carried away with the change.
+    **Or write the bar so the reversal runs against the FORK POINT**, where the pre-change code is already a
+    commit and no tree has to move at all — the cheapest of the three whenever the slice's own base still
+    carries the behaviour being broken.
   - **When the bar asserts agreement with a consumer the slice does not own, name the INSTRUMENT as well as
     the property, and make it the entry point the production caller reaches** — otherwise the cheapest
     instrument is a local reimplementation that diverges on the day the test was supposed to fire, and calling

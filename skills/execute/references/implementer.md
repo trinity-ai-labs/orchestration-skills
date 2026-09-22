@@ -288,19 +288,20 @@ suite exactly as a suppressed lint rule games the linter, and it counts as cover
 Write the assertion against the behavior the change is for, not against whatever the code already returns.
 
 **PROVING it can fail — the reversal your bar names — MOVES your tree, so git holds that work before it
-moves** (`skills/ground-rules/SKILL.md`, rule 6), **or you arrive at the restore with no object to come back
-to and take the quickest way out instead**. Two shapes, and which is yours is whether the work is ready to
-commit: **commit it**, make the breaking edit, run the one targeted test file, then restore with
-`git checkout -- <file>` or from that commit; or, mid-build with nothing commit-ready, **push it as a stash
-carrying your own marker** and pop back that one entry, resolved in the same invocation, once the test has
-run — rule 7 carries the push and the resolve, and what it bans is the argument-less pop off a stack every
-worktree of the repo shares, never the marked entry itself. **Never a copy held outside git in either
-shape** — a file parked in your scratchpad is invisible to the dispatcher's stash sweep and one `rm` from
-gone, which is the move rule 6 forbids by name. **Where your slice's fork point already carries the
-pre-change behaviour, run the reversal against the FORK POINT and leave your tree where it stands.** ⚠️
-**"Confirmed by reading the diff" is an UNRUN reversal**, so where that is all you have, say in your
-hand-back that no reversal was run rather than reporting the bar met — a diff shows what the change did,
-never what the test does when the change is taken back out.
+moves** (`skills/ground-rules/SKILL.md`, rule 6 — a commit or a marked stash, never a copy parked outside
+git), **or you arrive at the restore with no object to come back to and take the quickest way out instead.**
+**What picks the shape is that a reversal needs the new test STANDING while the code under it is
+pre-change**: commit the work, make the breaking edit, run the one targeted test file, then restore with
+`git checkout -- <file>` or from that commit; or, with nothing commit-ready, push a marked stash of the
+PRODUCTION file alone — that push is itself the breaking edit, it leaves your new test in the tree, and
+popping that one entry by its marker puts the file back (rule 7 has the push and the resolve).
+⛔ **Never stash the whole tree for a reversal**: it carries the new test away with the change, leaving the
+bar nothing to run, and the pop back over a breaking edit is refused outright with your entry left on the
+stack. **Where your slice's fork point already carries the pre-change behaviour, run the reversal against
+the FORK POINT and leave your tree where it stands.** ⚠️ **"Confirmed by reading the diff" is an UNRUN
+reversal**, so where that is all you have, say in your hand-back that no reversal was run rather than
+reporting the bar met — a diff shows what the change did, never what the test does when the change is taken
+back out.
 
 **The one carve-out — a DOCUMENTED suppression, for when the flagged construct IS the intended behavior.** It
 is never "the check is wrong": the rule points at the feature, so no cause exists to fix. (This plugin's

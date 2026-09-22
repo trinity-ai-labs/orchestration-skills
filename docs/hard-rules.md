@@ -217,10 +217,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   is banned outright.
 - **A reversal is RUN rather than read off the diff, and a reader never runs one.** A verify bar that proves
   a new test fails against the pre-change code has some seat move a tree to do it, so the bar states how
-  rather than leaving the means to whatever is quickest: git holds the work first — committed, or stashed
-  under that agent's own marker — then the breaking edit, then the one targeted test, then the restore from
-  that commit or that entry; or the reversal runs against the slice's fork point, where the pre-change code
-  is already a commit and no tree moves at all. **A review pass's readers sit outside that entirely** — they
+  rather than leaving the means to whatever is quickest. The shape is decided by the reversal needing the
+  new test standing while the code under it is pre-change: commit the work, make the breaking edit, run the
+  one targeted test, then restore it — or stash the production file alone under the agent's own marker,
+  where that push is itself the break and its pop restores; never the whole tree, which carries the new test
+  away with the change. Or the reversal runs against the slice's fork point, where the pre-change code is
+  already a commit and no tree moves at all. **A review pass's readers sit outside that entirely** — they
   read one tree concurrently while the agent that wrote it still holds it, so a reader asks that agent for
   the reversal it already ran or reports that none was run, and "confirmed by reading the diff" is recorded
   as a reversal that did not happen rather than as a bar met.

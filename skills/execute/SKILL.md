@@ -190,7 +190,7 @@ reference.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
    foreground or background. One targeted test file is the widest run you get; the one full run you ever
-   make is in-line mode's `gate`, at step 7, where the project declares no `enqueue`/`drain` or your brief
+   make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
 5. **Fix what is wrong outside your owned files, in this PR.** Not a sweep and not a report: repair what you
@@ -199,30 +199,10 @@ reference.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
-6. **Run `/pipeline:review` if your brief says to, then commit.**
-   ⛔ **The pass reads your *uncommitted* diff, so commit LAST.** Against a clean tree it finds nothing and
-   says so.
-   ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree
-   under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
-   answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
-   to a reader but the dispatcher's read of your diff.
-   ⛔ **Its reviewers are FRESH agents handed one dimension each, never forks of you** — a fork inherits this
-   brief and executes its *commit, push, PR, hand back* imperatives, and you are the only party that edits
-   this tree. ⛔ **Each reviewer is the LAST agent in the chain and its brief says so** — it dispatches
-   nothing of its own, or you weigh a finding no reader in the chain established.
-   ⛔ **Every reviewer's brief also states that a GitHub issue is not a disposition available to it, with the
-   reason beside it** — a reader that files spends a whole unit of work on what one line in its report to you
-   settles, and the ban is stated at that seat or it reaches no reviewer.
-   ⛔ **A pass that reports `Review: PARKED` has not finished reading, so it is not followed by a commit** —
-   its readers were refused by the host's concurrent ceiling rather than failed; skip step 7 and hand back
-   that report, tree uncommitted, for your dispatcher to resume you once capacity frees.
-7. **Commit, push, open a draft PR, gate in-line where your mode says so, hand back.**
+6. **Commit, push, open a draft PR.**
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
-   is a pushed branch and a draft PR — a parked review pass being the one hand-back that carries neither.
-   ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
-   ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
-   polled in this same turn (`skills/execute/references/implementer.md` has how).
+   is a pushed branch and a draft PR.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or
@@ -231,6 +211,38 @@ reference.
    The named forms are instances and so are the named artifacts, since an enumeration of either is satisfied
    by every member it leaves out — the harness's set grows without notice, so leave out anything you cannot
    rule out.
+   ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
+7. **Run `/pipeline:review` if your brief says to — against that pushed PR — and commit once more if it
+   finds something.**
+   ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review**, so the PR exists
+   before the pass runs and the review it leaves there is a durable artifact your dispatcher reads off the
+   PR rather than only out of your hand-back.
+   ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree
+   under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
+   answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
+   to a reader but the dispatcher's read of your diff.
+   ⛔ **What you accept becomes ONE more commit onto the SAME PR** — scoped check, commit, push, never a
+   second PR and never a reopen — and a pass that raises nothing you accept leaves the slice where it
+   stands, on the one commit round you already have. **The pass does not re-trigger itself on that fix
+   round**; a dispatcher explicitly asking for another is not that loop and you run it like any instruction
+   arriving mid-run.
+   ⛔ **Its reviewers are FRESH agents handed one dimension each, never forks of you** — a fork inherits this
+   brief and executes its *commit, push, PR, hand back* imperatives, and you are the only party that edits
+   this tree. ⛔ **Each reviewer is the LAST agent in the chain and its brief says so** — it dispatches
+   nothing of its own, or you weigh a finding no reader in the chain established.
+   ⛔ **Every reviewer's brief also states that a GitHub issue is not a disposition available to it, with the
+   reason beside it** — a reader that files spends a whole unit of work on what one line in its report to you
+   settles, and the ban is stated at that seat or it reaches no reviewer.
+   ⛔ **A pass that reports `Review: PARKED` has not finished reading, so it is not followed by a second
+   commit** — its readers were refused by the host's concurrent ceiling rather than failed; your PR is open
+   and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
+   resume you once capacity frees. **An open PR is not itself a finished hand-back.**
+8. **Gate in-line where your mode says so, then hand back.**
+   ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
+   ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
+   polled in this same turn (`skills/execute/references/implementer.md` has how).
+   ⛔ **The attribution ban above covers the gate verdict you comment here** exactly as it covers the commit
+   message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 
 ---

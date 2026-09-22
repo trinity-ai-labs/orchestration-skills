@@ -134,8 +134,14 @@ Each implementer opens **its own draft PR** back to the branch its worktree was 
 branch, or the epic branch when the epic has one; the gate's verdict is commented on it — by the runner where
 the project declares `enqueue`/`drain`, by the implementer itself in in-line mode. That comment
 is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* merge it, because
-marking it ready is your signature that you read the diff. So **review each PR and actually read the code
-involved**, not just the agent's summary or the green comment. Read the diff: verify correctness, that it does
+marking it ready is your signature that you read the diff.
+
+**Where the slice ran `/pipeline:review`, that PR already carries a review when this loop opens** — posted by
+the implementer's own panel against this same diff, event `COMMENT`, before you have read anything. It is
+**evidence and never a substitute**: it was written from the seat that also wrote the code, so your own read
+of the diff and the flip that rests on it are unchanged, and a PR arriving with a panel review on it is not a
+PR somebody else reviewed. So **review each PR and actually read the code
+involved**, not just the agent's summary, the green comment, or that posted review. Read the diff: verify correctness, that it does
 what the issue/plan intended, that the scope is right, and scrutinize anything the agent flagged or where it
 went wider than the planned files. A green gate and a confident agent report are necessary but
 **not sufficient** — the merge decision is yours and must be grounded in the actual changed code.
@@ -224,11 +230,16 @@ doc out of the brief, you did it from the plan rather than from the diff, so re-
 actually changed. That is exactly how a stale README ships — not because the implementer skipped it, but
 because it was told not to look.
 
-**The review pass's rejected findings are addressed to YOU and reach you by one route only — read them, and
+**The review pass's rejected findings are addressed to YOU and reach you by TWO routes — read them, and
 read a hand-back that carries none against your own brief before you read it as a clean pass.**
 `/pipeline:review` runs inside the implementer and its reviewers report to it, so its `Rejected` list — each
 finding that implementer considered and deliberately did not act on, carrying the reviewer or reviewers that
-raised it — is written for the reviewer of this PR, and the hand-back is its only way here.
+raised it — is written for the reviewer of this PR. The **hand-back** carries the narrative, and the
+**review the pass posted onto this PR** carries the same findings as a live artifact attached to the diff, so
+read whichever is in front of you and neither is the only copy. **Where the two disagree, take the posted
+review** — it is the one bound to the diff, timestamped against a head you can compare, and a hand-back that
+differs from it is prose nothing checked. That disagreement should not happen, and one that does is itself
+worth a round trip.
 **Read a rejection naming SEVERAL reviewers harder than one naming a single reviewer**: several lenses landing
 on one site by different routes is the strongest evidence the run produces, so a rejection has to answer all
 of them, and one entry naming three reviewers is a converged finding turned down once rather than three
@@ -292,7 +303,11 @@ surface the reader came for. **Already posted means still THERE, so read the PR 
 rather than trusting the write to have survived, and re-post a missing one before you post this round's
 review** — one account authors every party's comments here, so an implementer tidying its own verdicts cannot
 tell yours from its own by author, and a grant that has gone leaves the diff reading as drift to exactly the
-reader this rule exists for. **Read that hand-back line as the DETECTOR of a missing write, never as the write
+reader this rule exists for. **That same ambiguity now covers the review pass's own posted review**, which
+this account authored too: a slice's panel review is not the implementer's to remove while tidying its
+verdicts, and a PR whose panel review has gone reads exactly like a slice that never ran a pass — so where a
+hand-back reports one posted and you find none, treat it as a missing write and ask, rather than as a slice
+that skipped the pass. **Read that hand-back line as the DETECTOR of a missing write, never as the write
 itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing and being caught
 by the one party it exists to protect, and a grant it can find only on the issue is that same report.
 **And a grant that line reports as answered AFTER the slice's review pass closed had no reader but you** —

@@ -7,8 +7,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **⛔ Never a fork — every sub-agent is spawned FRESH, and a dispatched READER dispatches nothing at all.** A
   fork inherits the whole conversation of whoever spawned it and executes that agent's brief — *commit, push,
   open a PR, enqueue* — before it gets its turn back, and the deepest seat is the worst one: a review pass's
-  readers run beside a live implementer's uncommitted work, so neither the reviewers nor anything under them
-  is ever a fork. A reader that spawns children reports findings nobody in the chain established, and re-sizes
+  readers run beside a live implementer that still holds its worktree and its open PR, so neither the
+  reviewers nor anything under them is ever a fork. A reader that spawns children reports findings nobody in the chain established, and re-sizes
   from inside the reader count the pass chose.
 - **⛔ Every sub-agent's model tier is stated at the spawn, never inherited.** A host handed no model gives the
   child the **parent's** model, so one top-tier agent spawning readers spawns top-tier readers and a wide
@@ -57,9 +57,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   still out rather than waiting silently.
 - **A review reader the host refuses because too many agents are already running has not gone out yet — it
   has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
-  them is still out it PARKS rather than dropping the dimension: tree untouched, nothing committed, pushed or
-  PR'd, and a hand-back reading `Review: PARKED` with the dimensions still to go. The dispatcher reads that
-  report rather than the tree, which looks exactly like a stall's, and resumes parked slices on capacity — the
+  them is still out it PARKS rather than dropping the dimension: tree untouched, no finding applied, nothing
+  posted onto the PR, and a hand-back reading `Review: PARKED` with the dimensions still to go. **By then the
+  tree carries the FINISHED shape** — commits past the fork point, a pushed branch, a draft PR open — since
+  the pass runs against that PR, so the marker in the report is the only thing telling a parked slice from
+  one that is done, and an open PR is never itself the evidence one is. The dispatcher reads that
+  report rather than the tree, and resumes parked slices on capacity — the
   next hand-back or tick, one parked slice per event, in the order they parked. Nobody reads a refused
   dimension in its place: the author is the party worst placed to ask what its own diff could lose.
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files,

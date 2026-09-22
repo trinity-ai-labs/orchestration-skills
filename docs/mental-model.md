@@ -172,7 +172,20 @@ in order, the needs-changes ones naming what the next round was dispatched to fi
 sitting immediately ahead of the flip. The event is `COMMENT` because GitHub refuses `APPROVE` and
 `REQUEST_CHANGES` on a self-authored PR and every PR in this flow is — which the dispatcher observes rather
 than declares, comparing the PR's author against the authenticated account — and because the flip already
-carries the approval a second signature would only duplicate. A posted review is a different artifact from the
+carries the approval a second signature would only duplicate.
+
+**A PR can carry a review that predates all of those, and the same event explains it.** Where a slice ran
+`/pipeline:review`, that pass reads the PR's own diff once the implementer's draft PR is open and posts its
+findings there as a review — the goal verdict, what it applied, what it rejected — before the dispatcher's
+loop has read anything. Same event `COMMENT`, same reason: the PR is self-authored. So two kinds of review
+legitimately sit on one PR, and **a reader tells them apart by position and content rather than by author**,
+since one account writes both: the panel's comes first and is the slice's own report on itself, written from
+the seat that wrote the code, and the dispatcher's follow it one per round, each naming what the next round
+is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is still the only thing that
+means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it has been
+read by nobody but the seat that built it.
+
+A posted review is a different artifact from the
 gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that
 sets it, one line above `gh pr merge`, so approval can never go stale between the review and the merge — and
 where that merge fails it puts the flag straight back with `gh pr ready <n> --undo`, but only where *this* run

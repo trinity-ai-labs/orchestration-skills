@@ -28,8 +28,10 @@ arc has just shipped are the ones likeliest to be missing from it. So read a gov
 worktree before acting on it, `diff` the two where one looks wrong, and say which copy you read.
 
 **The flow is: take any baseline your slice needs → write all the code → update the docs it changed → fix what
-you HIT outside your owned files, in this PR → (`/pipeline:review` if this slice warrants it) → commit → push
-→ draft PR → (in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
+you HIT outside your owned files, in this PR → commit → push → draft PR →
+(`/pipeline:review` if this slice warrants it, now against that pushed PR) → (if it finds something: apply
+what you accept, scoped check, one more commit, push again onto the same PR) →
+(in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
 in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
 (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
@@ -73,21 +75,34 @@ ledger routes each entry by that coordinate, and an entry carrying none reaches 
 repoint here, since a docs gate validating path citations reds before your own checks run.
 
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run
-it, do NOT commit as you go: hold the change uncommitted, run the pass over your *full uncommitted* diff, wait
-until every reviewer has reported before you change anything, apply what you accept, and only then commit —
-against a clean tree it sees nothing and the review never happens. **A pass that reports `Review: PARKED`
-has not finished reading your tree**: leave it uncommitted, push nothing, open no PR, and hand back the
-parked report in place of the handoff below — its readers were refused by the host's concurrent ceiling
-rather than failed, and your dispatcher resumes you when capacity frees. Otherwise commit in blocks as the
-work lands. **Park held work in a stash carrying your marker, and restore it by that marker, never a blind
+it, commit in blocks as the work lands, push, and open your draft PR exactly as a slice running no pass
+would, and only THEN run the pass — against that PR, whose diff is what it and its readers read. Wait until
+every reviewer has reported before you change anything, apply what you accept, run the scoped check over
+what you applied, make **one more** commit, and push it onto the same PR, which is never closed and never
+reopened. **Where the panel finds nothing to apply there is nothing more to do**: its review is posted on
+your PR, your one commit round already stands, and you go straight to the hand-back.
+**A pass that reports `Review: PARKED` has not finished reading your PR**: its readers were refused by the
+host's concurrent ceiling rather than failed, so your PR is open and pushed but carries no review yet, and
+you hand back that parked report with no second commit round for your dispatcher to resume you once capacity
+frees. **An open PR is not itself a finished hand-back** — say in that report that the pass parked, or a
+dispatcher reading a pushed branch and a draft PR reads a slice that stopped early as one that finished.
+**Park held work in a stash carrying your marker, and restore it by that marker, never a blind
 pop** (`skills/ground-rules/SKILL.md`, rule 7, has the commands).
+
+**The pass does not re-trigger itself, and its second commit round is the last one it causes.** A fix round
+you make on its findings is not a reason to run it again — the panel has already read the diff those fixes
+answer, and their readers are your dispatcher's review of the diff and the gate. **A dispatcher that
+explicitly asks for another pass on this PR is not that loop**, and you run it as you would any instruction
+arriving mid-run.
 
 ⛔ **Never a quality pass that FORKS its reviewers, and never one that hands a reviewer this brief** — a fork
 inherits it and carries out its *commit, push, PR, hand back* imperatives for you before you get your turn
 back, and a fresh agent handed those same imperatives does it too. `/pipeline:review` dispatches one FRESH
-reviewer per dimension, hands each the slice's goal, the fork point, the diff and its dimension and none of
-those imperatives, and stays the only party that edits your tree — every reviewer reports and does nothing
-else, so a commit, a push or a PR that appears while it runs is a runaway to revert before you read a finding.
+reviewer per dimension, hands each the slice's goal, the PR and its resolved base, the diff and its dimension
+and none of those imperatives, and stays the only party that edits your tree — every reviewer reports and
+does nothing else, so a commit, a push, a PR or a review posted by a READER while it runs is a runaway to
+revert before you read a finding. **The pass itself posts exactly one review onto your PR**, which is the one
+GitHub write it is authorized to make and the only one you should find there from it.
 **And every reviewer is the LAST agent in the chain — its brief says in as many words that it dispatches
 nothing of its own**, or the reader count the pass sized is re-sized from inside it and you weigh findings
 nobody in the chain established firsthand.
@@ -117,7 +132,8 @@ self-granted, never inferred:
   script — and **backgrounding it is still running it**. Never wait on a gate either: the ticket is your
   dispatcher's, raised after it reads your diff.
 - **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this
-  slice there (override mode):** once your draft PR is open, run `gate` a single time, in the foreground —
+  slice there (override mode):** once your draft PR is open and any review pass your brief asked for has
+  reported and had its findings committed, run `gate` a single time, in the foreground —
   detached and polled in this same turn where it outlasts one tool call (*Never background a check* below) —
   and comment the result on it. That one run is the only full-suite run you make, and every other run the
   queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
@@ -139,10 +155,12 @@ every party's comments here and `author.login` therefore cannot tell yours from 
 verdict naming a superseded head is genuinely worth removing — a reader scanning for the verdict that matches
 the current head should find one rather than three — so **name the comment id you remove and READ that comment
 first, and where you cannot establish that you wrote it, leave it and say so in your hand-back.** *The verdict
-before the current one* is the reasoning that fails: your dispatcher's **fence grant**, its posted review and
-a runner's verdict all land in that slot under that same author, and deleting the grant leaves your diff
-editing outside the brief's fence with nothing on the PR explaining why — the very artifact the grant was
-written to be. **An edit-in-place that appends a second comment rather than amending the first has left you a
+before the current one* is the reasoning that fails: your dispatcher's **fence grant**, its posted review,
+**your own review pass's posted review** and a runner's verdict all land in that slot under that same author,
+and deleting the grant leaves your diff editing outside the brief's fence with nothing on the PR explaining
+why — the very artifact the grant was written to be. **The review your pass posted is never yours to tidy
+away either**: a PR whose panel review has gone reads to your dispatcher exactly like a slice that ran no
+pass at all. **An edit-in-place that appends a second comment rather than amending the first has left you a
 duplicate to tidy, and it is tidied on this same test** — by the id you read, never by which one came last.
 
 **Never background a check and end your turn on it.** This is keyed to the HANDOFF, not the run, so it reaches
@@ -193,13 +211,12 @@ alone, since an enumerated ban is satisfied by every member it omits — where y
 
 ## The handoff, and the repairs you fold in before it
 
-**The handoff — push, draft PR, hand back.** A review pass that PARKED skips all three and hands back its
-parked report instead (*Whether you run `/pipeline:review`* above). Otherwise everything that outlives you
-is a git object before you hand back, so a death anywhere in it loses nothing — and **the gate ticket is not
-yours in either mode**: where the project declares `enqueue`/`drain` your dispatcher enqueues it once it has
-read your diff, since nothing should gate a tree it may be about to have rewritten, and in in-line mode there
-is no ticket at all, your one `gate` run landing between the draft PR and the hand-back. **You never run
-`enqueue`.**
+**The handoff — push, draft PR, the review pass where your brief asks for one, hand back.** Everything that
+outlives you is a git object before you hand back, so a death anywhere in it loses nothing — and **the gate
+ticket is not yours in either mode**: where the project declares `enqueue`/`drain` your dispatcher enqueues
+it once it has read your diff, since nothing should gate a tree it may be about to have rewritten, and in
+in-line mode there is no ticket at all, your one `gate` run landing between the review pass and the hand-back.
+**You never run `enqueue`.**
 
 1. **Push** all your commits.
 2. **Open a DRAFT PR** targeting the branch your worktree was cut from — your brief names it
@@ -207,10 +224,16 @@ is no ticket at all, your one `gate` run landing between the draft PR and the ha
    dispatcher's ticket for this slice is addressed with. **Reference the issue as `Refs #<n>`, never a
    closing keyword**, which is live whenever your base is the default branch: **you cannot tell** whether this
    PR settles the whole issue, holding one slice's brief, not the arc.
-3. **Hand back** — the PR URL and number, files changed, scoped-check result, tests touched, **the per-doc
+3. **Run `/pipeline:review` where your brief says to — against THIS PR, by the number you just captured.**
+   It reads that PR's diff and posts its findings onto it as a review. Where it raises something you accept,
+   apply it, run the scoped check, make **one more** commit and push it onto the same PR — never a second PR
+   and never a reopen. Where it raises nothing you accept, or reports `Review: PARKED`, there is no second
+   commit round and you go straight to the hand-back.
+4. **Hand back** — the PR URL and number, files changed, scoped-check result, tests touched, **the per-doc
    verdict** (each doc updated or not-affected-because, never a bare "docs reviewed"),
-   **the review pass's applied and rejected findings where the slice ran one** (the only route
-   its `Rejected` list has to the dispatcher), **every question you asked and what came back** — naming where
+   **the review pass's applied and rejected findings where the slice ran one** — which now reach your
+   dispatcher by two routes, this narrative and the review the pass posted onto the PR itself, so say that
+   the review is there — **every question you asked and what came back** — naming where
    a grant you acted on was written down, or saying plainly that nothing was, since your report is then the
    only record of it, **and, where the slice ran a pass, saying for each grant whether you acted on it BEFORE
    that pass ran or AFTER it reported**, since only the second produces an edit no reviewer read —

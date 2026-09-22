@@ -230,27 +230,28 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`). Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
-  `/pipeline:review` is the implementer's own quality + correctness pass over its uncommitted diff: worth it
+  `/pipeline:review` is the implementer's own quality + correctness pass over the PR it has just pushed, read
+  against that PR's real diff and posted back onto it as a review: worth it
   on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision
-  sets the commit ordering below. **The breakdown recommends, you decide, and going the other way puts your
+  sets the handoff ordering below. **The breakdown recommends, you decide, and going the other way puts your
   reason in the brief** — the seat that recommended had the slice's real files in front of it and priced this
   fan as the dominant term in the wave, so an override with no reason beside it is the one move that leaves
   nothing recording which of the two judgements the slice actually got. A slice arriving with no
   recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an
   improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR,
   hand back* included, which they then execute, while the shipped pass dispatches fresh reviewers
-  carrying the slice's goal, the diff and one dimension each and nothing else, and sizes that reader count
-  itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it
+  carrying the slice's goal, the PR and its resolved base, the diff and one dimension each and nothing else,
+  and sizes that reader count itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it
   waited on review sub-agents ran the pass as designed, and one whose reviewers left commits, a push or a PR
   forked them — so read `git log` on the branch before you read the report.
-- **The commit ordering — set by the review decision above.** A review slice commits LAST, since the pass acts
-  only on the *uncommitted* diff; a skip-review slice commits in logical blocks as the work lands, and is told
-  so. For a review slice paste this, its `<formatter sentence>` by the `format` row — *"Then run `<format>` in
-  WRITE mode, and THEN commit, in logical self-contained blocks."* where the project declares one, and *"This
-  project declares no `format`, so there is no formatter step: commit, in logical self-contained blocks."*
-  where it declares none:
+- **The handoff ordering — set by the review decision above.** Both kinds of slice commit in logical blocks
+  as the work lands, push, and open a draft PR; what the review decision changes is what happens AFTER that
+  PR is open, since the pass now reads the PR's own diff. For a review slice paste this, its
+  `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each commit."* where the
+  project declares one, and *"This project declares no `format`, so there is no formatter step."* where it
+  declares none:
 
-  > **Review slice:** Do NOT commit as you go — write the ENTIRE change uncommitted (cheap checks while you work are fine). When the code is done run `/pipeline:review` over your full uncommitted diff: it dispatches a fresh reviewer per dimension and each one reports; YOU hold the tree, change nothing in it until the last report has landed, commit nothing, and decide which findings to apply. `<formatter sentence>`
+  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
   **Commits are held to the scoped check either way, in whichever case the hook row names** — by a pre-commit
   hook that runs `scopedCheck`, which only *checks* formatting rather than fixing it, or, where none does, by
@@ -507,7 +508,9 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   hand-back is missing, and re-dispatching would discard a full build for a hand-back alone.
   **A report reading `Review: PARKED` is the one this instrument reads instead of the tree**: that slice's
   review pass found its readers refused by the host's concurrent ceiling with none of its own left out, and
-  a parked tree has exactly the no-commit shape above, so resuming it at once only has it refused and parked
+  its tree carries the FINISHED shape — commits past `$FP`, a remote branch, a draft PR — so the marker in
+  the report is the only thing telling it from a slice that is done, and an open PR is never itself the
+  evidence one is. Resuming it at once only has it refused and parked
   again. **Resume it on CAPACITY** — on the next hand-back from any slice in the wave, or at the next tick —
   **one parked slice per event, in the order they parked**, since resuming them together rebuilds the
   collision that parked them. **A resume your host refuses** is the next bullet's case. **This fires on

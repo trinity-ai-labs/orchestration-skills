@@ -158,6 +158,10 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   and still costs a release. Exempt: `.github/`, `.agents/`, `scripts/`, `AGENTS.md`, `CHANGELOG.md` and
   `.gitignore` — the exempt regex in `.github/workflows/ci.yml` is authoritative, so change both together, and
   where CI demands a bump for a file no installed plugin loads, the list is what is wrong, not the version.
+- **The repo's GitHub description — the About panel, set with `gh repo edit --description` — names the
+  current front-door command chain and which hosts the plugin ships for, and whoever changes either updates
+  it in the same change**, since it is a repository setting rather than a file: it is never in a diff, so no
+  check here can catch it drifting behind what README's own opening lines already say.
 - All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are
   PR-only, never a direct push to `main`, docs and CHANGELOG included: in a repo whose product is prose no
   gate can tell whether a rule is CORRECT, so the diff is the only review artifact there is and a direct push

@@ -147,7 +147,12 @@ than it saves.
 
 ⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and
 `envFiles` are all omitted deliberately by projects that mean it, and `integrationBranch` is omitted honestly
-by a project nobody has confirmed a branch for. Report what is undeclared and what declaring it would change;
+by a project nobody has confirmed a branch for. **The three `autoMerge*` keys are the same case reaching
+every project at once**, since each ships with a default and no project onboarded before them declares any:
+`autoMergeTrivial` and `autoMergeLeaves` default to `true`, so declaring them changes nothing whatever and an
+undeclared pair is the answer rather than a gap, while `autoMergeEpic` defaults to HOLDING the epic close-out
+for a human — the one of the three whose absence a project might genuinely want to overturn, and so the one
+worth naming out loud rather than listing. Report what is undeclared and what declaring it would change;
 the decision is the project's.
 
 ## Step 2 — Write `.agents/worktree.json`

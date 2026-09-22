@@ -215,6 +215,15 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   worktree applies *and drops* whatever happens to be on top, another agent's work or the human's. Zero
   matches or several is a stop; never an argument-less `git stash pop`, `apply` or `drop`; `git stash clear`
   is banned outright.
+- **A reversal is RUN rather than read off the diff, and a reader never runs one.** A verify bar that proves
+  a new test fails against the pre-change code has some seat move a tree to do it, so the bar states how
+  rather than leaving the means to whatever is quickest: git holds the work first — committed, or stashed
+  under that agent's own marker — then the breaking edit, then the one targeted test, then the restore from
+  that commit or that entry; or the reversal runs against the slice's fork point, where the pre-change code
+  is already a commit and no tree moves at all. **A review pass's readers sit outside that entirely** — they
+  read one tree concurrently while the agent that wrote it still holds it, so a reader asks that agent for
+  the reversal it already ran or reports that none was run, and "confirmed by reading the diff" is recorded
+  as a reversal that did not happen rather than as a bar met.
 - **An agent owns its follow-ups, and filing one looks first.** Work a change reveals but doesn't land is
   filed and folded into the run — not a bullet in a hand-back for you to triage.
   **Which of the two it is turns on the arc's GOAL, never on whether the branch still builds and never on the

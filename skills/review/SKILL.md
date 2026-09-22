@@ -161,6 +161,10 @@ asks a reviewer to change anything.
   iteration, a failure partway through a multi-step write.
 - Error handling that swallows rather than surfaces — a `catch` that logs and continues past a
   condition the caller needed to know about.
+- **A test this diff adds or changes that cannot fail regardless of what the code under it does** — an
+  assertion checked against the value that configured its own mock, a constant asserted against itself, a
+  check the implementation could never violate — is not coverage: it passes on a broken change exactly as it
+  passes on a correct one. Report it as a defect in the test, not as ground the diff has covered.
 - Anything that would fail only in combination with a sibling slice's half of a contract. Nothing here
   can test that, so **name it** — the caller forwards it to the dispatcher, who can.
 - **Comments the diff rewrote or moved, checked against the code they describe.** A comment asserting

@@ -2,6 +2,16 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.7.0
+
+- **A tautological test is now a named defect on both sides of the implementer/reviewer split.** An
+  implementer's `Craft` step (`skills/execute/references/implementer.md`) states that a test proving nothing
+  because it cannot fail — an assertion checked against the value that configured its own mock, a constant
+  asserted against itself — games the suite exactly as a suppressed lint rule games the linter, and is never
+  written that way. `/pipeline:review`'s Correctness dimension (`skills/review/SKILL.md`) carries the same
+  failure as a backstop finding, for one that slips through anyway: report it as a defect in the test, not as
+  ground the diff has covered.
+
 ## 5.6.1
 
 - **`AGENTS.md` now states the one squash this repo performs.** It said "merge commits, not squash" with no

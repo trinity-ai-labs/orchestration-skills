@@ -57,7 +57,8 @@ important it is or how well you understand it.
 
 **The horizon is the next dispatchable set: every remaining READY LEAF of the plan's tree — every remaining
 item whose dependencies have already landed** — usually a wave, or the dispatchable subset of one whose rest
-still waits on something unmerged. **A cycle lands whole leaves** (`skills/glossary/vocabulary/umbrella.md`),
+still waits on something unmerged, and **never a leaf whose own PR is already open and held**, which reads
+as ready on dependencies alone and is what step 1 checks for before it derives anything. **A cycle lands whole leaves** (`skills/glossary/vocabulary/umbrella.md`),
 which is what lets a checklist line tick as work lands — the thing the cycle lands and the thing the tracker
 holds being the same object, where a cycle landing pieces of a leaf leaves churn as the only countable thing.
 **It is whatever you are about to ground and dispatch in THIS cycle — it moves outward only as increments
@@ -138,6 +139,30 @@ same way** — re-author them as one leaf at issue altitude through `/pipeline:w
 checklist lines to its one line, ground it as one slice, and carry on into this cycle.
 **Never by briefing one implementer on two issues**, which is one PR closing two tracked items.
 
+**A cycle resuming an arc this loop left held takes one read BEFORE the grounding above, and it decides
+which leaves the horizon even has** (the sixth exit, in *Repeat, or close out*): the hold left that leaf's
+PR open, its branch alive and its worktree standing, so a horizon re-derived from the plan alone reads the
+leaf as ready and dispatches a second implementer into work that is already built, already reviewed and
+already gated. **Read that PR's own state — `gh pr view <n> --json state,mergedAt` — and never the plan's
+memory of it**, the comment the hold wrote onto the tracked issue being where its number comes from.
+**Merged since the hold** and the leaf simply LANDED, so the horizon moves outward past it — **but a human
+who merged it on GitHub ran none of the steps this flow's own merge runs**, so its worktree still stands,
+its branch is still there and the local integration branch is still behind the tip every later cut is taken
+from, which makes finishing that close-out this cycle's first act rather than a tidy-up.
+**Still open and held** and nothing has landed: report which PR is still held exactly as the exit that left
+it there has you report it, leave that leaf where it is, and run the cycle on whatever else is ready.
+
+**An epic's close-out hold is the other shape and it has no leaf at all** — every leaf merged, the plan
+emptied, and what the hold suspended is termination's own half. **Merged since, and that half IS this
+cycle's work** rather than a fresh horizon: close the arc's issues, tell its follow-ups which state they
+are in, answer the close-out's own questions. **Still held, and it is reported held again** rather than
+halted over a cycle with nothing left to ground. **And where this flow is the one merging it, the close-out
+cadence re-runs first** — a hold is unbounded, so treat the base as having moved under it — which needs
+that epic worktree back: where the branch outlived its tree, attach one to the branch that already exists,
+the helper's `--existing` form (`skills/procedures/worktree-helper.md`), rather than cutting a fresh one,
+since a fresh cut forks from the base as it stands NOW and carries none of that branch's own commits while
+being a real tree with a real install, so nothing about it reads as wrong.
+
 **Once the horizon is ground and BEFORE step 2 dispatches it, intersect every item still *Adjacent*
 (`skills/glossary/vocabulary/adjacent.md`) against those fresh `Owns`** — the one moment in the cycle when the
 paths are real and the item can still fold, which is why the reconcile checklist's *Follow-ups filed out of
@@ -164,7 +189,9 @@ and is yours to decide**: that pass recommends one and states the evidence it ho
 the queue, what is already live and what this host can take, recording your reason where you depart from it.
 
 ⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you
-owe a divergence tick roughly every 10 minutes in between.** Arm it with whatever self-paced timer your host
+owe a divergence tick roughly every 10 minutes in between.** **Where a checkpoint's flag holds a slice's
+merge instead, the step ends AT that hold** — the merge it would otherwise wait on is not coming, and the
+cycle takes the sixth exit (*Repeat, or close out*) rather than ticking against an agent that finished. Arm it with whatever self-paced timer your host
 gives you, at ≈600s, callable right here rather than only from a looping command.
 **Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch
 report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are
@@ -178,7 +205,12 @@ the message before the stop — are that pass's own, and you are in it.
 
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
-falsify anything.
+falsify anything. **Which is why a cycle whose own increment merged NOTHING — every PR it dispatched left
+held by a checkpoint's flag — runs neither this step nor step 4**: there is no merged tree, which is the
+checklist's own precondition rather than a case inside it
+(`skills/orchestrate/references/reconciling.md`), and both run at the cycle that lands those PRs.
+**An epic's close-out hold is not that case and never reaches this step** — it fires at step 5, after this
+cycle's increment has merged into the epic branch and this checklist has already run against it.
 
 ## 4. Rewrite the remaining plan → `skills/orchestrate/references/reconciling.md`
 
@@ -213,11 +245,17 @@ linked issue or recorded settle owns is a remaining plan that is NOT empty**, si
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
 closing keywords, which fire only where that PR's base is the repository's **default** branch and never
-fire later.
+fire later. **They stay OPEN where that close-out is held rather than merged** — the closes are
+termination's own half and a held merge has shipped nothing, so closing them there records a release that
+did not happen on the one surface the next invocation of this loop reads; that is the sixth exit below
+rather than a case inside this one.
 
-**Five exits, and only one is finishing**: an empty plan and a green close-out **terminates**;
-**a cycle that lands nothing halts** — a remaining plan identical to the one it started with, since nothing
-else stops the loop; the checklist's *Scope drift* **halts where the plan has grown PAST what was asked**, the
+**Six exits, and only one is finishing — the five here, and a sixth below them that reports no problem at
+all**: an empty plan and a green close-out **terminates**;
+**a cycle that lands nothing halts** — a remaining plan identical to the one it started with, which is what
+stops a loop that has stopped progressing, **and the sixth leaves that same plan identical while nothing
+has gone wrong at all, so read for a hold before you read an unchanged plan as a halt**;
+the checklist's *Scope drift* **halts where the plan has grown PAST what was asked**, the
 exit that does not look like one because it fires on a loop landing work cleanly;
 **a forced item the arc was planned smaller than halts it too**, once absorbing it would change what the arc
 IS, reported with the re-plan recommended; and **two consecutive cycles at a net of zero or more halt it as
@@ -234,10 +272,33 @@ for having filed nothing. **Nothing else about this exit moves** — the thresho
 that condition stand exactly as they were, and what changed is which closes go into the net.
 **Scope drift's other direction is not an exit at all** — a plan falling SHORT
 re-opens and the loop carries on — so read which direction fired before you treat a fire as a stop.
+**And the sixth is the one where nothing has gone wrong.** A cycle whose dispatch produced a merge this
+flow has fully satisfied — built, reviewed, gated — that the checkpoint's `autoMerge*` flag is holding for
+a human's approval leaves the arc **held**, which with `autoMergeEpic` absent meaning `false`
+(`skills/procedures/config-keys.md`) is the ordinary way an epic's close-out ends rather than an edge case.
+**It is neither of the two things it sits between, and reporting it as either says something false**:
+termination takes a green close-out and a merge that has not happened is not one, while every halt above
+reports a problem and recommends a re-plan nothing here calls for — the plan emptied, the work landed as
+written, and the only thing outstanding is a signature.
 **Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue
 filed out of this arc that it did not land, that the loop is not coming back, and
 **which state *Fold vs. file* left it in**. **They are not among the issues the close-out closes**, and
-**a halt owes this exactly as termination does.**
+**a halt owes this exactly as termination does** — **and a held arc owes none of it**, since it has not
+left: the loop is due back the moment that PR merges, so telling a follow-up otherwise writes down the one
+thing about this exit that is false.
+
+**What a held exit owes instead is a report and a record of it, and the record is what a later cycle
+actually reads.** **Report which PR is held, which flag is holding it, and what approving it takes** — a
+human merging it on GitHub, or telling this flow to go ahead — the comment the merge checkpoint already
+posted sitting on a draft nobody is watching. **Then write that same fact onto the tracked issue, or onto
+the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches only whoever
+is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining
+plan and nothing parked beside it, so a line there that no checklist line, linked issue or recorded settle
+owns reads as a plan that is NOT empty at the very termination the hold is waiting on. That write takes the
+`--field` form every issue write in this loop takes (`skills/glossary/mechanics/gh-api-file-body.md`).
+**The close-out's own pipeline-findings question below is owed here all the same**, the run ending whether
+or not the arc has; **and a held cycle is not one the fifth exit's two-cycle window counts**, since it
+wrote no cycle record and filed nothing, and counted it halts an arc over a backlog it never transferred.
 
 **And one question the close-out answers in writing: did this arc surface a defect or a gap in the pipeline
 itself?** Exactly one of four, and the order is the preference — **fixed**, closed in this release, naming

@@ -191,8 +191,10 @@ a standalone issue is one cycle — its horizon is the issue itself, and its rec
 `orchestrate` runs the arc to completion on its own, cycle after cycle, reporting what it decided each time
 and how much it has left standing; it comes back to you for a genuine product or design fork the code and
 conventions cannot settle, asked in plain chat, one question at a time, with a recommendation — to hand you a
-merge it has satisfied but is not authorized to make, where the project's `autoMerge*` flag for that
-checkpoint holds it, which is how an epic's close-out ends unless the project says otherwise — or to halt,
+merge it has satisfied but is not authorized to make, the **held** exit, where the project's `autoMerge*`
+flag for that checkpoint holds it, which is how an epic's close-out ends unless the project says otherwise
+and is the one exit it comes back from on its own: merge that PR, or tell it to go ahead, run the same
+command again, and it picks the arc up from there rather than rebuilding what is already built — or to halt,
 which is a report rather than a question and happens when a cycle lands nothing, when what is left of the plan
 has grown past what you asked for, when work the goal turns out to need is too big for the arc as it was
 planned, or when two cycles running have each filed at least as many follow-ups as they closed items of the

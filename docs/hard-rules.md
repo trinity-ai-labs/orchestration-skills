@@ -292,7 +292,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   `merge-pr.sh`**, since a PR flipped ready and left unmerged is exactly the stale approval that flip's
   placement one line above the merge exists to prevent. No post-merge step runs either, issue closes and the
   base-branch sync included, and the run's own report names which PR is held — the comment sits on a draft
-  nobody is watching. A human merges it on GitHub or says to go ahead, and the command below then runs
+  nobody is watching. **The loop writes that same fact onto the tracked issue as a comment**, never into the
+  umbrella body, which carries the remaining plan alone: the report reaches whoever is reading that run and
+  the tracker is what the next invocation reads, so a hold recorded only in the report is one a later run
+  cannot see, and one recorded in the body reads there as a plan that is not empty. A human merges it on
+  GitHub or says to go ahead, and the command below then runs
   unmodified, **after a re-gate where the base has moved under the hold**, which is unbounded in length.
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
   preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in

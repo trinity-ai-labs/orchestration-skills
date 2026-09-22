@@ -2,6 +2,46 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.0
+
+- **The loop now has a sixth exit for a cycle whose merge is fully satisfied and waiting on a human.** It is
+  called **held**. With `autoMergeEpic` defaulting to `false` that is the ordinary way an epic's close-out
+  ends, and the five exits it used to have all said something false about it: termination takes a green
+  close-out and a merge that has not happened is not one, while each of the four halt shapes reports a
+  problem and recommends a re-plan nothing calls for. A held cycle now reports as its own exit — which PR is held,
+  which flag is holding it, and what approving it takes. The halt that fires on an unchanged remaining plan
+  now says so where it is stated, since a held cycle leaves that same plan unchanged with nothing wrong.
+- **A held exit is recorded on the tracker, not only in the run's report.** The report reaches whoever is
+  reading that run; the tracked issue is what the next invocation reads. It goes on as a **comment** rather
+  than into the umbrella body, which carries the remaining plan and nothing parked beside it — a line there
+  that no checklist line, linked issue or recorded settle owns is read as a plan that is not empty, at the
+  very termination the hold is waiting on.
+- **The arc's issues stay open on a held exit, and its follow-ups are told nothing.** Nothing has shipped,
+  so the closes termination performs do not run — and a halt's closing note, that the loop is not coming
+  back, is the one thing about this exit that is false: it is coming back the moment that PR merges. The
+  close-out's pipeline-findings question is owed all the same, the run ending whether or not the arc has.
+- **Reconcile is skipped where the cycle's own increment merged nothing, rather than run and empty.** The
+  checklist reads a merged tree by its own precondition, so a cycle whose every dispatched PR is held runs
+  neither it nor the plan rewrite; both run at the cycle that lands those PRs. Two of its items are the
+  exception and still run — the one reading hand-backs, which die with the agents that wrote them, and the
+  one reading the tracker, which does not need a merge. An epic's close-out hold is a different case and
+  does not reach that step: it fires after the cycle's increment has merged and the checklist has run.
+- **A resumed cycle reads a held PR's own state before it treats that leaf as part of a fresh horizon.**
+  Merged since the hold and the leaf landed; still held and nothing landed, so it is reported again and the
+  cycle runs on whatever else is ready. Either way no second implementer is dispatched into work already
+  built. A human who merged it on GitHub ran none of the post-merge steps, so the worktree, the branch and
+  the local base branch are all still where the hold left them, and finishing that close-out comes first.
+- **An epic's close-out hold resumes without a horizon at all** — every leaf merged and the plan already
+  empty, so what the hold suspended is termination's own half. Where this flow is the one merging it, the
+  close-out cadence re-runs first, a hold being unbounded; where the branch has outlived its worktree, a
+  tree is attached to the existing branch rather than cut fresh from a base that has since moved.
+- **The user-facing pages say the same.** The README names the exit and the fact that it is the one the loop
+  comes back from; `docs/mental-model.md` carries the held ending beside "until the plan is empty and the
+  close-out is green", which is no longer how an ordinary epic's arc ends, and the horizon clause that
+  excludes an already-held leaf; `docs/hard-rules.md` gains the loop's half of the record beside the
+  dispatcher's; and `docs/per-project-config.md` points at the loop for what the ARC leaves undone, which is
+  a different question from what the checkpoint leaves undone and lives in a different file.
+
 ## 5.10.0
 
 - **A project can now decide, per merge checkpoint, whether the dispatcher merges on its own authority or

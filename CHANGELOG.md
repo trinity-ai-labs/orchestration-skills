@@ -8,17 +8,19 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   PR was the one checkpoint in the flow that got a gate run and the orchestrator's own solo read but no
   dedicated reader over the combined diff — the only tree where every slice sits together, and the only one
   where cross-slice composition, shared state and emergent interactions are visible at all. The close-out
-  sequence is now: final merge in, draft PR, panel review, gate, the orchestrator's own review, merge.
-- **The panel is the full seven dimensions every time, never narrowed.** Each dimension already ran per slice
-  against that slice's own diff in isolation, so narrowing here drops precisely the dimensions the combined
+  sequence is now: final merge in, draft PR, panel review, any fix round, gate, the orchestrator's own
+  review, merge.
+- **The panel is never narrowed to what the diff looks like** — every dimension the pass offers on that
+  project runs. Each of them already ran per slice against that slice's own diff in isolation, so narrowing
+  here drops precisely the dimensions the combined
   diff is the first tree to exercise. It is one flat cost per epic however many slices the arc held, which is
   what parts it from a second per-slice pass, and there is no auto re-review loop: one panel run, at most one
   fix round, then the sequence carries on.
 - **The orchestrator is the caller, and it still writes no code.** Where the panel raises something worth
   taking, a fix agent is dispatched into the epic branch's own worktree — never a fresh one, never a second
-  PR — applies what was accepted, runs the scoped check, commits and pushes onto the same close-out PR. That
-  is the one sanctioned exception to *nobody codes in the epic worktree*, and it holds because the fix agent
-  leaves that tree committed and pushed.
+  PR — applies what was accepted, runs the scoped check, commits and pushes onto the same close-out PR. It is
+  the one dispatched writer in a tree the seat holding the merges already writes to, and the gate is enqueued
+  only once that round has landed, since a ticket raised earlier freezes the worktree the fix agent needs.
 - **Termination is stricter for an epic.** A close-out that ran the gate but skipped the panel is not yet
   green. A standalone issue's close-out, which cuts no epic branch, is unaffected.
 

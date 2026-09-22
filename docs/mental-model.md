@@ -203,12 +203,14 @@ before the **merge**, which is the step that actually puts the change set on the
 before the open, which puts nothing anywhere. What stands in for the hand-back there is two things rather than
 one: every slice was already reviewed as its own draft PR, **and the close-out PR carries a full
 `/pipeline:review` panel of its own**, run between its open and its gate over the combined diff no slice's own
-pass ever saw — the seven dimensions every slice already ran in isolation, asked once more of how those slices
-compose. So the close-out PR ends up with exactly the two-kinds-of-review shape described above: the panel's
-first, then the orchestrator's own read one per round, and neither of them the approval, which is still the
-`draft → ready` flip. The one thing that differs is who acts on what the panel raises — the orchestrator
-writes no code, so a fix agent goes into the epic's own worktree and pushes onto that same PR, and the gate
-follows the fix round rather than preceding it.
+pass ever saw — the same dimensions every slice already ran in isolation, asked once more of how those slices
+compose. So the close-out PR ends up carrying the same two artifacts a slice's PR does, the panel's review
+first and the orchestrator's own read after it, and neither of them the approval — the `draft → ready` flip is
+still that. **What does not carry across is the sentence above about who wrote the panel.** A slice's panel is
+the seat that wrote the code reporting on itself, which is why a PR arriving with one has been read by nobody
+else; the close-out's is the orchestrator, which wrote none of that code and is reading a combination no slice
+author ever saw. The orchestrator applies none of it either — it writes no code at any step — so a fix agent
+goes into the epic's own worktree and pushes onto that same PR, before the gate rather than after it.
 
 **And a gate comment says nothing about the implementer either — which is a distinction you only need in one
 mode, and it is the mode where the comment is most visible.** On a project that declares no queue the

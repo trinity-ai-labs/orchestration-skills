@@ -214,10 +214,11 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   carries uncommitted changes: the every-tick `merge origin/<integration-branch>` refuses to run over them,
   and `merge-pr.sh` fails mid-close-out when it fast-forwards the base **inside that worktree**.
   **Resolve a conflicted tick before you walk away** — resolve, commit, push.
-  **Exactly one thing codes in this tree, and it is named below: the fix agent the close-out panel's findings
-  send in** (*Close-out is at most one gate plus one ordinary PR*), which commits and pushes before it hands
-  back and so leaves the tree in the state this bullet requires. Nothing else does, and a fresh worktree is
-  never cut for it.
+  **The seat holding the merges already writes here — the conflicted tick above, a merge-reconcile commit, a
+  regenerated derived artifact — and the close-out panel adds the one DISPATCHED writer: the fix agent its
+  findings send in** (*Close-out is at most one gate plus one ordinary PR*). **Every one of them commits and
+  pushes before walking away**, which is the whole of what this bullet asks, and no fresh worktree is cut for
+  any of them.
 - **A module-resolution failure in the epic worktree is a stale install until proven otherwise, not a defect
   in the merged code.** This tree outlives the merges landing in it, so its dependencies fall behind; the
   tick's install (*Draining the gate queue*) keeps it current. Ask whether one has run since the package
@@ -260,40 +261,45 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before either** (*Docs
   land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
   **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT, run one full
-  `/pipeline:review` panel against it, and enqueue the gate against it — in that order**, naming the epic
-  worktree as the ticket's worktree. **Under `"epicMerge": "squash"` that PR's
+  `/pipeline:review` panel against it, land any fix round it earns, and only THEN enqueue the gate against
+  it — in that order**, naming the epic worktree as the ticket's worktree. **Under `"epicMerge": "squash"` that PR's
   title and body become the arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
   GitHub refusing to merge one. Opening first gives the ticket something to attach to, so the close-out takes
-  the shape every other PR has — draft, panel review, enqueue, gate comment, posted review, merge — instead of
-  being the one gate with no ticket, no log and no recorded verdict.
+  the shape every other PR has — draft, panel review, any fix round, enqueue, gate comment, posted review,
+  merge — instead of being the one gate with no ticket, no log and no recorded verdict.
 
   **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
-  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review
-  whoever called it, so nothing about the pass itself changes for this one. **Ask it for the full
-  seven-dimension panel every time and never a narrowed one**: every dimension already ran per slice against
-  that slice's own diff in isolation, so all that is left for this run is the one thing none of those could
-  see — how the slices COMPOSE, the state they share, the interactions that exist only once they sit
-  together — and a narrowed panel drops exactly the dimensions the combined diff is the first tree to
-  exercise. **It costs ONE flat panel per epic however many slices the arc held**, which is what parts it from
-  running this pass twice anywhere else here: a second per-slice run multiplies by the slice count, while this
-  is once, at the top, over the only diff nothing else reads whole.
+  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, and
+  it runs here unaltered right through that post; **what differs is only who acts on the findings**, which is
+  the next rule. **Ask it for every dimension it offers on this project — seven where the project states
+  conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
+  like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
+  is left for this run is the one thing none of those could see: how the slices COMPOSE, the state they
+  share, the interactions that exist only once they sit together. **It costs ONE flat panel per epic however
+  many slices the arc held**, which is what parts it from running this pass twice anywhere else here: a
+  second per-slice run multiplies by the slice count, while this is once, at the top, over the only diff
+  nothing else reads whole.
 
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own
   worktree** — that tree already exists and IS the merge point, so never cut a fresh one for this and never
   open a second PR — and it applies what you accepted, runs the project's scoped check, commits, and pushes
-  onto this SAME close-out PR. **That is the ONE sanctioned exception to *nobody codes in the epic worktree*
-  above**, and it is one only because the fix agent leaves that tree committed and pushed: a fix round that
-  walks away with the tree dirty breaks the next tick's merge and `merge-pr.sh`'s fast-forward inside it.
+  onto this SAME close-out PR. **Where the project declares `install`, run it in that tree before the fix
+  agent's check** — that tree outlives every merge landing in it, and a stale install there presents as a
+  module-resolution failure that reads as a defect in the merged code and sends the agent against code that
+  is correct. **That is the one DISPATCHED exception to *nobody codes in the epic worktree* above**, and the
+  fix agent commits and pushes for the reason every writer in that tree does: the gate ticket you raise next
+  refuses a worktree carrying uncommitted tracked changes, and nothing takes a ticket back.
 
   **One panel run and at most one fix round, then carry straight on — this pass no more re-triggers itself
   here than it does on a slice.** That fix round's readers are the gate and your own read of the diff, both
   still ahead of the merge, so a second panel over the same diff buys a reading already scheduled.
-  **Gate AFTER the fix round**, since a gate against a tree you are about to have rewritten leaves a verdict
-  naming a head the PR will never match. Where the project declares **no queue**, gate the epic
+  **Gate AFTER the fix round, never before it**, since a ticket raised first both burns a serialized gate on
+  code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
+  able to take a ticket back. Where the project declares **no queue**, gate the epic
   branch in its own worktree yourself and read its exit status. Then merge it with `merge-pr.sh` like any
   other — the one PR with no implementer behind it, so no hand-back to promote.
 - **This closing merge is the ONE merge a project may collapse, and it is an option a project declares — never

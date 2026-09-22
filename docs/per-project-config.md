@@ -31,6 +31,9 @@ human-facing tour of the same file: the worked example below, then what each key
   "format": "pnpm format",
   "upstreamFindings": false,
   "epicMerge": "merge",
+  "autoMergeTrivial": true,
+  "autoMergeLeaves": true,
+  "autoMergeEpic": false,
   "sharedResources": [
     { "resource": "the Postgres database the suite migrates", "isolatedBy": "tests/bootstrap derives a database name from `git rev-parse --path-format=absolute --show-toplevel`, and marks the database with that same path" },
     { "resource": "the shared build cache", "isolatedBy": "not isolated and does not contend — it is content-addressed and every access goes through the task runner, so concurrent access is its designed mode and cannot corrupt an entry. NOT the null case" }
@@ -61,6 +64,9 @@ human-facing tour of the same file: the worked example below, then what each key
 | `changelog` | skills | The one file a new version's section is prepended to, **or the directory a per-version file is created in** where the project keeps one changelog file per release — the release pass reads which of the two it was handed. **Not a member of `bumpFiles`** — those have a string replaced, this has a section written, and an agent handed one flat list looks for a version field to swap here and either overwrites the last release's heading or reports success having done nothing. One path, not a list |
 | `docsPaths` | skills | `{path, when}` per doc tree: where documentation lives, and **what kind of change makes each stale**. It is what makes an implementer's per-doc verdict answerable rather than invented — *not affected* becomes a judgement against a stated condition rather than a sentence composed on the spot — and it is where to look in the first place, since user-facing prose carries none of the identifiers a change introduces, so grepping them comes back empty and reads as nothing to update. Declared, a dispatched brief's docs block names each path with its `when`; absent, it names `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory |
 | `epicMerge` | `merge-pr.sh` + `.ps1` | `"merge"` (the default) or `"squash"` — whether an epic branch collapses to one commit when it merges back into the integration branch, that commit taking the close-out PR's title and body as its message. Omitting it means `"merge"`; see the `epicMerge` note before setting it |
+| `autoMergeTrivial` | skills | Whether a **standalone single-slice arc's** PR into the integration branch merges as soon as the pipeline is satisfied, or is held for you to approve. **Omitting it means `true`** — today's behaviour. See the merge-automation note |
+| `autoMergeLeaves` | skills | The same for a slice that is **one of several children of a multi-slice epic**, merging into the **epic branch**. **Omitting it means `true`**, since nothing user-facing ships until the epic branch itself lands |
+| `autoMergeEpic` | skills | The same for the **epic branch's own close-out merge into the integration branch** — the merge that actually ships the combined work. **Omitting it means `false`**: the one of the three that holds by default. **Not a relative of `epicMerge` despite the name** — that one picks this merge's mechanics and the helper reads it; this one picks whether the merge happens without you |
 
 See [`examples/worktree.json`](../examples/worktree.json) for a complete file.
 
@@ -127,6 +133,19 @@ whose work lands on its default branch gets no squash at the genuine epic bounda
 otherwise indistinguishable from the option being broken. Both ports compare the key, the value and the branch
 names case-sensitively, so `"Squash"` and `"EpicMerge"` mean `merge` in bash and PowerShell alike. The other
 condition, why every unanswerable question falls back to `merge`, and the trade the option makes are all in
+[`skills/execute/references/worktrees-and-branches.md`](../skills/execute/references/worktrees-and-branches.md)
+→ *Mechanics*.
+
+**The three `autoMerge*` keys decide whether a merge happens without you — never whether anything gets
+reviewed.** Every review pass and every gate runs identically whichever way you set them; what a `false`
+gates is the merge action alone, at the one checkpoint that key names, and which key answers for a given PR
+is decided by the branch that PR targets. **The defaults are not uniform, and that is the thing to know
+before you leave all three unset**: the two slice-level keys default to `true`, so those checkpoints behave
+exactly as they always have, while `autoMergeEpic` defaults to `false`, so an epic's close-out into the
+integration branch waits for you unless you say otherwise. A held PR stays a **draft** and carries a comment
+saying so; you approve it by merging it on GitHub yourself or by telling the assistant to go ahead. What the
+flow does at each of the two checkpoints, and what it leaves undone while a merge is held, is in
+[`skills/execute/references/landing.md`](../skills/execute/references/landing.md) → *Merge & cleanup* and
 [`skills/execute/references/worktrees-and-branches.md`](../skills/execute/references/worktrees-and-branches.md)
 → *Mechanics*.
 

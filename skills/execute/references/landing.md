@@ -208,6 +208,43 @@ least-witnessed gate in the flow.
 
 Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you merge a slice PR** — the steps
 have exactly one correct order, and syncing the local integration branch is the one nothing forces.
+
+**One check stands in front of everything below, and it is a NEW step rather than a change to any of them:
+whether this merge is yours to make at all.** Take the key off the branch this PR TARGETS, which is the
+question the three keys actually partition (`skills/procedures/config-keys.md`) — **`autoMergeLeaves`** where
+it targets an **epic branch**, so this PR is a leaf of that epic; **`autoMergeTrivial`** where it targets the
+**integration branch**, which is a standalone single-slice arc's PR and equally a slice of a multi-slice arc
+whose user asked it to merge as it lands (*The epic branch* → *Two rules reach for one*) — **that second case
+targets the shared branch and so reads `autoMergeTrivial`, not `autoMergeLeaves`**, since what the key turns
+on is where the merge puts the work rather than how big the arc is. **Absent means `true` for both**, so a
+project that has declared neither reaches every step below exactly as written. (**The third key,
+`autoMergeEpic`, governs the one PR neither of those describes** — an epic branch's own close-out into the
+integration branch — **and its absence means `false`**, the opposite reading; it is stated where that
+close-out is run, at *The epic branch* → *Mechanics*, and this paragraph is not it.)
+**`true` changes nothing at all** — carry
+straight on. **`false` holds the merge and only the merge**: the review loop above ran unconditionally and its
+satisfied review is already posted (*The PR review loop*), the gate's verdict is already on the PR, and what
+you do with all of it is post **one comment** saying the pipeline is satisfied — build, review and gate all
+green — and that this checkpoint's flag is holding the merge, then stop there. **The PR stays exactly as it
+is, which is a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`** — the ready flip lives one
+line above the merge precisely so a PR can never sit around wearing a review it has outgrown, and flipping it
+without merging is that state by hand. **None of the POST-MERGE steps below runs either** — the worktree stays
+up, the branch and its PR stay, the local integration branch is not synced, and the issues this PR settles
+stay open, since each of those is a step after a merge that has not happened. ⚠️ **The two ARC-level items at
+the end of this file are not post-merge steps and are owed anyway where this hold ends the arc** — the
+pipeline-findings question, and `reclaim`'s `report` only once every worktree really is torn down, which a
+hold is precisely why it may not be.
+**Say in your own report which PR you have left held and what approving it takes**, since the comment you
+just posted sits on a draft PR nobody is watching and this report is the only thing that reaches the person
+whose approval the merge is now waiting on.
+A held PR is simply **not landed**, so whatever waits on it waits exactly as it would on any other unmerged
+PR. When the approval arrives — a human merging it on GitHub, or telling this flow to go ahead, an ordinary
+instruction handled like any other — `merge-pr.sh <pr-number>` runs completely unmodified, and the rest of
+this file applies unchanged from there. ⚠️ **A hold is unbounded, so treat the base as having MOVED when you
+come back to it**: `merge-pr.sh` preflights mergeability and stops cleanly on a conflict, but a gate verdict
+older than the base it is now merging into is a verdict about a tree nobody holds, so re-gate before you
+merge where the base has moved since that comment went up.
+
 The steps below have exactly one correct order, and syncing the local integration branch is the one with
 **no forcing feedback** — every visible signal after the merge (`✓ Merged`, branch deleted, PR closed) says
 "done", so it's silently skipped, and the miss only surfaces later when the *next* worktree is cut from a

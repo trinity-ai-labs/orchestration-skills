@@ -120,7 +120,10 @@ test names, not a count — fixing one stale test and breaking a new one keeps t
 a regression; the absolute count drifts between tasks forked at different tips and as consumers migrate). If
 it clears that bar, merge it with `merge-pr.sh` on that bar rather than a green exit — the merge is where you
 record having read it, and a red comment you have *judged* is not a blocker, only a verdict you have to read
-carefully.
+carefully. **This window changes what a satisfied pipeline LOOKS like and never who may merge, so the
+checkpoint's `autoMerge*` flag is read here exactly as it is on any other merge** (*Merge & cleanup*): a
+judged-green baseline failure is a satisfied pipeline, and where that flag holds the merge you post the
+holding comment on that same bar instead of invoking the helper.
 
 ---
 

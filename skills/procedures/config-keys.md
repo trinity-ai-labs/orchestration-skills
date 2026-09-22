@@ -100,6 +100,34 @@ a question rather than a default.
   ⚠️ **Without `integrationBranch` declared this key does nothing wherever work lands on the default
   branch**: the older test asks whether the PR's base is the repository's default branch, which the
   genuine epic boundary fails in exactly those projects.
+- **`autoMergeTrivial`, `autoMergeLeaves`, `autoMergeEpic`** — three booleans partitioning ONE question by
+  the branch a PR **targets**: whether that merge happens as soon as this flow's own pipeline is satisfied,
+  or is held until a human approves it explicitly. **All three gate the MERGE and nothing upstream of it** —
+  a `false` leaves every review and every gate running exactly as they would have. Which key answers for
+  which PR:
+  - **`autoMergeTrivial`** — a slice PR targeting the **integration branch**: a standalone single-slice arc's,
+    and equally a slice of a multi-slice arc whose user asked it to merge as it lands rather than cut an epic
+    branch. ⚠️ **Not a claim about the PR's size or risk** despite the name — what it turns on is where the
+    merge puts the work. **Absent means `true`**, which is how this flow has always behaved.
+  - **`autoMergeLeaves`** — a slice PR targeting an **epic branch**, so one of several children of that epic
+    (`skills/glossary/vocabulary/epic-branch.md`). **Absent means `true`**, since nothing user-facing ships
+    until the epic branch itself lands.
+  - **`autoMergeEpic`** — an **epic branch's own close-out merge into the integration branch**.
+    **Absent means `false`** — the one of the three whose absence HOLDS rather than merges, since this is the
+    merge that actually puts the combined work on the shared branch.
+
+  **A merge needs an exact `true`, and the one other thing that merges is a wholly ABSENT key on the two
+  whose default is `true`** — so a present value that is neither exactly `true` nor exactly `false`, an
+  unparseable config, or a `null` **holds**, on all three. Absence says nobody was asked and takes the key's
+  stated default; an unreadable answer says somebody wrote something nothing can read, which is a different
+  fact and resolves the other way, the merge being the irreversible direction and so the one worth making
+  somebody affirm.
+
+  ⚠️ **`autoMergeEpic` is unrelated to `epicMerge` above, which the similar names invite you to conflate**:
+  `epicMerge` picks that one merge's MECHANICS — a squash or a real merge commit — and `merge-pr` reads it
+  while performing the merge; `autoMergeEpic` picks whether that merge happens without a human saying so, and
+  is read **before** `merge-pr` is invoked at all, by a pass rather than by the helper. Either is set without
+  the other, and setting one says nothing about the other.
 - **`sharedResources`** — what the checks touch **outside** the worktree, and how each worktree gets its
   own: `{resource, isolatedBy}` entries. `resource` names the thing — a database, a Redis instance, a
   cache directory, a fixed port; `isolatedBy` names the project's mechanism *and the entry point it sits

@@ -4,13 +4,15 @@ Reference for `skills/orchestrate/SKILL.md`. **Steps 3 and 4 of the loop are per
 checklist runs against the **merged** tree, then everything it produced goes through *Fold vs. file* and
 *Where folded work goes*, and *Rewriting the plan* says where the result is written.
 
-**So a cycle that ended HELD — its merge fully satisfied and a checkpoint's flag holding it for a human —
-runs neither step, and that is this checklist's own precondition rather than a branch inside it.** Every
-item below interrogates the plan, the tree, the request, the tracker or the seam map against what the
-increment MERGED, and a merge that has not happened has produced nothing for any of them to read; running
-them anyway spends a cycle's judgement on the tree the LAST increment left, and writes its empty result
-down where a real one goes. Both steps run at the cycle that lands that PR, against the tree the merge
-produces.
+**So a cycle whose own increment merged NOTHING — every PR it dispatched left held by a checkpoint's flag
+for a human — runs neither step, and that is this checklist's own precondition rather than a case inside
+it**: the items below read the plan, the tree, the request and the seam map against what that increment
+MERGED, and a merge that has not happened leaves them nothing to interrogate, so they run at the cycle that
+lands those PRs, against the tree it produces. **Items 8 and 10 are the exception and are taken NOW rather
+than deferred** — 10 reads hand-backs, which die with the agents that wrote them where every other input
+here outlives the run, and 8 reads the tracker, which this cycle's dispatchers may have filed onto whether
+or not anything merged. **An epic's close-out hold is not this case at all**: it fires after the cycle's
+increment has merged and this checklist has already run against it.
 
 ## The reconcile checklist
 

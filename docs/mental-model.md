@@ -2,9 +2,14 @@
 
 **An arc is a loop, not a plan you write once — and it is one loop whether it holds one ready leaf or
 twenty.** `/pipeline:orchestrate` grounds only the **horizon** — the next dispatchable increment, meaning
-every remaining item whose dependencies have already landed — dispatches it, then **reconciles** everything
+every remaining item whose dependencies have already landed, and never a leaf whose own PR is already open
+and **held**, which reads as ready on dependencies alone — dispatches it, then **reconciles** everything
 still outstanding against the tree that increment actually produced, rewrites what remains, and goes round
-again until the plan is empty and the close-out is green.
+again until the plan is empty and the close-out is green. **Or until it is held**: where the checkpoint's
+flag holds that close-out merge — which, with `autoMergeEpic` defaulting to `false`, is how an ordinary
+epic's ends — the plan is empty, the work is done and the close-out is simply not green yet, so the loop
+reports which PR is waiting on you and stops there rather than halting over it. Merge it, or say go ahead,
+and the same command picks the arc up where it left off.
 
 **The plan those items sit in is a two-level tree of tasks — an umbrella and its sub-issues, the children
 being leaves — and it is cut once, when the issues are authored.** `/pipeline:write-issue` is the pass that

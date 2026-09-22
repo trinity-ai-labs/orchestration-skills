@@ -35,6 +35,12 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   empty, so what the hold suspended is termination's own half. Where this flow is the one merging it, the
   close-out cadence re-runs first, a hold being unbounded; where the branch has outlived its worktree, a
   tree is attached to the existing branch rather than cut fresh from a base that has since moved.
+- **The user-facing pages say the same.** The README names the exit and the fact that it is the one the loop
+  comes back from; `docs/mental-model.md` carries the held ending beside "until the plan is empty and the
+  close-out is green", which is no longer how an ordinary epic's arc ends, and the horizon clause that
+  excludes an already-held leaf; `docs/hard-rules.md` gains the loop's half of the record beside the
+  dispatcher's; and `docs/per-project-config.md` points at the loop for what the ARC leaves undone, which is
+  a different question from what the checkpoint leaves undone and lives in a different file.
 
 ## 5.10.0
 

@@ -147,7 +147,9 @@ saying so; you approve it by merging it on GitHub yourself or by telling the ass
 flow does at each of the two checkpoints, and what it leaves undone while a merge is held, is in
 [`skills/execute/references/landing.md`](../skills/execute/references/landing.md) → *Merge & cleanup* and
 [`skills/execute/references/worktrees-and-branches.md`](../skills/execute/references/worktrees-and-branches.md)
-→ *Mechanics*.
+→ *Mechanics*. What the **arc** leaves undone is a third thing and lives with the loop rather than either of
+those — the reconcile it skips, the issues it leaves open, and how a later run picks the arc back up —
+in [`skills/orchestrate/SKILL.md`](../skills/orchestrate/SKILL.md) → *Repeat, or close out*.
 
 **Why it lives in the repo.** It travels with the clone, works under any checkout directory name, and is
 reviewed in the same PR as the change that alters it. Keying it to a directory name instead — the old design —

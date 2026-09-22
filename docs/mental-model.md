@@ -7,7 +7,7 @@ and **held**, which reads as ready on dependencies alone — dispatches it, then
 still outstanding against the tree that increment actually produced, rewrites what remains, and goes round
 again until the plan is empty and the close-out is green. **Or until it is held**: where the checkpoint's
 flag holds that close-out merge — which, with `autoMergeEpic` defaulting to `false`, is how an ordinary
-epic's ends — the plan is empty, the work is done and the close-out is simply not green yet, so the loop
+epic's arc ends — the plan is empty, the work is done and the close-out is simply not green yet, so the loop
 reports which PR is waiting on you and stops there rather than halting over it. Merge it, or say go ahead,
 and the same command picks the arc up where it left off.
 

@@ -7,8 +7,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **⛔ Never a fork — every sub-agent is spawned FRESH, and a dispatched READER dispatches nothing at all.** A
   fork inherits the whole conversation of whoever spawned it and executes that agent's brief — *commit, push,
   open a PR, enqueue* — before it gets its turn back, and the deepest seat is the worst one: a review pass's
-  readers run beside a live implementer's uncommitted work, so neither the reviewers nor anything under them
-  is ever a fork. A reader that spawns children reports findings nobody in the chain established, and re-sizes
+  readers run beside a live implementer that still holds its worktree and its open PR, so neither the
+  reviewers nor anything under them is ever a fork. A reader that spawns children reports findings nobody in the chain established, and re-sizes
   from inside the reader count the pass chose.
 - **⛔ Every sub-agent's model tier is stated at the spawn, never inherited.** A host handed no model gives the
   child the **parent's** model, so one top-tier agent spawning readers spawns top-tier readers and a wide

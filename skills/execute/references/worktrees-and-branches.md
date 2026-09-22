@@ -113,6 +113,11 @@ the shared branch whenever a multi-slice arc does:
 - **One arc, N releases** — where shipped content must move a version, every merge into the integration branch
   is a release, with the version file and changelog a hotspot every slice touches.
 
+**Take that exception and every slice merge reads `autoMergeTrivial`, never `autoMergeLeaves`**
+(`skills/procedures/config-keys.md`), since those PRs target the integration branch and the keys partition by
+the branch a PR targets rather than by the size of the arc behind it — so a project holding merges onto its
+shared branch holds these too, which is the whole of what the exception puts there.
+
 **`ground` recommends; you decide and act.** It produces the seam map, so it is the pass positioned to see
 whether two halves must land together — Rule 1's question. A breakdown recommending nothing on a multi-slice
 arc still gets an epic branch by Rule 2, since silence is not the user asking to merge as it goes, and one

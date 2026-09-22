@@ -108,8 +108,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 | `frameworkSkills` | an entry whose `when` matches the slice's area | Step 0 names that skill beside `pipeline:execute`. |
 | | no entry matches, or absent | Step 0 names `pipeline:execute` alone. |
 | `briefConventions` | declared | The parts that bite this slice, beside `AGENTS.md`'s. |
-| | declared in the workspace's `.agents/workspace.json` as well | Both layers in one block — the workspace's text first, the repo's own second — and the repo's own to follow where they seem to disagree. |
-| | absent | `AGENTS.md`'s alone. |
+| | either, where the repo is a workspace member whose `.agents/workspace.json` declares one too | Both layers in one block — the workspace's text first, the repo's own second where it has one — and the repo's own to follow where they seem to disagree. |
+| | absent, with no workspace declaring one either | `AGENTS.md`'s alone. |
 | `integrationBranch` | declared | The fork point and the hand-off block's PR base — the epic branch instead where the arc cut one. |
 | | absent | The main checkout's current branch, and the brief says it was inferred. |
 | `sharedResources` | an entry with `isolatedBy: null` | One live slice on that resource, and the width with its reason in every brief of the wave. |
@@ -199,8 +199,10 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   `briefConventions`, the block carries BOTH layers, concatenated and neither replacing the other** — the
   workspace's text first, the repo's own second — **and says in as many words that where the two seem to
   disagree the repo's own is the one to follow**, since a slice handed two blocks and no order between
-  them picks whichever it read last. Where no workspace sits above the repo, the block is the repo's own
-  alone, exactly as it is without one.
+  them picks whichever it read last. **The two layers are independent, so carry whichever ones exist**: the
+  workspace's text reaches a member declaring none of its own, a repo's own reaches it with no workspace
+  above it, and a member with neither gets `AGENTS.md`'s alone, exactly as a repo outside any workspace
+  does.
 - **Docs ship in the same PR as the behavior.** Stale docs throw no error and fail no gate, so considering
   them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the
   plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this

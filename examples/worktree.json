@@ -55,5 +55,5 @@
       "when": "Effect-TS services, layers, HTTP routes, typed errors"
     }
   ],
-  "briefConventions": "See AGENTS.md for the coding conventions — this key carries only what a dispatch needs. The gate is parallel-safe: every worktree gets its own database. Branch as feature/*, target the integration branch, never rebase, never self-merge. Run /simplify over the full diff before committing when the slice is substantial."
+  "briefConventions": "See AGENTS.md for the coding conventions — this key carries only what a dispatch needs. The gate is parallel-safe: every worktree gets its own database, so slices touching different packages fan out freely. Branch as feature/* for work and hotfix/* for a fix going out ahead of the release. Run /simplify over the full diff before committing when the slice is substantial."
 }

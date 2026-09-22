@@ -47,8 +47,8 @@ a question rather than a default.
   means the project has no queue**, which is a supported shape rather than a gap.
 - **`frameworkSkills`** — `{skill, when}` pairs naming the framework skill each area opens with, so a
   brief can name one without anyone guessing the stack.
-- **`briefConventions`** — the facts that change how THIS PIPELINE dispatches, sizes a wave or gates
-  against this repo, baked into every dispatched brief: whether concurrent gating is parallel-safe here,
+- **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates
+  it, baked into every dispatched brief: whether concurrent gating is parallel-safe here,
   how `gate` and `scopedCheck` relate, how branches are named, what a PR targets, the order a change
   crossing a contract lands in. **General coding conventions are excluded BY NAME** — naming, layering,
   library usage, comment style — since a second copy of them here is what gets read instead of the
@@ -78,9 +78,10 @@ a question rather than a default.
   human-reviewed exactly as `integrationBranch` is, never derived and never regenerated**, since a
   regenerated value carries whatever one machine's docs happened to say into every member's brief.
   **It is CONCATENATED with a member's own and never replaces it** — the workspace's text first, the
-  repo's own second, and where the two seem to disagree the repo's own is the one to follow. **Absent is
-  a settled answer**: a member's own key is then read exactly as it is in a repo with no workspace above
-  it. It is read where a brief is composed, never by a helper.
+  repo's own second, and where the two seem to disagree the repo's own is the one to follow.
+  **The two layers are independent, so each is carried wherever it exists**: this one alone reaches a
+  member declaring none of its own, and absent it a member's own key is read exactly as it is in a repo
+  with no workspace above it. It is read where a brief is composed, never by a helper.
 - **`bumpFiles`** — every file whose version STRING moves when a change ships, as a claim of
   **completeness**: searching finds some, and nothing tells you the search found them all. ⚠️ **It answers
   WHICH, never WHETHER** — the decision to bump arrives from a person or a pass, and this only says

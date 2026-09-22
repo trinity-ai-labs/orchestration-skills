@@ -9,7 +9,7 @@ description: >-
   says to run a review pass for the slice, and whenever you are asked to review, tighten, simplify
   or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
   over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
-  efficiency, altitude and a project's stated conventions — then weighs what they report, applies
+  efficiency, altitude and a project's stated rules and conventions — then weighs what they report, applies
   what it judges right, posts its findings onto the PR as a review, and reports what it rejected.
 ---
 
@@ -105,7 +105,8 @@ step — read it before you write the first brief.
 
 **How many fire is your call, decided per slice the way the model tier already is.** Seven possible
 reviewers makes selection the cost control: a mechanical rename or a one-line fix does not earn seven
-readers, and a slice with no stated conventions to check against earns six at most. Say in your report
+readers, and a slice with no stated rules or conventions to check against earns six at most. Say in your
+report
 which dimensions you ran and which you judged the slice did not need.
 
 **Their TIER is the other half of that same selection, so name it in each spawn rather than leave it to
@@ -241,11 +242,9 @@ reads. Nor
 #### Rules & Conventions
 
 - The project's stated rules, as written down — a contributor guide, an agents file, a repo README,
-  whatever that project promulgates — checked against the diff clause by clause.
-- **What you read is what the project WROTE DOWN for a contributor**, those files and the trees they point
-  at, and never the pipeline-dispatch config a project declares in `.agents/worktree.json`, whose
-  `briefConventions` carries how this flow dispatches and gates rather than anything a diff can depart from
-  (`skills/procedures/config-keys.md`).
+  whatever that project promulgates — and the trees those files point at, checked against the diff clause
+  by clause, and **never `briefConventions`**, which carries how this flow dispatches and gates rather than
+  anything a diff can depart from (`skills/procedures/config-keys.md`).
 - What the project's own gate would say. **Read the gate's rules rather than running it — you were
   dispatched to produce a claim about this diff for the caller to test, so a gate run answers a different
   question, and your brief already carries what the caller ran and what came back** — and report the

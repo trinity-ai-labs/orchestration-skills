@@ -41,7 +41,7 @@ human-facing tour of the same file: the worked example below, then what each key
   "reclaim": { "report": "pnpm worktree:reclaim", "drop": "pnpm worktree:reclaim --drop" },
   "env": { "TURBO_CACHE_DIR": "${TURBO_CACHE_DIR:-$HOME/.cache/my-turbo}" },
   "frameworkSkills": [{ "skill": "solid", "when": "SolidJS UI" }],
-  "briefConventions": "See AGENTS.md for the coding conventions. Branch as feature/*, target the integration branch, never rebase, never self-merge."
+  "briefConventions": "See AGENTS.md for the coding conventions. The gate is parallel-safe: every worktree gets its own database. Branch as feature/* for work and hotfix/* for a fix going out ahead of the release."
 }
 ```
 

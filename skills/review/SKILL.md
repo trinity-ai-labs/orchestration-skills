@@ -2,9 +2,10 @@
 name: review
 argument-hint: "[file or path to narrow the pass]"
 description: >-
-  The implementer's own quality + correctness pass over the change it has just pushed, run once its
+  The caller's own quality + correctness pass over the change it has just pushed, run once its
   draft PR is open and read against that PR's real diff. Use when an implementer in the worktree
-  flow has pushed its slice and opened its draft PR, whenever the brief you were dispatched with
+  flow has pushed its slice and opened its draft PR, when an orchestrator has opened an epic's
+  close-out PR, whenever the brief you were dispatched with
   says to run a review pass for the slice, and whenever you are asked to review, tighten, simplify
   or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
   over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
@@ -23,7 +24,7 @@ this file does.**
 
 ⛔ **A reviewer here is NEVER a fork, and a reviewer here NEVER spawns one** — this pass sits deeper
 in the tree of agents than anything else in the pipeline and its readers run beside a live
-implementer that still holds the tree and the PR, so `skills/ground-rules/SKILL.md` rules 1 and 2 are
+caller that still holds the tree and the PR, so `skills/ground-rules/SKILL.md` rules 1 and 2 are
 the floor under every brief you write: spawned FRESH, and dispatching nothing of its own.
 
 **You hold the tree and they hold nothing** — several agents editing one worktree is the collision
@@ -386,9 +387,11 @@ here (a seat the change missed, a doc the change falsified) are routinely outsid
 goes inline, and the body carries the summary: the goal verdict, what was applied, and what was
 rejected with the reason.
 
-**Name the head SHA you read in that body.** The caller commits your applied findings after this post,
-so a reader comparing the review against the PR's head cannot otherwise tell a verdict that predates
-that commit — which yours does, correctly — from one that has gone stale.
+**Name the head SHA you read in that body.** The commit carrying your applied findings lands after this
+post — made by the caller itself where the caller writes code, and by a fix agent it dispatches where the
+caller does not, as an epic's close-out caller does not — so a reader comparing the review against the PR's
+head cannot otherwise tell a verdict that predates that commit — which yours does, correctly — from one
+that has gone stale.
 
 ⛔ **No AI attribution in that review or its inline comments — the configured git user is the only
 author any of it names.** No trailer, line, footer or URL naming Claude, the assistant, the model, the
@@ -458,10 +461,11 @@ flow that called you — in that order — and none of them are yours.
 ### A reviewer is fresh, is handed one dimension, dispatches nothing, and reports
 
 **Spawn every reviewer FRESH and never as a fork** — a fork inherits the whole conversation of whoever
-spawned it, which in this flow is an implementer's brief whose imperatives end in *commit, push, open a
-draft PR, hand back*, and a fork reads those as its own instructions and executes them before
-the implementer that spawned it gets its turn back. Use your host's fresh-sub-agent tool, and never an
-option that hands a sub-agent a worktree of its own.
+spawned it, and every caller of this pass carries imperatives a fork would execute: an implementer's brief
+ending in *commit, push, open a draft PR, hand back*, an orchestrator's close-out sequence ending in
+*gate, merge the epic branch back*. A fork reads whichever it inherited as its own instructions and carries
+them out before the caller that spawned it gets its turn back. Use your host's fresh-sub-agent tool, and
+never an option that hands a sub-agent a worktree of its own.
 
 **Hand a reviewer the slice's goal, the worktree path, the PR's number and its resolved base, the
 diff, its one dimension, and WHAT YOU HAVE ALREADY RUN with what it returned — and none of the handoff

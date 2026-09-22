@@ -314,14 +314,25 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **Where it is `true`**, merge it with `merge-pr.sh` like any other — the one PR with no implementer behind
   it, so no hand-back to promote. **Where it is held**, post **one comment** on the close-out PR saying the
   pipeline is satisfied — ledger empty, panel review landed, any fix round in, gate green — and that
-  `autoMergeEpic` is holding the merge, and stop there. **That PR stays a DRAFT: never call `gh pr ready` on
-  it and never call `merge-pr.sh`**, the ready flip living one line above the merge precisely so a PR can
-  never sit around wearing a review it has outgrown (*Merge & cleanup*). Nothing after the merge runs either
-  — the epic worktree stays up, the epic branch and its `transient-red/<epic-slug>` marker stay, the local
-  integration branch is not synced, and the arc's issues stay open. The arc is not finished and says so: a
-  close-out whose merge has not happened is not green, so the loop's termination check is unsatisfied with no
-  special case added to it. When the approval arrives — a human merging it on GitHub, or telling this flow to
-  go ahead — `merge-pr.sh <n>` runs completely unmodified, squash and all where the project declared one.
+  `autoMergeEpic` is holding the merge, and stop there.
+  ⛔ **That PR stays a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`**, the ready flip
+  living one line above the merge precisely so a PR can never sit around wearing a review it has outgrown
+  (*Merge & cleanup*). Nothing after the merge runs either — the epic worktree stays up, the epic branch
+  stays, the local integration branch is not synced, and the arc's issues stay open. **Say in your own report
+  which PR is held and what approving it takes**, the comment being on a draft nobody is watching. The arc is
+  not finished and says so: a close-out whose merge has not happened is not green, so the loop's termination
+  check is unsatisfied.
+  ⚠️ **One item on that list is NOT benign, and it is the `transient-red/<epic-slug>` marker**: left standing
+  it relaxes the next unrelated slice's compile check for as long as the hold lasts (*Deleting the epic
+  branch*), and a hold is unbounded — so on a knowingly-red epic, delete the marker when you post the holding
+  comment rather than at the merge, and cut it again if the window has to reopen.
+  ⚠️ **And re-run the close-out cadence when the approval finally arrives, before you invoke the helper.**
+  `merge-pr.sh <n>` then runs completely unmodified, squash and all where the project declared one — but under
+  `"epicMerge": "squash"` it compares the epic tip against the squash commit's tree and refuses to delete the
+  branch when they differ (*Mechanics*), and those trees are equal only while the epic still contains
+  everything the integration branch has. A hold of any length is exactly the window in which that stops being
+  true, so merge the integration branch into the epic one more time, re-gate, and only then merge — which is
+  the same ordering *Gate the integrated whole* already asks for, arriving late.
 - **This closing merge is the ONE merge a project may collapse, and it is an option a project declares — never
   a judgement anyone makes at merge time.** Every other merge here is a real merge commit with no opt-out. A
   project on a long-lived release branch may prefer one commit per arc for this scaffolding branch, and says

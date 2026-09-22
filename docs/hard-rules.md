@@ -290,9 +290,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   the dispatcher does instead of merging is post one comment saying the pipeline is satisfied and that this
   checkpoint's flag is holding the merge, and stop — **with the PR still a draft, no `gh pr ready` and no
   `merge-pr.sh`**, since a PR flipped ready and left unmerged is exactly the stale approval that flip's
-  placement one line above the merge exists to prevent. Nothing after the merge runs either, issue closes and
-  the base-branch sync included. A human merges it on GitHub or says to go ahead, and the command below then
-  runs unmodified.
+  placement one line above the merge exists to prevent. No post-merge step runs either, issue closes and the
+  base-branch sync included, and the run's own report names which PR is held — the comment sits on a draft
+  nobody is watching. A human merges it on GitHub or says to go ahead, and the command below then runs
+  unmodified, **after a re-gate where the base has moved under the hold**, which is unbounded in length.
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
   preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no

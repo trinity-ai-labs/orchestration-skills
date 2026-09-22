@@ -5,13 +5,18 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 ## 5.10.0
 
 - **A project can now decide, per merge checkpoint, whether the dispatcher merges on its own authority or
-  holds and waits for you.** Three independent booleans in `.agents/worktree.json`: `autoMergeTrivial` for a
-  standalone single-slice arc's PR into the integration branch, `autoMergeLeaves` for a slice that is one of
-  several children of a multi-slice epic merging into the epic branch, and `autoMergeEpic` for the epic
-  branch's own close-out merge into the integration branch. The first two default to `true`, so those two
-  checkpoints behave exactly as they always have when the keys are absent; `autoMergeEpic` defaults to
-  `false`, so the one merge that actually puts combined work on the shared branch waits for a human unless a
-  project says otherwise.
+  holds and waits for you.** Three independent booleans in `.agents/worktree.json`, partitioning the question
+  by the branch a PR **targets**: `autoMergeTrivial` for a slice PR targeting the integration branch — a
+  standalone single-slice arc's, and equally a slice of a multi-slice arc merging as it lands —
+  `autoMergeLeaves` for a slice PR targeting an epic branch, and `autoMergeEpic` for the epic branch's own
+  close-out merge into the integration branch. The first two default to `true`, so those two checkpoints
+  behave exactly as they always have when the keys are absent; `autoMergeEpic` defaults to `false`, so the
+  one merge that actually puts combined work on the shared branch waits for a human unless a project says
+  otherwise.
+- **A merge needs an exact `true`; an unreadable answer holds.** Absence takes each key's stated default,
+  but a present value that is neither exactly `true` nor exactly `false`, an unparseable config or a `null`
+  holds on all three — the merge is the irreversible direction, so it is the one worth making somebody
+  affirm.
 - **None of the three touches whether anything is reviewed.** Every review pass and every gate runs
   unconditionally whichever way the keys are set — what a `false` gates is the merge action alone, at the one
   checkpoint that key names.
@@ -21,9 +26,17 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   precisely so a PR can never sit around wearing a review it has outgrown, and a ready-but-unmerged PR is that
   state by hand. Nothing after the merge runs either: the worktree stays up, the branch stays, the local
   integration branch is not synced and the issues that PR settles stay open.
-- **A held merge needs no new state anywhere downstream.** The PR is simply not landed, which every reading
-  of "landed" in this flow already handles — whatever waits on it waits, exactly as it would on any other
-  unmerged PR, and the loop's termination check is unsatisfied with no special case added to it.
+- **A held PR is reported to you, not just commented on.** The comment lands on a draft nobody is watching,
+  so the run's own report names which PR is held and what approving it takes. A held merge leaves the arc
+  unfinished by the loop's existing test — the close-out is not green — and the work simply is not landed, so
+  whatever waits on it waits exactly as it would on any other unmerged PR.
+- **A hold is unbounded, so approving one re-establishes what the gate covered.** Re-gate a slice PR whose
+  base has moved since the holding comment went up; for an epic close-out, merge the integration branch into
+  the epic once more and re-gate before merging, since under `"epicMerge": "squash"` the helper compares the
+  gated epic tip against what lands and refuses to delete the branch when a drifted base makes those trees
+  differ. On a knowingly-red epic the `transient-red/<epic-slug>` marker is deleted when the holding comment
+  goes up rather than at the merge, since left standing it relaxes the next unrelated slice's compile check
+  for as long as the hold lasts.
 - **`bin/merge-pr.sh` and its PowerShell port are untouched.** When approval arrives — a human merging on
   GitHub, or telling the assistant to go ahead — `merge-pr.sh <n>` runs completely unmodified, squash and all
   where the project declared one. The keys decide whether that command is invoked, never how it behaves, so

@@ -138,17 +138,16 @@ condition, why every unanswerable question falls back to `merge`, and the trade 
 
 **The three `autoMerge*` keys decide whether a merge happens without you — never whether anything gets
 reviewed.** Every review pass and every gate runs identically whichever way you set them; what a `false`
-gates is the merge action alone, at the one checkpoint that key names. Where a checkpoint is held the flow
-does everything it would otherwise have done, posts a comment on the PR saying the pipeline is satisfied and
-that this checkpoint's flag is holding the merge, and stops with the PR **still a draft** — never
-ready-but-unmerged, which everywhere else here reads as a diff somebody has approved and is merging this
-second. Nothing after the merge runs either: the worktree stays up, the branch stays, the local integration
-branch is not synced and the issues that PR settles stay open, each of those being a step after a merge that
-has not happened. Approve it by merging it on GitHub yourself, or by telling the assistant to go ahead —
-`merge-pr.sh` then runs exactly as it does for any other PR. **The defaults are not uniform, and that is the
-one thing worth knowing before you leave all three unset**: `autoMergeTrivial` and `autoMergeLeaves` default
-to `true`, so those two checkpoints behave exactly as they always have, while `autoMergeEpic` defaults to
-`false`, so an epic's close-out into the integration branch waits for you unless you say otherwise.
+gates is the merge action alone, at the one checkpoint that key names, and which key answers for a given PR
+is decided by the branch that PR targets. **The defaults are not uniform, and that is the thing to know
+before you leave all three unset**: the two slice-level keys default to `true`, so those checkpoints behave
+exactly as they always have, while `autoMergeEpic` defaults to `false`, so an epic's close-out into the
+integration branch waits for you unless you say otherwise. A held PR stays a **draft** and carries a comment
+saying so; you approve it by merging it on GitHub yourself or by telling the assistant to go ahead. What the
+flow does at each of the two checkpoints, and what it leaves undone while a merge is held, is in
+[`skills/execute/references/landing.md`](../skills/execute/references/landing.md) → *Merge & cleanup* and
+[`skills/execute/references/worktrees-and-branches.md`](../skills/execute/references/worktrees-and-branches.md)
+→ *Mechanics*.
 
 **Why it lives in the repo.** It travels with the clone, works under any checkout directory name, and is
 reviewed in the same PR as the change that alters it. Keying it to a directory name instead — the old design —

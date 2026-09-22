@@ -2,6 +2,21 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.1
+
+- **A verify bar that requires a reversal now carries the mechanic for performing one, at all three seats
+  that meet it.** Grounding writes the mechanic into the bar beside the reversal it names, and the
+  implementer gets it at the step where the tree actually moves. What picks the shape is that a reversal
+  needs the new test standing while the code under it is pre-change: commit the work, break it, run the one
+  targeted test, restore — or stash the production file alone under a marker, where the push is itself the
+  break. Stashing the whole tree is called out as the shape that cannot work, since it carries the new test
+  away with the change. Either bar may instead be written to run against the fork point, where the
+  pre-change code is already a commit and no tree has to move at all.
+- **A review pass's reader is told outright that it never performs a reversal itself.** Its readers run
+  concurrently over one tree the caller still holds, so the Correctness dimension now says to ask that
+  caller for the reversal the implementer already ran, or to report that none was — and names "confirmed by
+  reading the diff" as an unrun reversal rather than a bar met.
+
 ## 5.11.0
 
 - **The loop now has a sixth exit for a cycle whose merge is fully satisfied and waiting on a human.** It is

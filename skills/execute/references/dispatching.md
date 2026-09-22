@@ -104,9 +104,11 @@ value does to a brief, and every pasted block below whose right form depends on 
 | | absent | No formatter step, and the brief says the project has none. |
 | `docsPaths` | declared | The docs block names each path with its `when`. |
 | | absent | The docs block names `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory. |
+| | either, where the repo is a workspace member | Plus the workspace-level `AGENTS.md`/`CLAUDE.md` where one sits beside `.agents/workspace.json`, named by its absolute path. |
 | `frameworkSkills` | an entry whose `when` matches the slice's area | Step 0 names that skill beside `pipeline:execute`. |
 | | no entry matches, or absent | Step 0 names `pipeline:execute` alone. |
 | `briefConventions` | declared | The parts that bite this slice, beside `AGENTS.md`'s. |
+| | declared in the workspace's `.agents/workspace.json` as well | Both layers in one block — the workspace's text first, the repo's own second — and the repo's own to follow where they seem to disagree. |
 | | absent | `AGENTS.md`'s alone. |
 | `integrationBranch` | declared | The fork point and the hand-off block's PR base — the epic branch instead where the arc cut one. |
 | | absent | The main checkout's current branch, and the brief says it was inferred. |
@@ -186,15 +188,30 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   surfaces. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
   or leave it out and have the brief say to take it before the first edit, which is where anything else the
   slice needs goes too.
-- **Project conventions for this slice.** The relevant bits of `briefConventions`
-  (`<repo>/.agents/worktree.json`) and `AGENTS.md` — compat policy, comment style.
+- **Project conventions for this slice.** The bits of `briefConventions`
+  (`<repo>/.agents/worktree.json`) that bite this slice, beside `AGENTS.md`'s — the key carrying the facts
+  that change how this pipeline dispatches and gates, and `AGENTS.md` the coding conventions, a line
+  `skills/procedures/config-keys.md` draws rather than this brief.
+  **You compose this block from the MAIN CHECKOUT, before any worktree is cut, so workspace membership is
+  yours to resolve here**: read the directory holding that checkout for `.agents/workspace.json` — a plain
+  filesystem read, the same place `integrationBranch`'s workspace answer is taken from, and no git
+  operation, the workspace root not being a repository. **Where one is there and declares
+  `briefConventions`, the block carries BOTH layers, concatenated and neither replacing the other** — the
+  workspace's text first, the repo's own second — **and says in as many words that where the two seem to
+  disagree the repo's own is the one to follow**, since a slice handed two blocks and no order between
+  them picks whichever it read last. Where no workspace sits above the repo, the block is the repo's own
+  alone, exactly as it is without one.
 - **Docs ship in the same PR as the behavior.** Stale docs throw no error and fail no gate, so considering
   them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the
   plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this
   brief and swap *report the change you need* for *bring them in line*** — pasted unqualified, the block below
   tells every slice to write the page the map gave to one of them. Paste this, substituting `<the doc set>`
   by the `docsPaths` row — each declared path with its `when` where the project declares them, and
-  `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory where it declares none:
+  `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory where it declares none — **and adding the
+  workspace-level `AGENTS.md`/`CLAUDE.md` by its absolute path where the repo is a workspace member and one
+  sits beside `.agents/workspace.json`**, since a member's own docs pointing outward at workspace-root
+  conventions otherwise name a file nothing standing in one member's worktree can open. A repo with no
+  workspace above it gets that set unchanged:
 
   > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 

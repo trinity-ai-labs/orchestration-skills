@@ -200,8 +200,15 @@ branch, which the orchestrator authors and then merges. It is a draft like every
 *first* and the integrated close-out check runs against it — enqueued, its verdict commented there, where the
 project declares a queue, and run by the dispatcher in the epic's own worktree where it declares none — green
 before the **merge**, which is the step that actually puts the change set on the shared branch, rather than
-before the open, which puts nothing anywhere. What stands in for the hand-back there is that every slice was
-already reviewed as its own draft PR.
+before the open, which puts nothing anywhere. What stands in for the hand-back there is two things rather than
+one: every slice was already reviewed as its own draft PR, **and the close-out PR carries a full
+`/pipeline:review` panel of its own**, run between its open and its gate over the combined diff no slice's own
+pass ever saw — the seven dimensions every slice already ran in isolation, asked once more of how those slices
+compose. So the close-out PR ends up with exactly the two-kinds-of-review shape described above: the panel's
+first, then the orchestrator's own read one per round, and neither of them the approval, which is still the
+`draft → ready` flip. The one thing that differs is who acts on what the panel raises — the orchestrator
+writes no code, so a fix agent goes into the epic's own worktree and pushes onto that same PR, and the gate
+follows the fix round rather than preceding it.
 
 **And a gate comment says nothing about the implementer either — which is a distinction you only need in one
 mode, and it is the mode where the comment is most visible.** On a project that declares no queue the

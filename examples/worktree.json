@@ -55,5 +55,5 @@
       "when": "Effect-TS services, layers, HTTP routes, typed errors"
     }
   ],
-  "briefConventions": "Match surrounding style. Pre-launch, forward-only — no backwards-compat shims. Comments explain the mechanism, not the history. Run /simplify over the full diff before committing when the slice is substantial. Never rebase, never self-merge."
+  "briefConventions": "See AGENTS.md for the coding conventions — this key carries only what a dispatch needs. The gate is parallel-safe: every worktree gets its own database. Branch as feature/*, target the integration branch, never rebase, never self-merge. Run /simplify over the full diff before committing when the slice is substantial."
 }

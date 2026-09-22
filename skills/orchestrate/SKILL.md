@@ -202,7 +202,13 @@ questions is the filing channel doing the asking *The decide-don't-ask bar* forb
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **A finding the umbrella body still carries that no checklist line,
+on the integration branch at step 2. **Where one WAS cut, green takes a third thing and only there: that
+close-out PR's own full `/pipeline:review` panel, run between its open and its gate** — a close-out that
+gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and
+cannot say whether the slices COMPOSE, and that combined diff is the first and only place they sit together.
+**Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
+anything you accepted from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after
+it and never by you. **A finding the umbrella body still carries that no checklist line,
 linked issue or recorded settle owns is a remaining plan that is NOT empty**, since closing that umbrella
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's

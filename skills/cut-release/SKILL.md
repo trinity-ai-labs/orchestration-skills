@@ -13,7 +13,8 @@ argument-hint: "[the version to cut, e.g. 0.5.0 — omit and it will work one ou
 
 **A project pass, not an arc pass.** `/pipeline:setup` answers *how does this project build and gate*; this
 one answers *the version moved, and so did the branch work lands on*. Both run **beside** the arc rather than
-inside it, both work in their own worktree, and both **terminate at a reviewable change they do not merge**.
+inside it and both work in their own worktree; where `/pipeline:setup` hands its change over unmerged, this
+one **carries the roll through to the merge**.
 
 **Why it exists: cutting a release branch is the one moment nothing in this pipeline was present for.** So the
 config went stale, the version moved invisibly, and the flow could only notice the damage afterwards. Owning
@@ -65,26 +66,36 @@ means — and the current version out of the first `bumpFiles` entry.
 
 Put it in one sentence and stop. Route A:
 
-> *You are on `<branch>`, at version `<current>`. I will cut `<new-branch>` from it, bump `<the bumpFiles>`, open a `## <version>` section in `<changelog>`, and point `integrationBranch` at the new branch — one commit, in its own worktree. Right?*
+> *You are on `<branch>`, at version `<current>`. I will cut `<new-branch>` from it, switch the main checkout onto it, bump `<the bumpFiles>` to `<new>`, open a `## <new>` section in `<changelog>`, and point `integrationBranch` at the new branch — one commit, in its own worktree, PR'd into `<new-branch>` and merged, leaving the main checkout on `<new-branch>` at the merged tip. Right?*
 
-Route B moves no branch, so its sentence promises none:
+Route B cuts no branch and so moves no checkout; its sentence promises neither:
 
-> *You are on `<branch>`, at version `<current>`. I will bump `<the bumpFiles>` to `<new>` and open a `## <new>` section in `<changelog>` — one commit, in its own worktree, PR'd back into `<branch>`. Right?*
+> *You are on `<branch>`, at version `<current>`. I will bump `<the bumpFiles>` to `<new>` and open a `## <new>` section in `<changelog>` — one commit, in its own worktree, PR'd back into `<branch>` and merged. Right?*
 
-⛔ **Nothing below happens without that yes.** The version is a product decision and the branch name outlives
-the arc; both are cheap to correct now and expensive later.
+⛔ **Nothing below happens without that yes, and on the roll itself nothing below asks for another.** The
+version is a product decision and the branch name outlives the arc; both are cheap to correct now and
+expensive later.
 
 ## 2. Route A — there is a branch to cut
 
 1. **Create the new branch and push it**, from the branch you are standing on. It is a branch pointer and
    nothing else yet.
-2. **Cut a worktree off the NEW branch** for the bump, with
+2. **Switch the main checkout onto it now**, before the bump worktree is cut. Checking out a branch you just
+   created from where you already stand is purely local and carries no review weight, unlike the merge, and
+   **every worktree cut while the main checkout still names the branch the release has moved past is
+   provisioned from that old branch's working copy** (`skills/procedures/worktree-helper.md`), so switching
+   here shortens that stretch rather than lengthening it. Step 0 cleared the ground for this, but it read
+   once and step 1 has waited on a human since — **read `git worktree list --porcelain` again before you
+   switch**, and stop exactly as step 0 does where a tree is standing now.
+3. **Cut a worktree off the NEW branch** for the bump, with
    `setup-worktree <a-branch-for-the-bump> <new-branch>` (`skills/procedures/worktree-helper.md` carries the
    two lines it prints and what it refuses), and **verify all three of them yourself**: the path is the one it
    reported, its `HEAD` matches the tip you asked for, and it is standing on the branch you asked for.
    **Never work in the main checkout** — it is the one piece of shared mutable state here, and another session
-   cutting a worktree reads whatever branch it is standing on.
-3. **The bump PRs into the new release branch** (step 4). That is the only valid base: the new branch is not
+   cutting a worktree reads whatever branch it is standing on. **Cutting this tree off the branch the main
+   checkout is now standing on is not a collision**, so it is nothing to stop over: git refuses the same
+   branch checked out twice, and this forks a new one.
+4. **The bump PRs into the new release branch.** That is the only valid base: the new branch is not
    merged into the old one, and never will be — it *replaces* it as the branch work lands on.
 
 ## 2b. Route B — version bump only
@@ -114,7 +125,7 @@ read it, then ask.** Find the last commit that moved these files and see whether
 on carried a version change too. Do the same. **Where there is no previous rollover to read, ask once**, and
 say you are asking because there is no precedent.
 
-## 4. Hand it over
+## 4. Merge it, and hand back a finished state
 
 ⛔ **No AI attribution on anything this flow writes to GitHub in the maintainer's name** — this pass's commit
 message and its PR body name the configured git user alone: no trailer, line, footer or URL naming Claude, the
@@ -122,13 +133,23 @@ assistant, the model, the harness, or the session. The named forms and the named
 rather than the extent, since an enumeration of either is satisfied by every member it omits, so leave out
 anything you cannot rule out.
 
-Push, open the PR against the base its route names, and stop. **You do not merge it** — this changes how every
-later worktree is provisioned, and the diff is the only review that fact gets.
+Push and open the PR against the base its route names, then **merge it with `merge-pr.sh`, run from the main
+checkout's directory** — `skills/procedures/worktree-helper.md` carries what that helper does, what it refuses
+and why that directory. **Holding this diff open for a second yes produces nothing a reviewer acts on**: it is
+the version strings, the changelog section and the one config line the step 1 sentence already named, so the
+stop would ask again for a decision nobody has left to make.
+
+**On route A that same merge is what leaves the main checkout current.** It has been standing on the new
+branch since step 2 and that branch is the PR's base, so the helper fast-forwards that very checkout as it
+syncs — **verify the branch and commit it lands on by reading them back** rather than assuming them, since
+every later worktree is provisioned from the main checkout.
 
 **Say in the hand-back what nothing downstream can see**: the branch it was cut from, the version before and
 after, every file the bump touched, whether the base branch's version moved and on what evidence, and — on
-route A — that **the main checkout has to end up on the new branch**. That is not a detail: the main checkout
-holds the branch work lands on, the helper reads its working copy, and until it is switched every new worktree
-is still cut against the old branch with the old config.
+route A — the branch the main checkout is now on and the commit it sits at.
 
-> **Ready to review.** `<new-branch>` is cut and the bump is on `<bump-branch>`, PR'd into it. Merge that, then point the main checkout at `<new-branch>` — until you do, the helpers still read the old branch's config.
+> **Done.** `<new-branch>` is cut and the bump is merged into it: `<the bumpFiles>` at `<new>`, a `## <new>` section in `<changelog>`, and `integrationBranch` pointing at `<new-branch>`. The main checkout is on `<new-branch>` at `<sha>`.
+
+Route B cut no branch and moved no checkout, so its report carries neither:
+
+> **Done.** `<the bumpFiles>` are at `<new>` and `<changelog>` has its `## <new>` section, merged into `<branch>`.

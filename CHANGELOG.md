@@ -2,6 +2,21 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.3
+
+- **`cut-release` completes the roll rather than stopping twice.** Step 1's confirmation sentence now names
+  the whole outcome — the branch cut, the main checkout switched onto it, the bump, the changelog section,
+  the config move, the PR and its merge — and the pass carries all of it through on that one yes. The second
+  stop at an unmerged bump PR is gone: that diff is the version strings, the changelog section and the one
+  config line the confirmed sentence already named, so holding it open asked again for a decision nobody had
+  left to make.
+- **Route A switches the main checkout onto the new branch immediately after cutting it**, before the bump
+  worktree is cut rather than after the merge — a purely local move with no review weight, and the earlier it
+  happens the shorter the stretch where the checkout still names the branch the release has moved past. It
+  also retires the manual chore the hand-back used to assign: with the checkout standing on the PR's base,
+  the merge helper fast-forwards that very checkout as it syncs, so the pass reports a finished state —
+  branch cut, bump merged, checkout current — instead of a to-do list.
+
 ## 5.11.2
 
 - **A workspace can now declare `briefConventions` once, in `.agents/workspace.json`, and every member

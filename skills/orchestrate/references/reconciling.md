@@ -4,6 +4,14 @@ Reference for `skills/orchestrate/SKILL.md`. **Steps 3 and 4 of the loop are per
 checklist runs against the **merged** tree, then everything it produced goes through *Fold vs. file* and
 *Where folded work goes*, and *Rewriting the plan* says where the result is written.
 
+**So a cycle that ended HELD — its merge fully satisfied and a checkpoint's flag holding it for a human —
+runs neither step, and that is this checklist's own precondition rather than a branch inside it.** Every
+item below interrogates the plan, the tree, the request, the tracker or the seam map against what the
+increment MERGED, and a merge that has not happened has produced nothing for any of them to read; running
+them anyway spends a cycle's judgement on the tree the LAST increment left, and writes its empty result
+down where a real one goes. Both steps run at the cycle that lands that PR, against the tree the merge
+produces.
+
 ## The reconcile checklist
 
 Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement

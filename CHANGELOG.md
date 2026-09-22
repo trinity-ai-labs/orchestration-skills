@@ -2,6 +2,36 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.10.0
+
+- **A project can now decide, per merge checkpoint, whether the dispatcher merges on its own authority or
+  holds and waits for you.** Three independent booleans in `.agents/worktree.json`: `autoMergeTrivial` for a
+  standalone single-slice arc's PR into the integration branch, `autoMergeLeaves` for a slice that is one of
+  several children of a multi-slice epic merging into the epic branch, and `autoMergeEpic` for the epic
+  branch's own close-out merge into the integration branch. The first two default to `true`, so those two
+  checkpoints behave exactly as they always have when the keys are absent; `autoMergeEpic` defaults to
+  `false`, so the one merge that actually puts combined work on the shared branch waits for a human unless a
+  project says otherwise.
+- **None of the three touches whether anything is reviewed.** Every review pass and every gate runs
+  unconditionally whichever way the keys are set — what a `false` gates is the merge action alone, at the one
+  checkpoint that key names.
+- **A held PR stays a DRAFT.** The dispatcher forms its verdict exactly as before, posts its satisfied review,
+  then posts one comment saying the pipeline is satisfied and that this checkpoint's flag is holding the
+  merge, and stops — no `gh pr ready`, no `merge-pr.sh`. The ready flip lives one line above the merge
+  precisely so a PR can never sit around wearing a review it has outgrown, and a ready-but-unmerged PR is that
+  state by hand. Nothing after the merge runs either: the worktree stays up, the branch stays, the local
+  integration branch is not synced and the issues that PR settles stay open.
+- **A held merge needs no new state anywhere downstream.** The PR is simply not landed, which every reading
+  of "landed" in this flow already handles — whatever waits on it waits, exactly as it would on any other
+  unmerged PR, and the loop's termination check is unsatisfied with no special case added to it.
+- **`bin/merge-pr.sh` and its PowerShell port are untouched.** When approval arrives — a human merging on
+  GitHub, or telling the assistant to go ahead — `merge-pr.sh <n>` runs completely unmodified, squash and all
+  where the project declared one. The keys decide whether that command is invoked, never how it behaves, so
+  the frozen helper contract is not in play.
+- **`autoMergeEpic` is unrelated to `epicMerge`** despite the names: `epicMerge` picks that one merge's
+  mechanics — a squash or a real merge commit — and the helper reads it; `autoMergeEpic` picks whether the
+  merge happens without a human saying so, and is read before the helper is invoked at all.
+
 ## 5.9.1
 
 - **The PR review loop's opening now says it covers the close-out PR too.** `skills/execute/references/reviewing.md`

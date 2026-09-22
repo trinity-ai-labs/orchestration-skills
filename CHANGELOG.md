@@ -2,6 +2,29 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.0
+
+- **The loop now has a sixth exit, `held`, for a cycle whose merge is fully satisfied and waiting on a
+  human.** With `autoMergeEpic` defaulting to `false` that is the ordinary way an epic's close-out ends, and
+  the five exits it used to have all said something false about it: termination takes a green close-out and
+  a merge that has not happened is not one, while each of the four halt shapes reports a problem and
+  recommends a re-plan nothing calls for. A held cycle now reports as its own thing — which PR is held,
+  which flag is holding it, and what approving it takes.
+- **A held exit is written onto the tracker, not only into the run's report.** The report reaches whoever
+  is reading that run; the tracked issue or umbrella body is what the next invocation reads, and a held PR
+  recorded nowhere else is a deferred decision with no reader.
+- **The arc's issues stay open on a held exit, and its follow-ups are told nothing.** Nothing has shipped,
+  so the closes termination performs do not run — and a halt's closing note, that the loop is not coming
+  back, is the one thing about this exit that is false: it is coming back the moment that PR merges.
+- **Reconcile is skipped on a held cycle rather than run and empty.** The checklist runs against the merged
+  tree by its own precondition, and a held cycle merged nothing, so steps 3 and 4 do not run in it; both run
+  at the cycle that lands that PR, against the tree the merge produces.
+- **A resumed cycle reads a held PR's state before it treats that leaf as part of a fresh horizon.** Merged
+  since the hold and the leaf landed, so the cycle carries on from there; still held and nothing landed, so
+  it is reported again and the cycle runs on whatever else is ready. Either way no second implementer is
+  dispatched into work that is already built, and where the branch has outlived its worktree the tree is
+  re-attached to the existing branch rather than cut fresh from a base that has moved.
+
 ## 5.10.0
 
 - **A project can now decide, per merge checkpoint, whether the dispatcher merges on its own authority or

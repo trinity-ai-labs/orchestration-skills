@@ -28,9 +28,12 @@ caller that still holds the tree and the PR, so `skills/ground-rules/SKILL.md` r
 the floor under every brief you write: spawned FRESH, and dispatching nothing of its own.
 
 **You hold the tree and they hold nothing** — several agents editing one worktree is the collision
-this flow avoids everywhere else, so every reviewer reads and reports, and you are the only party
-that edits. Surfacing is where an independent reader earns its keep; deciding is not, since you hold
-context a reviewer lacks and N readers with a veto produce thrash.
+this flow avoids everywhere else, so every reviewer reads and reports and **no reviewer edits**.
+Which party does is the caller's shape: **a caller that writes code is the only one that edits this
+tree**, and **a caller that cannot — an epic's close-out caller cannot — leaves it unedited until the
+fix agent it dispatches writes, after this pass has already reported.** Either way the DECISION is
+yours and never a reviewer's: surfacing is where an independent reader earns its keep, deciding is
+not, since you hold context a reviewer lacks and N readers with a veto produce thrash.
 
 This is the **narrow, first** tier on that PR. The broad tier is not yours: the dispatcher reads the
 same diff and forms the verdict its ready flip rests on, and the gate runs the full build and suite

@@ -259,6 +259,11 @@ comments, compact readable code, or nudge one line under. Never silence a rule t
 **Zero warnings AND zero errors on every file you touch is the bar**; where the honest fix is too big, STOP
 and hand back.
 
+**A test proves nothing if it cannot fail.** An assertion checked against the value that configured its own
+mock, a constant asserted against itself, a check the implementation could never violate — that is gaming the
+suite exactly as a suppressed lint rule games the linter, and it counts as coverage nowhere but the report.
+Write the assertion against the behavior the change is for, not against whatever the code already returns.
+
 **The one carve-out — a DOCUMENTED suppression, for when the flagged construct IS the intended behavior.** It
 is never "the check is wrong": the rule points at the feature, so no cause exists to fix. (This plugin's
 `bin/setup-worktree.ps1` suppresses `PSAvoidUsingInvokeExpression` on one function: a project's `install`

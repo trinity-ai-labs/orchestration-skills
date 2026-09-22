@@ -99,6 +99,11 @@ hand-back is the whole of what survives it. Read each one for the ambiguities it
 filed, its per-doc verdicts — and above all **the review pass's `Rejected` list, which is by construction a
 list of things somebody noticed and chose not to do.** That list is routed up to the dispatcher deliberately
 and is consumed nowhere; item 8 cannot catch it, because a rejected finding was never filed.
+**That list reaches you by TWO routes, and only one of them dies with the run**: the hand-back carries the
+narrative, and the review the pass posted onto the slice's own PR carries the same findings as an artifact
+attached to the diff, which anyone who opens that PR can still read once every agent is gone. So a slice
+whose hand-back is thin on this is one whose PR you go and read, and where the two disagree the posted
+review is the one bound to the diff.
 **Read the merged diffs beside it**: a straggler that looked proportionate inside one slice is often only
 visible once the slices are stacked, which is this seat's advantage and no implementer's.
 

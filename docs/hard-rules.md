@@ -57,9 +57,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   still out rather than waiting silently.
 - **A review reader the host refuses because too many agents are already running has not gone out yet — it
   has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
-  them is still out it PARKS rather than dropping the dimension: tree untouched, nothing committed, pushed or
-  PR'd, and a hand-back reading `Review: PARKED` with the dimensions still to go. The dispatcher reads that
-  report rather than the tree, which looks exactly like a stall's, and resumes parked slices on capacity — the
+  them is still out it PARKS rather than dropping the dimension: tree untouched, no finding applied, nothing
+  posted onto the PR, and a hand-back reading `Review: PARKED` with the dimensions still to go. **By then the
+  tree carries the FINISHED shape** — commits past the fork point, a pushed branch, a draft PR open — since
+  the pass runs against that PR, so the marker in the report is the only thing telling a parked slice from
+  one that is done, and an open PR is never itself the evidence one is. The dispatcher reads that
+  report rather than the tree, and resumes parked slices on capacity — the
   next hand-back or tick, one parked slice per event, in the order they parked. Nobody reads a refused
   dimension in its place: the author is the party worst placed to ask what its own diff could lose.
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files,

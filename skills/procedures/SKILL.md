@@ -25,7 +25,7 @@ GitHub and the `gh` CLI behave, true whether or not this pipeline exists — is 
 | Entry | What it carries |
 |---|---|
 | `skills/procedures/worktree-helper.md` | `setup-worktree` and its siblings: the arguments, the recovery form, what a run creates, the two lines it prints, and what it refuses rather than reporting a false success |
-| `skills/procedures/config-keys.md` | Every key in `<repo>/.agents/worktree.json` — what each one means, and what its absence means |
+| `skills/procedures/config-keys.md` | Every key in `<repo>/.agents/worktree.json`, and the two a workspace declares in `.agents/workspace.json` — what each one means, and what its absence means |
 | `skills/procedures/host-tools.md` | The host tool behind each capability this flow needs, the tier-to-model table, and the two questions to answer before calling a helper |
 
 ## The admission test, and what it keeps out

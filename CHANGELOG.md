@@ -2,6 +2,27 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.2
+
+- **A workspace can now declare `briefConventions` once, in `.agents/workspace.json`, and every member
+  repo's brief carries it.** It is the second declared key in that manifest beside `integrationBranch` —
+  human-reviewed, never derived and never regenerated — and `/pipeline:setup`'s polyrepo step surfaces it as
+  a candidate rather than writing one. Where the two layers both exist they are **concatenated**, the
+  workspace's text first and the repo's own second, and a brief says outright that the repo's own is the one
+  to follow where they seem to disagree. A repo with no workspace above it sees no change.
+- **A dispatched brief's docs block now also names a workspace-level `AGENTS.md`/`CLAUDE.md`** where the
+  target repo is a workspace member and one sits beside `.agents/workspace.json`, so a member's own docs
+  pointing outward at workspace-root conventions name a file the brief has already made reachable from
+  inside that one member's worktree.
+- **`briefConventions` is scoped to pipeline-dispatch facts, at both layers.** Parallel-safety for
+  concurrent gating, how `gate` and `scopedCheck` relate, branch naming, what a PR targets, the order a
+  contract-crossing change lands in. General coding conventions — naming, layering, library usage, comment
+  style — are excluded by name and stay `AGENTS.md`'s alone; the key points at that file instead of
+  carrying a second copy of it. The shipped example configs now read that way too.
+- **The review pass's "Conventions" dimension is now "Rules & Conventions".** It reads what a project wrote
+  down for a contributor and the trees those files point at, exactly as before, and the dimension now says
+  in as many words that it never reads the pipeline-dispatch config a project declares.
+
 ## 5.11.1
 
 - **A verify bar that requires a reversal now carries the mechanic for performing one, at all three seats

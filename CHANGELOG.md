@@ -2,6 +2,21 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.6
+
+- **`merge-pr` bounds its `gh pr merge` call and lets the PR's own state decide whether the merge
+  happened.** The call runs under a fixed 120-second limit, in both ports and without depending on a
+  `timeout` binary, and a call that overruns it is stopped by its own process id. When the call times out or
+  exits non-zero the helper reads the PR's state back from GitHub, allowing a few seconds for it to catch up:
+  a PR that reports `MERGED` is carried on into the base-branch sync with its ready flag left alone, and any
+  copy of the head branch the call left behind is deleted — locally with `git branch -d`, never forced, and
+  on `origin` — each on its own output line. Any other state takes the existing failure path, the draft flag
+  restored where the run set it, and the message now names the state it read and says whether the call timed
+  out. Previously a call that hung after GitHub had merged left the helper waiting indefinitely with the sync
+  never run, and a call that failed after GitHub had merged un-readied the merged PR and reported it failed.
+- **The PowerShell port now starts `gh pr merge` as a process it holds a handle to**, quoting the squash
+  subject for the process command line itself, so one quoting serves Windows PowerShell 5.1 and pwsh alike.
+
 ## 5.11.5
 
 - **Every seat on Claude Code that spawns a read-only reader now names the same agent type.** A new

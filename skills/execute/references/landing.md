@@ -358,9 +358,12 @@ worktree is gone:
    the sequence. Real merge commit (never squash), and with the worktree gone `--delete-branch` cleanly
    removes BOTH the local and remote branch. Skipping `--delete-branch` is what let merged `origin/*` branches
    pile up indefinitely (they did: dozens accumulated). Verify it's fully merged first; STOP on git's "not yet
-   merged to HEAD" warning. **If the merge fails after you flipped it, flip it back**
-   (`gh pr ready <n> --undo`) — a non-draft PR that isn't being merged right now is a bug, and here it would
-   be one wearing a review the merge never earned.
+   merged to HEAD" warning. **If the merge call hangs or fails after you flipped it, read
+   `gh pr view <n> --json state` before you touch the flag**, since the call can hang or error after GitHub has
+   already merged: where it says `MERGED`, leave the flag, carry on with the sync below and delete whichever
+   copy of the branch survived the call; anywhere else, **flip it back** (`gh pr ready <n> --undo`) — a
+   non-draft PR that isn't being merged right now is a bug, and here it would be one wearing a review the merge
+   never earned.
 
   **The one PR this step reads differently is an epic → integration close-out in a project that declared
   `"epicMerge": "squash"`** — the exception in full at *The epic branch* → *Mechanics*, including both

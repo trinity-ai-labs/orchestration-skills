@@ -31,8 +31,10 @@
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.ps1, which kills processes rooted in the tree first.
 #   4. Mark the PR ready - the dispatcher's review approval - and immediately
-#      `gh pr merge` it, deleting both the local and remote branch. A merge that
-#      fails anyway puts the draft flag back before it exits.
+#      `gh pr merge` it, deleting both the local and remote branch. The call is
+#      bounded at 120 seconds, and when it times out or fails the PR's own state
+#      decides: MERGED carries on (deleting any branch the call left behind), and
+#      anything else puts the draft flag back before it exits.
 #   5. Sync the local copy of the PR's base branch to the just-merged tip - in the
 #      main checkout, in whatever linked worktree is standing on it, or by ref.
 #   6. On the squash path ONLY: verify the merged tree against the epic tip that
@@ -299,7 +301,13 @@ $WorktreeHome = Get-NormalPath (Get-WorktreeHome)
 $Repo = $env:REPO
 if (-not $Repo) { $Repo = (Get-Location).Path }
 
-if (-not (Get-Command -Name 'gh' -ErrorAction SilentlyContinue)) {
+# Resolved to an EXECUTABLE here, before anything is touched, because step 3 starts
+# the merge as a process by path rather than through PowerShell's own command
+# lookup - a gh that is only a function, an alias or a script is not something it
+# can start, and finding that out after the teardown and the ready flip would leave
+# a PR marked ready and unmerged.
+$GhCommand = Get-Command -Name 'gh' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $GhCommand) {
     Exit-WithError "gh (GitHub CLI) not found on PATH"
 }
 
@@ -379,6 +387,22 @@ function Invoke-InMainCheckout {
     try { & $Body @ArgumentList } finally { Pop-Location }
 }
 
+function ConvertTo-NativeArgument {
+    # One argument, quoted for a process command line under the rules the Windows
+    # C runtime reads it back with - which is also how .NET splits
+    # ProcessStartInfo.Arguments on Linux and macOS, so one quoting serves both.
+    # Anything with whitespace or a quote in it, or nothing at all, is wrapped in
+    # quotes; inside, each backslash run directly before a quote is doubled and the
+    # quote escaped, and a run at the very end is doubled so it cannot escape the
+    # closing quote. A bare replace would leave a title's own `\"` as an even run,
+    # which that parser reads as a closing quote.
+    param([AllowEmptyString()] [string] $Value)
+    if ($Value -and $Value -notmatch '[\s"]') { return $Value }
+    $escaped = $Value -replace '(\\*)"', '$1$1\"'
+    $escaped = $escaped -replace '(\\+)$', '$1$1'
+    return '"' + $escaped + '"'
+}
+
 function Get-GitRefOrEmpty {
     # The sha a ref resolves to, or an empty string when the ref does not exist -
     # where Get-GitOutput would exit. The sync loop reads refs that can legitimately
@@ -409,10 +433,12 @@ function Get-WorktreeHoldingBranch {
 }
 
 function Get-PrField {
-    # A single field, for the two values that have to be read at a specific MOMENT
+    # A single field, for the values that have to be read at a specific MOMENT
     # rather than with the batch below: `mergeable` because GitHub computes it
-    # asynchronously and it is polled until it settles, and `isDraft` because it
-    # must describe the instant before this run flips it.
+    # asynchronously and it is polled until it settles, `isDraft` because it must
+    # describe the instant before this run flips it, and `state` because after a
+    # merge call that did not return cleanly it is what decides whether step 3
+    # succeeded.
     param([Parameter(Mandatory = $true)] [string] $Name)
     return Invoke-InMainCheckout -ArgumentList @($Name) -Body {
         param([string] $Field)
@@ -815,6 +841,9 @@ if ($HeadBranch) {
 }
 
 # --- 3. Merge (unless already merged) ------------------------------------------
+# Set when the merge call did not return cleanly but the PR is merged all the same;
+# step 5 then finishes the branch deletion that call may never have reached.
+$Recovered = $false
 if ($State -eq 'MERGED') {
     Write-Output "merge-pr: PR #$Pr already merged - skipping merge, finishing the local sync."
 } else {
@@ -838,10 +867,6 @@ if ($State -eq 'MERGED') {
         & gh pr ready $Pr
         if ($LASTEXITCODE -ne 0) { Exit-WithError "gh pr ready failed (exit $LASTEXITCODE)" }
     }
-    # gh's own output is left flowing to the host, so the exit code travels out of
-    # the scriptblock through a script-scoped flag rather than as a return value -
-    # a returned boolean would arrive appended to everything gh printed.
-    #
     # The squash path deliberately does NOT pass --delete-branch. The branch has to
     # outlive the merge long enough for the squash close-out below to compare what
     # landed against the commit that was gated, because that comparison is what
@@ -853,35 +878,95 @@ if ($State -eq 'MERGED') {
     # GitHub writes a squash subject, and the PR's body from a file - so the commit
     # says what the reviewed PR says rather than what the repository's squash
     # setting says. The body goes through a file written as UTF-8 without a BOM
-    # rather than through the pipeline, since Windows PowerShell 5.1 encodes what it
-    # pipes to a native command as ASCII and would turn every non-ASCII character in
-    # it into '?'. The subject is still an argument, and PowerShell before 7.3 passes
-    # a native command an embedded double quote unescaped, so a title carrying one
-    # would reach gh stripped; there, and only there, it is escaped by hand, the way
-    # the Windows command-line parser reads it back: each backslash run directly
-    # before a quote doubled, then the quote escaped - a bare replace would leave a
-    # title's own `\"` as an even run, which that parser reads as a closing quote.
+    # rather than through a pipe, since Windows PowerShell 5.1 encodes what it pipes
+    # to a native command as ASCII and would turn every non-ASCII character in it
+    # into '?'. The subject is an argument, quoted by ConvertTo-NativeArgument below.
     $bodyFile = ''
     if ($MergeMode -eq 'squash') {
-        $subject = "$SquashTitle (#$Pr)"
-        $argPassing = Get-Variable -Name PSNativeCommandArgumentPassing -ValueOnly -ErrorAction SilentlyContinue
-        if (-not $argPassing -or $argPassing -eq 'Legacy') { $subject = $subject -replace '(\\*)"', '$1$1\"' }
         $bodyFile = [System.IO.Path]::GetTempFileName()
         [System.IO.File]::WriteAllText($bodyFile, $SquashBody, (New-Object System.Text.UTF8Encoding $false))
-        $MergeArgs = @('--squash', '--subject', $subject, '--body-file', $bodyFile)
+        $MergeArgs = @('--squash', '--subject', "$SquashTitle (#$Pr)", '--body-file', $bodyFile)
         Write-Output "merge-pr: merging PR #$Pr (squash - the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
     } else {
         $MergeArgs = @('--merge', '--delete-branch')
         Write-Output "merge-pr: merging PR #$Pr (real merge commit, deleting branch) ..."
     }
-    $script:MergeFailed = $false
-    Invoke-InMainCheckout -ArgumentList @(, $MergeArgs) -Body {
-        param([string[]] $GhMergeArgs)
-        & gh pr merge $Pr @GhMergeArgs
-        if ($LASTEXITCODE -ne 0) { $script:MergeFailed = $true }
+    # The call is BOUNDED, and its exit code is not what decides whether the merge
+    # happened. `gh pr merge` can sit forever after GitHub has already merged, and
+    # it can fail after GitHub has already merged; left unbounded the first stops
+    # the run before the sync with nothing printed, and trusting the exit code the
+    # second un-readies a merged PR and reports it failed. So it runs as a process
+    # this script holds a handle to, under a deadline, and whenever it does not
+    # return 0 in time the PR's OWN state is read back and that answer decides.
+    #
+    # System.Diagnostics.Process rather than a job or Start-Process, because it is
+    # the one mechanism that behaves the same on Windows PowerShell 5.1 and on pwsh:
+    # WaitForExit(ms) is the bound, Kill() reaches exactly the process this run
+    # started (a job would put gh in a child PowerShell out of reach), and the
+    # handle keeps the exit code readable. Its command line is one string, built by
+    # ConvertTo-NativeArgument under the rules both runtimes parse it back with, so
+    # the subject arrives as one argument whatever quotes it carries. No stream is
+    # redirected, so gh prints to this console exactly as it did when called inline.
+    #
+    # 120 seconds is hard-coded: a merge that has not returned by then is not
+    # coming back, and a knob for it would be a new env var in a frozen contract.
+    $MergeTimeoutSeconds = 120
+    $mergeStatus = 0
+    $mergeTimedOut = $false
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $GhCommand.Path
+    $startInfo.Arguments = (@('pr', 'merge', $Pr) + $MergeArgs | ForEach-Object { ConvertTo-NativeArgument $_ }) -join ' '
+    $startInfo.WorkingDirectory = $Main
+    $startInfo.UseShellExecute = $false
+    try {
+        $mergeProcess = [System.Diagnostics.Process]::Start($startInfo)
+    } catch {
+        if ($bodyFile) { Remove-Item -LiteralPath $bodyFile -Force -ErrorAction SilentlyContinue }
+        Exit-WithError "could not start gh pr merge: $($_.Exception.Message)"
     }
+    if ($mergeProcess.WaitForExit($MergeTimeoutSeconds * 1000)) {
+        # The parameterless wait after the timed one is what flushes the exit code:
+        # .NET documents the timed overload as able to return before it is set.
+        $mergeProcess.WaitForExit()
+        $mergeStatus = $mergeProcess.ExitCode
+    } else {
+        $mergeTimedOut = $true
+        Write-Output "merge-pr: gh pr merge has not returned after ${MergeTimeoutSeconds}s - stopping it (pid $($mergeProcess.Id)) and asking GitHub what state PR #$Pr is in ..."
+        try { $mergeProcess.Kill() } catch { Write-Stderr "merge-pr: could not stop pid $($mergeProcess.Id): $($_.Exception.Message)" }
+        $null = $mergeProcess.WaitForExit(10000)
+    }
+    $mergeProcess.Dispose()
     if ($bodyFile) { Remove-Item -LiteralPath $bodyFile -Force -ErrorAction SilentlyContinue }
-    if ($script:MergeFailed) {
+
+    # The source of truth for "did step 3 succeed" is the PR, read back only when
+    # the call did not answer cleanly - a 0 in time needs no second opinion. GitHub
+    # serves a merge's state a moment after it applies it, so an OPEN read straight
+    # after a call that failed at the last step can be stale: up to five reads three
+    # seconds apart (about twelve seconds), the same order of patience step 4 gives
+    # the remote to serve the merge commit. MERGED and CLOSED stop it early, since
+    # neither is waiting to become anything else; what is left after the last read
+    # is the answer, and an unreadable state is not MERGED.
+    $mergeFailed = $false
+    if ($mergeTimedOut -or $mergeStatus -ne 0) {
+        if ($mergeTimedOut) {
+            $mergeCall = "the gh pr merge call timed out after ${MergeTimeoutSeconds}s"
+        } else {
+            $mergeCall = "the gh pr merge call exited $mergeStatus"
+        }
+        $afterState = ''
+        foreach ($attempt in 1..5) {
+            $afterState = Get-PrField 'state'
+            if ($afterState -ceq 'MERGED' -or $afterState -ceq 'CLOSED') { break }
+            if ($attempt -lt 5) { Start-Sleep -Seconds 3 }
+        }
+        if ($afterState -ceq 'MERGED') {
+            $Recovered = $true
+            Write-Output "merge-pr: $mergeCall, but GitHub reports PR #$Pr as MERGED - the merge landed; carrying on with the close-out (the ready flag stays set)."
+        } else {
+            $mergeFailed = $true
+        }
+    }
+    if ($mergeFailed) {
         # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
         # being merged right this second reads, everywhere else in this flow, as a
         # diff a dispatcher approved - so leaving it set would have the PR wearing
@@ -900,8 +985,10 @@ if ($State -eq 'MERGED') {
                 $DraftNote = 'it is back to a draft'
             }
         }
+        $shownState = $afterState
+        if (-not $shownState) { $shownState = '<state unreadable>' }
         Exit-WithError @"
-merging PR #$Pr failed - $DraftNote, and its worktree has already been torn down (step 2).
+merging PR #$Pr failed - $mergeCall and GitHub reports the PR as $shownState, not MERGED; $DraftNote, and its worktree has already been torn down (step 2).
   Re-attach a tree to the branch, fix it there, and re-run:
     setup-worktree.ps1 --existing $HeadBranch
     cd <the READY: path it prints> && git fetch origin && git merge origin/$BaseBranch
@@ -1073,9 +1160,11 @@ if (-not $synced) {
 }
 
 # --- 5. Squash close-out: verify the tree, THEN delete the branch ----------------
-# Nothing to do on the merge path - `--delete-branch` already removed both copies
-# of the branch, and the merge commit's second parent keeps the ancestry that
-# `git branch -d` and the integration gate's `^2` check both read.
+# On the merge path `--delete-branch` has normally removed both copies of the
+# branch, and the merge commit's second parent keeps the ancestry that
+# `git branch -d` and the integration gate's `^2` check both read. The one merge-path
+# case with work left here is a merge call that did not return cleanly after GitHub
+# merged, which may never have reached its own delete: the block after this one.
 #
 # On the squash path neither of those is true, and the two failures are one fact:
 # the squash commit has no second parent, so the epic branch is NOT an ancestor of
@@ -1157,7 +1246,8 @@ PR #$Pr was squashed onto '$BaseBranch', but $verifyFailed - so '$HeadBranch' ha
         #     answers "no" for a reason that has nothing to do with whether the work
         #     landed. On the merge path that same refusal would be REAL, and nothing
         #     there needs a force anyway - `gh pr merge --delete-branch` does the
-        #     deleting and no `git branch -d` runs at all.
+        #     deleting, and where that call did not return cleanly the block below
+        #     asks `-d`'s own ancestry question against the synced base first.
         #   - ONLY after the tree comparison PASSED. The Exit-WithError immediately
         #     above is not a formality standing between the check and the delete; it
         #     IS the guard `-d` would otherwise have been. Reached with the
@@ -1190,6 +1280,46 @@ PR #$Pr is squashed onto '$BaseBranch' and the tree was VERIFIED against the gat
     $commands
 "@
         }
+    }
+} elseif ($Recovered -and $HeadBranch) {
+    # The merge path's deleting is done by `--delete-branch` INSIDE the merge call,
+    # so a call that timed out or failed after GitHub merged may never have reached
+    # it - either copy of the branch can survive. Whatever does is deleted here,
+    # after the sync, and a copy already gone is left alone. This runs only on the
+    # run that recovered: a re-run finds the PR already merged and takes the path
+    # above, which deletes nothing on the merge path.
+    #
+    # The local copy goes only once it is PROVEN merged: this is a real merge
+    # commit, so the ancestry question `git branch -d` asks is the right one and a
+    # "no" would be real. It is asked here against the local base, which step 4 has
+    # just proved carries the merge, rather than left to `-d`, which asks it of the
+    # branch's upstream or else of whatever HEAD the tree it runs in happens to
+    # have - the main checkout is often on neither. The same question answered
+    # "yes" is what makes the `-D` below a delete, not a force.
+    $deleteFailed = @()
+    if (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")) {
+        Write-Output "merge-pr: the merge call did not return cleanly, so '$HeadBranch' survived it - deleting the local branch ..."
+        if (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', "refs/heads/$HeadBranch", "refs/heads/$BaseBranch")) {
+            if (-not (Test-GitSuccess @('-C', $Main, 'branch', '-D', $HeadBranch))) {
+                $deleteFailed += "git -C $Main branch -d $HeadBranch"
+            }
+        } else {
+            $deleteFailed += "git -C $Main branch -d $HeadBranch   (it is NOT an ancestor of local '$BaseBranch')"
+        }
+    }
+    if (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")) {
+        Write-Output "merge-pr: the merge call did not return cleanly, so '$HeadBranch' survived it - deleting it on origin ..."
+        if (-not (Test-GitSuccess @('-C', $Main, 'push', 'origin', '--delete', $HeadBranch))) {
+            $deleteFailed += "git -C $Main push origin --delete $HeadBranch"
+        }
+    }
+    if ($deleteFailed.Count -gt 0) {
+        $commands = $deleteFailed -join "`n    "
+        Exit-WithError @"
+PR #$Pr IS merged into '$BaseBranch' and the local sync is done, but deleting the '$HeadBranch' the merge call left behind failed.
+  Nothing is at risk - the work is on '$BaseBranch'; only the branch is left behind. Finish it by hand, and if git says the branch is not fully merged, find out why before forcing anything:
+    $commands
+"@
     }
 }
 

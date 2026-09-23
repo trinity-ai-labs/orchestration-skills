@@ -34,11 +34,11 @@ row says the tool is not established, the sentence above is the whole instructio
 list, and say in your report what you found.
 
 ⚠️ **A filled wait cell is the ordinary case: where it names an ended turn, ending your turn IS the wait and
-loses nothing**, since each child's report re-invokes you. The row has THREE branches — an ended turn with no
-tool call, where the host re-invokes you as each child reports; a call that blocks until one does; and,
-selected by a BLANK cell, neither. **A blank means this table establishes neither for that host, and it is a
-reading rather than an absence of one** — read your own tool list, and where that confirms neither exists,
-there is no wait to make and `skills/ground-rules/SKILL.md` rule 10 carries what to do instead.
+loses nothing**, since each child's report re-invokes you. The row has THREE branches — that ended turn; a
+call that blocks until a child reports; and, selected by a BLANK cell, neither. **A blank means this table
+establishes neither for that host, and it is a reading rather than an absence of one** — read your own tool
+list, and where that confirms neither exists, there is no wait to make and `skills/ground-rules/SKILL.md`
+rule 10 carries what to do instead.
 
 ⚠️ **The reach-your-spawner row hands back a RECEIPT, never a reply, so send and carry on rather than
 wait.** The call returns synchronously and what comes back acknowledges that the message is queued; the

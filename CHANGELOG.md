@@ -7,9 +7,10 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 - **An agent waiting on sub-agents it dispatched is told first, and plainly, to end its turn with no tool
   call.** Where the host re-invokes it as each one reports, that ended turn is the wait: it is safe, it hands
   nothing back, and each report arrives as a new turn. Every seat that states this wait — ground rule 10,
-  the host-tools wait row, the review pass's step 3, the implementer reference and the dispatcher's quoted
-  brief — now leads with that safe case in a paragraph of its own, kept apart from the bans on ending a turn
-  on a detached command, and those bans open by saying they reach commands and not child agents.
+  the host-tools wait row, the review pass's step 3, the implementer reference, the dispatcher's quoted
+  brief, and `docs/hard-rules.md` for the reader who never opens a skill — now leads with that safe case in
+  a paragraph of its own, kept apart from the bans on ending a turn on a detached command; the implementer,
+  review and hard-rules command bans now also say outright that they reach commands and not child agents.
 - **The keep-alive call is banned by its purpose, with no list of examples to copy**: a call whose result the
   agent does not need, made only so its turn does not end. A host call that blocks until a child reports and
   a tick or watch a pass requires are still not that call, and a host with neither wait still hands back on

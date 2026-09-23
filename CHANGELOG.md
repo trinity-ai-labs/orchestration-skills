@@ -2,6 +2,15 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.5
+
+- **Every seat on Claude Code that spawns a read-only reader now names the same agent type.** A new
+  read-only reader row in `skills/procedures/host-tools.md`, right after the fresh-sub-agent row, names
+  `subagent_type: "Plan"` — no edit, write, notebook-edit or spawn tool, while it still reads whole files,
+  greps and runs git — and never `Explore`, which reads excerpts and is built to locate code rather than
+  establish a claim. The review pass, and the searchers `skills/ground` and `skills/write-issue` spawn, now
+  point at that row instead of leaving the type to each run's own guess.
+
 ## 5.11.4
 
 - **An agent waiting on sub-agents it dispatched is told first, and plainly, to end its turn with no tool

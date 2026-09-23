@@ -178,11 +178,14 @@ not what the issue *carries* (Step 3's *Surface*).
 
 - **Spawn fresh read-only search agents** — never forks — in parallel, one per subsystem, for the real files,
   the patterns to copy and the consumers a change ripples into — **invoking this skill is what authorizes
-  them**, and it authorizes these read-only agents and nothing else. **Each one is the last agent in its chain
-  and its brief says so** — it searches, reports, and dispatches nothing of its own, or the count you sized is
-  re-sized from inside it by children whose reading you never see. **Name each one's model tier in the spawn —
-  a searcher grepping one subsystem is STANDARD tier** — since a sub-agent handed no model runs on yours, and
-  one searcher per subsystem then multiplies whatever tier is running this pass across the whole fan-out.
+  them**, and it authorizes these read-only agents and nothing else. **Name the read-only reader type from
+  `skills/procedures/host-tools.md`'s read-only reader row in each spawn**, since a guessed type is how one
+  run's search agent differs from another's for no reason the brief states. **Each one is the last agent in
+  its chain and its brief says so** — it searches, reports, and dispatches nothing of its own, or the count
+  you sized is re-sized from inside it by children whose reading you never see. **Name each one's model tier
+  in the spawn — a searcher grepping one subsystem is STANDARD tier** — since a sub-agent handed no model runs
+  on yours, and one searcher per subsystem then multiplies whatever tier is running this pass across the whole
+  fan-out.
 - **Grep the WHOLE repo and cite the definition line — or the claim doesn't count.** A folder-scoped grep
   produces confident-but-wrong claims. Check "X is/isn't a consumer" or "only one call site" tree-wide; two
   sources disagreeing means you read the file.

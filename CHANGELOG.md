@@ -2,6 +2,22 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.4
+
+- **An agent waiting on sub-agents it dispatched is told first, and plainly, to end its turn with no tool
+  call.** Where the host re-invokes it as each one reports, that ended turn is the wait: it is safe, it hands
+  nothing back, and each report arrives as a new turn. Every seat that states this wait — ground rule 10,
+  the host-tools wait row, the review pass's step 3, the implementer reference and the dispatcher's quoted
+  brief — now leads with that safe case in a paragraph of its own, kept apart from the bans on ending a turn
+  on a detached command, and those bans open by saying they reach commands and not child agents.
+- **The keep-alive call is banned by its purpose, with no list of examples to copy**: a call whose result the
+  agent does not need, made only so its turn does not end. A host call that blocks until a child reports and
+  a tick or watch a pass requires are still not that call, and a host with neither wait still hands back on
+  what has landed, naming the children still out.
+- **The host-tools wait row gives a tell the waiting agent can read about itself** — the background spawn
+  call's own result says it will be notified when that agent completes, which is the host's promise to
+  re-invoke it — in place of a condition about the agent's own dispatch mode that it could not check.
+
 ## 5.11.3
 
 - **`cut-release` completes the roll rather than stopping twice.** Step 1's confirmation sentence now names

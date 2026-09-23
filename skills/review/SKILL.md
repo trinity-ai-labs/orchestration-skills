@@ -540,10 +540,12 @@ take every time your host offers them. **Its ability to SPAWN costs a reader not
 READ-ONLY agent type — one carrying no edit, write or notebook-edit tool while keeping the reading,
 grepping and git history an independent reader runs on — is what holds the write ban at the tool level
 instead of in prose a reviewer can read as advice, so NAME that type in the spawn where your host has
-one.** What you never take is a coarse strip that also removes reading, grepping or history, which is
-most of what an independent reader is for. **Where your host offers no such type the brief carries the
-write ban alone, and it names the class in as many words — a formatter's write mode and an in-place
-editor ARE writes to the tree** — since one of those rewrites a file wholesale, the result passes a lint
+one** — `skills/procedures/host-tools.md`'s read-only reader row names it, so every reviewer this pass
+dispatches spawns the same type rather than each guessing its own. What you never take is a coarse strip
+that also removes reading, grepping or history, which is most of what an independent reader is for.
+**Where your host offers no such type the brief carries the write ban alone, and it names the class in
+as many words — a formatter's write mode and an in-place editor ARE writes to the tree** — since one of
+those rewrites a file wholesale, the result passes a lint
 check, the diff's size is the only sign anything happened, and what it leaves is the caller's own change
 with edits nobody authored folded into it; a reviewer does not read a `--write` flag as a write to the
 tree until told that it is.

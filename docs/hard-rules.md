@@ -37,24 +37,24 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   reading as one: the pass that reads the code RECOMMENDS, and the seat that holds the machine DECIDES** —
   what changes between them is only which facts each seat is the one holding.
 - **A dispatched agent runs every check and command in the foreground and ends its turn only at its
-  hand-back — a command it started is never something it waits on by ending the turn.** Its ended turn IS
-  its hand-back, and a detached command's exit re-invokes nothing the way a child's report does, so a turn
-  ended on one hands back with no verdict in it. Where a check outlasts one tool call the agent raises that
-  call's timeout to its limit and, past it, detaches the check with its exit status written into its own log
-  and polls that log in the same turn until the exit line appears
-  ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has the form). The sub-agents it
-  spawned are the one wait an ended turn serves, which is the next rule; a dispatcher's detached drain is
-  neither, since its turn ends on a tick and hands nothing back.
-- **An agent waiting on sub-agents it dispatched waits the way its host wakes it, and never by a call made
-  only to keep its turn open.** Where the host re-invokes the agent as each child reports, the wait is an
-  ended turn with no tool call, and that ended turn hands nothing back to whoever dispatched the agent. A
-  placeholder agent, an `echo` or a `sleep` made so a turn does not end is banned by its purpose rather than
-  its tool, since each is a paid round trip that learns nothing and a placeholder's own completion wakes the
-  agent into spawning the next — while a host call that blocks until a child reports, or a tick or watch a
-  pass requires, returns something the agent acts on and is not one of these. **Where a host gives neither
-  that re-invocation nor such a blocking call, there is a third branch**: ending the turn loses the handoff
-  with nothing coming to restore it, so the agent hands back on what has landed and names which children are
-  still out rather than waiting silently.
+  hand-back — a command it started is never something it waits on by ending the turn.** A detached command's
+  exit re-invokes nothing the way a child's report does, so a turn ended on one IS the agent's hand-back, with
+  no verdict in it. Where a check outlasts one tool call the agent raises that call's timeout to its limit
+  and, past it, detaches the check with its exit status written into its own log and polls that log in the
+  same turn until the exit line appears
+  ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has the form). This rule is about
+  commands, not the sub-agents the agent spawned — waiting on those is the one thing an ended turn safely
+  does, which is the next rule — and a dispatcher's detached drain is neither, since its turn ends on a tick
+  and hands nothing back.
+- **An agent waiting on sub-agents it dispatched ends its turn with no tool call wherever its host re-invokes
+  it as each child reports — that is safe, since the ended turn hands nothing back and each report arrives as
+  a new turn.** It never makes a call whose result it does not need just so its turn does not end: the ban is
+  on that purpose rather than any tool, since such a call is a paid round trip that learns nothing, while a
+  host call that blocks until a child reports, or a tick or watch a pass requires, returns something the
+  agent acts on and is not one of these. **Where a host gives neither that re-invocation nor such a blocking
+  call, there is a third branch**: ending the turn loses the handoff with nothing coming to restore it, so
+  the agent hands back on what has landed and names which children are still out rather than waiting
+  silently.
 - **A review reader the host refuses because too many agents are already running has not gone out yet — it
   has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
   them is still out it PARKS rather than dropping the dimension: tree untouched, no finding applied, nothing

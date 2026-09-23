@@ -741,9 +741,12 @@ else
   MERGE_PID=$!
   # A job started with `&` ignores SIGINT in a non-interactive shell, so an
   # interrupted run would otherwise leave gh merging on its own with nobody left
-  # to sync after it. The trap hands the interrupt on and is dropped once the
-  # call is over.
-  trap 'kill "$MERGE_PID" 2>/dev/null; exit 130' INT TERM
+  # to sync after it. Each trap hands the signal on to gh, then re-raises it on
+  # this shell with the default action restored, so the run still dies BY that
+  # signal and a caller reads the same status it did before; both are dropped
+  # once the call is over.
+  trap 'kill "$MERGE_PID" 2>/dev/null; trap - INT; kill -s INT $$' INT
+  trap 'kill "$MERGE_PID" 2>/dev/null; trap - TERM; kill -s TERM $$' TERM
   MERGE_DEADLINE=$((SECONDS + MERGE_TIMEOUT))
   while kill -0 "$MERGE_PID" 2>/dev/null; do
     if [ "$SECONDS" -ge "$MERGE_DEADLINE" ]; then
@@ -759,7 +762,8 @@ else
           kill -0 "$MERGE_PID" || break
           sleep 1
         done
-        kill -9 "$MERGE_PID" || true
+        # Only while it is still alive: once reaped, its pid is free for reuse.
+        ! kill -0 "$MERGE_PID" || kill -9 "$MERGE_PID" || true
       } 2>/dev/null
       break
     fi
@@ -997,7 +1001,7 @@ if [ "$MERGE_MODE" = "squash" ]; then
     #     landed. On the merge path that same refusal would be REAL, and nothing
     #     there needs a force anyway — `gh pr merge --delete-branch` does the
     #     deleting, and where that call did not return cleanly the block below
-    #     uses `-d`.
+    #     asks `-d`'s own ancestry question against the synced base first.
     #   - ONLY after the tree comparison PASSED. The `die` immediately above is
     #     not a formality standing between the check and the delete; it IS the
     #     guard `-d` would otherwise have been. Reached with the comparison
@@ -1025,21 +1029,26 @@ elif [ -n "$RECOVERED" ] && [ -n "$HEAD_BRANCH" ]; then
   # The merge path's deleting is done by `--delete-branch` INSIDE the merge call, so
   # a call that timed out or failed after GitHub merged may never have reached it —
   # either copy of the branch can survive. Whatever does is deleted here, after the
-  # sync, and a copy already gone is left alone, so a re-run finds nothing to do.
+  # sync, and a copy already gone is left alone. This runs only on the run that
+  # recovered: a re-run finds the PR already merged and takes the path above,
+  # which deletes nothing on the merge path.
   #
-  # Local first, and with `-d`, never `-D`: this is a real merge commit, so the
-  # ancestry question `-d` asks is the right one and its refusal would be REAL.
-  # `-d` answers it against the branch's upstream while that ref exists, else
-  # against HEAD of the tree it runs in — so it runs in the tree standing on the
-  # base where one does, whose HEAD step 4 has just proved carries the merge, and
-  # before the remote copy (the upstream) is deleted.
+  # The local copy goes only once it is PROVEN merged: this is a real merge
+  # commit, so the ancestry question `git branch -d` asks is the right one and a
+  # "no" would be real. It is asked here against the local base, which step 4 has
+  # just proved carries the merge, rather than left to `-d`, which asks it of the
+  # branch's upstream or else of whatever HEAD the tree it runs in happens to
+  # have — the main checkout is often on neither. The same question answered
+  # "yes" is what makes the `-D` below a delete, not a force.
   DELETE_FAILED=""
   if git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then
-    DEL_WT=$(worktree_holding "$BASE_BRANCH")
-    DEL_WT="${DEL_WT:-$MAIN}"
     echo "merge-pr: the merge call did not return cleanly, so '$HEAD_BRANCH' survived it — deleting the local branch ..."
-    git -C "$DEL_WT" branch -d "$HEAD_BRANCH" >/dev/null 2>&1 \
-      || DELETE_FAILED="git -C $DEL_WT branch -d $HEAD_BRANCH"
+    if git -C "$MAIN" merge-base --is-ancestor "refs/heads/$HEAD_BRANCH" "refs/heads/$BASE_BRANCH" 2>/dev/null; then
+      git -C "$MAIN" branch -D "$HEAD_BRANCH" >/dev/null 2>&1 \
+        || DELETE_FAILED="git -C $MAIN branch -d $HEAD_BRANCH"
+    else
+      DELETE_FAILED="git -C $MAIN branch -d $HEAD_BRANCH   (it is NOT an ancestor of local '$BASE_BRANCH')"
+    fi
   fi
   if git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$HEAD_BRANCH"; then
     echo "merge-pr: the merge call did not return cleanly, so '$HEAD_BRANCH' survived it — deleting it on origin ..."

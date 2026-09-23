@@ -301,7 +301,13 @@ $WorktreeHome = Get-NormalPath (Get-WorktreeHome)
 $Repo = $env:REPO
 if (-not $Repo) { $Repo = (Get-Location).Path }
 
-if (-not (Get-Command -Name 'gh' -ErrorAction SilentlyContinue)) {
+# Resolved to an EXECUTABLE here, before anything is touched, because step 3 starts
+# the merge as a process by path rather than through PowerShell's own command
+# lookup - a gh that is only a function, an alias or a script is not something it
+# can start, and finding that out after the teardown and the ready flip would leave
+# a PR marked ready and unmerged.
+$GhCommand = Get-Command -Name 'gh' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+if (-not $GhCommand) {
     Exit-WithError "gh (GitHub CLI) not found on PATH"
 }
 
@@ -427,10 +433,12 @@ function Get-WorktreeHoldingBranch {
 }
 
 function Get-PrField {
-    # A single field, for the two values that have to be read at a specific MOMENT
+    # A single field, for the values that have to be read at a specific MOMENT
     # rather than with the batch below: `mergeable` because GitHub computes it
-    # asynchronously and it is polled until it settles, and `isDraft` because it
-    # must describe the instant before this run flips it.
+    # asynchronously and it is polled until it settles, `isDraft` because it must
+    # describe the instant before this run flips it, and `state` because after a
+    # merge call that did not return cleanly it is what decides whether step 3
+    # succeeded.
     param([Parameter(Mandatory = $true)] [string] $Name)
     return Invoke-InMainCheckout -ArgumentList @($Name) -Body {
         param([string] $Field)
@@ -905,10 +913,8 @@ if ($State -eq 'MERGED') {
     $MergeTimeoutSeconds = 120
     $mergeStatus = 0
     $mergeTimedOut = $false
-    $ghCommand = Get-Command -Name 'gh' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $ghCommand) { Exit-WithError "gh (GitHub CLI) not found on PATH as an executable" }
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $startInfo.FileName = $ghCommand.Path
+    $startInfo.FileName = $GhCommand.Path
     $startInfo.Arguments = (@('pr', 'merge', $Pr) + $MergeArgs | ForEach-Object { ConvertTo-NativeArgument $_ }) -join ' '
     $startInfo.WorkingDirectory = $Main
     $startInfo.UseShellExecute = $false
@@ -940,7 +946,7 @@ if ($State -eq 'MERGED') {
     # the remote to serve the merge commit. MERGED and CLOSED stop it early, since
     # neither is waiting to become anything else; what is left after the last read
     # is the answer, and an unreadable state is not MERGED.
-    $script:MergeFailed = $false
+    $mergeFailed = $false
     if ($mergeTimedOut -or $mergeStatus -ne 0) {
         if ($mergeTimedOut) {
             $mergeCall = "the gh pr merge call timed out after ${MergeTimeoutSeconds}s"
@@ -957,10 +963,10 @@ if ($State -eq 'MERGED') {
             $Recovered = $true
             Write-Output "merge-pr: $mergeCall, but GitHub reports PR #$Pr as MERGED - the merge landed; carrying on with the close-out (the ready flag stays set)."
         } else {
-            $script:MergeFailed = $true
+            $mergeFailed = $true
         }
     }
-    if ($script:MergeFailed) {
+    if ($mergeFailed) {
         # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
         # being merged right this second reads, everywhere else in this flow, as a
         # diff a dispatcher approved - so leaving it set would have the PR wearing
@@ -1241,7 +1247,7 @@ PR #$Pr was squashed onto '$BaseBranch', but $verifyFailed - so '$HeadBranch' ha
         #     landed. On the merge path that same refusal would be REAL, and nothing
         #     there needs a force anyway - `gh pr merge --delete-branch` does the
         #     deleting, and where that call did not return cleanly the block below
-        #     uses `-d`.
+        #     asks `-d`'s own ancestry question against the synced base first.
         #   - ONLY after the tree comparison PASSED. The Exit-WithError immediately
         #     above is not a formality standing between the check and the delete; it
         #     IS the guard `-d` would otherwise have been. Reached with the
@@ -1279,22 +1285,26 @@ PR #$Pr is squashed onto '$BaseBranch' and the tree was VERIFIED against the gat
     # The merge path's deleting is done by `--delete-branch` INSIDE the merge call,
     # so a call that timed out or failed after GitHub merged may never have reached
     # it - either copy of the branch can survive. Whatever does is deleted here,
-    # after the sync, and a copy already gone is left alone, so a re-run finds
-    # nothing to do.
+    # after the sync, and a copy already gone is left alone. This runs only on the
+    # run that recovered: a re-run finds the PR already merged and takes the path
+    # above, which deletes nothing on the merge path.
     #
-    # Local first, and with `-d`, never `-D`: this is a real merge commit, so the
-    # ancestry question `-d` asks is the right one and its refusal would be REAL.
-    # `-d` answers it against the branch's upstream while that ref exists, else
-    # against HEAD of the tree it runs in - so it runs in the tree standing on the
-    # base where one does, whose HEAD step 4 has just proved carries the merge, and
-    # before the remote copy (the upstream) is deleted.
+    # The local copy goes only once it is PROVEN merged: this is a real merge
+    # commit, so the ancestry question `git branch -d` asks is the right one and a
+    # "no" would be real. It is asked here against the local base, which step 4 has
+    # just proved carries the merge, rather than left to `-d`, which asks it of the
+    # branch's upstream or else of whatever HEAD the tree it runs in happens to
+    # have - the main checkout is often on neither. The same question answered
+    # "yes" is what makes the `-D` below a delete, not a force.
     $deleteFailed = @()
     if (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")) {
-        $delWt = Get-WorktreeHoldingBranch -Branch $BaseBranch
-        if (-not $delWt) { $delWt = $Main }
         Write-Output "merge-pr: the merge call did not return cleanly, so '$HeadBranch' survived it - deleting the local branch ..."
-        if (-not (Test-GitSuccess @('-C', $delWt, 'branch', '-d', $HeadBranch))) {
-            $deleteFailed += "git -C $delWt branch -d $HeadBranch"
+        if (Test-GitSuccess @('-C', $Main, 'merge-base', '--is-ancestor', "refs/heads/$HeadBranch", "refs/heads/$BaseBranch")) {
+            if (-not (Test-GitSuccess @('-C', $Main, 'branch', '-D', $HeadBranch))) {
+                $deleteFailed += "git -C $Main branch -d $HeadBranch"
+            }
+        } else {
+            $deleteFailed += "git -C $Main branch -d $HeadBranch   (it is NOT an ancestor of local '$BaseBranch')"
         }
     }
     if (Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/remotes/origin/$HeadBranch")) {

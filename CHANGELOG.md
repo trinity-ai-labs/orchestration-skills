@@ -9,13 +9,17 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   `timeout` binary, and a call that overruns it is stopped by its own process id. When the call times out or
   exits non-zero the helper reads the PR's state back from GitHub, allowing a few seconds for it to catch up:
   a PR that reports `MERGED` is carried on into the base-branch sync with its ready flag left alone, and any
-  copy of the head branch the call left behind is deleted — locally with `git branch -d`, never forced, and
-  on `origin` — each on its own output line. Any other state takes the existing failure path, the draft flag
+  copy of the head branch the call left behind is deleted — locally only once it is proven an ancestor of the
+  synced base, and on `origin` — each on its own output line. Any other state takes the existing failure path, the draft flag
   restored where the run set it, and the message now names the state it read and says whether the call timed
   out. Previously a call that hung after GitHub had merged left the helper waiting indefinitely with the sync
   never run, and a call that failed after GitHub had merged un-readied the merged PR and reported it failed.
 - **The PowerShell port now starts `gh pr merge` as a process it holds a handle to**, quoting the squash
-  subject for the process command line itself, so one quoting serves Windows PowerShell 5.1 and pwsh alike.
+  subject for the process command line itself, so one quoting serves Windows PowerShell 5.1 and pwsh alike,
+  and it resolves `gh` to an executable before anything is touched rather than at the merge.
+- **The hand-run close-out in `skills/execute/references/landing.md` reads the PR's state before undoing the
+  ready flag** after a merge call that hangs or fails: `MERGED` leaves the flag and carries on with the sync
+  and the branch deletion.
 
 ## 5.11.5
 

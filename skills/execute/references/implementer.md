@@ -163,22 +163,24 @@ away either**: a PR whose panel review has gone reads to your dispatcher exactly
 pass at all. **An edit-in-place that appends a second comment rather than amending the first has left you a
 duplicate to tidy, and it is tidied on this same test** — by the id you read, never by which one came last.
 
-**Never background a check and end your turn on it.** This is keyed to the HANDOFF, not the run, so it reaches
-the checks you ARE allowed to run: the stall does not care which one it was, only that the turn ended and the
-handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back** — a command
-you started, whatever detached it, does not re-invoke you when it exits the way a child's report does, so a
-turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call,
-raise that call's timeout to its limit first; past the limit, detach the check with its exit status written
-into its own log, and poll that log with foreground calls in this same turn until the `EXIT=` line
+**Never background a check and end your turn on it — a rule about checks and commands, and not about the
+sub-agents you spawned**, which the next paragraph covers. This is keyed to the HANDOFF, not the run, so it
+reaches the checks you ARE allowed to run: the stall does not care which one it was, only that the turn ended
+and the handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back** — a
+command you started, whatever detached it, does not re-invoke you when it exits the way a child's report
+does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool
+call, raise that call's timeout to its limit first; past the limit, detach the check with its exit status
+written into its own log, and poll that log with foreground calls in this same turn until the `EXIT=` line
 appears** — `skills/procedures/host-tools.md` has the limit and the form.
-**Sub-agents you spawned are the opposite case: wait on them the way your host wakes you, never by a call made
-only to keep your turn open** — `skills/procedures/host-tools.md` names that wait, and where it is an ended
-turn, ending it while they run hands nothing back and each one re-invokes you as it reports, so a placeholder
-agent, an `echo` or a `sleep` spends a round trip and learns nothing. **A call that blocks until a child
-reports is that same wait where your host has one; where it has NEITHER, ending your turn loses your
-hand-back, so hand back on what has landed and name the children still out** rather than waiting silently on a
-re-invocation that is not coming — a blank row in that table is this third branch until your own tool list
-says otherwise.
+
+**Wait on sub-agents you spawned by ending your turn with no tool call, where your host re-invokes you as each
+one reports — that is safe: it hands nothing back, and each report arrives as a new turn**
+(`skills/procedures/host-tools.md`'s wait row says whether yours does, and what you can read to tell).
+**Never make a call whose result you do not need just so your turn does not end** — the ban is on that
+purpose, not a tool, so a host call that blocks until a child reports is the same wait where your host has
+one. **Where it has NEITHER, ending your turn loses your hand-back, so hand back on what has landed and name
+the children still out** rather than waiting silently on a re-invocation that is not coming — a blank row in
+that table is this third branch until your own tool list says otherwise.
 
 **Before you commit, sweep for untracked files and account for each one.** The command is the one this
 corpus already uses: `git ls-files --others --exclude-standard`. For every name it prints, **add it or say

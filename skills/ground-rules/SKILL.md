@@ -119,22 +119,23 @@ you have decided is wrong.
 Cache-eligible tasks go through the project's task runner, never the raw binary; the one sanctioned
 direct run is a single targeted test file.
 
-## 10. Never make a call only to keep your turn open
+## 10. Wait on agents you dispatched by ending your turn — never by a call made to keep it open
 
-**When all that is left is agents you dispatched, wait the way your host wakes you — where it re-invokes
-you as each one reports, by ending your turn with no tool call, which hands nothing back — and never by a
-call whose result you do not need, made so your turn does not end**: a placeholder agent, an `echo`, a
-`sleep`, since each is a paid round trip that learns nothing and a placeholder's own completion wakes you
-into spawning the next. **The ban is on the call's PURPOSE, not its tool** — a host call that blocks
-until a child reports is that host's wait, and a tick or watch the pass you are in requires returns
-something you act on, so neither is one of these.
+**Where your host re-invokes you as each agent you dispatched reports, wait on them by ending your turn with
+no tool call — that is safe: it hands nothing back, and each report arrives as a new turn.** Read no warning
+about ending a turn on a command you detached as reaching this wait, since a command's exit re-invokes nothing
+and a dispatched agent's report does. `skills/procedures/host-tools.md`'s wait row says whether your host is
+this one and what you can read from inside a run to tell.
 
-**Three branches, and which one is yours is your host's to give**: an ended turn, where it re-invokes you as
-each child reports; that blocking call, where it has one; and **where it has NEITHER, ending your turn loses
-the handoff, so hand back instead — naming which children are still out and what you hold without them —
-rather than waiting silently on a re-invocation that is not coming.** Read the row for your host in
-`skills/procedures/host-tools.md`, and a blank there means the third branch until your own tool list says
-otherwise.
+**Never make a call whose result you do not need just so your turn does not end** — it is a paid round trip
+that learns nothing, and one whose own completion re-invokes you wakes you into making the next. **The ban is
+on the call's PURPOSE, not its tool**: a host call that blocks until a child reports is that host's wait, and
+a tick or watch the pass you are in requires returns something you act on, so neither is one of these.
+
+**Where your host gives NEITHER that re-invocation nor such a blocking call, hand back instead of waiting** —
+ending your turn there loses the handoff with nothing coming to restore it, so report what has landed, naming
+which children are still out and what you hold without them. A blank wait row in
+`skills/procedures/host-tools.md` is this case until your own tool list says otherwise.
 
 ## 11. Name the tier of every agent you spawn — never inherit one
 

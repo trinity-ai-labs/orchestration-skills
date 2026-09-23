@@ -10,7 +10,7 @@ list and say so in your report.**
 | Skill discovery | `skills/<slug>/SKILL.md`, `name` + `description` frontmatter | identical |
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
-| Wait on agents you dispatched | end your turn with no tool call — each report re-invokes you, in a main session or a BACKGROUND sub-agent | **not established — read your tool list** |
+| Wait on agents you dispatched | end your turn with no tool call — it is safe: each report re-invokes you as a new turn. The tell you can read is the background spawn call's own result, which says you will be notified when that agent completes — the host's promise to re-invoke you. Observed from a main session and from a sub-agent dispatched in the background waiting on its own children | **not established — read your tool list** |
 | Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
 | List the live ones — the agents YOU spawned, never their children | `ListAgents` | `list_agents` |
 | Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
@@ -19,7 +19,7 @@ list and say so in your report.**
 | Persistent watch over a ledger directory | `Monitor`, whose command runs in **zsh** on macOS | **not established — read your tool list** |
 | Longest single foreground command | the shell tool's `timeout`, up to 600000 ms (default 120000) | **not established — read your tool list** |
 | When a sub-agent is reported completed | when it stops with no live background children of its own — one that ended its turn to wait on its children is not reported | **not established — read your tool list** |
-| A command you detached, seen from inside a sub-agent | its exit re-invokes nothing: the sub-agent's ended turn is its hand-back, reported completed with the command still running — observed, not documented | **not established — read your tool list** |
+| A command you detached, seen from inside a sub-agent | unlike a child agent's report, its exit re-invokes nothing: the sub-agent's ended turn is its hand-back, reported completed with the command still running — observed, not documented | **not established — read your tool list** |
 | Concurrent sub-agent ceiling | 20 running at once by default, changed by `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`; an over-cap spawn is REFUSED, not queued, with `Concurrent subagent limit reached. You can run N subagents at once. Do not retry.` | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
@@ -33,11 +33,12 @@ your host may not have is worse than a blank one**, since the flow sends you her
 row says the tool is not established, the sentence above is the whole instruction — read your own tool
 list, and say in your report what you found.
 
-⚠️ **The wait row has THREE branches, and a BLANK cell is what selects the third.** A filled cell names one
-of two waits: an ended turn with no tool call, where the host re-invokes you as each child reports, or a call
-that blocks until one does. **A blank means this table establishes neither for that host, and it is a reading
-rather than an absence of one** — read your own tool list, and where that confirms neither exists, there is no
-wait to make and `skills/ground-rules/SKILL.md` rule 10 carries what to do instead.
+⚠️ **A filled wait cell is the ordinary case: where it names an ended turn, ending your turn IS the wait and
+loses nothing**, since each child's report re-invokes you. The row has THREE branches — an ended turn with no
+tool call, where the host re-invokes you as each child reports; a call that blocks until one does; and,
+selected by a BLANK cell, neither. **A blank means this table establishes neither for that host, and it is a
+reading rather than an absence of one** — read your own tool list, and where that confirms neither exists,
+there is no wait to make and `skills/ground-rules/SKILL.md` rule 10 carries what to do instead.
 
 ⚠️ **The reach-your-spawner row hands back a RECEIPT, never a reply, so send and carry on rather than
 wait.** The call returns synchronously and what comes back acknowledges that the message is queued; the

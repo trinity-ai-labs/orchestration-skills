@@ -289,6 +289,16 @@ that is a revert, and it arrives in your Applied list wearing the word convergen
 
 ## 3. Weigh what comes back, apply what belongs, then verify it
 
+**Wait on the reviewers you dispatched by ENDING your turn with no tool call, where your host re-invokes you
+as each one reports — that is safe: it hands nothing back, and each report arrives as a new turn.** Where your
+host instead gives you a call that blocks until one reports, that call is the wait. **Never make a call whose
+result you do not need just so your turn does not end.** **Where your host gives NEITHER, ending your turn
+loses the very report you are waiting for, so report on what has landed and name the dimensions still out as
+still out** — `skills/procedures/host-tools.md` is where you read which branch is yours, and a blank row there
+is the third until your own tool list says otherwise. A reviewer that fails or stalls has landed with
+nothing: weigh the rest, and name that dimension in your report as one that did not report. **A spawn your
+host refused never started, so it is not this case** — step 2's refusal rule carries it.
+
 ⛔ **Change nothing until EVERY reviewer you dispatched has reported.** Reports arrive one reviewer at
 a time, so the first arrives looking like *what comes back* while the others are still reading the
 tree — and an edit made then moves the tree under them, so their findings describe lines that no longer
@@ -297,17 +307,8 @@ is the count you wait for, and anything else that would change the tree waits wi
 your dispatcher included. **This pass ends at its report and re-opens for nothing**, so an answer you
 held until then, or one arriving after it, is applied to a tree no reviewer will read again and has no
 reader left but whoever reviews the caller's diff — which is the caller's to record in its hand-back
-rather than this pass's to re-open for. **Wait on those reviewers the way your host wakes you — where
-it re-invokes you as each one reports, by ENDING your turn with no tool call, which hands nothing back,
-and where it gives you a call that blocks until one reports, by that call — and never by a call made
-only to keep the turn open**, a placeholder agent or an `echo` or a `sleep`, which spends a round trip
-and learns nothing. **Where your host gives NEITHER of those two, ending your turn loses the very report
-you are waiting for, so report on what has landed and name the dimensions still out as still out** —
-`skills/procedures/host-tools.md` is where you read which branch is yours, and a blank row there is the
-third until your own tool list says otherwise. A reviewer that fails or stalls has landed with nothing:
-weigh the rest, and name that dimension in your report as one that did not report. **A spawn your host
-refused never started, so it is not this case** — step 2's refusal rule carries it, and this freeze holds
-across a park exactly as it holds across a wait.
+rather than this pass's to re-open for. This freeze holds across a park exactly as it holds across a
+wait.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
@@ -355,16 +356,17 @@ declares neither — and running it here saturates the machine that run needs. B
 does not make it allowed. **No reviewer runs one either**, which is why no brief you write names a test
 command.
 
-⛔ **Never background a check and end your turn on it.** The run that actually stalls this pass is a
-*permitted* one, so the ban above cannot reach it: your whole budget is allowed, and the stall shape
-does not care which run it was — the turn ends, and the caller never gets the report. So this rule is
-keyed to the handoff rather than to the ban. Both of your checks run in the **foreground**
+⛔ **Never background a check and end your turn on it — a rule about checks and commands, and NOT about the
+reviewers you dispatched**, ALL of whom you wait on as this step opens by saying, since reading this ban as
+reaching them leaves you with one reader again. The run that actually stalls this pass is a *permitted* one,
+so the ban above cannot reach it: your whole budget is allowed, and the stall shape does not care which run
+it was — the turn ends, and the caller never gets the report. So this rule is keyed to the handoff rather
+than to the ban. Both of your checks run in the **foreground**
 — **where one can outlast a single tool call, raise that call's timeout to its limit, and past the limit
 detach it with its exit status written into its own log and poll that log with foreground calls in this same
 turn until the exit line appears** (`skills/procedures/host-tools.md` has the limit and the form) — and this
 pass ends at its report, never at a wait — a wait on the reviewers you dispatched ends a TURN, never the
-pass. **It reaches checks and commands and NOT those reviewers**: you wait on ALL of them the way this
-step opens by saying, and reading this ban as reaching them leaves you with one reader again.
+pass.
 
 ---
 

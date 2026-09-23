@@ -283,13 +283,16 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   the second as an exception to the first lets a backgrounded command pass as the exception.
   **Its long-check sentence is the permitted route for a gate that outlasts one tool call**, the common case
   in in-line mode on a long suite, where a bare prohibition leaves backgrounding reading as the only route.
-  **Its closing two sentences are the wait on the slice's own sub-agents, written for a host that re-invokes
-  an agent as each child reports** — where `skills/procedures/host-tools.md` does not give yours as an ended
-  turn, put your host's blocking wait in its place, and **where it gives neither, put the third branch in the
-  brief instead**: an ended turn there loses the hand-back with nothing coming to re-invoke it, so the slice
-  reports on what has landed and names the children still out.
+  **Its second paragraph is the wait on the slice's own sub-agents, written for a host that re-invokes an
+  agent as each child reports, and it leads with that safe case** — where `skills/procedures/host-tools.md`
+  does not give yours as an ended turn, put your host's blocking wait in its place, and **where it gives
+  neither, keep only that paragraph's closing sentence, the third branch**: an ended turn there loses the
+  hand-back with nothing coming to re-invoke it, so the slice reports on what has landed and names the
+  children still out.
 
-  > **Run every check and command in the FOREGROUND, and end your turn only at the hand-back.** A command you started — whatever detached it: a harness background flag, `&`, `nohup` — does not re-invoke you when it exits the way a child's report does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call, raise that call's timeout to its limit first; past the limit, detach it with its exit status written into its own log and poll that log with foreground calls in this same turn until the `EXIT=` line appears** (`skills/procedures/host-tools.md` has the limit and the exact form). **Sub-agents you spawned are the one different wait: wait on them by ENDING your turn, with no tool call** — ending it while they run hands nothing back and each one re-invokes you as it reports — **and never by a call made only to keep the turn open**, a placeholder agent, an `echo` or a `sleep`, which spends a round trip and learns nothing. **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
+  > **Run every check and command in the FOREGROUND, and end your turn only at the hand-back.** A command you started — whatever detached it: a harness background flag, `&`, `nohup` — does not re-invoke you when it exits the way a child's report does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call, raise that call's timeout to its limit first; past the limit, detach it with its exit status written into its own log and poll that log with foreground calls in this same turn until the `EXIT=` line appears** (`skills/procedures/host-tools.md` has the limit and the exact form).
+  >
+  > **Sub-agents you spawned are a different case, and a safe one: their reports DO re-invoke you, so ending your turn with no tool call is how you wait on them** — it hands nothing back, and each report arrives as a new turn. **Never make a call whose result you do not need just so your turn does not end.** **Where this host gives neither that re-invocation nor a call that blocks until a child reports, do not wait silently — hand back on what has landed and name which children are still out.**
 - **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
   `git stash pop`, a patch parked in `/tmp` — loses work silently, and an implementer reaches for it unless
   the brief names the right one. Paste this, substituting the slice's branch leaf:

@@ -18,8 +18,10 @@
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.sh, which kills processes rooted in the tree first.
 #   4. Mark the PR ready — the dispatcher's review approval — and immediately
-#      `gh pr merge` it, deleting both the local and remote branch. A merge that
-#      fails anyway puts the draft flag back before it exits.
+#      `gh pr merge` it, deleting both the local and remote branch. The call is
+#      bounded at 120 seconds, and when it times out or fails the PR's own state
+#      decides: MERGED carries on (deleting any branch the call left behind), and
+#      anything else puts the draft flag back before it exits.
 #   5. Sync the local copy of the PR's base branch to the just-merged tip — in the
 #      main checkout, in whatever linked worktree is standing on it, or by ref.
 #   6. On the squash path ONLY: verify the merged tree against the epic tip that
@@ -671,6 +673,9 @@ if [ -n "$HEAD_BRANCH" ]; then
 fi
 
 # --- 3. Merge (unless already merged) ------------------------------------------
+# Set when the merge call did not return cleanly but the PR is merged all the same;
+# step 5 then finishes the branch deletion that call may never have reached.
+RECOVERED=""
 if [ "$STATE" = "MERGED" ]; then
   echo "merge-pr: PR #$PR already merged — skipping merge, finishing the local sync."
 else
@@ -711,7 +716,87 @@ else
     MERGE_ARGS=(--merge --delete-branch)
     echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
   fi
-  if ! ( cd "$MAIN" && printf '%s' "$SQUASH_BODY" | gh pr merge "$PR" "${MERGE_ARGS[@]}" ); then
+  # The call is BOUNDED, and its exit status is not what decides whether the merge
+  # happened. `gh pr merge` can sit forever after GitHub has already merged, and it
+  # can fail after GitHub has already merged; left unbounded the first stops the run
+  # before the sync with nothing printed, and trusting the exit the second un-readies
+  # a merged PR and reports it failed. So it runs in the background under a
+  # deadline, and whenever it does not return 0 in time the PR's OWN state is read
+  # back and that answer decides (below).
+  #
+  # A background-and-poll rather than `timeout`, because macOS ships no `timeout`
+  # and a bound that exists on some machines is not one. `exec` makes the
+  # background job's pid gh's own, so the kill below reaches exactly the process
+  # this run started. The body still reaches gh on stdin, through a process
+  # substitution rather than a pipe, since a pipe would put gh in a child of the
+  # job and out of the kill's reach. With no redirection, a background job's stdin
+  # is /dev/null, which the merge path never reads.
+  #
+  # 120 seconds is hard-coded: a merge that has not returned by then is not
+  # coming back, and a knob for it would be a new env var in a frozen contract.
+  MERGE_TIMEOUT=120
+  MERGE_STATUS=0
+  MERGE_TIMED_OUT=""
+  ( cd "$MAIN" && exec gh pr merge "$PR" "${MERGE_ARGS[@]}" < <(printf '%s' "$SQUASH_BODY") ) &
+  MERGE_PID=$!
+  # A job started with `&` ignores SIGINT in a non-interactive shell, so an
+  # interrupted run would otherwise leave gh merging on its own with nobody left
+  # to sync after it. The trap hands the interrupt on and is dropped once the
+  # call is over.
+  trap 'kill "$MERGE_PID" 2>/dev/null; exit 130' INT TERM
+  MERGE_DEADLINE=$((SECONDS + MERGE_TIMEOUT))
+  while kill -0 "$MERGE_PID" 2>/dev/null; do
+    if [ "$SECONDS" -ge "$MERGE_DEADLINE" ]; then
+      MERGE_TIMED_OUT=1
+      echo "merge-pr: gh pr merge has not returned after ${MERGE_TIMEOUT}s — stopping it (pid $MERGE_PID) and asking GitHub what state PR #$PR is in ..."
+      # A process that ignores TERM gets KILL after a short grace, so the run
+      # can never trade one unbounded wait for another. stderr is silenced for
+      # the whole group because bash reports the killed job ("Terminated") at the
+      # next command it runs, which would read as a second, unexplained failure.
+      {
+        kill "$MERGE_PID" || true
+        for _ in 1 2 3 4 5; do
+          kill -0 "$MERGE_PID" || break
+          sleep 1
+        done
+        kill -9 "$MERGE_PID" || true
+      } 2>/dev/null
+      break
+    fi
+    sleep 1
+  done
+  wait "$MERGE_PID" 2>/dev/null || MERGE_STATUS=$?
+  trap - INT TERM
+
+  # The source of truth for "did step 3 succeed" is the PR, read back only when
+  # the call did not answer cleanly — a 0 in time needs no second opinion. GitHub
+  # serves a merge's state a moment after it applies it, so an OPEN read straight
+  # after a call that failed at the last step can be stale: up to five reads three
+  # seconds apart (about twelve seconds), the same order of patience step 4 gives
+  # the remote to serve the merge commit. MERGED and CLOSED stop it early, since
+  # neither is waiting to become anything else; what is left after the last read
+  # is the answer, and an unreadable state is not MERGED.
+  MERGE_FAILED=""
+  if [ -n "$MERGE_TIMED_OUT" ] || [ "$MERGE_STATUS" -ne 0 ]; then
+    if [ -n "$MERGE_TIMED_OUT" ]; then
+      MERGE_CALL="the gh pr merge call timed out after ${MERGE_TIMEOUT}s"
+    else
+      MERGE_CALL="the gh pr merge call exited $MERGE_STATUS"
+    fi
+    AFTER_STATE=""
+    for attempt in 1 2 3 4 5; do
+      AFTER_STATE=$(pr_field state 2>/dev/null || true)
+      case "$AFTER_STATE" in MERGED | CLOSED) break ;; esac
+      [ "$attempt" -eq 5 ] || sleep 3
+    done
+    if [ "$AFTER_STATE" = "MERGED" ]; then
+      RECOVERED=1
+      echo "merge-pr: $MERGE_CALL, but GitHub reports PR #$PR as MERGED — the merge landed; carrying on with the close-out (the ready flag stays set)."
+    else
+      MERGE_FAILED=1
+    fi
+  fi
+  if [ -n "$MERGE_FAILED" ]; then
     # The flag must not SURVIVE a merge that failed. A non-draft PR that is not
     # being merged right this second reads, everywhere else in this flow, as a diff
     # a dispatcher approved — so leaving it set would have the PR wearing a
@@ -725,7 +810,7 @@ else
         DRAFT_NOTE="its draft flag could NOT be restored — put it back by hand: gh pr ready $PR --undo"
       fi
     fi
-    die "merging PR #$PR failed — $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
+    die "merging PR #$PR failed — $MERGE_CALL and GitHub reports the PR as ${AFTER_STATE:-<state unreadable>}, not MERGED; $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
   fi
 fi
 
@@ -836,9 +921,11 @@ done
 [ -n "$synced" ] || die "local '$BASE_BRANCH' did NOT reach the merged tip (merge commit ${MERGE_OID:-unknown} still absent after retries) — SYNC FAILED; do NOT cut new worktrees off '$BASE_BRANCH' until this is resolved."
 
 # --- 5. Squash close-out: verify the tree, THEN delete the branch ----------------
-# Nothing to do on the merge path — `--delete-branch` already removed both copies
-# of the branch, and the merge commit's second parent keeps the ancestry that
-# `git branch -d` and the integration gate's `^2` check both read.
+# On the merge path `--delete-branch` has normally removed both copies of the
+# branch, and the merge commit's second parent keeps the ancestry that
+# `git branch -d` and the integration gate's `^2` check both read. The one merge-path
+# case with work left here is a merge call that did not return cleanly after GitHub
+# merged, which may never have reached its own delete: the block after this one.
 #
 # On the squash path neither of those is true, and the two failures are one fact:
 # the squash commit has no second parent, so the epic branch is NOT an ancestor of
@@ -909,7 +996,8 @@ if [ "$MERGE_MODE" = "squash" ]; then
     #     answers "no" for a reason that has nothing to do with whether the work
     #     landed. On the merge path that same refusal would be REAL, and nothing
     #     there needs a force anyway — `gh pr merge --delete-branch` does the
-    #     deleting and no `git branch -d` runs at all.
+    #     deleting, and where that call did not return cleanly the block below
+    #     uses `-d`.
     #   - ONLY after the tree comparison PASSED. The `die` immediately above is
     #     not a formality standing between the check and the delete; it IS the
     #     guard `-d` would otherwise have been. Reached with the comparison
@@ -933,6 +1021,32 @@ if [ "$MERGE_MODE" = "squash" ]; then
     fi
     [ -z "$DELETE_FAILED" ] || die "PR #$PR is squashed onto '$BASE_BRANCH' and the tree was VERIFIED against the gated epic tip, but deleting '$HEAD_BRANCH' failed.\n  Nothing is at risk — the work is on '$BASE_BRANCH' and the local sync is done; only the branch is left behind. Finish it by hand:\n    $DELETE_FAILED"
   fi
+elif [ -n "$RECOVERED" ] && [ -n "$HEAD_BRANCH" ]; then
+  # The merge path's deleting is done by `--delete-branch` INSIDE the merge call, so
+  # a call that timed out or failed after GitHub merged may never have reached it —
+  # either copy of the branch can survive. Whatever does is deleted here, after the
+  # sync, and a copy already gone is left alone, so a re-run finds nothing to do.
+  #
+  # Local first, and with `-d`, never `-D`: this is a real merge commit, so the
+  # ancestry question `-d` asks is the right one and its refusal would be REAL.
+  # `-d` answers it against the branch's upstream while that ref exists, else
+  # against HEAD of the tree it runs in — so it runs in the tree standing on the
+  # base where one does, whose HEAD step 4 has just proved carries the merge, and
+  # before the remote copy (the upstream) is deleted.
+  DELETE_FAILED=""
+  if git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then
+    DEL_WT=$(worktree_holding "$BASE_BRANCH")
+    DEL_WT="${DEL_WT:-$MAIN}"
+    echo "merge-pr: the merge call did not return cleanly, so '$HEAD_BRANCH' survived it — deleting the local branch ..."
+    git -C "$DEL_WT" branch -d "$HEAD_BRANCH" >/dev/null 2>&1 \
+      || DELETE_FAILED="git -C $DEL_WT branch -d $HEAD_BRANCH"
+  fi
+  if git -C "$MAIN" show-ref --verify --quiet "refs/remotes/origin/$HEAD_BRANCH"; then
+    echo "merge-pr: the merge call did not return cleanly, so '$HEAD_BRANCH' survived it — deleting it on origin ..."
+    git -C "$MAIN" push origin --delete "$HEAD_BRANCH" >/dev/null 2>&1 \
+      || DELETE_FAILED="${DELETE_FAILED:+$DELETE_FAILED\n    }git -C $MAIN push origin --delete $HEAD_BRANCH"
+  fi
+  [ -z "$DELETE_FAILED" ] || die "PR #$PR IS merged into '$BASE_BRANCH' and the local sync is done, but deleting the '$HEAD_BRANCH' the merge call left behind failed.\n  Nothing is at risk — the work is on '$BASE_BRANCH'; only the branch is left behind. Finish it by hand, and if git says the branch is not fully merged, find out why before forcing anything:\n    $DELETE_FAILED"
 fi
 
 # --- 6. Verify the main checkout did not move under us ---------------------------

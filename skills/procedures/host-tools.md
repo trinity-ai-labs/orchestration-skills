@@ -9,7 +9,7 @@ list and say so in your report.**
 | Manifest | `.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` |
 | Skill discovery | `skills/<slug>/SKILL.md`, `name` + `description` frontmatter | identical |
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
-| Read-only reader — no edit tool, for establishing a claim rather than a location | `subagent_type: "Plan"`: no edit, write, notebook-edit or spawn tool, while it reads whole files, greps and runs git — never `Explore`, which reads excerpts and is built to locate code rather than establish a claim | **not established — read your tool list** |
+| Dispatched reader — a full agent its brief holds read-only | `subagent_type: "general-purpose"`: every tool, so the write ban and the no-children rule live in the brief rather than the tool set — never `Explore`, which reads excerpts and is built to locate code rather than establish a claim | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
 | Wait on agents you dispatched | end your turn with no tool call — it is safe: each report re-invokes you as a new turn. The tell you can read is the background spawn call's own result, which says you will be notified when that agent completes — the host's promise to re-invoke you. Observed from a main session and from a sub-agent dispatched in the background waiting on its own children | **not established — read your tool list** |
 | Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
@@ -27,14 +27,11 @@ list and say so in your report.**
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |
 | `bin/` on `PATH` | yes, while enabled | **no** |
 
-⚠️ **The read-only reader row's missing spawn tool is what makes it a last agent, not only what it says.**
-`skills/ground-rules/SKILL.md` rule 2 holds a dispatched reader to no children of its own; naming `Plan`
-here enforces that in the tool set as well as in the brief, so a reader that tried to dispatch anyway has
-no tool to do it with. **The model tier is still named separately, per rule 11, whatever type is used** —
-`subagent_type` picks the agent, not the tier. **This type still keeps a shell**, so the missing edit,
-write and notebook-edit tools are defence in depth behind the brief's write ban rather than a replacement
-for it — a reader that ran `sed -i` or a redirect would still be writing to the tree, and the brief is what
-forbids that, not the tool list.
+⚠️ **The dispatched reader row names a FULL agent, so the brief is the whole mechanism that keeps it a
+reader.** It holds every tool — edit, write and spawn included — so `skills/ground-rules/SKILL.md` rule 2's
+no-children rule and the write ban reach it only as sentences in its brief, and a brief that omits either
+leaves nothing else to stop it. **The model tier is still named separately, per rule 11** — `subagent_type`
+picks the agent, not the tier.
 
 ⚠️ **Correcting a live agent, listing the live ones and killing one are three rows because they are three
 acts with different costs.** Merged into one label they read as a single capability, and a reader reaches

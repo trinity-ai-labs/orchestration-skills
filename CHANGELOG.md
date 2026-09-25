@@ -2,6 +2,15 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.7
+
+- **Dispatched readers spawn as a full general-purpose agent.** `skills/procedures/host-tools.md`'s
+  read-only reader row becomes the dispatched reader row and names `subagent_type: "general-purpose"` in
+  place of `Plan`, and review's reviewers, ground's searchers and write-issue's searchers all spawn from it.
+  That type holds edit, write and spawn tools, so the write ban and the no-children rule now live in each
+  brief alone: review's brief states both and names a formatter's write mode and an in-place editor as
+  writes, and each searcher's brief adds that it writes nothing to the tree.
+
 ## 5.11.6
 
 - **`merge-pr` bounds its `gh pr merge` call and lets the PR's own state decide whether the merge

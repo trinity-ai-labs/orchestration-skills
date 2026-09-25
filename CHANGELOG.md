@@ -2,6 +2,18 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.11.8
+
+- **A project's commit bar can now come from a host tool-use hook instead of git's pre-commit hook, and
+  every seat that reads the hook to decide a brief's commit-bar line reads either one.**
+  `skills/procedures/host-tools.md` gains a row naming the host mechanism — a tool-use hook that intercepts
+  the agent's own `git commit` and can run the scoped check the way an executable pre-commit hook does — and
+  the dispatcher's settings table and its pasted block in `skills/execute/references/dispatching.md`,
+  `skills/execute/SKILL.md`, the implementer and reviewing references, and the two project-facing docs pages
+  all now point at that row alongside git's hook. Either kind running the scoped check means commits are held
+  to it by the hook; neither running it means the implementer runs the scoped check itself before each
+  commit. No new config key — the bar stays observed, never declared.
+
 ## 5.11.7
 
 - **Dispatched readers spawn as a full general-purpose agent.** `skills/procedures/host-tools.md`'s

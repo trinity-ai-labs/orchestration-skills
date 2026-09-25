@@ -98,8 +98,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there; nobody enqueues anything. No ban block. |
 | `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
-| pre-commit hook — observed, not declared: `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath` | an executable hook runs `scopedCheck` | Commits are held to the scoped check by the hook. |
-| | none, or it runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
+| commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
+| | neither does, or each runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
 | | absent | No formatter step, and the brief says the project has none. |
 | `docsPaths` | declared | The docs block names each path with its `when`. |
@@ -272,9 +272,10 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
-  **Commits are held to the scoped check either way, in whichever case the hook row names** — by a pre-commit
-  hook that runs `scopedCheck`, which only *checks* formatting rather than fixing it, or, where none does, by
-  the implementer running `scopedCheck` itself before each commit.
+  **Commits are held to the scoped check either way, in whichever case the hook row names** — by whichever
+  hook runs `scopedCheck`, git's pre-commit hook or the host's commit-hook row in
+  `skills/procedures/host-tools.md`, a hook of either kind only *checking* formatting rather than fixing it,
+  or, where neither does, by the implementer running `scopedCheck` itself before each commit.
 - **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
   scoped check and the one targeted test file, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on

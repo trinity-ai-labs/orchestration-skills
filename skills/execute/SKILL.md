@@ -89,9 +89,9 @@ Three things then change for the dispatcher:
 
 The heavy gate (`gate` = build + full test suite) is CPU-saturating, and **the project's `enqueue`/`drain`
 decide who runs it** (`skills/execute/references/per-project-config.md`). Either way an implementer holds
-itself to the cheap **scoped check** (format-check + lint + typecheck) — enforced by a pre-commit hook where
-one runs it, and run by the implementer before each commit where none does — pushes, and opens its
-**draft PR**.
+itself to the cheap **scoped check** (format-check + lint + typecheck) — enforced by a hook where one runs
+it, git's pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`, and run by the
+implementer before each commit where neither does — pushes, and opens its **draft PR**.
 
 - **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
   neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since

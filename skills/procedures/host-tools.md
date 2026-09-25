@@ -26,6 +26,7 @@ list and say so in your report.**
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
 | Auto worktree provisioner — BANNED | `isolation: "worktree"` | none seen; any that appears is banned too |
 | `bin/` on `PATH` | yes, while enabled | **no** |
+| Commit hook the host runs — a tool-use hook on the agent's own `git commit` | a `PreToolUse` hook under `hooks` in `.claude/settings.json`, `.claude/settings.local.json` or `~/.claude/settings.json` whose matcher covers the `Bash` tool and whose command runs on `git commit` | **not established — read your tool list** |
 
 ⚠️ **The dispatched reader row names a FULL agent, so the brief is the whole mechanism that keeps it a
 reader.** It holds every tool — edit, write and spawn included — so `skills/ground-rules/SKILL.md` rule 2's

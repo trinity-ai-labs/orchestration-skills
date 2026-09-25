@@ -450,7 +450,8 @@ drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs`
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run. Beyond that one run an implementer's commits are held only to the cheap scoped check —
-by a pre-commit hook where one runs it, by the implementer before each commit where none does — and
+by a hook where one runs it, git's pre-commit hook or the host's commit-hook row in
+`skills/procedures/host-tools.md`, by the implementer before each commit where neither does — and
 release-branch PRs typically get no CI, so that gate run is what stands in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,

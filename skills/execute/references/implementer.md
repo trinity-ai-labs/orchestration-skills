@@ -119,9 +119,10 @@ check and the project's conventions hold it to. **Formatter output is always com
 your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
 **Your commits are held to the cheap scoped check (format-check + lint + typecheck) whichever case the
-pre-commit hook is in** — by the hook, where an executable `pre-commit` in
-`$(git rev-parse --git-path hooks)`, a path that follows `core.hooksPath`, runs `scopedCheck`; and by you,
-running `scopedCheck` in the foreground before each commit, where none does.
+commit hook is in** — by the hook, where either an executable `pre-commit` in
+`$(git rev-parse --git-path hooks)`, a path that follows `core.hooksPath`, or the host's commit-hook row in
+`skills/procedures/host-tools.md` runs `scopedCheck`; and by you, running `scopedCheck` in the foreground
+before each commit, where neither does.
 
 **Who runs the full gate is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
 self-granted, never inferred:

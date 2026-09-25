@@ -165,10 +165,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   one* takes the dispatcher's own fence grant as readily as a stale verdict; tidying a superseded verdict
   stays wanted, and the dispatcher reads each grant back off the PR rather than trusting a write it made
   earlier to have survived.
-- **Every commit is held to the project's scoped check, and whether a pre-commit hook does that is read off
-  the repository rather than declared** — where a hook runs the scoped check the hook holds commits to it,
-  and where none does the implementer runs the scoped check itself before each commit. There is no config key
-  for it, since the hook's presence is something any pass can observe.
+- **Every commit is held to the project's scoped check, and whether a hook does that is observed rather than
+  declared** — git's pre-commit hook, or the host's commit-hook row in `skills/procedures/host-tools.md` —
+  where either one runs the scoped check it holds commits to it, and where neither does the implementer runs
+  the scoped check itself before each commit. There is no config key for it, since a hook's presence is
+  something any pass can observe.
 - **A fence is a ceiling on what a slice may EDIT, never a wall on what it may RAISE.** An implementer that
   finds something wrong in a file its brief fenced off asks its dispatcher while both are still alive, and it
   **fixes what it HIT while doing its slice rather than going looking for more** — the unlisted middle between

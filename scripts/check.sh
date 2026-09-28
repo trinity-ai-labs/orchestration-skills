@@ -25,7 +25,8 @@
 #   9. shipped prose carries no issue numbers.
 #  10. skills/ within the per-file ceiling AND the per-sub-skill ceiling.
 #  11. prose that states rules carries no war stories (a BACKSTOP: the rule
-#      is a property, stated in AGENTS.md — this pattern does not bound it).
+#      is a property, stated in .agents/rules/skill-prose.md — this pattern
+#      does not bound it).
 #  12. no skill cites another skill — three shared homes excepted, each
 #      admitted on a stated property, each compared as a WHOLE SEGMENT.
 #  13. no sentence has had its front removed (a partial prose deletion).
@@ -380,7 +381,7 @@ import re
 BIN = pathlib.Path("bin")
 
 # The env-var comparison is scoped to the CONTRACT surface: the variables a caller
-# passes in, which AGENTS.md freezes and which both implementations therefore have
+# passes in, which .agents/rules/helpers.md freezes and which both implementations therefore have
 # to agree on. It is deliberately NOT "every environment variable each side
 # happens to touch", because the two shells legitimately need different internal
 # plumbing: the bash helpers set MSYS path-translation variables for their child
@@ -500,7 +501,8 @@ for name in sorted(set(sh_files) & set(ps_files)):
     sh_code = code_only(sh_files[name].read_text(encoding="utf-8", errors="replace"))
 
     # Encoding, checked on the bytes rather than on anything already decoded: a
-    # .ps1 that is not printable ASCII plus LF is the corruption AGENTS.md names.
+    # .ps1 that is not printable ASCII plus LF is the corruption
+    # .agents/rules/helpers.md names.
     if b"\r" in ps_bytes:
         line = ps_bytes[: ps_bytes.index(b"\r")].count(b"\n") + 1
         problems.append(
@@ -596,7 +598,8 @@ rm -f "$parity_out"
 # TWO CLASSES, RESOLVED TWO DIFFERENT WAYS, because two readers resolve them
 # two different ways.
 #
-#   (a) A bare skills/… .md path written in prose. AGENTS.md's convention is
+#   (a) A bare skills/… .md path written in prose. .agents/rules/skill-prose.md's
+#       convention is
 #       that this is the one citation form resolving in the repo the prose is
 #       READ in, so it is resolved from the repository ROOT.
 #   (b) A markdown LINK target — ](…). A renderer resolves it relative to the
@@ -765,7 +768,7 @@ fi
 
 # --- 10. skills/ within the per-file AND per-sub-skill ceilings --------------
 
-# The per-file ceiling and the instrument AGENTS.md states. Changing either here
+# The per-file ceiling and the instrument .agents/rules/skill-prose.md states. Changing either here
 # without changing it there leaves the two halves of one rule disagreeing, with
 # both of them green — see the note at 10 above for why the unit matters as much
 # as the number.
@@ -775,8 +778,8 @@ budget=30000
 # skills/<slug>/ tree — a spine plus its own references, counted as that whole
 # DIRECTORY rather than as what any one agent loads, since an agent loads the
 # spine plus whichever references it is sent to — and the growth the per-file
-# half misses when a sub-skill gains files rather than grows one. AGENTS.md
-# states this one too, with the same both-green disagreement available.
+# half misses when a sub-skill gains files rather than grows one.
+# .agents/rules/skill-prose.md states this one too, with the same both-green disagreement available.
 # Both are BACKSTOPS, not budgets — they catch runaway growth rather than
 # ration prose. The headroom is deliberately not stated as a fraction here:
 # it moves with every release that adds prose,
@@ -889,11 +892,11 @@ else
 		# and how much room is the first thing they need. It also says which
 		# half extraction settles, since a reader who takes it as the whole
 		# remedy relocates words the sub-skill half counts wherever they sit.
-		fail "attention-budget: over the ${budget}-word PER-FILE ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. AGENTS.md carries both tests. Extraction settles this half only: the per-sub-skill ceiling counts the same words wherever they sit inside skills/<slug>/"
+		fail "attention-budget: over the ${budget}-word PER-FILE ceiling (wc -w):$budget_over — extract a whole role or subsystem body its reader reaches on the happy path, or delete, to make room; an error-path body stays inline however cleanly it separates. .agents/rules/skill-prose.md carries both tests. Extraction settles this half only: the per-sub-skill ceiling counts the same words wherever they sit inside skills/<slug>/"
 		budget_clean=0
 	fi
 	if [ -n "$budget_skill_over" ]; then
-		fail "attention-budget: over the ${budget_per_skill}-word PER-SUB-SKILL ceiling (wc -w summed over skills/<slug>/):$budget_skill_over — a sub-skill is one spine plus its own references, so extraction inside it moves nothing: split a whole pass out of it, or delete. AGENTS.md carries both ceilings"
+		fail "attention-budget: over the ${budget_per_skill}-word PER-SUB-SKILL ceiling (wc -w summed over skills/<slug>/):$budget_skill_over — a sub-skill is one spine plus its own references, so extraction inside it moves nothing: split a whole pass out of it, or delete. .agents/rules/skill-prose.md carries both ceilings"
 		budget_clean=0
 	fi
 	if [ "$budget_clean" -eq 1 ]; then
@@ -904,7 +907,7 @@ fi
 # --- 11. prose that states rules carries no war stories ----------------------
 
 # THE RULE IS A PROPERTY, AND THIS CHECK IS A BACKSTOP THAT DOES NOT STATE IT.
-# The rule (AGENTS.md, *Conventions*): name the failure a rule prevents in a
+# The rule (.agents/rules/skill-prose.md, *Conventions*): name the failure a rule prevents in a
 # clause that shares its sentence with the action, never in a sentence or a
 # paragraph of its own. The pattern below is a handful of phrasings that perform
 # that promotion often enough to be worth catching mechanically. It is NOT the
@@ -919,9 +922,9 @@ fi
 #
 # SCOPE: every tracked *.md except CHANGELOG.md. The property is about how a
 # RULE is written, so it reaches wherever this repo states or applies one —
-# skills/, AGENTS.md — which STATES the rule, and which a skills/-scoped check
-# could not see, so the file promulgating the ban was the one place it did not
-# reach — README.md, and docs/, which is where prose extracted out of skills/
+# skills/, .agents/rules/skill-prose.md — which STATES the rule, and which a
+# skills/-scoped check could not see, so the file promulgating the ban was the
+# one place it did not reach — README.md, and docs/, which is where prose extracted out of skills/
 # now lands and so is the direction a war story leaves skills/ by.
 # CHANGELOG.md is exempt, and the reason is the rule's own: the ban does not
 # delete the incident, it relocates it to the change that fixed it. A release
@@ -1031,7 +1034,7 @@ PY
 			story_clean=0
 		fi
 		if [ "$story_clean" -eq 1 ]; then
-			ok "no-war-stories: $story_scanned rule-stating file(s) carry none of the backstop phrasings (the property is AGENTS.md's, not this pattern's)"
+			ok "no-war-stories: $story_scanned rule-stating file(s) carry none of the backstop phrasings (the property is .agents/rules/skill-prose.md's, not this pattern's)"
 		fi
 	fi
 	rm -f "$story_hits_out" "$story_broken_out" "$story_err_out"
@@ -1043,7 +1046,7 @@ fi
 # into ANOTHER skill to explain itself is not finished: state what your reader
 # needs where they act. Unbounded cross-skill citation is what grew a web of
 # references, a checker for it, and a convention for writing it. No count of
-# that web is stated here or in AGENTS.md: the two copies had drifted to two
+# that web is stated here or in .agents/rules/skill-prose.md: the two copies had drifted to two
 # different figures, neither is checkable now, and it is not a number a reader
 # acts on — so the claim is dropped rather than reconciled, which would re-seed
 # the drift surface inside the one rule written to prevent exactly that.
@@ -1663,7 +1666,7 @@ fi
 
 # --- 18. shipped prose names a capability, never a host's tool literal --------
 
-# AGENTS.md: shipped prose names the CAPABILITY and leaves resolution to
+# .agents/rules/helpers.md: shipped prose names the CAPABILITY and leaves resolution to
 # skills/procedures/host-tools.md, the one file allowed to name a host's tools,
 # models and paths. That rule was held by reading prose alone, so a tool literal
 # written after the last reading survived until somebody read for it again, and
@@ -1708,8 +1711,8 @@ fi
 # The scope is every .md under skills/ that git tracks OR that is untracked and
 # not ignored -- skills/ is what ships, and the second half is there for check
 # 10's reason: a new pass is exactly what this check exists to read, and
-# tracked-only it stays invisible until `git add`. AGENTS.md, README.md and
-# docs/ are out of scope for check 9's reason -- they are only ever read as this
+# tracked-only it stays invisible until `git add`. AGENTS.md and its
+# .agents/rules/ chapters, README.md and docs/ are out of scope for check 9's reason -- they are only ever read as this
 # repository's own, where naming the host this repo's gate and helpers run on is
 # a fact about this repo rather than a host shipped into somebody else's prose.
 

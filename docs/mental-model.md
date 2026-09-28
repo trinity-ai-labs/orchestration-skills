@@ -190,7 +190,17 @@ is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is
 means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it has been
 read by nobody but the seat that built it.
 
-**A third artifact can now sit on a PR, and unlike those two it can predate the flip by an arbitrary
+**Beside the panel's review sit plain comments, one per dimension it dispatched**, each carrying that
+reviewer's own findings and what the pass did with every one of them — applied, rejected with why, or flagged
+out of scope — and the review links them, so one click from the summary reaches a dimension's full report.
+They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record naming the
+merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
+ran or was skipped and why, and links back to the PR's reviews, dimension comments and gate comment — so a
+closed issue says what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip
+decision into its own review on the PR as well, so a PR with no panel review on it reads as a recorded skip
+or as a write that went missing, never as a blank that could be either.
+
+**A third artifact can now sit on a PR, and unlike those two reviews it can predate the flip by an arbitrary
 amount.** Three config keys — `autoMergeTrivial`, `autoMergeLeaves` and `autoMergeEpic`, one per merge
 checkpoint ([Per-project config](per-project-config.md#per-project-config)) — decide whether the dispatcher
 merges once its own pipeline is satisfied or holds and waits for a human to approve. Where a checkpoint's

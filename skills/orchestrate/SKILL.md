@@ -235,7 +235,8 @@ questions is the filing channel doing the asking *The decide-don't-ask bar* forb
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
 on the integration branch at step 2. **Where one WAS cut, green takes a third thing and only there: that
-close-out PR's own full `/pipeline:review` panel, run between its open and its gate** — a close-out that
+close-out PR's own full `/pipeline:review` panel, run between its open and its gate and posting its review
+and one comment per dimension onto that PR** — a close-out that
 gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and
 cannot say whether the slices COMPOSE, and that combined diff is the first and only place they sit together.
 **Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
@@ -245,7 +246,14 @@ linked issue or recorded settle owns is a remaining plan that is NOT empty**, si
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
 closing keywords, which fire only where that PR's base is the repository's **default** branch and never
-fire later. **They stay OPEN where that close-out is held rather than merged** — the closes are
+fire later. **Each close carries a comment that is that issue's OUTCOME RECORD**, so a reader landing on it
+finds what happened without opening a PR: the PR that settled it and the merge commit and base it landed as,
+your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran or was skipped and
+why, and links to that PR's dimension comments, its reviews and its gate comment — the umbrella's naming the
+close-out PR and each leaf's PR. Write it to a body file and send it with the `--field` form
+(`skills/glossary/mechanics/gh-api-file-body.md`), refetching to confirm the markdown landed, and name no AI
+in it — no trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.
+**They stay OPEN where that close-out is held rather than merged** — the closes are
 termination's own half and a held merge has shipped nothing, so closing them there records a release that
 did not happen on the one surface the next invocation of this loop reads; that is the sixth exit below
 rather than a case inside this one.

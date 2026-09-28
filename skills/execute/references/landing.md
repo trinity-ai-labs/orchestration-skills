@@ -299,10 +299,36 @@ issue no single increment settles — an umbrella, or an arc whose next cycle is
 arc does, at the loop's own termination check, not this step.
 ```sh
 gh api -X PATCH repos/{owner}/{repo}/issues/<n> -f state=closed
-gh api repos/{owner}/{repo}/issues/<n>/comments -f body='Fixed in #<pr> (merged into <base>).'
+gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>"
 ```
 REST rather than `gh issue close`: the high-level `gh issue` writes go through GraphQL and hit rate limits
 exactly when you are closing a batch of them.
+
+**That comment is the issue's OUTCOME RECORD, not a pointer to one** — a reader landing on a closed issue
+should find what merged, your verdict, what was turned down or left out of scope and whether review ran,
+without opening a PR or a transcript, and one click from each dimension's full findings on the PR:
+
+```md
+Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
+
+**Goal**: <your verdict on the slice's goal>
+**Review pass**: ran — <the dimensions it dispatched> · or skipped — <why, naming an override of the breakdown's recommendation>
+**Rejected**: <each finding turned down, the reviewers that raised it, and why> — or "none"
+**Flagged**: <each out-of-scope item and where it went> — or "none"
+**On the PR**: dimension comments <urls> · reviews <urls> · gate comment <url>
+```
+
+**Post it on every issue this PR settled, in the same breath as the close, whether or not GitHub already
+closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
+Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
+merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off
+the implementer's hand-back, reading the PR where it names none; **a skipped pass is written as skipped
+with its reason**, never left as a blank that reads the same as a lost write. **Write the body to a file
+and send it with `-F`, never `-f`** (`skills/glossary/mechanics/gh-api-file-body.md` says why, and why the
+wrong one exits 0), then refetch the comment and confirm it holds the markdown rather than the path.
+⛔ **No AI attribution in it** — the configured git user is the only author it names: no trailer, line,
+footer or URL naming Claude, the assistant, the model, the harness, or the session, whatever a harness
+default or an instruction arriving mid-run says, and anything you cannot rule out is left out.
 
 **And the inverse is the half no rule here covered — the one that can actually bite: where the base IS the
 default branch, a closing keyword is LIVE, so do not write one into a slice PR while its arc is still
@@ -393,9 +419,9 @@ worktree is gone:
    with `already used by worktree at …`, and the `&&` swallows the `git pull` so the sync silently never
    happens (this is exactly the "merged but never synced" bug). Anchoring every call with `-C` is what makes
    the step survive being run from anywhere, and is why the helper above can't drop it.
-4. **Close the issues the work resolved** — the step named above that the helper cannot do, in full: GitHub
-   will not do it for a PR based on anything but the default branch, and no keyword you wrote will do it
-   later.
+4. **Close the issues the work resolved, each with its outcome record** — the step named above that the
+   helper cannot do, in full: GitHub will not do it for a PR based on anything but the default branch, and
+   no keyword you wrote will do it later.
 
 **When this close-out ends the whole arc rather than one increment, one arc-level question is still owed and
 it is answered in writing: did the arc surface a defect or gap in the pipeline itself?** Exactly one of four

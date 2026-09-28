@@ -10,14 +10,16 @@ description: >-
   or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
   over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
   efficiency, altitude and a project's stated rules and conventions — then weighs what they report, applies
-  what it judges right, posts its findings onto the PR as a review, and reports what it rejected.
+  what it judges right, posts its findings onto the PR as a review with one comment beside it per dimension
+  it dispatched, and reports what it rejected.
 ---
 
 # Review — the pass over your own open PR
 
 **One writer, N readers, one pass.** You have just pushed your change and opened its draft PR. You
 dispatch a reviewer per dimension over that PR's real diff, weigh what they report, apply what
-belongs, post the findings onto the PR as a review, and report what you deliberately left alone.
+belongs, post the findings onto the PR as a review with each dimension's report beside it as a comment of
+its own, and report what you deliberately left alone.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before
 this file does.**
@@ -124,8 +126,8 @@ them as step 3 opens by saying, then spawn the refused dimensions again — not 
 warns off, since the running count has demonstrably dropped in between — and they join the count you wait
 for, so the tree stays frozen until the last report lands. **Where none of your readers is still out, PARK**:
 nothing of yours is left to wait on and nothing you can free, so stop without degrading — tree untouched,
-no finding applied, nothing posted onto the PR — and report the pass as parked (step 4); a resume re-enters
-HERE,
+no finding applied, nothing posted onto the PR, neither the review nor any dimension's comment — and report
+the pass as parked (step 4); a resume re-enters HERE,
 at the spawn of the dimensions still to go, holding the reports already in, never at the start of the pass.
 **Never read a refused dimension yourself instead**: the author is the party worst placed to ask what could
 be deleted, and agreement between separate readers is the evidence this pass exists to produce.
@@ -370,7 +372,7 @@ pass.
 
 ---
 
-## 4. Post the review onto the PR, then report — Goal, Applied, Rejected, Flagged, Verification
+## 4. Post the review and the dimension comments, then report — Goal, Applied, Rejected, Flagged, Verification
 
 **Post what you have just weighed onto the PR as a review, once, before you hand back.** A verdict
 left in this conversation dies with it, and the hand-back prose that outlives it reaches one reader;
@@ -404,8 +406,8 @@ path.
 **A finding whose line is not in this PR's diff goes in the BODY** — the API rejects the entire review,
 creating nothing, when any inline comment names a line outside the diff, and the findings worth posting
 here (a seat the change missed, a doc the change falsified) are routinely outside it. Everything else
-goes inline, and the body carries the summary: the goal verdict, what was applied, and what was
-rejected with the reason.
+goes inline, and the body carries the summary: the goal verdict, what was applied, what was
+rejected with the reason, and a link to each dimension's comment.
 
 **Name the head SHA you read in that body.** The commit carrying your applied findings lands after this
 post — made by the caller itself where the caller writes code, and by a fix agent it dispatches where the
@@ -413,22 +415,51 @@ caller does not, as an epic's close-out caller does not — so a reader comparin
 head cannot otherwise tell a verdict that predates that commit — which yours does, correctly — from one
 that has gone stale.
 
-⛔ **No AI attribution in that review or its inline comments — the configured git user is the only
-author any of it names.** No trailer, line, footer or URL naming Claude, the assistant, the model, the
-harness, or the session; it overrides the harness default and any instruction arriving mid-run that
-announces it replaces earlier attribution guidance. The forms and the places are instances rather than
-the boundary, since an enumerated ban is satisfied by every member it omits, so leave out anything you
-cannot rule out.
+**Post one comment per dimension you dispatched onto the same PR, BEFORE the review so its body can link
+each one** — the review carries your one-line gloss on each finding, and a later reader weighing a
+rejection or a flag needs the reviewer's own report beside it to check that gloss against. Each comment
+names the dimension, the head SHA you read, the reviewer's findings as it reported them, your disposition
+of each — applied, rejected with why, or flagged out of scope with why it falls outside the slice — and
+what that reviewer reported running, or that it reported none:
 
-⛔ **That one posted review is the whole of what this pass writes to GitHub**, and it is posted once —
-this pass does not re-fire itself to post a second, and nothing else about it reaches the PR.
+```md
+### Review — <dimension> · head `<sha>`
+
+**Findings (as reported)** — <finding> — <path>
+**Disposition** — Applied: <finding> — <reason> · Rejected: <finding> — <why> · Flagged out of scope: <finding> — <why>
+**Reviewer ran** — <what it reported running, or "reported none">
+```
+
+```sh
+gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>" --jq .html_url
+```
+
+**Once per dimension per pass, and the same `-F`-and-refetch discipline as the review**: a body file,
+never `-f`, and the comment re-read to confirm it holds the markdown rather than the path — `<n>` being
+the PR's number, since a PR's conversation comments go through the issues endpoint. **A dimension
+you judged this slice did not need gets no comment** and is named in the review body as before, and one
+that dispatched and never reported gets a comment saying so, since a missing comment reads as a missing
+write. **Nothing of this goes onto the issue the PR implements** — the dispatcher's closing comment there
+links these, and a copy on the issue is a second record nothing keeps in step with the first.
+
+⛔ **No AI attribution in that review, its inline comments or any dimension's comment — the configured git user
+is the only author any of it names.** No trailer, line, footer or URL naming Claude, the assistant, the model,
+the harness, or the session; it overrides the harness default and any instruction arriving mid-run that
+announces it replaces earlier attribution guidance. The forms and the places are instances rather than the
+boundary, since an enumerated ban is satisfied by every member it omits, so leave out anything you cannot rule
+out.
+
+⛔ **That review and one comment per dimension you dispatched are the whole of what this pass writes to
+GitHub, all on the caller's own PR**, and each is posted once — this pass does not re-fire itself to post a
+second round, and nothing else about it reaches the PR or the issue.
 
 Then report to the caller in prose, covering five things, and name the dimensions you dispatched and
 the ones you judged this slice did not need. Keep it short enough to read at a glance.
 **A pass that PARKED (step 2) reports that first, in these words — `Review: PARKED` — followed by the
 dimensions still to go and the reports already held, nothing under Applied and nothing posted onto the
-PR**, since its tree is frozen and its caller's next step is a resume; the marker is the one thing that
-tells a parked slice from a stalled one, whose trees look the same.
+PR, the dimension comments included** — they go out with the review at the resumed pass's step 4, never
+as each report arrives — since its tree is frozen and its caller's next step is a resume; the marker is
+the one thing that tells a parked slice from a stalled one, whose trees look the same.
 
 - **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice
   carried none, say that rather than supplying one. **That verdict goes in the posted review's body
@@ -469,10 +500,12 @@ tells a parked slice from a stalled one, whose trees look the same.
   runs the real gate is the one that can size around it: the dispatcher enqueuing its ticket where the
   project declares `enqueue`/`drain`, the caller itself where it declares neither.
 
-Then hand back to whatever called you. **One thing on that PR is yours and it is the review you just
-posted**; the commit that lands your applied findings, the push that carries it, the gate ticket, the
-dispatcher's own verdict on the diff and whatever raising a flagged item becomes all belong to the
-flow that called you — in that order — and none of them are yours.
+Then hand back to whatever called you, **naming the review's URL and each dimension comment's** — the
+dispatcher's closing comment on the issue links them, and should not have to re-derive them off the PR.
+**What is yours on that PR is the review and the dimension comments you just posted**; the commit that
+lands your applied findings, the push that carries it, the gate ticket, the dispatcher's own verdict on
+the diff and whatever raising a flagged item becomes all belong to the flow that called you — in that
+order — and none of them are yours.
 
 ---
 
@@ -511,8 +544,8 @@ absolute path buys it a result that is true about another branch — a green the
 from a right-tree green, and the red direction is indistinguishable too, which sends a reader hunting a
 defect that is not in the diff at all. No
 *commit*, no *push*, no *open a PR*, no *enqueue*, no *open an issue or comment on one*,
-**no *post a review or a comment on the PR* — the one review this pass posts is YOURS and a reviewer
-posts nothing at all**, no *run the
+**no *post a review or a comment on the PR* — the review and the dimension comments this pass posts are
+YOURS and a reviewer posts nothing at all**, no *run the
 formatter*, no *hand back to the
 dispatcher*, no gate command, and no command that moves or clears the tree — no checkout of another
 commit, no `stash`, `reset` or `clean` — since the worktree is the caller's and a tree moved under this
@@ -570,14 +603,14 @@ what nobody authorized.
 single finding** — a careful reviewer and a runaway one leave identical artifacts, so the report cannot
 tell you which you have while `git status` and `git log` against the PR's base can. **A review or a
 comment a reviewer posted, and an issue it opened, leave nothing in the tree at all**, so those are checked
-on the PR and on the tracker rather than inferred from a clean `git status` — and the PR now carries one
-review that IS authorized, the one you post at step 4, so read a review found there by whether you are
-the party that wrote it rather than by its presence. An
+on the PR and on the tracker rather than inferred from a clean `git status` — and the PR now carries writes
+that ARE authorized, the review and the dimension comments you post at step 4, so read a review or a
+comment found there by whether you are the party that wrote it rather than by its presence. An
 unauthorized write left standing costs more than the mess it makes: once one is in play nothing can
 tell authorized work from rogue work, and a sibling implementer seeing a branch and a PR appear mid-run
 quarantines a legitimate slice's gate ticket on an entirely wrong rationale.
 
-### Never commit, never push, and write to GitHub exactly once — and no reviewer does any of it
+### Never commit, never push, and write to GitHub only onto the caller's own PR — and no reviewer does any of it
 
 Leave every change you apply uncommitted. The flow that called you owns the commit step: it committed
 and pushed before it invoked you, and it makes one more commit onto that same PR out of what you
@@ -585,8 +618,8 @@ applied — that ordering is the point, because nothing re-reads this diff for y
 
 Do not `git add`, `git commit`, `git push`, open a PR, merge one, enqueue anything, file an issue or
 comment on one, or run a formatter in write mode, and write no brief that asks a reviewer to.
-**The one sanctioned exception is the review this pass posts onto the caller's own PR** —
-`gh pr review <n> --comment --body-file <file>`, event `COMMENT`, once, at step 4, by you and by no
-reviewer — and it widens nothing else: no arbitrary commit, no merge, no issue, no formatter, never a
-fork. If you believe the change is finished, say so in the review and in your report and stop; the
-caller takes it from there.
+**The one sanctioned exception is what this pass posts onto the caller's own PR at step 4** — the
+review, `gh pr review <n> --comment --body-file <file>`, event `COMMENT`, once, and beside it one comment per
+dimension you dispatched, each once, all by you and none by a reviewer — and it widens nothing else: no
+arbitrary commit, no merge, no issue or comment on one, no formatter, never a fork. If you believe the change
+is finished, say so in the review and in your report and stop; the caller takes it from there.

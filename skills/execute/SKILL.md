@@ -106,14 +106,14 @@ implementer before each commit where neither does — pushes, and opens its **dr
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
-its own draft PR, whose shape is draft, panel review, any fix round, enqueue, gate comment, posted review,
-merge — draft-before-gate all along, the panel and the fix round it can earn arriving with the close-out
-review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration gate** as a **PR-less
-ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a slice's **suite
-baseline** as a PR-less ticket on its worktree before anything is dispatched into it. A runner scaffolded
-before that ticket type refuses it, and only there is a hand-run gate sanctioned. **In a project declaring
-no `enqueue`/`drain`** those three of yours are run by hand in their own worktree, and each slice's is its
-implementer's.
+its own draft PR, whose shape is draft, panel review with its dimension comments, any fix round, enqueue, gate
+comment, posted review, merge — draft-before-gate all along, the panel and the fix round it can earn arriving
+with the close-out review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration
+gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a
+slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it. A runner
+scaffolded before that ticket type refuses it, and only there is a hand-run gate sanctioned. **In a project
+declaring no `enqueue`/`drain`** those three of yours are run by hand in their own worktree, and each slice's
+is its implementer's.
 
 ---
 
@@ -156,10 +156,11 @@ nothing. The reference carries the test.
 
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 
-Read the diff and post the verdict you form onto the PR as a review each round. **Where the project declares
-`enqueue`, enqueue that slice's gate only once the code is final**, then read the verdict the runner
-comments; **where it does not**, the implementer's own verdict is already on the PR, and its hand-back, not
-that comment, is what you wait on before you merge.
+Read the diff and post the verdict you form onto the PR as a review each round, recording in it whether the
+slice ran the review pass or skipped it and why. **Where the project declares `enqueue`, enqueue that slice's
+gate only once the code is final**, then read the verdict the runner comments; **where it does not**, the
+implementer's own verdict is already on the PR, and its hand-back, not that comment, is what you wait on
+before you merge.
 
 ⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
 says a gate finished, not that anyone read the change.
@@ -167,7 +168,7 @@ says a gate finished, not that anyone read the change.
 ### 4. Land it → `skills/execute/references/landing.md`
 
 Gate the integrated whole when a merge combined work from more than one slice, then merge, clean up and sync
-as one step.
+as one step, and close each issue the PR settled with a comment that is its outcome record.
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.
@@ -216,9 +217,9 @@ reference.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 7. **Run `/pipeline:review` if your brief says to — against that pushed PR — and commit once more if it
    finds something.**
-   ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review**, so the PR exists
-   before the pass runs and the review it leaves there is a durable artifact your dispatcher reads off the
-   PR rather than only out of your hand-back.
+   ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review, with one comment per
+   dimension it dispatched beside it**, so the PR exists before the pass runs and what it leaves there is a
+   durable artifact your dispatcher reads off the PR rather than only out of your hand-back.
    ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree
    under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
    answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it

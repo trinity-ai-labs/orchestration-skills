@@ -250,12 +250,15 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`). Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
   `/pipeline:review` is the implementer's own quality + correctness pass over the PR it has just pushed, read
-  against that PR's real diff and posted back onto it as a review: worth it
-  on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so; the decision
-  sets the handoff ordering below. **The breakdown recommends, you decide, and going the other way puts your
-  reason in the brief** — the seat that recommended had the slice's real files in front of it and priced this
-  fan as the dominant term in the wave, so an override with no reason beside it is the one move that leaves
-  nothing recording which of the two judgements the slice actually got. A slice arriving with no
+  against that PR's real diff and posted back onto it as a review with one comment per dimension beside it:
+  worth it on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so —
+  in the brief, and again in the review you post on that PR and in the issue's closing comment, since a PR
+  carrying no panel review otherwise reads the same whether you skipped the pass or its write went missing;
+  the decision sets the handoff ordering below. **The breakdown recommends, you decide, and going the other
+  way puts your reason in the brief and in that record** — the seat that recommended had the slice's real
+  files in front of it and priced this fan as the dominant term in the wave, so an override with no reason
+  beside it is the one move that leaves nothing recording which of the two judgements the slice actually got.
+  A slice arriving with no
   recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an
   improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR,
   hand back* included, which they then execute, while the shipped pass dispatches fresh reviewers
@@ -270,7 +273,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   project declares one, and *"This project declares no `format`, so there is no formatter step."* where it
   declares none:
 
-  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
+  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
   **Commits are held to the scoped check either way, in whichever case the hook row names** — by whichever
   hook runs `scopedCheck`, git's pre-commit hook or the host's commit-hook row in

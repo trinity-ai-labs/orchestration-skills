@@ -2,6 +2,30 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.13.0
+
+- **A project's agent guidance now has a defined layout, and every pass reads it by progressive disclosure.**
+  A new glossary entry, `skills/glossary/vocabulary/agent-guidance.md`, defines the router (each directory's
+  `AGENTS.md`: what the directory is, *Always*, *Commands*, a *Rules by topic* table into its own
+  `.agents/rules/`, links along the tree), the rule chapter (`.agents/rules/<topic>.md`, rules only), the
+  pointer (`CLAUDE.md` holding exactly `See [AGENTS.md](AGENTS.md).`), and a monolith — recognised by shape,
+  never size: topic rules inline in a router, a description of the code in guidance, a `CLAUDE.md` holding
+  content, or one rule stated twice. A new procedure entry, `skills/procedures/agent-guidance-layout.md`,
+  carries the read, the shape check, the four-question guidance test that places a line, and the steps of a
+  split.
+- **Readers load the router chain and only the routed chapters.** Grounding, write-issue, the dispatcher's
+  brief, the implementer and the review pass's Rules & Conventions reader each take the router of every
+  directory the work touches up to the root plus only the chapters those routers route it to, a monolith
+  read whole; the brief names those files rather than "`AGENTS.md`'s".
+- **Writers place what they add.** An implementer puts a convention where the guidance test says, moves a
+  topic out of a monolith it adds to in the same PR, and reduces a content-holding `CLAUDE.md` it touches to
+  the pointer.
+- **A monolith is flagged loudly.** `/pipeline:setup` checks the guidance's shape on onboarding and on
+  reconcile, says first and plainly that a monolith should be fixed now, and splits it in its own reviewable
+  PR. `/pipeline:orchestrate` step 0 puts a monolith at the top of its dispatch report, routed to
+  `/pipeline:setup` — never a stop, never a rewrite by the loop. No config key is added, and
+  `briefConventions` never re-teaches how to read the guidance.
+
 ## 5.12.0
 
 - **A closed issue now carries a record of what happened to it, and each review dimension's findings are one

@@ -144,7 +144,8 @@ for "the implementer" throughout** — there is no separate implementer behind t
 draft back, so the orchestrator authors it and then merges it (*The epic branch* → *Mechanics*).
 
 **Where the slice ran `/pipeline:review`, that PR already carries a review when this loop opens** — posted by
-the implementer's own panel against this same diff, event `COMMENT`, before you have read anything. It is
+the implementer's own panel against this same diff, event `COMMENT`, before you have read anything, with one
+comment beside it per dimension that panel dispatched. It is
 **evidence and never a substitute**: it was written from the seat that also wrote the code, so your own read
 of the diff and the flip that rests on it are unchanged, and a PR arriving with a panel review on it is not a
 PR somebody else reviewed. So **review each PR and actually read the code
@@ -237,16 +238,18 @@ doc out of the brief, you did it from the plan rather than from the diff, so re-
 actually changed. That is exactly how a stale README ships — not because the implementer skipped it, but
 because it was told not to look.
 
-**The review pass's rejected findings are addressed to YOU and reach you by TWO routes — read them, and
+**The review pass's rejected findings are addressed to YOU and reach you by THREE routes — read them, and
 read a hand-back that carries none against your own brief before you read it as a clean pass.**
 `/pipeline:review` runs inside the implementer and its reviewers report to it, so its `Rejected` list — each
 finding that implementer considered and deliberately did not act on, carrying the reviewer or reviewers that
-raised it — is written for the reviewer of this PR. The **hand-back** carries the narrative, and the
-**review the pass posted onto this PR** carries the same findings as a live artifact attached to the diff, so
-read whichever is in front of you and neither is the only copy. **Where the two disagree, take the posted
-review** — it is the one bound to the diff, timestamped against a head you can compare, and a hand-back that
-differs from it is prose nothing checked. That disagreement should not happen, and one that does is itself
-worth a round trip.
+raised it — is written for the reviewer of this PR. The **hand-back** carries the narrative, the
+**review the pass posted onto this PR** carries the same findings as a live artifact attached to the diff, and
+the **dimension comments** beside it carry each reviewer's own report with the pass's disposition of every
+finding in it, so read whichever is in front of you and none is the only copy. **Where the hand-back
+disagrees with the PR, take the PR** — its writes are bound to the diff and name a head you can compare, and a
+hand-back that differs from them is prose nothing checked; **where the review's summary disagrees with a
+dimension comment, the comment is the reviewer's report and the summary is the implementer's gloss on it**.
+Either disagreement should not happen, and one that does is itself worth a round trip.
 **Read a rejection naming SEVERAL reviewers harder than one naming a single reviewer**: several lenses landing
 on one site by different routes is the strongest evidence the run produces, so a rejection has to answer all
 of them, and one entry naming three reviewers is a converged finding turned down once rather than three
@@ -257,7 +260,12 @@ reasoned about rather than typed, and it is evidence no gate and no diff can pro
 can tell them apart** — a slice you told to skip the pass has no findings by construction and the blank is
 correct, while a slice that ran it and forwarded nothing is indistinguishable from one whose pass raised
 nothing, which is the exact indistinguishability that list exists to remove. So check the review decision you
-made in the brief, then read the silence: correct where you skipped it, a round trip where you did not.
+made in the brief, then read the silence: correct where you skipped it, a round trip where you did not — and
+a slice you told to run the pass whose PR carries neither its review nor its dimension comments is a missing
+write, whatever its hand-back says. **Write that decision onto the PR in each review you post, and into the
+issue's closing comment** — `Review pass: ran`, or `Review pass: skipped — <reason>`, naming it where you
+overrode the breakdown's recommendation — since the brief dies with the run, and that line is what tells
+this blank apart once it has.
 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that
@@ -310,12 +318,13 @@ surface the reader came for. **Already posted means still THERE, so read the PR 
 rather than trusting the write to have survived, and re-post a missing one before you post this round's
 review** — one account authors every party's comments here, so an implementer tidying its own verdicts cannot
 tell yours from its own by author, and a grant that has gone leaves the diff reading as drift to exactly the
-reader this rule exists for. **That same ambiguity now covers the review pass's own posted review**, which
-this account authored too: a slice's panel review is not the implementer's to remove while tidying its
-verdicts, and a PR whose panel review has gone reads exactly like a slice that never ran a pass — so where a
-hand-back reports one posted and you find none, treat it as a missing write and ask, rather than as a slice
-that skipped the pass. **Read that hand-back line as the DETECTOR of a missing write, never as the write
-itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing and being caught
+reader this rule exists for. **That same ambiguity now covers the review pass's own posted review and its
+dimension comments**, which this account authored too: none of them is the implementer's to remove while
+tidying its verdicts, and a PR whose panel review has gone reads exactly like a slice that never ran a pass —
+so where a hand-back reports them posted and you find them missing, treat it as a missing write and ask,
+rather than as a slice that skipped the pass. **Read that hand-back line as the DETECTOR of a missing write,
+never as the write itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing
+and being caught
 by the one party it exists to protect, and a grant it can find only on the issue is that same report.
 **And a grant that line reports as answered AFTER the slice's review pass closed had no reader but you** —
 read the file it names against the diff yourself rather than leaning on that pass's goal verdict, which was
@@ -365,8 +374,8 @@ and threads its findings against the lines they concern. **A finding whose line 
 in the BODY** — the API rejects the entire review, creating nothing, when any inline comment names a line
 outside the diff, and the findings worth posting here (a seat the change missed, a doc it falsified) are
 routinely outside it. **Everything else goes inline and the summary goes in the body** — your verdict against
-the slice's `Goal`, what the hand-back's `Rejected` list raised and what you made of it, and what the next
-round is being dispatched to fix.
+the slice's `Goal`, the review decision you made for this slice, what the hand-back's `Rejected` list raised
+and what you made of it, and what the next round is being dispatched to fix.
 
 **One review per ROUND, never a single one at the end.** A **needs-changes** review is posted and the loop
 re-enters exactly as it does below, the fix agent going out against a finding now written on the PR as well as

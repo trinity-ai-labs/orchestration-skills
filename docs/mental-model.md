@@ -200,9 +200,19 @@ holding the merge, and the PR stays a **draft**, because the flip and the merge 
 left ready but unmerged is precisely the stale-approval state that step exists to prevent. **That comment is
 no more an approval than the gate's comment is** — the same distinction, one sentence: it says this flow has
 nothing left to do, never that anyone approved the merge. So a PR can sit for minutes or for weeks carrying a
-panel review, a gate comment, a satisfied dispatcher review and this one, still a draft and still unapproved,
-until a human merges it on GitHub or tells the assistant to go ahead — and only then does `merge-pr.sh` flip
-it, one line above `gh pr merge`, as it always did.
+panel review and its dimension comments, a gate comment, a satisfied dispatcher review and this one, still a
+draft and still unapproved, until a human merges it on GitHub or tells the assistant to go ahead — and only
+then does `merge-pr.sh` flip it, one line above `gh pr merge`, as it always did.
+
+**Beside the panel's review sit plain comments, one per dimension it dispatched**, each carrying that
+reviewer's own findings and what the pass did with every one of them — applied, rejected with why, or flagged
+out of scope — and the review links them, so one click from the summary reaches a dimension's full report.
+They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record naming the
+merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
+ran or was skipped and why, and links back to the PR's reviews, dimension comments and gate comment — so a
+closed issue says what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip
+decision into its own review on the PR as well, so a PR with no panel review on it reads as a recorded skip
+or as a write that went missing, never as a blank that could be either.
 
 A posted review is a different artifact from the
 gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that

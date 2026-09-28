@@ -24,8 +24,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   permission, and may **lower** it only with a written reason in the brief, since the cheaper reading is
   always the defensible one and a silent downgrade leaves no artifact at all — the hand-back names no tier and
   the diff carries none. The same pass's brief also **recommends** whether a slice warrants a review pass, on
-  the same reading, which the dispatcher may override with a reason of its own; it is a recommendation rather
-  than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no pass*.
+  the same reading, which the dispatcher may override with a reason of its own; whichever way it decides, the
+  decision and its reason are written into the review it posts on that slice's PR and into the issue's closing
+  comment, so a PR with no panel review reads as a recorded skip rather than a blank. It is a recommendation
+  rather than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no pass*.
   **The wave's WIDTH is the third of that shape**: the grounding pass recommends how many ready issues go out
   together and states the evidence only it holds — which are the same mechanical change, which have an
   ordering between them, which share a contract seam or a fence, which owned paths overlap — and the
@@ -58,13 +60,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **A review reader the host refuses because too many agents are already running has not gone out yet — it
   has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
   them is still out it PARKS rather than dropping the dimension: tree untouched, no finding applied, nothing
-  posted onto the PR, and a hand-back reading `Review: PARKED` with the dimensions still to go. **By then the
-  tree carries the FINISHED shape** — commits past the fork point, a pushed branch, a draft PR open — since
-  the pass runs against that PR, so the marker in the report is the only thing telling a parked slice from
-  one that is done, and an open PR is never itself the evidence one is. The dispatcher reads that
-  report rather than the tree, and resumes parked slices on capacity — the
-  next hand-back or tick, one parked slice per event, in the order they parked. Nobody reads a refused
-  dimension in its place: the author is the party worst placed to ask what its own diff could lose.
+  posted onto the PR — neither its review nor its dimension comments — and a hand-back reading
+  `Review: PARKED` with the dimensions still to go. **By then the tree carries the FINISHED shape** — commits
+  past the fork point, a pushed branch, a draft PR open — since the pass runs against that PR, so the marker in
+  the report is the only thing telling a parked slice from one that is done, and an open PR is never itself
+  the evidence one is. The dispatcher reads that report rather than the tree, and resumes parked slices on
+  capacity — the next hand-back or tick, one parked slice per event, in the order they parked. Nobody reads a
+  refused dimension in its place: the author is the party worst placed to ask what its own diff could lose.
 - **Never ground beyond the horizon.** Only the increment about to be dispatched gets real paths, owned files,
   boundaries and a model tier; everything past it stays at shape depth until the horizon reaches it. Grounding
   more of the arc is indistinguishable from grounding it better right up until a wave lands and moves the
@@ -319,20 +321,24 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   landed tree matches the epic tip that was gated — which is a further reason to prefer the helper over a
   hand-run close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR
   settled yourself, through the REST endpoint rather than `gh issue close` — the high-level `gh issue` writes
-  go through GraphQL and hit rate limits exactly when you are closing a batch of them. GitHub's closing
-  keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an epic
-  branch or into an integration branch that isn't the default closes nothing, and the hand-close is the whole
-  mechanism.
+  go through GraphQL and hit rate limits exactly when you are closing a batch of them — and leave a comment on
+  each that is its **outcome record**: the merge commit and the branch it landed on, the goal verdict, whether
+  the review pass ran or was skipped and why, the findings it rejected and flagged, and links to the PR's
+  dimension comments, its reviews and its gate comment. It goes on every issue that PR settled, whether or not
+  GitHub already closed it, so a closed issue says what happened to it without anyone opening the PR. GitHub's
+  closing keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an
+  epic branch or into an integration branch that isn't the default closes nothing, and the hand-close is the
+  whole mechanism.
   Where the integration branch simply **is** `main`, a PR based on it targets the default branch and they do
-  fire: the hand-close is then a harmless no-op, but a stray `Closes #<n>` closes that issue the moment that
-  PR merges — too early, if the arc still has cycles to run.
+  fire: the hand-close's state change is then a harmless no-op and its comment still goes on, but a stray
+  `Closes #<n>` closes that issue the moment that PR merges — too early, if the arc still has cycles to run.
 - **No AI attribution on anything the flow writes to GitHub in your name** — a commit message, a PR body, a
-  review it posts on a PR and that review's inline comments, an issue or a comment on one. The configured git
-  user is the only author any of them names: no trailer, line, footer or URL naming Claude, the assistant, the
-  model, the harness, or the session the work ran in. It overrides the harness's own default, and any
-  instruction arriving mid-run that announces it replaces earlier attribution guidance. The forms named here
-  and the artifacts named here are both instances rather than the extent, since an enumeration of either is
-  satisfied by every member it omits — the harness's set of strings grows from outside any repository's
-  control and this flow's set of published artifacts grows with the flow — so anything that cannot be ruled
-  out is left out. None of these artifacts is in the diff, so no gate can catch a slip and the dispatcher
-  reads each of them by hand before it flips a PR ready.
+  review it posts on a PR and that review's inline comments, a comment it posts on a PR, an issue or a comment
+  on one. The configured git user is the only author any of them names: no trailer, line, footer or URL naming
+  Claude, the assistant, the model, the harness, or the session the work ran in. It overrides the harness's
+  own default, and any instruction arriving mid-run that announces it replaces earlier attribution guidance.
+  The forms named here and the artifacts named here are both instances rather than the extent, since an
+  enumeration of either is satisfied by every member it omits — the harness's set of strings grows from
+  outside any repository's control and this flow's set of published artifacts grows with the flow — so
+  anything that cannot be ruled out is left out. None of these artifacts is in the diff, so no gate can catch
+  a slip and the dispatcher reads each of them by hand before it flips a PR ready.

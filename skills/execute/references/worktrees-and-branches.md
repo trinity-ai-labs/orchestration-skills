@@ -263,7 +263,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   (*Merge & cleanup* carries the mechanics). **So while an epic runs the board is not the arc's progress
   record — the umbrella body is.** Catch the board up to what has merged, never ahead of it: the loop counts
   the tracker in its termination check, so an issue closed early is a false "done" in the artifact it
-  terminates on.
+  terminates on. **Each close carries the outcome record *Merge & cleanup* describes**, so the issue says
+  what merged, the verdict, what was turned down or flagged and whether review ran.
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts
   afterwards is provisioned the old way and you hand-apply. *Worktree creation* is the authoritative copy.
@@ -277,13 +278,15 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
   GitHub refusing to merge one. Opening first gives the ticket something to attach to, so the close-out takes
-  the shape every other PR has — draft, panel review, any fix round, enqueue, gate comment, posted review,
-  merge — instead of being the one gate with no ticket, no log and no recorded verdict.
+  the shape every other PR has — draft, panel review with its dimension comments, any fix round, enqueue, gate
+  comment, posted review, merge — instead of being the one gate with no ticket, no log and no recorded
+  verdict.
 
   **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
-  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, and
-  it runs here unaltered right through that post; **what differs is only who acts on the findings**, which is
-  the next rule. **Ask it for every dimension it offers on this project — seven where the project states
+  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
+  one comment per dimension beside it, and it runs here unaltered right through that post; **what differs is
+  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers on this
+  project — seven where the project states
   conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
   like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
   is left for this run is the one thing none of those could see: how the slices COMPOSE, the state they

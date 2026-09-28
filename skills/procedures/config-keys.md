@@ -52,8 +52,11 @@ a question rather than a default.
   how `gate` and `scopedCheck` relate, how branches are named, what a PR targets, the order a change
   crossing a contract lands in. **General coding conventions are excluded BY NAME** — naming, layering,
   library usage, comment style — since a second copy of them here is what gets read instead of the
-  `AGENTS.md` a diff is actually judged against, and the two drift with nothing comparing them. Point at
-  that file, and declare only what a dispatch would get wrong without it.
+  agent guidance a diff is actually judged against (`skills/glossary/vocabulary/agent-guidance.md`), and
+  the two drift with nothing comparing them. **How to read that guidance is excluded too**: every pass
+  reads its routers and chapters itself (`skills/procedures/agent-guidance-layout.md`), so a key that
+  re-teaches it is a second copy of that procedure. Point at the guidance, and declare only what a
+  dispatch would get wrong without it.
 - **`upstreamFindings`** — whether a finding may leave this project. `true` lets an arc's close-out file a
   pipeline finding against **the plugin's own repository**, resolved from `repository` in
   `.claude-plugin/plugin.json`. **Absent, `false`, or anything not exactly `true` means no** — a settled

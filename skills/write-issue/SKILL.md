@@ -40,8 +40,8 @@ slice it already is, with owned files, fences, a model tier and a verify bar, at
 and you never write code, make worktrees, dispatch or run the arc. **You are also the one pass that cuts the
 plan's tree** (`skills/glossary/vocabulary/umbrella.md`), so a piece you leave too big for one PR has no seat
 downstream that can cut it — the grounding pass grounds the leaves you filed and adds none. Stay
-**project-agnostic** — read each repo's own conventions (`AGENTS.md`, per-project config) rather than a
-hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost
+**project-agnostic** — read each repo's own conventions (its agent guidance, per-project config) rather than
+a hardcoded stack, and **read what a phase costs to land out of the project's own config**, never out of a cost
 model you brought with you.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds you before this
@@ -198,8 +198,11 @@ not what the issue *carries* (Step 3's *Surface*).
   the tree you took it against (`grep -c` counts matching lines, `grep -o | wc -l` occurrences). **And where
   the issue's own prose summarises a list it also prints — a `Verify` bar's count, a phase map beside its
   checklist — that count is DERIVED from the list, never typed a second time.**
-- **Read `AGENTS.md` / the per-project config** for the conventions the issue must respect: framework skills,
-  compat policy, comment style, the gate.
+- **Read the agent guidance and the per-project config** for the conventions the issue must respect: framework
+  skills, compat policy, comment style, the gate. **The guidance is the router chain of every directory the
+  work lands in, up to the root, plus only the chapters those routers route it to, and a monolith whole**
+  (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; the terms are
+  `skills/glossary/vocabulary/agent-guidance.md`'s).
 - **Writing about the repository that SHIPS these skills? Ground by the TREE's copy of these rules, not the
   installed one you are reading** — the tree is what the change ships. Read its steps there, `diff` where a
   rule looks wrong, take the tree's, and say which you used.
@@ -248,8 +251,8 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   the work will live; and any requirement against what the project's own gate, linter and ratchets will accept
   for the files it names, since a bar can be expressible, reachable and still ask for something that project
   refuses.
-- **Constraints** — the project conventions that bind it, from `AGENTS.md`: compat policy, comment style, the
-  rest.
+- **Constraints** — the project conventions that bind it, from those routers and chapters, each named by its
+  file: compat policy, comment style, the rest.
 
 **Then settle the shape — one issue, or umbrella + subs.**
 

@@ -93,12 +93,17 @@ with nothing erroring, so the implementer builds against the nearest plausible t
   pre-commit chain entry that regenerates something; a generated file `.gitignore` does **not** list. The
   other half is the falsification question pointed at checkers, which catches the generated file whose
   regenerator is a test.
-- **Read `AGENTS.md` and the per-project config** (`<repo>/.agents/worktree.json`, the same config
+- **Read the agent guidance and the per-project config** (`<repo>/.agents/worktree.json`, the same config
   `/pipeline:execute` reads; `skills/procedures/config-keys.md` carries what each key means) for the
   **framework skills** per area, the **gate**, the **compat policy** and the style conventions, and bake them
-  into each slice. **No config is a hard stop, not a note**: the helper cuts a *bare* worktree instead of
-  failing, so the implementer dispatched into it fails its checks for reasons shaped exactly like code
-  defects. Say the project is not set up, and get it onboarded before you ground anything.
+  into each slice. **The guidance is read per slice**: the router chain of every directory the slice touches,
+  up to the root, plus only the chapters those routers route it to, and a monolith whole
+  (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; router, chapter and monolith are
+  `skills/glossary/vocabulary/agent-guidance.md`'s) — and **the slice's brief names those files**, so the
+  implementer opens the set you grounded against rather than one root file. **No config is a hard stop, not a
+  note**: the helper cuts a *bare* worktree instead of failing, so the implementer dispatched into it fails
+  its checks for reasons shaped exactly like code defects. Say the project is not set up, and get it
+  onboarded before you ground anything.
 - **Grounding an arc inside the repository that SHIPS these skills? Your own rules are a coordinate too.** You
   were loaded from the installed plugin, not the tree you are grounding against, and the rules an arc has just
   shipped are the ones most likely missing from your copy. Read a governing rule out of that repo's own

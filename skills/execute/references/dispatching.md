@@ -103,13 +103,13 @@ value does to a brief, and every pasted block below whose right form depends on 
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
 | | absent | No formatter step, and the brief says the project has none. |
 | `docsPaths` | declared | The docs block names each path with its `when`. |
-| | absent | The docs block names `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory. |
+| | absent | The docs block names `README.md`, the agent guidance — every `AGENTS.md` router, `.agents/rules/` chapter and `CLAUDE.md` pointer — and any docs directory. |
 | | either, where the repo is a workspace member | Plus the workspace-level `AGENTS.md`/`CLAUDE.md` where one sits beside `.agents/workspace.json`, named by its absolute path. |
 | `frameworkSkills` | an entry whose `when` matches the slice's area | Step 0 names that skill beside `pipeline:execute`. |
 | | no entry matches, or absent | Step 0 names `pipeline:execute` alone. |
-| `briefConventions` | declared | The parts that bite this slice, beside `AGENTS.md`'s. |
+| `briefConventions` | declared | The parts that bite this slice, beside the routers and chapters that bite it. |
 | | either, where the repo is a workspace member whose `.agents/workspace.json` declares one too | Both layers in one block — the workspace's text first, the repo's own second where it has one — and the repo's own to follow where they seem to disagree. |
-| | absent, with no workspace declaring one either | `AGENTS.md`'s alone. |
+| | absent, with no workspace declaring one either | The routers and chapters that bite this slice, alone. |
 | `integrationBranch` | declared | The fork point and the hand-off block's PR base — the epic branch instead where the arc cut one. |
 | | absent | The main checkout's current branch, and the brief says it was inferred. |
 | `sharedResources` | an entry with `isolatedBy: null` | One live slice on that resource, and the width with its reason in every brief of the wave. |
@@ -189,9 +189,14 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   or leave it out and have the brief say to take it before the first edit, which is where anything else the
   slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`
-  (`<repo>/.agents/worktree.json`) that bite this slice, beside `AGENTS.md`'s — the key carrying the facts
-  that change how this pipeline dispatches and gates, and `AGENTS.md` the coding conventions, a line
-  `skills/procedures/config-keys.md` draws rather than this brief.
+  (`<repo>/.agents/worktree.json`) that bite this slice, beside the agent guidance that bites it — the key
+  carrying the facts that change how this pipeline dispatches and gates, and the guidance the coding
+  conventions, a line `skills/procedures/config-keys.md` draws rather than this brief.
+  **Name the guidance by its files**: the router chain of every directory the slice touches, up to the root,
+  and only the chapters those routers route this slice to, or the whole of a monolith
+  (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; the terms are
+  `skills/glossary/vocabulary/agent-guidance.md`'s) — a brief saying *follow `AGENTS.md`* sends the
+  implementer to one router and leaves the chapter that governs the slice unopened.
   **You compose this block from the MAIN CHECKOUT, before any worktree is cut, so workspace membership is
   yours to resolve here**: read the directory holding that checkout for `.agents/workspace.json` — a plain
   filesystem read, the same place `integrationBranch`'s workspace answer is taken from, and no git
@@ -201,19 +206,19 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   disagree the repo's own is the one to follow**, since a slice handed two blocks and no order between
   them picks whichever it read last. **The two layers are independent, so carry whichever ones exist**: the
   workspace's text reaches a member declaring none of its own, a repo's own reaches it with no workspace
-  above it, and a member with neither gets `AGENTS.md`'s alone, exactly as a repo outside any workspace
-  does.
+  above it, and a member with neither gets its guidance's files alone, exactly as a repo outside any
+  workspace does.
 - **Docs ship in the same PR as the behavior.** Stale docs throw no error and fail no gate, so considering
   them and skipping them produce identical output. Naming the docs yourself is the trap: you work from the
   plan, not the diff. **Where the breakdown's docs axis gives a shared page to another slice, say so in this
   brief and swap *report the change you need* for *bring them in line*** — pasted unqualified, the block below
   tells every slice to write the page the map gave to one of them. Paste this, substituting `<the doc set>`
   by the `docsPaths` row — each declared path with its `when` where the project declares them, and
-  `README.md`, `AGENTS.md`/`CLAUDE.md` and any docs directory where it declares none — **and adding the
-  workspace-level `AGENTS.md`/`CLAUDE.md` by its absolute path where the repo is a workspace member and one
-  sits beside `.agents/workspace.json`**, since a member's own docs pointing outward at workspace-root
-  conventions otherwise name a file nothing standing in one member's worktree can open. A repo with no
-  workspace above it gets that set unchanged:
+  `README.md`, every `AGENTS.md`, `.agents/rules/` chapter and `CLAUDE.md`, and any docs directory where it
+  declares none — **and adding the workspace-level `AGENTS.md`/`CLAUDE.md` by its absolute path where the
+  repo is a workspace member and one sits beside `.agents/workspace.json`**, since a member's own docs
+  pointing outward at workspace-root conventions otherwise name a file nothing standing in one member's
+  worktree can open. A repo with no workspace above it gets that set unchanged:
 
   > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 

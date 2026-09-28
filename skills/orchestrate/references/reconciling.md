@@ -147,8 +147,8 @@ checked**; only then fix, raise or file.
 **Then the first question is not where the item goes — it is whether it is yours to settle at all.**
 
 - **I can reason out an answer myself → settle it.** **This is the default, and most findings land here** — an
-  existing pattern, a convention `AGENTS.md` states, a plainly obvious default. Write the answer and what it
-  rests on into the cycle's record. **Settling means answering the question, not writing the code**; where it
+  existing pattern, a convention the project's agent guidance states, a plainly obvious default. Write the
+  answer and what it rests on into the cycle's record. **Settling means answering the question, not writing the code**; where it
   implies work, the placement test places that.
 - **It genuinely needs the user → ask, with the reasoning already done** — a product or design decision the
   code and conventions cannot settle, the only class that reaches the user as a question, at the bar

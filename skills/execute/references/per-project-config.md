@@ -70,6 +70,6 @@ binary called **directly** — `vitest`, `tsc`, `eslint` — or a script shellin
 **bypasses the cache and always runs cold**, locally and in the drained gate. So route every whole-package or
 whole-suite run that is *supposed to happen* — the drained gate, an integration gate, an in-line slice's gate
 — through the cached command (`turbo run <task> --filter=<pkg>`, or the project's `scopedCheck`), and say so
-in briefs and `AGENTS.md`. Routing, not permission: for a queue-mode implementer those runs are banned
-outright (`skills/execute/SKILL.md`'s Implementer section). Reserve a direct-binary run for a **single
-targeted file**; an `AGENTS.md` documenting the raw form as a package default is a leak to fix.
+in briefs and in the project's agent guidance. Routing, not permission: for a queue-mode implementer those
+runs are banned outright (`skills/execute/SKILL.md`'s Implementer section). Reserve a direct-binary run for a **single
+targeted file**; guidance documenting the raw form as a package default is a leak to fix.

@@ -243,10 +243,16 @@ reads. Nor
 
 #### Rules & Conventions
 
-- The project's stated rules, as written down — a contributor guide, an agents file, a repo README,
+- The project's stated rules, as written down — a contributor guide, its agent guidance, a repo README,
   whatever that project promulgates — and the trees those files point at, checked against the diff clause
   by clause, and **never `briefConventions`**, which carries how this flow dispatches and gates rather than
-  anything a diff can depart from (`skills/procedures/config-keys.md`).
+  anything a diff can depart from (`skills/procedures/config-keys.md`). **The agent guidance is the router
+  chain of every directory the diff touches, up to the root, plus only the chapters those routers route it
+  to, and a monolith whole** (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; the
+  terms are `skills/glossary/vocabulary/agent-guidance.md`'s).
+- **A line of guidance the diff adds or changes, held to that entry's guidance test** — placed where the
+  test puts it, stated once, describing no code; a line added to a monolith without its topic moving out,
+  or a `CLAUDE.md` the diff touches left holding content, is a finding.
 - What the project's own gate would say. **Read the gate's rules rather than running it — you were
   dispatched to produce a claim about this diff for the caller to test, so a gate run answers a different
   question, and your brief already carries what the caller ran and what came back** — and report the

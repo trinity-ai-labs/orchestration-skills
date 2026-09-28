@@ -2,6 +2,24 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.12.0
+
+- **A closed issue now carries a record of what happened to it, and each review dimension's findings are one
+  click away on the PR.** `/pipeline:review` posts one comment per dimension it dispatched beside its PR
+  review — the dimension, the head SHA read, the reviewer's findings as reported, the pass's disposition of
+  each (applied, rejected with why, flagged out of scope) and what the reviewer reported running — and the
+  review body links them. The pass's GitHub-write boundary widens from one review to one review plus one
+  comment per dispatched dimension, all on the caller's own PR, at every seat that states it; reviewers still
+  post nothing, a parked pass still posts nothing, and nothing is copied onto the issue.
+- **The dispatcher's issue-closing comment is the outcome record.** In place of the one-line `Fixed in`,
+  `skills/execute/references/landing.md` closes each settled issue with the merge commit and base, the goal
+  verdict, the review decision, the Rejected and Flagged lists, and links to the dimension comments, the PR's
+  reviews and the gate comment, sent from a body file with `-F` and posted whether or not GitHub already
+  closed the issue. Orchestrate's termination closes carry the same record.
+- **A skipped review pass is recorded rather than inferred.** The dispatcher writes its run/skip decision and
+  reason — an override of the breakdown's recommendation included — into the review it posts on the PR and
+  into the closing comment, so a PR with no panel review reads as a recorded skip or as a missing write.
+
 ## 5.11.8
 
 - **A project's commit bar can now come from a host tool-use hook instead of git's pre-commit hook, and

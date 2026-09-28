@@ -94,6 +94,16 @@ has one costs more than it saves. It is checked *here* because this is the last 
 change — a missing `integrationBranch` (`skills/glossary/vocabulary/integration-branch.md`) is the live
 instance, and it silently makes `epicMerge` inert wherever work lands on the default branch.
 
+**Agent guidance shaped as a monolith is a report too — the LOUDEST one, and still never a stop.** While the
+config is open, check the shape of the project's guidance (`skills/procedures/agent-guidance-layout.md`,
+*Checking the shape*; router, chapter and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s). A
+monolith goes at the TOP of the dispatch report, above everything else in it: that the guidance is a
+monolith, each mark with its file, what it costs — every agent this arc dispatches loads all of it on every
+slice — and `/pipeline:setup` as the fix to run as soon as this arc lands. **Never a stop**: the arc runs
+correctly on a monolith, only dearer. **Never an edit by the loop**: a split rewrites every rule the project
+states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
+briefed against the old files.
+
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
 the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
 config did not follow — and the file is read for **provisioning**, not only for a base, so a dispatcher that

@@ -36,7 +36,7 @@ the tracked unit is the item below it.
   where a partial state would be broken, or where the piece is too large to land and review as one thing.
 - **Read the cost out of the project, never out of a cost model you brought with you.** This pass is
   project-agnostic, so what a phase costs to land is the repo's own `gate`, its queue and its review load,
-  taken from its config and `AGENTS.md`. **How many items a phase holds is yours as well**, decided here
+  taken from its config and its agent guidance. **How many items a phase holds is yours as well**, decided here
   against that same gate: the grounding pass grounds the items you filed and never cuts one into two, so an
   oversized item has no seat downstream to fix it.
 

@@ -78,7 +78,8 @@ Read the source plan whole, **re-derive the citations it carries at the depth an
 issue was written to what the arc rests on, and a brief needs the coordinate an implementer actually opens —
 read UP to any umbrella above it, then ground **only its front**: the real files each horizon slice touches,
 what it falsifies, the tests its callers own, the artifacts a regenerator owns, and the project's own
-`AGENTS.md`, config and integration branch.
+agent guidance, config and integration branch — the guidance read per slice as the router chain of every
+directory it touches plus only the chapters routed to it (`skills/procedures/agent-guidance-layout.md`).
 
 ### 2. Validate the plan and fill the gaps
 
@@ -87,7 +88,7 @@ criteria, ambiguous scope, an implied but unstated constraint. **Slicing a plan 
 slice briefs where an implementer hits them mid-build.**
 
 **Fill what you can yourself — that's the job, not a shortcut.** Most gaps are resolvable from the grounding
-you did: an existing pattern, `AGENTS.md`/config, the pre-launch/forward-only posture, a plainly obvious
+you did: an existing pattern, the guidance/config, the pre-launch/forward-only posture, a plainly obvious
 default. **Adopt the answer and write the assumption down explicitly** in the affected slice's brief
 (`Assumes X (existing pattern in <file>); flag if wrong`) rather than interrupting the user.
 

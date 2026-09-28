@@ -172,6 +172,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   where either one runs the scoped check it holds commits to it, and where neither does the implementer runs
   the scoped check itself before each commit. There is no config key for it, since a hook's presence is
   something any pass can observe.
+- **An agent reads the project's guidance by its routers and writes to it by the same layout.** It loads the
+  `AGENTS.md` router of every directory its work touches, up to the root, and only the `.agents/rules/`
+  chapters those routers send its work to — a monolith it reads whole. A convention it adds goes where a
+  four-question test places it (the router's always-true rules, or the one chapter for its topic), never
+  restates a rule already written down, and never describes the code; adding to a monolith moves that topic
+  out into its chapter in the same PR, and a `CLAUDE.md` it touches that holds content becomes the one-line
+  pointer to its `AGENTS.md`.
 - **A fence is a ceiling on what a slice may EDIT, never a wall on what it may RAISE.** An implementer that
   finds something wrong in a file its brief fenced off asks its dispatcher while both are still alive, and it
   **fixes what it HIT while doing its slice rather than going looking for more** — the unlisted middle between

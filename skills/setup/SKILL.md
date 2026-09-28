@@ -81,8 +81,12 @@ Every value must trace to a file you read.
   composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm
   they exist in the main checkout. **Record paths only**, since the config is committed.
-- **Conventions** — `AGENTS.md` / `CONTRIBUTING.md`, and only what lives nowhere else; what is already there
-  gets pointed at, not copied.
+- **Conventions** — the agent guidance and `CONTRIBUTING.md`, and only what lives nowhere else; what is
+  already there gets pointed at, not copied.
+- **The shape of the agent guidance** — check it (`skills/procedures/agent-guidance-layout.md`, *Checking the
+  shape*; router, chapter, pointer and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s) and keep
+  the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
+  Step 2 — see *A monolith is fixed now* below.
 - **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current
   version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the
   half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another.
@@ -125,6 +129,10 @@ checkout holds the integration branch and nothing else, so a `HEAD` naming a dif
 moves the version, the changelog and this field in one commit — so say which of the two you are looking at: a
 roll already made, where this config is what is stale, or a roll not yet cut, where that pass owns the moment
 and a field written now records a branch on its way out.
+
+**Re-check the guidance's shape too, and a monolith gets the same message, said first, and the same split** —
+*A monolith is fixed now* below; the guidance is not config, so the report-never-rewrite posture above does
+not cover it, and the split is a PR the maintainer reads rather than an edit made here.
 
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a
 stop-and-report — the natural repair is the edit that freeze exists to forbid.
@@ -200,7 +208,7 @@ different question and this pass's own.
 | `enqueue` / `drain` | Step 3 — **omit both** with no queue |
 | `format` | The formatter in *write* mode |
 | `frameworkSkills` | `{skill, when}` per area, from the deps imported |
-| `briefConventions` | Pipeline-dispatch facts only — parallel-safety for concurrent gating, how `gate` and `scopedCheck` relate, branch naming, what a PR targets, the order a contract-crossing change lands in. Coding conventions stay `AGENTS.md`'s: point at that file and state only the gotchas that would cost a run |
+| `briefConventions` | Pipeline-dispatch facts only — parallel-safety for concurrent gating, how `gate` and `scopedCheck` relate, branch naming, what a PR targets, the order a contract-crossing change lands in. Coding conventions stay the agent guidance's: point at it and state only the gotchas that would cost a run. **Never re-teach how to read the routers and chapters** — every pass reads them itself |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
 | `integrationBranch` | The branch this project's work lands on — a literal name the maintainer confirms, never a pattern and never read off the default branch. **Omit** where they will not confirm one: absence keeps the older behaviour, and a guessed branch is the value here whose error is silent and durable, since every worktree of every later arc forks from it |
 | `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |
@@ -308,7 +316,22 @@ neither route round that works (`skills/procedures/worktree-helper.md`). Apply t
 checkout to make the helper see it early. It is the same read that lets Step 4 prove a new config before
 anything is committed.
 
-**Handoff:** report the config, what each value was derived from, whether you scaffolded a queue, and the
-verification results. Then:
+### A monolith is fixed now — said first, split in its own reviewable change
+
+**Where Step 1 found the guidance a monolith, say so plainly and FIRST** — ahead of every other thing you
+tell the user, on onboarding and on reconcile alike: *this project's agent guidance is a monolith* — the
+marks, each with its file — *and every dispatched agent loads all of it on every slice, so it should be fixed
+now.*
+Never a footnote under the config and never "worth considering later".
+
+**Then do the split, in its own reviewable change beside the config** — a PR of its own, by
+`skills/procedures/agent-guidance-layout.md`'s *Splitting a monolith* steps, listing every line it removed
+rather than moved so the maintainer can object to each. **Never inside the config's commit straight to the
+integration branch** that the install-step exception above allows: a split rewrites every rule the project
+states, which is exactly what a maintainer must read before it lands. In a workspace, split per member; the
+workspace-level `AGENTS.md` has no repository to land in, so hand its split back as a proposal.
+
+**Handoff:** lead with the monolith verdict where there is one, and the split PR beside it. Then report the
+config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
 > **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and hands off to `/pipeline:orchestrate`, the one command that ships dispatched work of any size.

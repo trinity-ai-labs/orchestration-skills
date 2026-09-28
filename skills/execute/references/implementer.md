@@ -9,7 +9,11 @@ everything here.
 **First action, before any other command: `cd` into your assigned worktree and prove you are really there** —
 `git rev-parse --show-toplevel` must print the assigned path and `git branch --show-current` the assigned
 branch; on either mismatch STOP and report. Work only there, in absolute paths, following the project's
-`briefConventions`, `frameworkSkills` (invoke your area's as Step 0) and `AGENTS.md`.
+`briefConventions`, `frameworkSkills` (invoke your area's as Step 0) and its agent guidance — **the router
+chain of every directory your slice touches, up to the root, plus only the chapters those routers route your
+slice to, and a monolith read whole** (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*;
+router, chapter and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s). Where your brief names
+those files they are that set, so open them and not the rest.
 
 **That rule covers EVERY LATER command's working directory, not only the first** — a check, a grep or a gate
 run pointed at another checkout answers about another branch, and **a green from the wrong tree and a green
@@ -57,6 +61,14 @@ identifiers, so grepping your terms comes back empty and reads as "nothing to up
 **Where the project declares `docsPaths`, that is where to look and what makes each tree stale**
 (`skills/procedures/config-keys.md`), so *not affected* becomes a judgement against a stated condition rather
 than a sentence you compose. Docs go in their own commit, each with a one-line verdict in your hand-back.
+
+**A convention your slice adds or changes is agent guidance, and the guidance test decides where it goes**
+(`skills/procedures/agent-guidance-layout.md`, *Placing a line*) — a router's *Always*, or the one chapter for
+its topic, created with its router row where neither exists yet. **Adding to a monolith moves that topic out
+into its chapter in this same PR**, so the file gets more router-shaped with every slice that touches it and
+never longer; **a `CLAUDE.md` your slice touches that holds content is reduced to the pointer line**, its
+content placed by the same test. The rest of a monolith is not yours to split — fix what you hit, never what
+you can find.
 
 **A comment claiming what OTHER code does is re-asserted before you reword it.** Every defect the checks here
 catch is a disagreement between two artifacts a tool can compare; this one is prose against behaviour, and
@@ -355,8 +367,8 @@ fabricated identifier records the wrong fact quietly, every guardrail confirming
 you needed, why it was unavailable, and what the dispatcher must decide.
 
 ⚠️ **Narrow in the same way: this covers an input naming a real thing you cannot obtain — not a decision you
-would rather not make.** A gap an existing pattern, `AGENTS.md`, or an obvious default settles is not a
-missing input: adopt the answer, write the assumption into your report, and move on.
+would rather not make.** A gap an existing pattern, the project's agent guidance, or an obvious default
+settles is not a missing input: adopt the answer, write the assumption into your report, and move on.
 
 **Something wrong OUTSIDE your owned files is something you FIX, not something you raise.** `Owns` is the
 floor your change must reach and `Do NOT touch` names the files another live agent holds right now; everything

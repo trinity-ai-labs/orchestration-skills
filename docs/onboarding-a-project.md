@@ -18,6 +18,19 @@ on one already describing that failure? That is `upstreamFindings`
 ([Filing findings upstream](filing-findings-upstream.md#filing-findings-upstream-off-by-default)), it is put
 flat with no case made for it, and only an explicit yes writes anything.
 
+**It also checks the shape of your agent guidance, and says so first when it is a mess.** The layout it looks
+for: at each directory that carries guidance an `AGENTS.md` that is a *router* — what the directory is, the
+rules true for every change there, its commands, and a table routing each topic to a *rule chapter* under
+`.agents/rules/` — with every `CLAUDE.md` reduced to the one line `See [AGENTS.md](AGENTS.md).`, so an agent
+loads the routers for where it works and only the chapter for what it is doing. Guidance is a *monolith* by
+its shape, never its length: topic rules written straight into a router, a description of the code (a stack
+list, a schema or route inventory, an architecture tour) in guidance at all, a `CLAUDE.md` holding content,
+or one rule stated in two places. Found one, setup leads with it — every agent the pipeline dispatches loads
+all of it on every slice — and splits it in its own PR beside the config, listing every line it dropped
+rather than moved so you can object to each. `/pipeline:orchestrate` runs the same check before an arc and
+puts a monolith at the top of its report, pointing back here; it never stops over one and never edits your
+guidance itself. No config key controls any of this.
+
 It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where you
 named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two
 runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision
@@ -36,7 +49,7 @@ is the one case every "where the project has no queue" fallback in the flow stru
 check reports which of the two it got rather than just that the queue held.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
-[Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's `AGENTS.md`,
+[Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's agent guidance,
 its package scripts, and its CI to fill in the commands rather than guessing.
 
 **Onboarding is not the only job this command has — an artifact that is already there may be *behind*, and run
@@ -47,8 +60,9 @@ saying what was true that day. Run `/pipeline:setup` again and it re-grounds the
 hands back a **per-key delta**: *agrees*; *drifted*, saying what the repo now says rather than only that it
 differs; or *declared but unverified*, for the values no file can confirm — the ones you were asked for, which
 stay yours. A gate queue scaffolded against an older spec gets the same treatment one level over, as a
-per-invariant delta against the reference. Either way it **reports and never rewrites**, for one reason that
-covers both: a divergence can be deliberate, an overwrite cannot tell a deliberate one from a stale one, and
+per-invariant delta against the reference, and the agent guidance gets its shape checked again, a monolith
+reported first and split in its own PR exactly as on onboarding. For the config and the queue it **reports
+and never rewrites**, for one reason that covers both: a divergence can be deliberate, an overwrite cannot tell a deliberate one from a stale one, and
 so it would destroy both. **Run it between arcs, never inside one** — once worktrees are live the config is
 frozen for the arc, so a mid-arc delta is measured against the very file every live worktree was already
 provisioned from, and acting on it writes to the one piece of shared state another session may be cutting a

@@ -37,7 +37,7 @@ under `skills/` or `bin/`, which ship.
   artifacts grows with the flow, so leave out anything you cannot rule out. It is stated here rather than
   pointed at because the ship-it close-out above runs with no dispatcher and no brief, so nothing in it
   obliges the agent to load the skill that carries the ban — and none of these artifacts is in the diff, so no
-  check here can catch a slip. `skills/execute/SKILL.md`'s implementer step 7 carries the argument.
+  check here can catch a slip. `skills/execute/SKILL.md`'s implementer step 6 carries the argument.
 - **A change that touches anything outside the exempt list below moves the version forward, and only such a
   change does** — in **both** manifests, `.claude-plugin/plugin.json` (Claude Code) and
   `.codex-plugin/plugin.json` (Codex), plus a matching `## <version>` heading in `CHANGELOG.md`. Each host pins

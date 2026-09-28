@@ -372,13 +372,41 @@ pass.
 
 ---
 
-## 4. Post the review and the dimension comments, then report — Goal, Applied, Rejected, Flagged, Verification
+## 4. Post the dimension comments and the review, then report — Goal, Applied, Rejected, Flagged, Verification
 
-**Post what you have just weighed onto the PR as a review, once, before you hand back.** A verdict
+**Post what you have just weighed onto the PR — each dimension's report as a comment, then the review — once,
+before you hand back.** A verdict
 left in this conversation dies with it, and the hand-back prose that outlives it reaches one reader;
 the posted review is attached to the diff and every later reader of that PR finds it there. This is
 no second pass — it EMITS the one the three steps above already produced, by the same agent at the
 same point in the flow.
+
+**Post one comment per dimension you dispatched onto the same PR, BEFORE the review so its body can link
+each one** — the review carries your one-line gloss on each finding, and a later reader weighing a
+rejection or a flag needs the reviewer's own report beside it to check that gloss against. Each comment
+names the dimension, the head SHA you read, the reviewer's findings as it reported them, your disposition
+of each — applied, rejected with why, or flagged out of scope with why it falls outside the slice — and
+what that reviewer reported running, or that it reported none:
+
+```md
+### Review — <dimension> · head `<sha>`
+
+**Findings (as reported)** — <finding> — <path>
+**Disposition** — Applied: <finding> — <reason> · Rejected: <finding> — <why> · Flagged out of scope: <finding> — <why>
+**Reviewer ran** — <what it reported running, or "reported none">
+```
+
+```sh
+gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>" --jq .html_url
+```
+
+**Once per dimension per pass, and the same `-F`-and-refetch discipline as the review**: a body file,
+never `-f`, and the comment re-read to confirm it holds the markdown rather than the path — `<n>` being
+the PR's number, since a PR's conversation comments go through the issues endpoint. **A dimension
+you judged this slice did not need gets no comment** and is named in the review body as before, and one
+that dispatched and never reported gets a comment saying so, since a missing comment reads as a missing
+write. **Nothing of this goes onto the issue the PR implements** — the dispatcher's closing comment there
+links these, and a copy on the issue is a second record nothing keeps in step with the first.
 
 ```sh
 # the summary alone
@@ -414,33 +442,6 @@ post — made by the caller itself where the caller writes code, and by a fix ag
 caller does not, as an epic's close-out caller does not — so a reader comparing the review against the PR's
 head cannot otherwise tell a verdict that predates that commit — which yours does, correctly — from one
 that has gone stale.
-
-**Post one comment per dimension you dispatched onto the same PR, BEFORE the review so its body can link
-each one** — the review carries your one-line gloss on each finding, and a later reader weighing a
-rejection or a flag needs the reviewer's own report beside it to check that gloss against. Each comment
-names the dimension, the head SHA you read, the reviewer's findings as it reported them, your disposition
-of each — applied, rejected with why, or flagged out of scope with why it falls outside the slice — and
-what that reviewer reported running, or that it reported none:
-
-```md
-### Review — <dimension> · head `<sha>`
-
-**Findings (as reported)** — <finding> — <path>
-**Disposition** — Applied: <finding> — <reason> · Rejected: <finding> — <why> · Flagged out of scope: <finding> — <why>
-**Reviewer ran** — <what it reported running, or "reported none">
-```
-
-```sh
-gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>" --jq .html_url
-```
-
-**Once per dimension per pass, and the same `-F`-and-refetch discipline as the review**: a body file,
-never `-f`, and the comment re-read to confirm it holds the markdown rather than the path — `<n>` being
-the PR's number, since a PR's conversation comments go through the issues endpoint. **A dimension
-you judged this slice did not need gets no comment** and is named in the review body as before, and one
-that dispatched and never reported gets a comment saying so, since a missing comment reads as a missing
-write. **Nothing of this goes onto the issue the PR implements** — the dispatcher's closing comment there
-links these, and a copy on the issue is a second record nothing keeps in step with the first.
 
 ⛔ **No AI attribution in that review, its inline comments or any dimension's comment — the configured git user
 is the only author any of it names.** No trailer, line, footer or URL naming Claude, the assistant, the model,

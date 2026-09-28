@@ -60,7 +60,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **A review reader the host refuses because too many agents are already running has not gone out yet — it
   has not failed.** The review pass spawns it again once its own readers free their slots, and where none of
   them is still out it PARKS rather than dropping the dimension: tree untouched, no finding applied, nothing
-  posted onto the PR — neither its review nor its per-dimension comments — and a hand-back reading
+  posted onto the PR — neither its review nor its dimension comments — and a hand-back reading
   `Review: PARKED` with the dimensions still to go. **By then the tree carries the FINISHED shape** — commits
   past the fork point, a pushed branch, a draft PR open — since the pass runs against that PR, so the marker in
   the report is the only thing telling a parked slice from one that is done, and an open PR is never itself
@@ -324,11 +324,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   go through GraphQL and hit rate limits exactly when you are closing a batch of them — and leave a comment on
   each that is its **outcome record**: the merge commit and the branch it landed on, the goal verdict, whether
   the review pass ran or was skipped and why, the findings it rejected and flagged, and links to the PR's
-  per-dimension review comments, its reviews and its gate comment. It goes on every issue that PR settled,
-  whether or not GitHub already closed it, so a closed issue says what happened to it without anyone opening
-  the PR. GitHub's closing keywords are interpreted only when the PR's base is the repo's **default** branch,
-  so a PR into an epic branch or into an integration branch that isn't the default closes nothing, and the
-  hand-close is the whole mechanism.
+  dimension comments, its reviews and its gate comment. It goes on every issue that PR settled, whether or not
+  GitHub already closed it, so a closed issue says what happened to it without anyone opening the PR. GitHub's
+  closing keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an
+  epic branch or into an integration branch that isn't the default closes nothing, and the hand-close is the
+  whole mechanism.
   Where the integration branch simply **is** `main`, a PR based on it targets the default branch and they do
   fire: the hand-close's state change is then a harmless no-op and its comment still goes on, but a stray
   `Closes #<n>` closes that issue the moment that PR merges — too early, if the arc still has cycles to run.

@@ -264,8 +264,8 @@ made in the brief, then read the silence: correct where you skipped it, a round 
 a slice you told to run the pass whose PR carries neither its review nor its dimension comments is a missing
 write, whatever its hand-back says. **Write that decision onto the PR in each review you post, and into the
 issue's closing comment** — `Review pass: ran`, or `Review pass: skipped — <reason>`, naming it where you
-overrode the breakdown's recommendation — since the brief dies with the run and a PR with no panel review on
-it otherwise reads the same whether the pass was skipped or its write went missing.
+overrode the breakdown's recommendation — since the brief dies with the run, and that line is what tells
+this blank apart once it has.
 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that

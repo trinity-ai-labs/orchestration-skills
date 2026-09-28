@@ -12,7 +12,11 @@
     },
     {
       "path": "AGENTS.md",
-      "when": "a repo convention, the frozen helper contract, or the bin/ parity rule changes"
+      "when": "a rule every change here is held to, the command, or the Rules by topic table changes"
+    },
+    {
+      "path": ".agents/rules/",
+      "when": "a topic rule changes: writing skill prose, the bin/ helpers and scripts/ (the frozen helper contract, the bin/ parity rule), or the repo description"
     },
     {
       "path": "docs/filing-findings-upstream.md",
@@ -48,5 +52,5 @@
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
   "epicMerge": "squash",
-  "briefConventions": "See AGENTS.md at the repo root \u2014 it carries the full conventions plus the frozen helper contract and the bin/ parity rule."
+  "briefConventions": "See AGENTS.md at the repo root and the .agents/rules/ chapters it routes to; the frozen helper contract and the bin/ parity rule are in .agents/rules/helpers.md."
 }

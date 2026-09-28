@@ -196,14 +196,19 @@ jobs:
           #   .agents/      this repo's OWN worktree.json — contributor tooling read
           #                 by a dispatcher working here, never by an installed
           #                 plugin. market-skills exempts it for the same reason.
+          #                 Also the rule chapters the root AGENTS.md routes to
+          #                 (.agents/rules/), read by whoever works HERE.
           #   scripts/      the contributor gate. Unlike bin/, which Claude Code puts
           #                 on a user's PATH, nothing under scripts/ is shipped or
           #                 invocable by a user.
           #   AGENTS.md     this repo's contributor conventions — read by whoever
           #                 works HERE, never by an installed plugin.
+          #   CLAUDE.md     the one-line pointer to AGENTS.md, for a host that loads
+          #                 CLAUDE.md by name — read by whoever works HERE, never
+          #                 by an installed plugin.
           #   CHANGELOG.md  describes a bump; requiring one to describe one is circular.
           #   .gitignore    changes nothing about an install.
-          exempt='^(\.github/|\.agents/|scripts/|AGENTS\.md|CHANGELOG\.md|\.gitignore)'
+          exempt='^(\.github/|\.agents/|scripts/|AGENTS\.md|CLAUDE\.md|CHANGELOG\.md|\.gitignore)'
           changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"

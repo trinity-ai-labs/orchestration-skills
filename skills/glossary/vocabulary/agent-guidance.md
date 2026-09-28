@@ -30,5 +30,6 @@ carrying any of them is. What a monolith costs is its whole length loaded by eve
 nothing in it says which part bears on the work at hand.
 
 **Absent guidance is not a monolith.** A project with no `AGENTS.md` and no `CLAUDE.md` has nothing to split,
-and a router with an empty topic table — every rule it carries true for every change in its directory — is
-the layout, not a departure from it.
+and neither does one whose only `CLAUDE.md` is the pointer line with no router beside it — a pointer at
+nothing. A router with an empty topic table, every rule it carries true for every change in its directory, is
+the layout rather than a departure from it.

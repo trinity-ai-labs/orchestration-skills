@@ -322,8 +322,7 @@ anything is committed.
 tell the user, on onboarding and on reconcile alike: *this project's agent guidance is a monolith* — the
 marks, each with its file — *and every dispatched agent loads all of it on every slice, so it should be fixed
 now.*
-Never a footnote under the config and never "worth considering later": a monolith taxes every run from the
-first one.
+Never a footnote under the config and never "worth considering later".
 
 **Then do the split, in its own reviewable change beside the config** — a PR of its own, by
 `skills/procedures/agent-guidance-layout.md`'s *Splitting a monolith* steps, listing every line it removed

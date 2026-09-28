@@ -23,16 +23,23 @@ chain.
 
 ## Checking the shape
 
-1. **List the guidance files**: `git ls-files | grep -E '(^|/)(AGENTS|CLAUDE)\.md$|(^|/)\.agents/rules/[^/]+\.md$'`.
-   None listed is absent guidance, which is not a monolith, and the check ends there.
+1. **List the guidance files**, untracked ones included since an agent reads the working tree:
+   `git ls-files --cached --others --exclude-standard | grep -E '(^|/)(AGENTS|CLAUDE)\.md$|(^|/)\.agents/rules/[^/]+\.md$'`.
+   None listed, or only pointer lines with no `AGENTS.md` beside them, is absent guidance, which is not a
+   monolith, and the check ends there.
 2. **Each `CLAUDE.md`**: exactly the pointer line, or holding content — the third mark.
 3. **Each router**: beyond its opening sentences, *Always*, *Commands*, topic table and links, does it carry
-   rules true only for some changes in its directory? Those are topic rules inline — the first mark.
+   rules true only for some changes in its directory — a topic table cell holding rule prose rather than a
+   topic and its link included? Those are topic rules inline — the first mark.
 4. **Each router and chapter**: does any passage describe the code rather than set an expectation for it — a
    stack list, a schema, route or module inventory, an architecture narrative? The second mark.
 5. **Across the set**: is any rule stated in two files, however differently worded? The fourth mark.
 6. **The verdict names each mark found with its file**, and a count of the files the monolith spans. One mark
    is a monolith; length is never read.
+
+In a workspace, run it inside each member, then run steps 2 to 5 on the workspace-level `AGENTS.md` and
+`CLAUDE.md` beside `.agents/workspace.json` by their paths — the workspace root is not a repository, so step
+1 cannot list them — and count a rule stated both there and in a member as the fourth mark.
 
 ## Placing a line — the guidance test, in order
 
@@ -58,8 +65,7 @@ test like any other.
 2. **Name the routers**: one `AGENTS.md` per directory that carries guidance — the root, and each package or
    subtree whose changes share rules the rest of the repository does not.
 3. **Run every line of the existing guidance through the guidance test.** A line failing its first question,
-   and the part of a line failing its fourth, is removed rather than moved — list each removal in the change so
-   a reader can object to it.
+   and the part of a line failing its fourth, is removed rather than moved — list each removal in the change.
 4. **Write each chapter** from the lines the test sent to it, one file per topic under that directory's
    `.agents/rules/`.
 5. **Write each router**: its opening sentences, *Always*, *Commands*, a *Rules by topic* row per chapter

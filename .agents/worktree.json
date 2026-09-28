@@ -12,6 +12,10 @@
     },
     {
       "path": "AGENTS.md",
+      "when": "a rule every change here is held to, the command, or the Rules by topic table changes"
+    },
+    {
+      "path": ".agents/rules/",
       "when": "a repo convention, the frozen helper contract, or the bin/ parity rule changes"
     },
     {
@@ -48,5 +52,5 @@
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
   "epicMerge": "squash",
-  "briefConventions": "See AGENTS.md at the repo root \u2014 it carries the full conventions plus the frozen helper contract and the bin/ parity rule."
+  "briefConventions": "See AGENTS.md at the repo root \u2014 the router: its Always rules and Commands hold for every change, and its Rules by topic table routes a slice to the .agents/rules/ chapter for its topic; the frozen helper contract and the bin/ parity rule are in .agents/rules/helpers.md."
 }

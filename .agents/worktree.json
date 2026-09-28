@@ -16,7 +16,7 @@
     },
     {
       "path": ".agents/rules/",
-      "when": "a repo convention, the frozen helper contract, or the bin/ parity rule changes"
+      "when": "a topic rule changes: writing skill prose, the bin/ helpers and scripts/ (the frozen helper contract, the bin/ parity rule), or the repo description"
     },
     {
       "path": "docs/filing-findings-upstream.md",
@@ -52,5 +52,5 @@
   "gate": "sh scripts/check.sh",
   "scopedCheck": "sh scripts/check.sh",
   "epicMerge": "squash",
-  "briefConventions": "See AGENTS.md at the repo root \u2014 the router: its Always rules and Commands hold for every change, and its Rules by topic table routes a slice to the .agents/rules/ chapter for its topic; the frozen helper contract and the bin/ parity rule are in .agents/rules/helpers.md."
+  "briefConventions": "See AGENTS.md at the repo root and the .agents/rules/ chapters it routes to; the frozen helper contract and the bin/ parity rule are in .agents/rules/helpers.md."
 }

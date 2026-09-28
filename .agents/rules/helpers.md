@@ -5,20 +5,20 @@ and for naming a helper in shipped prose.
 
 ## Conventions
 
-- The shipped/contributor split is a directory: everything under `bin/` SHIPS, because Claude Code puts an enabled plugin's `bin/` on PATH for whichever shell
-  tool it hands the user, so skills invoke those helpers bare, never by path.
-  **That is one host's behaviour, not the rule** — Codex installs `bin/` with the rest of the plugin but puts
-  nothing on PATH, so a helper is called by absolute path there. Shipped prose therefore names the capability
-  and leaves resolution to `skills/procedures/host-tools.md`, the one file allowed to name a host's tools,
-  models and paths. Which half lands on PATH depends on the shell: the Bash tool (WSL, or Git Bash on native
-  Windows) gets the `.sh` half, but a native Windows install with no Git for Windows gets the PowerShell tool
-  instead, where the `.sh` helpers do not exist at all — that gap is the entire reason the `.ps1` ports were
-  written. A bug in either half is a runtime failure discovered on a user's machine at the moment of use. For
-  the `.sh` half, they are bash, and shellcheck reads the dialect from each shebang, so the shebang is the
-  contract and changing it changes what the gate enforces. For the `.ps1` half the equivalent guarantee is
-  PSScriptAnalyzer — run in CI's `check` job on `ubuntu-latest`, which ships `pwsh` and the analyzer
-  preinstalled, and locally by `scripts/check.sh` when `pwsh` is on PATH — together with the parity check that
-  holds both languages to the same contract.
+- The shipped/contributor split is a directory: everything under `bin/` SHIPS, because Claude Code puts an enabled
+  plugin's `bin/` on PATH for whichever shell tool it hands the user, so skills invoke those helpers bare, never
+  by path. **That is one host's behaviour, not the rule** — Codex installs `bin/` with the rest of the plugin but
+  puts nothing on PATH, so a helper is called by absolute path there. Shipped prose therefore names the capability
+  and leaves resolution to `skills/procedures/host-tools.md`, the one file allowed to name a host's tools, models
+  and paths. Which half lands on PATH depends on the shell: the Bash tool (WSL, or Git Bash on native Windows)
+  gets the `.sh` half, but a native Windows install with no Git for Windows gets the PowerShell tool instead,
+  where the `.sh` helpers do not exist at all — that gap is the entire reason the `.ps1` ports were written. A bug
+  in either half is a runtime failure discovered on a user's machine at the moment of use. For the `.sh` half,
+  they are bash, and shellcheck reads the dialect from each shebang, so the shebang is the contract and changing
+  it changes what the gate enforces. For the `.ps1` half the equivalent guarantee is PSScriptAnalyzer — run in
+  CI's `check` job on `ubuntu-latest`, which ships `pwsh` and the analyzer preinstalled, and locally by
+  `scripts/check.sh` when `pwsh` is on PATH — together with the parity check that holds both languages to the same
+  contract.
 - A `.ps1` helper DECLARES the session state it relies on rather than inheriting it, because these helpers
   spend a non-zero exit as a *question* throughout — `git show-ref --verify` asking whether a branch exists,
   `merge --ff-only` asking whether a fast-forward is possible — so a session with native-command errors

@@ -196,6 +196,8 @@ jobs:
           #   .agents/      this repo's OWN worktree.json — contributor tooling read
           #                 by a dispatcher working here, never by an installed
           #                 plugin. market-skills exempts it for the same reason.
+          #                 Also the rule chapters the root AGENTS.md routes to
+          #                 (.agents/rules/), read by whoever works HERE.
           #   scripts/      the contributor gate. Unlike bin/, which Claude Code puts
           #                 on a user's PATH, nothing under scripts/ is shipped or
           #                 invocable by a user.

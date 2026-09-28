@@ -380,16 +380,17 @@ import re
 
 BIN = pathlib.Path("bin")
 
-# The env-var comparison is scoped to the CONTRACT surface: the variables a caller
-# passes in, which .agents/rules/helpers.md freezes and which both implementations therefore have
-# to agree on. It is deliberately NOT "every environment variable each side
-# happens to touch", because the two shells legitimately need different internal
-# plumbing: the bash helpers set MSYS path-translation variables for their child
-# processes (MSYS_NO_PATHCONV and friends) that have no PowerShell counterpart at
-# all, since PowerShell has no MSYS path form to translate. Demanding identical
-# sets would go red on a correct implementation, and the only way to green it
-# would be to invent a variable nobody reads - which is exactly the guardrail
-# gaming AGENTS.md forbids. Widen this set only by widening the contract.
+# The env-var comparison is scoped to the CONTRACT surface: the variables a
+# caller passes in, which .agents/rules/helpers.md freezes and which both
+# implementations therefore have to agree on. It is deliberately NOT "every
+# environment variable each side happens to touch", because the two shells
+# legitimately need different internal plumbing: the bash helpers set MSYS
+# path-translation variables for their child processes (MSYS_NO_PATHCONV and
+# friends) that have no PowerShell counterpart at all, since PowerShell has no
+# MSYS path form to translate. Demanding identical sets would go red on a
+# correct implementation, and the only way to green it would be to invent a
+# variable nobody reads - which is exactly the guardrail gaming AGENTS.md
+# forbids. Widen this set only by widening the contract.
 CONTRACT_ENV = {
     "WORKTREE_HOME", "REPO", "WORKSPACE", "WORKTREE_DEST", "MERGE_PR_FORCE",
 }
@@ -598,10 +599,10 @@ rm -f "$parity_out"
 # TWO CLASSES, RESOLVED TWO DIFFERENT WAYS, because two readers resolve them
 # two different ways.
 #
-#   (a) A bare skills/… .md path written in prose. .agents/rules/skill-prose.md's
-#       convention is
-#       that this is the one citation form resolving in the repo the prose is
-#       READ in, so it is resolved from the repository ROOT.
+#   (a) A bare skills/… .md path written in prose.
+#       .agents/rules/skill-prose.md's convention is that this is the one
+#       citation form resolving in the repo the prose is READ in, so it is
+#       resolved from the repository ROOT.
 #   (b) A markdown LINK target — ](…). A renderer resolves it relative to the
 #       DIRECTORY OF THE CITING FILE, so that is how it is resolved here.
 #
@@ -768,10 +769,10 @@ fi
 
 # --- 10. skills/ within the per-file AND per-sub-skill ceilings --------------
 
-# The per-file ceiling and the instrument .agents/rules/skill-prose.md states. Changing either here
-# without changing it there leaves the two halves of one rule disagreeing, with
-# both of them green — see the note at 10 above for why the unit matters as much
-# as the number.
+# The per-file ceiling and the instrument .agents/rules/skill-prose.md states.
+# Changing either here without changing it there leaves the two halves of one
+# rule disagreeing, with both of them green — see the note at 10 above for why
+# the unit matters as much as the number.
 budget=30000
 
 # The per-sub-skill ceiling: the SUM of the same measurement over one
@@ -779,14 +780,14 @@ budget=30000
 # DIRECTORY rather than as what any one agent loads, since an agent loads the
 # spine plus whichever references it is sent to — and the growth the per-file
 # half misses when a sub-skill gains files rather than grows one.
-# .agents/rules/skill-prose.md states this one too, with the same both-green disagreement available.
-# Both are BACKSTOPS, not budgets — they catch runaway growth rather than
-# ration prose. The headroom is deliberately not stated as a fraction here:
-# it moves with every release that adds prose,
-# and the green line below prints each sub-skill's total, so a figure in this
-# comment would go stale with nothing measuring it. There is deliberately no
-# corpus-wide ceiling: prose behind a pointer costs a reader nothing until it is
-# followed, so the corpus total is a quantity no reader ever pays.
+# .agents/rules/skill-prose.md states this one too, with the same both-green
+# disagreement available. Both are BACKSTOPS, not budgets — they catch runaway
+# growth rather than ration prose. The headroom is deliberately not stated as a
+# fraction here: it moves with every release that adds prose, and the green line
+# below prints each sub-skill's total, so a figure in this comment would go
+# stale with nothing measuring it. There is deliberately no corpus-wide ceiling:
+# prose behind a pointer costs a reader nothing until it is followed, so the
+# corpus total is a quantity no reader ever pays.
 budget_per_skill=50000
 
 # Tracked or untracked-and-not-ignored *.md files under skills/, for the reason
@@ -907,13 +908,14 @@ fi
 # --- 11. prose that states rules carries no war stories ----------------------
 
 # THE RULE IS A PROPERTY, AND THIS CHECK IS A BACKSTOP THAT DOES NOT STATE IT.
-# The rule (.agents/rules/skill-prose.md, *Conventions*): name the failure a rule prevents in a
-# clause that shares its sentence with the action, never in a sentence or a
-# paragraph of its own. The pattern below is a handful of phrasings that perform
-# that promotion often enough to be worth catching mechanically. It is NOT the
-# boundary: an enumerated ban is satisfied by every form it omits, so a green
-# here says only that these phrasings are absent, never that the property holds.
-# Adjudicate against the property; where you cannot tell, leave it out.
+# The rule (.agents/rules/skill-prose.md, *Conventions*): name the failure a
+# rule prevents in a clause that shares its sentence with the action, never in a
+# sentence or a paragraph of its own. The pattern below is a handful of
+# phrasings that perform that promotion often enough to be worth catching
+# mechanically. It is NOT the boundary: an enumerated ban is satisfied by every
+# form it omits, so a green here says only that these phrasings are absent,
+# never that the property holds. Adjudicate against the property; where you
+# cannot tell, leave it out.
 #
 # ADDING PHRASINGS IS NOT HOW THIS GETS BETTER. Each one bought is one shape
 # and the next war story is written in the next shape — one comma inside a
@@ -924,8 +926,9 @@ fi
 # RULE is written, so it reaches wherever this repo states or applies one —
 # skills/, .agents/rules/skill-prose.md — which STATES the rule, and which a
 # skills/-scoped check could not see, so the file promulgating the ban was the
-# one place it did not reach — README.md, and docs/, which is where prose extracted out of skills/
-# now lands and so is the direction a war story leaves skills/ by.
+# one place it did not reach — README.md, and docs/, which is where prose
+# extracted out of skills/ now lands and so is the direction a war story leaves
+# skills/ by.
 # CHANGELOG.md is exempt, and the reason is the rule's own: the ban does not
 # delete the incident, it relocates it to the change that fixed it. A release
 # entry states no rule anyone acts on mid-task, is never loaded by an agent, and
@@ -1046,10 +1049,11 @@ fi
 # into ANOTHER skill to explain itself is not finished: state what your reader
 # needs where they act. Unbounded cross-skill citation is what grew a web of
 # references, a checker for it, and a convention for writing it. No count of
-# that web is stated here or in .agents/rules/skill-prose.md: the two copies had drifted to two
-# different figures, neither is checkable now, and it is not a number a reader
-# acts on — so the claim is dropped rather than reconciled, which would re-seed
-# the drift surface inside the one rule written to prevent exactly that.
+# that web is stated here or in .agents/rules/skill-prose.md: the two copies had
+# drifted to two different figures, neither is checkable now, and it is not a
+# number a reader acts on — so the claim is dropped rather than reconciled,
+# which would re-seed the drift surface inside the one rule written to prevent
+# exactly that.
 #
 # THREE permitted targets, and each is a different edge rather than a hole in
 # this one. Each is admitted on a property naming what has no per-seat form,
@@ -1712,9 +1716,10 @@ fi
 # not ignored -- skills/ is what ships, and the second half is there for check
 # 10's reason: a new pass is exactly what this check exists to read, and
 # tracked-only it stays invisible until `git add`. AGENTS.md and its
-# .agents/rules/ chapters, README.md and docs/ are out of scope for check 9's reason -- they are only ever read as this
-# repository's own, where naming the host this repo's gate and helpers run on is
-# a fact about this repo rather than a host shipped into somebody else's prose.
+# .agents/rules/ chapters, README.md and docs/ are out of scope for check 9's
+# reason -- they are only ever read as this repository's own, where naming the
+# host this repo's gate and helpers run on is a fact about this repo rather than
+# a host shipped into somebody else's prose.
 
 vendor_src='skills/procedures/host-tools.md'
 vendor_list="$(mktemp)" || exit 2

@@ -2,6 +2,14 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.13.1
+
+- **This repo's own agent guidance now takes the layout its skills teach.** The root `AGENTS.md` is a router
+  — what the repo is, the rules for every change under *Always*, the command, and a *Rules by topic* table —
+  over three chapters in `.agents/rules/`: writing skill prose, the `bin/` helpers and `scripts/` (with the
+  frozen helper contract and the parity rule), and the repo description. A root `CLAUDE.md` is the pointer
+  line. README's repo tree says so, and its frozen-contract link points at the helpers chapter.
+
 ## 5.13.0
 
 - **A project's agent guidance now has a defined layout, and every pass reads it by progressive disclosure.**

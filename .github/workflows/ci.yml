@@ -208,7 +208,12 @@ jobs:
           #                 by an installed plugin.
           #   CHANGELOG.md  describes a bump; requiring one to describe one is circular.
           #   .gitignore    changes nothing about an install.
-          exempt='^(\.github/|\.agents/|scripts/|AGENTS\.md|CLAUDE\.md|CHANGELOG\.md|\.gitignore)'
+          #   README.md     read on GitHub, never loaded by an installed plugin.
+          #   docs/         the same — pages read on GitHub, never loaded by a pass.
+          #   LICENSE       changes nothing about an install.
+          # Not exempt: examples/ — /pipeline:setup and /pipeline:orchestrate read
+          # examples/worktree.json out of the installed plugin's own tree.
+          exempt='^(\.github/|\.agents/|scripts/|AGENTS\.md|CLAUDE\.md|CHANGELOG\.md|\.gitignore|README\.md|docs/|LICENSE)'
           changed="$(git diff --name-only "$base" HEAD | grep -vE "$exempt" || true)"
           if [ -z "$changed" ]; then echo "no shipped content changed — bump not required"; exit 0; fi
           was="$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || echo "")"

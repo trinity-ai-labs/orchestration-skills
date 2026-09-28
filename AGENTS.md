@@ -45,7 +45,8 @@ under `skills/` or `bin/`, which ship.
   worked, and one manifest bumped alone ships a different release to each host — `scripts/check.sh` check 2 fails
   when the two disagree. **A change confined to the exempt list is internal and merges with no bump and no
   CHANGELOG entry**, since a version cut for it ships nothing to an install and still costs a release. Exempt:
-  `.github/`, `.agents/`, `scripts/`, `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md` and `.gitignore` — the exempt regex
+  `.github/`, `.agents/`, `scripts/`, `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`, `.gitignore`, `README.md`, `docs/`
+  and `LICENSE` — never `examples/`, which a pass reads out of the installed plugin — the exempt regex
   in `.github/workflows/ci.yml` is authoritative, so change both together, and where CI demands a bump for a file
   no installed plugin loads, the list is what is wrong, not the version.
 - All three `trinity-ai-labs` skills repos — `market-skills`, `orchestration-skills`, `framework-skills` — are

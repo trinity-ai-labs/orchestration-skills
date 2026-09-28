@@ -1,0 +1,112 @@
+# The `bin/` helpers and `scripts/`
+
+Chapter of the root [AGENTS.md](../../AGENTS.md): the rules for changing anything under `bin/` or `scripts/`,
+and for naming a helper in shipped prose.
+
+## Conventions
+
+- The shipped/contributor split is a directory: everything under `bin/` SHIPS, because Claude Code puts an enabled plugin's `bin/` on PATH for whichever shell
+  tool it hands the user, so skills invoke those helpers bare, never by path.
+  **That is one host's behaviour, not the rule** — Codex installs `bin/` with the rest of the plugin but puts
+  nothing on PATH, so a helper is called by absolute path there. Shipped prose therefore names the capability
+  and leaves resolution to `skills/procedures/host-tools.md`, the one file allowed to name a host's tools,
+  models and paths. Which half lands on PATH depends on the shell: the Bash tool (WSL, or Git Bash on native
+  Windows) gets the `.sh` half, but a native Windows install with no Git for Windows gets the PowerShell tool
+  instead, where the `.sh` helpers do not exist at all — that gap is the entire reason the `.ps1` ports were
+  written. A bug in either half is a runtime failure discovered on a user's machine at the moment of use. For
+  the `.sh` half, they are bash, and shellcheck reads the dialect from each shebang, so the shebang is the
+  contract and changing it changes what the gate enforces. For the `.ps1` half the equivalent guarantee is
+  PSScriptAnalyzer — run in CI's `check` job on `ubuntu-latest`, which ships `pwsh` and the analyzer
+  preinstalled, and locally by `scripts/check.sh` when `pwsh` is on PATH — together with the parity check that
+  holds both languages to the same contract.
+- A `.ps1` helper DECLARES the session state it relies on rather than inheriting it, because these helpers
+  spend a non-zero exit as a *question* throughout — `git show-ref --verify` asking whether a branch exists,
+  `merge --ff-only` asking whether a fast-forward is possible — so a session with native-command errors
+  switched on makes the probe itself fatal and every hand-rolled `$LASTEXITCODE` check unreachable, and
+  nothing in the gate sees it coming: PSScriptAnalyzer does not model session state, and CI exercises one
+  `pwsh` configuration on `ubuntu-latest`, so a break of this kind reaches the machine whose profile differs
+  and nowhere earlier. These scripts run in a child scope of whatever session invoked them, so a preference
+  variable set in a user's profile is in force inside them — which is why
+  `$PSNativeCommandUseErrorActionPreference` is pinned `$false` beside each helper's
+  `$ErrorActionPreference = 'Stop'`, and why a possibly-absent JSON property is read through a `Get-JsonValue`
+  wrapper rather than directly, since `Set-StrictMode 2.0` turns the plain form into a throw. Neither setting
+  is part of the frozen contract below — they are internal to each script, and adding one to the parity
+  check's contract env list would be widening the contract to describe an implementation detail.
+- The one sanctioned exception to *never game a guardrail* (the root [AGENTS.md](../../AGENTS.md), *Always*):
+  `bin/setup-worktree.ps1`'s `Invoke-ProjectInstall` carries
+  a one-function `SuppressMessageAttribute` for `PSAvoidUsingInvokeExpression`, with its reasoning in the
+  `Justification` and in the comment above it; read those rather than a paraphrase of them here. It is
+  load-bearing and the rule cuts both ways: do not delete it to comply with the rule, which turns CI red, and
+  do not cite it as precedent for silencing an analyzer that found something real, which is how an unjustified
+  suppression lands beside a justified one. The documented-exception carve-out it satisfies, and the four
+  conditions any new suppression must meet, are defined in `skills/execute/references/implementer.md` —
+  pointed at, not restated, because a three-condition copy here would be worse than none. The one thing to
+  know locally: a repo-wide PSScriptAnalyzer settings-file exclusion is never the answer, since it switches
+  the rule off everywhere and leaves nothing at the flagged code to show it was ever flagged.
+- Everything under `scripts/` is contributor-only — never loaded, never on a user's PATH — and
+  `scripts/check.sh` is POSIX `/bin/sh` with no bashisms so it holds to the standard it enforces on `bin/`.
+
+## The frozen helper contract
+
+The helper CLI contract — arguments, env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`,
+`MERGE_PR_FORCE`), the stdout lines, and exit codes — is exactly as it is on `main` today, and stays frozen:
+no one may add, rename, or repurpose any of them without stopping and re-agreeing first, because this repo
+ships the same behavior twice — once as bash (`bin/*.sh`), once as PowerShell (`bin/*.ps1`) — against a
+contract neither implementation owns alone, so a side that changes what an argument, an env var, the `READY:`
+line or an exit code *means* without the other side knowing ships a clean green check on both while the two
+shells behave differently for the same command. The parity check in `scripts/check.sh` cannot catch that: it
+reads surface shape (does the sibling exist, do the usage lines and env-var names match, is it ASCII, does a
+helper that resolves paths under `WORKTREE_HOME` read `.agents/workspace.json` at all), never semantics. A
+contract change that is actually needed is still fine — it just has to be a conversation both implementations
+sign off on, not a unilateral edit discovered later as a behavioral mismatch.
+
+As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or `--existing <branch>` to
+attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it
+already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
+`merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path; `setup-workspace`
+takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
+`READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
+its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed
+exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through,
+and never a silent success: a substitution inside an `echo` takes its status from the `echo`.
+
+## The `bin/` parity rule
+
+Every `bin/<name>.sh` must have a `bin/<name>.ps1` sibling with the same usage line and the same set of
+consumed env vars, and neither sibling may ever be added alone — because `bin/` ships on a user's PATH inside
+whichever shell Claude Code hands them for that platform (the Bash tool under WSL or Git Bash, the PowerShell
+tool on native Windows with no Git for Windows installed, where bash does not exist at all), so a helper
+written in only one language works for part of the userbase and is simply unavailable to the rest, with no
+error until someone on the missing shell tries to run it and finds nothing on PATH.
+
+`.ps1` files are ASCII-only, no exceptions. PowerShell 5.1 misreads UTF-8 without a byte-order mark, and these
+helpers' comments lean on em-dashes throughout — a single stray em-dash surviving into a `.ps1` file is a
+non-ASCII byte that corrupts under 5.1, and the failure surfaces as a parse error nowhere near the character
+that actually caused it, which makes it expensive to trace back.
+
+This rule is enforced mechanically, not carried by review discipline — prose alone does not stop two
+hand-maintained copies of the same logic from drifting apart, it only makes the drift someone's fault after
+the fact. **Surface parity is one half; the other half runs the code.** The parity check reads shape and makes
+no claim about behaviour, so a predicate written twice can diverge and stay green on everything else —
+surfacing as the same PR merging differently depending on which shell the platform handed the user.
+`scripts/port-cases/*.tsv` is one table asked of BOTH implementations, and a case added there is answered by
+each. **A missing predicate is a failure, not a skip**: renaming one is exactly how the pair would stop being
+compared while the check kept reporting ok. Where `pwsh` is absent the bash half still runs and the PowerShell
+half says plainly that it did not.
+
+`scripts/check.sh`'s parity check fails closed on: a missing sibling in either direction; a usage-line
+mismatch, read from each script's runtime `usage:` line rather than its comments; a mismatch in which CONTRACT
+env vars (`WORKTREE_HOME`, `REPO`, `WORKSPACE`, `WORKTREE_DEST`, `MERGE_PR_FORCE`) each sibling consumes —
+deliberately not every variable either side internally touches, since the bash helpers carry MSYS
+path-translation plumbing PowerShell has no counterpart for; and a non-ASCII byte or missing trailing newline
+in a `.ps1` file. It also asserts one thing about each sibling on its own, because comparing the two is
+structurally blind to an omission they SHARE: a helper that consumes `WORKTREE_HOME` must read
+`.agents/workspace.json`, since a repo inside a workspace keeps its worktrees at
+`$WORKTREE_HOME/<workspace>/<leaf>/<repo>` rather than the bare `$WORKTREE_HOME/<project>/<leaf>` — and two
+ports that both lack that branch agree with each other perfectly while every workspace member's teardown
+resolves a path that never exists, prints "already removed" and exits 0, leaving `merge-pr`'s
+`--delete-branch` to run against a branch still checked out in a live worktree. That is still surface shape —
+a token in the comment-stripped source, exactly like the env-var scan — and it makes no claim that the branch
+it finds is *correct*, only that the question was asked; whether a workspace path is assembled right is
+semantics, and a checker that judged it would be a second implementation of the thing it checks.
+

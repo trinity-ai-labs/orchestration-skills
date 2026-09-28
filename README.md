@@ -51,8 +51,8 @@ the installed plugin root; the skills carry that rule and neither host needs any
 ships **twice**: `<name>.sh` for the Bash tool, `<name>.ps1` for the PowerShell tool (see
 [Prerequisites](#prerequisites) for which you get) — same arguments, same environment variables, same output,
 same exit codes, one CLI contract implemented twice. What holds that pair together is the frozen contract in
-[AGENTS.md](AGENTS.md) and the review of every change to it; what the repo's own gate can and cannot see of it
-is in [Adding a skill](docs/adding-a-skill.md).
+[.agents/rules/helpers.md](.agents/rules/helpers.md) and the review of every change to it; what the repo's own
+gate can and cannot see of it is in [Adding a skill](docs/adding-a-skill.md).
 
 | Command | What it does |
 |---|---|
@@ -262,6 +262,7 @@ that comparison rather than preparation for it, is in
 .
 ├── .agents/
 │   ├── worktree.json            # this repo's OWN pipeline config — contributor-only
+│   ├── rules/                   # the rule chapters — skill prose, the helpers, the repo description
 │   └── plugins/marketplace.json # the Codex marketplace entry — this repo IS the marketplace
 ├── .claude-plugin/
 │   └── plugin.json              # the Claude Code manifest — `name` sets the namespace
@@ -269,7 +270,8 @@ that comparison rather than preparation for it, is in
 │   └── plugin.json              # the Codex manifest — same version, or the gate reds
 ├── .github/workflows/ci.yml     # runs scripts/check.sh on Linux AND Windows, plus the version-bump guard
 ├── .gitattributes               # pins bin/* to LF — a CRLF checkout kills every helper at its shebang
-├── AGENTS.md                    # repo conventions, the frozen helper contract, and the rules a change here is held to
+├── AGENTS.md                    # the router — rules for every change here, and a table into .agents/rules/
+├── CLAUDE.md                    # the pointer to AGENTS.md
 ├── bin/                         # SHIPPED — on PATH under Claude Code; by absolute path under Codex
 │   ├── setup-worktree.sh        # .sh for the Bash tool, .ps1 for the PowerShell tool —
 │   ├── setup-worktree.ps1       #   one contract, two languages, kept in step by scripts/check.sh

@@ -38,7 +38,15 @@ the filename.
 ### The ticket
 
 `{ branch, worktreePath, mode }`, plus `prNumber` and `prUrl` **when the tree being gated has a PR**. `mode`
-selects the gate — `default` for the full suite, or a lighter one (e.g. `docs`) for a prose-only slice.
+selects the gate — `default` runs `gate`, the full suite wherever the project declares no `fullGate`, or a
+lighter one (e.g. `docs`) for a prose-only slice.
+
+**`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode the
+dispatcher's integration, wave-end and close-out tickets carry there, since that project's `gate` may be
+partial. Where `fullGate` is absent there is no `full` mode, and `default` stays the full suite.
+**A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode — never fall
+back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate produced,
+on exactly the tickets whose purpose was the full gate.
 
 **`mode` is a property of the ticket, set at enqueue — never inferred from the branch name**, or a rename
 silently changes how a PR is gated.
@@ -215,7 +223,7 @@ settles: no post is owed.
 
 Only these. Everything above is generic:
 
-- the gate command, and any lighter mode's command
+- the gate command, any lighter mode's command, and `fullGate` for the `full` mode where declared
 - the package manager used to invoke them
 - how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
 - the queue directory's *name*, and the retention window the prune applies

@@ -215,6 +215,16 @@ the message before the stop — are that pass's own, and you are in it.
 
 ## 3. Reconcile against the merged tree → `skills/orchestrate/references/reconciling.md`
 
+⛔ **Where the project declares `fullGate` (`skills/procedures/config-keys.md`), the wave-end gate runs first,
+and this cycle does not move past it**: that project's `gate` may be partial, so once this increment's merges
+have landed, `fullGate` runs once on the merged tip — the epic branch where one was cut, the integration
+branch where none was — before this checklist and before the next horizon is ground. **A red holds the next
+wave**, reported like any red gate, and what it found is forced work the checklist hands the next horizon
+ahead of anything else in the plan; the loop grounds past it only off a green. The tree it runs in, the
+ticket's `full` mode and the reading are the dispatcher's *Gate the integrated whole*, which you hold from
+step 2. **Where `fullGate` is absent no wave-end gate runs, and neither does one in a cycle that merged
+nothing.**
+
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
 falsify anything. **Which is why a cycle whose own increment merged NOTHING — every PR it dispatched left
@@ -246,7 +256,9 @@ questions is the filing channel doing the asking *The decide-don't-ask bar* forb
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **Where one WAS cut, green takes a third thing and only there: that
+on the integration branch at step 2. **Where the project declares `fullGate`, green also takes a `fullGate`
+run**: the last cycle's wave-end gate where no epic branch was cut, the increment's own gate being partial
+there, and the close-out gate where one was. **Where one WAS cut, green takes a third thing and only there: that
 close-out PR's own full `/pipeline:review` panel, run between its open and its gate and posting its review
 and one comment per dimension onto that PR** — a close-out that
 gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and

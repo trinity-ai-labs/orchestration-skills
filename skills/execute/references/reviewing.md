@@ -28,14 +28,16 @@ comment is one the agent *writes* rather than one it reads. So the mid-arc gate 
 scope — what changes is what you read: **the verdict on its ticket in `done/`, not a shell's exit status.**
 
 - **A gate spans every workspace — read every package's result, never one package's summary.** `gate` runs the
-  task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types). A `Failed: <pkg>#test`
-  line plus a non-zero exit is **RED**, even when the *first* package's summary you happen to see looks like
-  only the known baseline. Concluding "green-modulo-baseline" (see the transient-red window below) from one
-  package's `Test Files N failed` line — without confirming the failing SET across *every* package is exactly
-  the baseline — is precisely how a real regression in a *second* package rides through to merge and surfaces
-  only at the epic's integration gate. When you assert green-modulo-baseline, enumerate the failing files
-  across all packages and match them to the baseline set by name; a `cache miss, executing …` line for a
-  package whose *result* you never saw is a signal to go read that result, not to assume it passed.
+  task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types) — or, where the project
+  declares `fullGate`, across every package its diff can affect, `fullGate` being the run that spans them all.
+  A `Failed: <pkg>#test` line plus a non-zero exit is **RED**, even when the *first* package's summary you
+  happen to see looks like only the known baseline. Concluding "green-modulo-baseline" (see the transient-red
+  window below) from one package's `Test Files N failed` line — without confirming the failing SET across
+  *every* package is exactly the baseline — is precisely how a real regression in a *second* package rides
+  through to merge and surfaces only at the epic's integration gate. When you assert green-modulo-baseline,
+  enumerate the failing files across all packages and match them to the baseline set by name; a `cache miss,
+  executing …` line for a package whose *result* you never saw is a signal to go read that result, not to
+  assume it passed.
   **Both sides of that match are fields on the ticket — the failure SET by identifier, and a per-step
   executed-or-replayed record — so read set against set rather than reconstructing either from a failing
   tail**, which carries the last N lines and not the membership this assertion turns on. **And read a step
@@ -464,21 +466,24 @@ job.
 drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs` for Trinity) so concurrent
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
-the entire test run. Beyond that one run an implementer's commits are held only to the cheap scoped check —
-by a hook where one runs it, git's pre-commit hook or the host's commit-hook row in
-`skills/procedures/host-tools.md`, by the implementer before each commit where neither does — and
-release-branch PRs typically get no CI, so that gate run is what stands in for CI.
+the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
+diff can affect and the integration points run `fullGate` instead (*Gate the integrated whole*). Beyond that
+one run an implementer's commits are held only to the cheap scoped check — by a hook where one runs it, git's
+pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`, by the implementer before
+each commit where neither does — and release-branch PRs typically get no CI, so that gate run is what stands
+in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,
 the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
-which for a merged tree with no PR is
-a PR-less ticket (*Gate the integrated whole*), and by hand only where there is no queue or the runner refuses
-that ticket — only for a genuine reason: the runner never got to a ticket, or a
-**merge integrates branches that weren't tested together** (one integration gate on the merged result). That
-second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back non-empty, and
-an empty answer means the merged result is the tree the gate already ran (*Gate the integrated whole* below).
-Even then prefer the minimum — the affected/changed tests over the whole suite where possible. Your always-on
-job is reading the **diff**; heavy re-gating is conditional.
+which for a merged tree with no PR is a PR-less ticket (*Gate the integrated whole*), and by hand only where
+there is no queue or the runner refuses that ticket — only for a genuine reason: the runner never got to a
+ticket, or a **merge integrates branches that weren't tested together** (one integration gate on the merged
+result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
+non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
+whole* below) — **except where the project declares `fullGate`**, where every merge that check reads runs
+`fullGate`, empty or not, and a wave-end gate runs it once per wave as well. Where it is absent, even then
+prefer the minimum — the affected/changed tests over the whole suite where possible. Your always-on job is
+reading the **diff**; heavy re-gating is conditional.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket

@@ -19,6 +19,12 @@ increment has merged and this checklist has already run against it.
 Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement
 each time**: a cycle that skips a re-derived step produces exactly the output of one that found nothing.
 
+**Before item 1, where the project declares `fullGate`: read the wave-end gate's verdict.** The loop's step 3
+runs that gate on the merged tip before this checklist, since that project's per-PR gate may be partial and
+the tree below has been gated whole by nothing else. **A red is revealed forced work (item 3) that the next
+horizon carries ahead of anything else in the plan**, and nothing past it dispatches until a wave-end gate on
+the tip it lands on is green. Absent the key there is no such gate, and the checklist starts at item 1.
+
 **1. Coordinate drift.** Every path, symbol, table, route or key named in the remaining plan: does it still
 resolve against the merged tree? Check them; do not recall them. **A target that does not resolve is stale by
 definition, not a maybe**, and shape depth keeps the list short but **short is not empty**.
@@ -258,7 +264,7 @@ the **aggregate** only, and its *Follow-ups filed out of this arc* re-tests the 
 moved tree and the evidence that moved it, so *Adjacent* is this cycle's disposition rather than a discharge.
 
 **Three costs sit under this. The third is the one that decides most items and it runs the other way**: a
-filed item becomes **its own task, with its own worktree, its own PR and its own full gate**. Inside the arc
+filed item becomes **its own task, with its own worktree, its own PR and its own gate**. Inside the arc
 that work is marginal — the tree is open, the context is loaded, the gate is running anyway. Outside it, it is
 a whole unit of work, and the gate is a real serialized cost this loop already sizes waves against. The other
 two are that an arc absorbing everything never terminates, and that **filing moves the reasoning from the run

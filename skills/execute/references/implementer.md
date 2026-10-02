@@ -141,10 +141,11 @@ commit hook is in** — by the hook, where either an executable `pre-commit` in
 `skills/procedures/host-tools.md` runs `scopedCheck`; and by you, running `scopedCheck` in the foreground
 before each commit, where neither does.
 
-**Who runs the full gate is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
-self-granted, never inferred:
+**Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
+self-granted, never inferred — **and a declared `fullGate` is never yours in either mode**, its runs being
+your dispatcher's at the integration points:
 
-- **Queue mode — the project declares `enqueue` and `drain`: you do NOT run the full gate, and the ban is on
+- **Queue mode — the project declares `enqueue` and `drain`: you do NOT run `gate`, and the ban is on
   the WORK, not the command name.** Never run the full suite or any whole-package test run
   **by any invocation** — not `gate`, not `turbo run test`, not a raw `vitest` sweep, not a package `test`
   script — and **backgrounding it is still running it**. Never wait on a gate either: the ticket is your
@@ -153,7 +154,7 @@ self-granted, never inferred:
   slice there (override mode):** once your draft PR is open and any review pass your brief asked for has
   reported and had its findings committed, run `gate` a single time, in the foreground —
   detached and polled in this same turn where it outlasts one tool call (*Never background a check* below) —
-  and comment the result on it. That one run is the only full-suite run you make, and every other run the
+  and comment the result on it. That one run is the only gate run you make, and every other run the
   queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
   `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this flow's only
   evidence a gate ran.

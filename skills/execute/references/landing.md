@@ -25,8 +25,17 @@ parallel case the reasoning above is really about.
 executes the same tree for the same answer. A run that cuts every worktree from the current tip and merges
 sequentially without conflicts comes back empty on every merge and needs no dedicated integration gate at all.
 
-**It is a check rather than a rule because it runs both ways.** An unconditional close-out gate re-executes a
-tree that was already gated — on a monorepo with a ten-minute gate that is real cost for zero information. And
+**Where the project declares `fullGate` (`skills/procedures/config-keys.md`), both readings above give way to
+one: the integrated whole runs `fullGate`, after every merge this check reads, and never skips on an empty
+`^2` diff** — that project's `gate` may be partial, so the branch tip an empty diff points back to was gated
+only on what its own diff could affect, never gated whole. **Where `fullGate` is absent, the two readings and
+the skip stand exactly as written.** Everything else in this section holds for a `fullGate` run unchanged:
+the derived artifacts, the tree you gate in, the install, the ticket (in its `full` mode), the exit-status
+reading.
+
+**Where `fullGate` is absent it is a check rather than a rule, because it runs both ways.** An unconditional
+close-out gate re-executes a tree that was already gated — on a monorepo with a ten-minute gate that is real
+cost for zero information. And
 "the last slice was green, so the epic is green" costs nothing and is wrong the moment two slices ran in
 parallel, which is this flow's default dispatch shape.
 
@@ -99,9 +108,10 @@ never holds.
 
 **Enqueue it rather than running it — the tree has no PR, and the ticket shape admits that.** In a project
 whose runner takes the ticket this gate goes in as a **PR-less ticket** on the tree above:
-`enqueue --branch <branch> --worktree <worktree>`, naming the epic branch and the epic worktree where one
-holds the merges and the gate branch and its throwaway tree otherwise — never the main checkout, where another
-session's close-out moves the tree mid-gate and the frozen-worktree rule cannot be held — with no
+`enqueue --branch <branch> --worktree <worktree>`, plus `--mode full` where the project declares `fullGate`
+— the mode that runs it, since the `default` mode runs `gate` — naming the epic branch and the epic worktree
+where one holds the merges and the gate branch and its throwaway tree otherwise — never the main checkout,
+where another session's close-out moves the tree mid-gate and the frozen-worktree rule cannot be held — with no
 `--pr-number` and no `--pr-url`; those two fields are optional on a ticket precisely so this gate can be
 recorded like any other. A runner claims it, gates that worktree behind the machine-wide slot, and settles it
 into `done/` with the verdict written on the ticket; the only step it skips is the comment, because there is
@@ -131,6 +141,9 @@ gate is run by hand) and toward an enqueue that cannot accept the ticket. That i
 status (*Where you do run a gate yourself*), and say in the close-out that this verdict has no ticket behind
 it. **Only the mid-arc gate is reachable this way**: the epic's close-out gate sits behind a draft PR and
 therefore always has a `--pr-number` to carry, so it enqueues on any runner.
+**A runner scaffolded before the `full` mode refuses `--mode full` the same way, naming the mode, and the
+same fallback answers it for any ticket**: run `fullGate` by hand in the tree that ticket named, never
+re-enqueue in the `default` mode, which runs the partial `gate` and settles a green no full gate produced.
 
 *The two halves of that rollout fail in OPPOSITE directions, and the safe one is the one that strands you.*
 The sibling half is a `--status` flag an older runner does not recognise, which **silently drains** —
@@ -170,10 +183,11 @@ directions.
 **On an epic branch, apply the check to the closing merge too — it is the one merge that is usually
 non-empty.** A gate on the epic tip is not a gate on what lands: the integration branch moved while the epic
 ran, so `epic → integration` combines two histories nothing has tested together. The fix is ordering, not
-another gate — before the close-out gate, merge the integration branch INTO the epic one last time (the same
-merge the tick already runs, *The cost* above; that cadence buys this, not just bounded conflicts). Then the
-epic already contains everything the integration branch has, the gate covers the exact tree the closing merge
-will produce, and that merge's `^2` diff comes back empty. Skip the cadence and it won't, and the gate moves
+another gate — before the close-out gate, which runs `fullGate` where the project declares it, merge the
+integration branch INTO the epic one last time (the same merge the tick already runs, *The cost* above; that
+cadence buys this, not just bounded conflicts). Then the epic already contains everything the integration
+branch has, the gate covers the exact tree the closing merge will produce, and that merge's `^2` diff comes
+back empty. Skip the cadence and it won't, and the gate moves
 to *after* the closing merge, on the shared branch — in a throwaway tree cut from its tip, the close-out
 having torn the epic worktree down — where a cross-slice break is found only once every slice has already
 landed on it.
@@ -200,6 +214,18 @@ against it (*The epic branch* → *Mechanics*) — read the other way round, as 
 forces the one gate whose tree no per-slice gate has ever seen to run with nothing to attach a ticket to: no
 log, no ledger entry, no comment, and a verdict surviving only as an exit status in one terminal, on the
 least-witnessed gate in the flow.
+
+**The wave-end gate — only where the project declares `fullGate`, and none runs where it is absent.** Once per
+wave, after that wave's merges and before the next horizon is ground, run `fullGate` on the merged tip — the
+epic branch in its own worktree where one was cut, and the integration branch otherwise, in a throwaway tree
+cut from its tip as above, since the main checkout is never a gate tree. Every rule above holds for it: the
+derived artifacts first, the install, a PR-less ticket in the `full` mode or a hand run where there is no
+queue or the runner refuses the ticket, and the exit-status reading. **Red holds the next wave** and is
+answered like any red integration gate — reported, and fixed forward by a fix slice against that tip — and
+the next horizon is ground only off a green. **Where the wave's last merge already ran `fullGate` green over
+this same tree** (`git rev-parse <tip>^{tree}` against the tree it gated), that verdict IS the wave-end gate,
+since a re-run executes the same tree for the same answer. **With no epic branch, the last wave's gate is
+the close-out's integration gate**, the slices' own gates being partial, so the arc is not green until it is.
 
 ---
 

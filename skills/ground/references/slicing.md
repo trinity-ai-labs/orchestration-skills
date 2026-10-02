@@ -181,6 +181,8 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar
     names the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you
     write it that way (*gate in the default mode, not `--mode docs`*) rather than as a command line.
+    **Never the `full` mode**: where the project declares `fullGate` that mode is the integration points',
+    and the slice's own `gate` may be partial, so say so where the bar leans on a suite-wide property.
     **The only check an implementer may be told to run directly is a single targeted test file** — and where
     the slice changes a module's export surface (adds, removes or renames an export, or moves code between
     modules), each test file that mocks or imports that module, found by grepping its specifier, which the
@@ -268,9 +270,11 @@ fan at all, which is the only place in this pass the dominant term can be argued
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *scoped* per-commit check implementers run is NOT the sizing cost; the **full gate** is — drained where
-  the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size against
-  the *actual* `gate`, cache and gate mode you read in config.
+- The *scoped* per-commit check implementers run is NOT the sizing cost; the **per-PR gate** is — drained
+  where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
+  against the *actual* `gate`, cache and gate mode you read in config — and where the project declares
+  `fullGate`, `gate` may be partial and each wave adds one `fullGate` run on its merged tip, so a narrower
+  wave buys more of them.
 
 ## The closing check — read a slice's fields against each other, and against what the project will accept
 

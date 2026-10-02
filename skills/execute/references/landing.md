@@ -316,13 +316,16 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 **Rejected**: <each finding turned down, the reviewers that raised it, and why> — or "none"
 **Flagged**: <each out-of-scope item and where it went> — or "none"
 **On the PR**: dimension comments <urls> · reviews <urls> · gate comment <url>
+**Beside it**: <the arc's other PRs, each linked> — or "none"
 ```
 
 **Post it on every issue this PR settled, in the same breath as the close, whether or not GitHub already
 closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
 Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
 merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off
-the implementer's hand-back, reading the PR where it names none; **a skipped pass is written as skipped
+the implementer's hand-back, reading the PR where it names none, and the arc's other PRs off
+`gh pr list --base <base> --state all`, so a reader of one slice's record can reach what landed beside it;
+**a skipped pass is written as skipped
 with its reason**, never left as a blank that reads the same as a lost write. **Write the body to a file
 and send it with `-F`, never `-f`** (`skills/glossary/mechanics/gh-api-file-body.md` says why, and why the
 wrong one exits 0), then refetch the comment and confirm it holds the markdown rather than the path.

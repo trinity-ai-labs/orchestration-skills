@@ -203,7 +203,7 @@ reference.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
-6. **Commit, push, open a draft PR.**
+6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
    is a pushed branch and a draft PR.

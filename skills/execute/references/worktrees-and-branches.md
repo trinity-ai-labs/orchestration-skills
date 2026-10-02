@@ -271,8 +271,10 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
   **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT, run one full
   `/pipeline:review` panel against it, land any fix round it earns, and only THEN enqueue the gate against
-  it — in that order**, naming the epic worktree as the ticket's worktree. **Under `"epicMerge": "squash"` that PR's
-  title and body become the arc's one surviving commit message** (*Mechanics*), so write them as that.
+  it — in that order**, naming the epic worktree as the ticket's worktree, and in the `full` mode where the
+  project declares `fullGate` (`skills/procedures/config-keys.md`), its `gate` being partial there.
+  **Under `"epicMerge": "squash"` that PR's title and body become the arc's one surviving commit message**
+  (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
@@ -312,7 +314,7 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **Gate AFTER the fix round, never before it**, since a ticket raised first both burns a serialized gate on
   code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
   able to take a ticket back. Where the project declares **no queue**, gate the epic
-  branch in its own worktree yourself and read its exit status.
+  branch in its own worktree yourself — `fullGate` where the project declares it — and read its exit status.
 
   **Then one check stands between that green gate and the merge — `autoMergeEpicCloseOut`
   (`skills/procedures/config-keys.md`), read here, after the gate and before the helper.**

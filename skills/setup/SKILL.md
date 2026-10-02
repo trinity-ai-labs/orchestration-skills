@@ -158,14 +158,14 @@ because every such key ships with a working fallback and halting an arc over a v
 than it saves.
 
 ⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and
-`envFiles` are all omitted deliberately by projects that mean it, and `integrationBranch` is omitted honestly
-by a project nobody has confirmed a branch for. **The three `autoMerge*` keys are the same case reaching
-every project at once**, since each ships with a default and most projects declare none:
-`autoMergeOntoIntegration` and `autoMergeOntoEpic` default to `true`, so declaring them changes nothing
-whatever and an undeclared pair is the answer rather than a gap, while `autoMergeEpicCloseOut` defaults to
-HOLDING the epic close-out for a human — the one of the three whose absence a project might genuinely want to
-overturn, and so the one worth naming out loud rather than listing. Report what is undeclared and what
-declaring it would change; the decision is the project's.
+`envFiles` are all omitted deliberately by projects that mean it, `fullGate` by every project whose `gate` is
+the full suite, and `integrationBranch` is omitted honestly by a project nobody has confirmed a branch for.
+**The three `autoMerge*` keys are the same case reaching every project at once**, since each ships with a
+default and most projects declare none: `autoMergeOntoIntegration` and `autoMergeOntoEpic` default to `true`,
+so declaring them changes nothing whatever and an undeclared pair is the answer rather than a gap, while
+`autoMergeEpicCloseOut` defaults to HOLDING the epic close-out for a human — the one of the three whose
+absence a project might genuinely want to overturn, and so the one worth naming out loud rather than listing.
+Report what is undeclared and what declaring it would change; the decision is the project's.
 
 **Run the difference the other way too: a key the config declares that `examples/worktree.json` does not
 carry is read by nothing**, so a value set there governs nothing while looking set. Name each one, and where
@@ -184,7 +184,7 @@ merge key declared there HOLDS the merge its replacement governs until it is ren
 reads which key included. Read it once; the table below is what this pass sources each value FROM, which is a
 different question and this pass's own.
 
-### First, ask for the three values no file in the repo holds
+### First, ask for the four values no file in the repo holds
 
 1. **What does the gate touch OUTSIDE the worktree?** No lockfile or CI file names the Postgres the suite
    migrates, the Redis the tests flush, the cache directory two runs share, or the port an e2e run binds. Then
@@ -204,6 +204,12 @@ different question and this pass's own.
    **Do not make it easy to say yes**: put it flat, and say no is a complete answer.
    **Write `true` only on an explicit yes** — a no, a maybe, silence or nobody to ask all mean OMIT the key,
    and the `false` in `examples/worktree.json` is a key shown, not a decision made.
+4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
+   suite? **Only a yes declares `fullGate`**, its value the project's full-suite command, grounded like `gate`
+   and confirmed; a no, a maybe or nobody to ask omits it, which keeps `gate` the full gate at every seat.
+   ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
+   exactly like a full one's, and while a wrong yes only spends a second full run at each integration point, a
+   wrong no lets a cross-domain break past every one of them.
 
 ### Then write the keys
 
@@ -214,6 +220,7 @@ different question and this pass's own.
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
 | `scopedCheck` | The no-build, no-test subset |
+| `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |
 | `sharedResources` | **The maintainer's answer, not a file's** — the first ask; `[]` when nothing |
 | `reclaim` | `{report, drop}`, the project's own sweep — the second ask. **Omit** unless an entry is durable AND the commands exist |
 | `enqueue` / `drain` | Step 3 — **omit both** with no queue |
@@ -251,10 +258,10 @@ it means.
 
 Only where Step 0 picked the queue tier. The queue is what lets implementers never run the heavy gate — they
 push, open a draft PR and hand back, while the dispatcher drops the durable ticket once it has read that diff
-and drains one gate at a time.
-Scaffold the three scripts with their `package.json` entries, and **read the reference first**: the whole
-rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) whose failure mode is a green
-gate against code no gate ever saw.
+and drains one gate at a time. Scaffold the three scripts with their `package.json` entries — the runner
+learning the `full` mode only where the project declares `fullGate` — and **read the reference first**: the
+whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) whose failure mode is a
+green gate against code no gate ever saw.
 
 ### Already has a queue? Reconcile it — report the delta, never rewrite
 
@@ -272,7 +279,9 @@ The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, 
 every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
 identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
 and an absent failure set is what leaves a red ticket unusable as a baseline. Report each like any other, with
-what the runner would have to add, and leave the adopting to the project.
+what the runner would have to add, and leave the adopting to the project. **Where the project declares
+`fullGate`, a runner without the `full` mode — or one that gates an unknown mode as `default` — is a delta of
+the same kind**, and the one whose absence passes a partial gate off as the full one.
 
 ## Step 4 — Verify it, don't assert it
 
@@ -286,8 +295,8 @@ first one.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip resolved **locally**
    (`git -C <repo> rev-parse <base>`) — no fetch, no freshness count: the config's reader is what is under
    test. The full fetch-and-compare belongs at **dispatch**.
-3. **The gate command exists.** Run the *scoped* check for real; for the full gate, `<pm> run <script> --help`
-   is enough.
+3. **The gate command exists.** Run the *scoped* check for real; for the heavy ones — `gate`, and `fullGate`
+   where declared — `<pm> run <script> --help` is enough.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
    the PR carries the verdict comment. Then three more, each invisible to the one before it:
    **`drain --status` reports and claims nothing** — an unrecognised flag falling through to a full drain
@@ -295,7 +304,9 @@ first one.
    gating and since when, before it waits; and **a PR-less enqueue** (no `--pr-number`/`--pr-url`)
    **passes either way**, settling into `done/` with the verdict on the ticket or refused non-zero naming the
    missing fields — report a refusal as a delta, the dispatcher's mid-arc integration gate then getting
-   hand-run. Report any check you could not produce as not produced.
+   hand-run. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
+   `fullGate`, or is refused non-zero naming the mode — a delta the same way, never a ticket gated in
+   `default`. Report any check you could not produce as not produced.
 5. **Two worktrees, gated at once** — the only place the FULL gate earns a run here, and only where
    `sharedResources` declares an `isolatedBy`: collision is unobservable in one run. Cut a second off the same
    base and overlap the real `gate` in both — green in both is the answer, a red reads as infrastructure

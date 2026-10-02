@@ -160,7 +160,9 @@ memory of it**, the comment the hold wrote onto the tracked issue being where it
 **Merged since the hold** and the leaf simply LANDED, so the horizon moves outward past it — **but a human
 who merged it on GitHub ran none of the steps this flow's own merge runs**, so its worktree still stands,
 its branch is still there and the local integration branch is still behind the tip every later cut is taken
-from, which makes finishing that close-out this cycle's first act rather than a tidy-up.
+from, which makes finishing that close-out this cycle's first act rather than a tidy-up — **followed, where
+the project declares `fullGate`, by the wave-end gate (step 3) on the tip it leaves**, before this cycle's
+horizon is ground, since a merge made outside this flow ran no integration gate at all.
 **Still open and held** and nothing has landed: report which PR is still held exactly as the exit that left
 it there has you report it, leave that leaf where it is, and run the cycle on whatever else is ready.
 
@@ -203,9 +205,11 @@ the queue, what is already live and what this host can take, recording your reas
 ⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you
 owe a divergence tick roughly every 10 minutes in between.** **Where a checkpoint's flag holds a slice's
 merge instead, the step ends AT that hold** — the merge it would otherwise wait on is not coming, and the
-cycle takes the sixth exit (*Repeat, or close out*) rather than ticking against an agent that finished. Arm it with whatever self-paced timer your host
-gives you, at ≈600s, callable right here rather than only from a looping command.
-**Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch
+cycle takes the sixth exit (*Repeat, or close out*) rather than ticking against an agent that finished —
+after step 3's wave-end gate, where the project declares `fullGate` and anything of this wave did merge. Arm
+it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a
+looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong**
+— a dispatch
 report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are
 launched.** Interval, purpose and requirement are settled **here**, because an instruction reached only by a
 pointer is one a reader can skip while satisfying every step in front of them, and
@@ -214,6 +218,15 @@ polling for completion. What each tick reads, what it drains, answers and syncs,
 the message before the stop — are that pass's own, and you are in it.
 
 ## 3. Reconcile against the merged tree → `skills/orchestrate/references/reconciling.md`
+
+⛔ **Where the project declares `fullGate` (`skills/procedures/config-keys.md`), the wave-end gate runs first,
+and this cycle does not move past it**: that project's `gate` may be partial, so once this increment's merges
+have landed, `fullGate` runs once on the merged tip, before this checklist and before the next horizon is
+ground — in a cycle that left some of its PRs held too, before it takes that exit. **A red holds the next
+wave**: reported like any red gate, its fix is the only slice the next horizon carries, and the gate runs again
+on the tip that fix lands on before anything else in the plan dispatches. Where and how it runs is the
+dispatcher's *Gate the integrated whole*, which you hold from step 2. **Where `fullGate` is absent no wave-end
+gate runs, and neither does one in a cycle that merged nothing.**
 
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
@@ -246,7 +259,9 @@ questions is the filing channel doing the asking *The decide-don't-ask bar* forb
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **Where one WAS cut, green takes a third thing and only there: that
+on the integration branch at step 2. **Where the project declares `fullGate`, green also takes a `fullGate`
+run**: the last cycle's wave-end gate where no epic branch was cut, the increment's own gate being partial
+there, and the close-out gate where one was. **Where one WAS cut, green takes a third thing and only there: that
 close-out PR's own full `/pipeline:review` panel, run between its open and its gate and posting its review
 and one comment per dimension onto that PR** — a close-out that
 gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and

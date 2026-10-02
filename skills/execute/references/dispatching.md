@@ -98,6 +98,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
 | `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
+| `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
+| | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours (*Gate the integrated whole*). |
 | commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
 | | neither does, or each runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
@@ -239,7 +241,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
     `skills/execute/references/worktrees-and-branches.md`), and a runner gates it later.
   - **In-line mode — the project declares neither, or you override a slice that is foundational or
     cross-cutting, or whose ticket no dispatcher will be there to drain, saying so in its brief:** tell the
-    implementer to run the full `gate` itself, once, in the foreground, and **post the result as a comment
+    implementer to run `gate` itself, once, in the foreground, and **post the result as a comment
     on its own PR**, keyed `gate-verdict/<leaf>` — no ticket exists to enqueue.
 
   In neither mode does the implementer enqueue anything, and both end in a draft PR carrying a gate comment:
@@ -254,7 +256,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   **Where the project declares `enqueue`/`drain` paste the ban**, which overrides the "verify by running the
   tests" instinct; **in in-line mode leave it out**, since it forbids the one `gate` run that mode asks for,
-  and the brief says instead that this run is the only full-suite run the slice makes, carrying the ban's
+  and the brief says instead that this run is the only gate run the slice makes, carrying the ban's
   *Your only test execution* sentence as its test budget all the same:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`), and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
@@ -317,7 +319,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   **substituting the literal branch name you cut this worktree from**, an implementer left to work it out
   being able to send its PR at the wrong branch. The gate-mode sentence is, in queue mode, *"Gate mode: queue
   — this project declares `enqueue`/`drain`, so the gate ticket is your dispatcher's, raised once it has read
-  your diff: do NOT run the full gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
+  your diff: do NOT run the gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
   this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
   the draft PR is open run `gate` a single time, in the foreground — detached and polled in this same turn
   where it outlasts one tool call — and comment its result on that PR with
@@ -616,7 +618,8 @@ the tick's other riders below reach it: the integration-branch sync, the stash s
 ## Draining the gate queue
 On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
 the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
-queued tickets and, for each, runs the full `gate` in that ticket's worktree
+queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree — `gate` by
+default, and `fullGate` on a `full` ticket where the project declares it —
 **behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on
 green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick
 re-invokes it.

@@ -15,6 +15,7 @@
     }
   ],
   "gate": "pnpm gate",
+  "fullGate": "pnpm gate:full",
   "scopedCheck": "pnpm check",
   "enqueue": "pnpm gate:enqueue",
   "drain": "pnpm gate:drain",

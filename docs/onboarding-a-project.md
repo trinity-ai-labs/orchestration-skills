@@ -12,6 +12,10 @@ answer worth recording rather than a key to leave out. **Where that answer was n
 what drops what the isolation creates, once the worktree is gone?** Nothing in this plugin does —
 `remove-worktree` takes the tree and knows nothing the tree made — so where you already have a sweep, its two
 commands become `reclaim`; where you do not, setup hands the gap back rather than writing one for you.
+**Whether your gate is partial** — whether it runs only what a change can affect rather than the whole suite.
+Only a yes declares `fullGate`, your full-suite command, which the flow then runs at each integration point
+while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as
+before. Setup never guesses this from a script's name.
 **And one that is not a fact about your repo at all — consent:** may a run that finds a defect in *the
 pipeline itself* write it into this plugin's own public repository — opening an issue about it, or commenting
 on one already describing that failure? That is `upstreamFindings`
@@ -46,7 +50,9 @@ spending a full gate on a verdict it can never deliver. Both answers are correct
 interchangeable downstream: a runner that refuses is one scaffolded before that ticket shape, and the
 dispatcher's mid-arc integration gate is then hand-run in a project that otherwise has a working queue — which
 is the one case every "where the project has no queue" fallback in the flow structurally cannot cover, so the
-check reports which of the two it got rather than just that the queue held.
+check reports which of the two it got rather than just that the queue held. Where you declared `fullGate`, it
+also enqueues a ticket in the `full` mode, which must either run `fullGate` or be refused outright — never
+quietly gated as the partial default.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
 [Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's agent guidance,

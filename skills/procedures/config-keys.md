@@ -38,7 +38,14 @@ a question rather than a default.
   `~/.zshrc`.
   **Windows has no equivalent file**; set a real user environment variable (`setx VAR value`), `$PROFILE`
   being interactive-only and the same trap.
-- **`gate`** — the heavy full gate (build + test), run against a queued PR's worktree.
+- **`gate`** — the heavy per-PR gate (build + test), run against a queued PR's worktree. **It is the full
+  gate wherever `fullGate` is absent**, and may be partial only where that key is declared.
+- **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
+  decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
+  full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
+  than a gap. **Present, the flow's integration points run it in place of `gate`**: the gate over an
+  integrated whole, a gate at each wave's end on the merged tip, and the close-out gate, a queued project
+  gating those tickets in a `full` mode that runs it.
 - **`scopedCheck`** — the cheap check a slice's commits are held to: format-check + lint + typecheck, no
   build, no test.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only
@@ -171,7 +178,8 @@ a question rather than a default.
 
   **The key DECLARES; nothing here PROVISIONS**, and this plugin never calls a project's mechanism.
   Placement is the project's, at the entry point *every* invocation reaches — the test bootstrap, not the
-  `gate` command — since a verify bar routinely has a single test file run directly. Two rules bind it:
+  `gate` or `fullGate` command — since a verify bar routinely has a single test file run directly. Two rules
+  bind it:
 
   - **Take the worktree path from `git rev-parse --path-format=absolute --show-toplevel`, never `$PWD`.**
     A worktree entered through a symlink gives `$PWD` the link's spelling and `rev-parse` the real one:

@@ -103,6 +103,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   there — by hand, or as the PR-less ticket's worktree — and once the verdict is in, which for a ticket means
   once it has settled, removes the tree with `remove-worktree.sh` and deletes its branch, which was never
   pushed and carries no commit: a derived artifact regenerated there goes back as a fix instead.
+- **Where a project declares `fullGate`, the full suite runs wherever slices meet, and a red there holds the
+  next wave** ([Per-project config](per-project-config.md#per-project-config)). That project's `gate` may run
+  only what a change can affect, so the gate over a merged tree runs `fullGate` and never skips because the
+  merge added nothing new, a wave-end gate runs it once on the merged tip after each wave's merges and before
+  the next wave is planned — with or without an epic branch — and the close-out gate runs it. A project that
+  declares no `fullGate` keeps `gate` as the full gate everywhere, and no wave-end gate runs.
 - **Always verify HEAD before dispatching an agent into a worktree, and fetch first — the fetch is part of the
   check, not preparation for it.** The helper prints what it made — `READY: <path>`, then `HEAD: <sha>` — and,
   when it is forking a new branch, withholds both unless the tree it is about to hand back *contains* the
@@ -147,7 +153,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   whose user asked it to merge each slice as it lands, an instruction that covers that arc and not the next.
   A PR targets the same branch its worktree came from.
 - **Implementers never enqueue a gate, never mark their own PRs ready, and never merge their own PRs — and
-  whether they run the full gate is the project's `enqueue`/`drain` to say**
+  whether they run `gate` is the project's `enqueue`/`drain` to say, while a declared `fullGate` is never
+  theirs**
   ([Per-project config](per-project-config.md#per-project-config)). **Where the project declares both —
   queue mode —** an implementer never runs it: it pushes, opens a draft PR and hands back; the dispatcher then
   posts the verdict it formed onto the PR as a review on each round of that loop, and **enqueues only once it

@@ -2,6 +2,24 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.15.0
+
+- **New optional key `fullGate`: a project's per-PR gate may now be partial. The default is unchanged** — a
+  project that declares no `fullGate` keeps `gate` as the full gate at every seat, the integrated-whole gate
+  keeps its skip on an empty `^2` diff, and no new gate runs. Declare it, with your full-suite command, only
+  where your `gate` runs just what a diff can affect; your own command decides that, and the flow never maps
+  paths to tests.
+- **Declared, the full suite runs wherever slices meet.** The gate over an integrated whole runs `fullGate`
+  after every merge it reads and no longer skips on an empty `^2` diff; a new **wave-end gate** runs it once on
+  the merged tip after each wave's merges and before the next horizon is ground — epic branch or not — and a
+  red holds the next wave; and the close-out integration gate runs it. With no epic branch, the last wave-end
+  gate is the arc's close-out gate.
+- **Queue: a `full` ticket mode.** Integration, wave-end and close-out tickets carry `--mode full`, which runs
+  `fullGate`; `default` still runs `gate`. A runner must reject a mode it does not know rather than gate it as
+  `default`, and one scaffolded before the mode is answered by a hand-run `fullGate`.
+- **`/pipeline:setup` asks whether your `gate` is partial** — a fourth ask — and writes `fullGate` only on a
+  yes, never inferring it. An undeclared `fullGate` is reported as absent on purpose, not as a delta.
+
 ## 5.14.0
 
 - **Breaking: the three merge-automation keys are renamed for the branch a PR targets.** Defaults

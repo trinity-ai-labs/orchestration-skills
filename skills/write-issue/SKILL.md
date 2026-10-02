@@ -295,7 +295,10 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   - Create:
     `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>" -F "milestone=<n>" --jq '.number'`
   - Edit body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`
-  - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"`
+- **Comment, close and native-link through `gh-post`** (`skills/procedures/github-writes.md`), so a re-run
+  edits or declines rather than repeating: a comment is
+  `gh-post.sh comment issue <N> --key write-issue/<N>/<what it adds> --body-file <file>`, the key naming what
+  that comment adds so a second, different addition posts its own.
 - **Milestone** takes a number, not a title — resolve it first
   (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass
   `-F "milestone=<n>"`.
@@ -306,13 +309,13 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   without the frame it was written inside.
 - **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>`
   where the originating work sits under one, which is containment and takes the **native `sub_issues` link**
-  too. That native link is `skills/glossary/mechanics/sub-issue-link.md`. A bare `Follows #<N>` is provenance,
+  too: `gh-post.sh sub-issue <umbrella> <N>` (what it is, `skills/glossary/mechanics/sub-issue-link.md`). A bare `Follows #<N>` is provenance,
   not containment, and takes the backlink alone. **PATCH the umbrella's body to add the follow-up to its
   checklist**, or it reads as finished work that is not.
 - **Superseding a leaf**: take its checklist line out of the umbrella body and unlink it as a native
   sub-issue — both, since two readers key on one each — then close **each** leaf the re-author supersedes:
-  `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -f state=closed -f state_reason=not_planned`. The reason
-  field is not decoration: left off, the close reads as a fix that shipped.
+  `gh-post.sh close <N> --reason not_planned`. The reason is not decoration: a close without it reads as a
+  fix that shipped.
 - **Labels**: apply an existing `epic`/`umbrella` label where the repo has one; don't invent exotic ones. It
   names the **tracking shape**, never a branch decision, though it reads as the verdict it shares a word with.
 

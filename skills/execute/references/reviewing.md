@@ -306,26 +306,24 @@ here: before the merge this is a fix-agent round trip on a branch nothing else h
 a trailer is permanent history in a flow that never rebases, while a PR body or a posted review in a public
 repository has already been published.
 
-**A fence grant you made mid-build sits in exactly that class, and only you can supply it — post any grant
+**A fence grant you made mid-build sits in exactly that class, and only you can supply it — post every grant
 this slice worked under onto its PR, headed `## Dispatcher grant`, before you post this round's review**,
 since a diff carrying edits outside the brief's fence with nothing explaining them reads as drift to a
-reviewer who checks it against that brief
-and as nothing at all to one who does not. **Attach the write to the review rather than to the PR opening**,
-an event nothing re-presents to you: an implementer that pushes, opens its draft PR and hands back as one
-closing sequence leaves no window between the two for a poll to land in, where a review cannot be skipped
-without skipping the merge. **Take the list off the slice's on-scope set and the hand-back's grant line, and
-one already posted is done** — a second round re-fires this, and a duplicate comment is noise on the one
-surface the reader came for. **Already posted means still THERE, so read the PR for each grant you posted
-rather than trusting the write to have survived, and re-post a missing one before you post this round's
-review** — one account authors every party's comments here, so an implementer tidying its own verdicts cannot
-tell yours from its own by author, and a grant that has gone leaves the diff reading as drift to exactly the
-reader this rule exists for. **That same ambiguity now covers the review pass's own posted review and its
-dimension comments**, which this account authored too: none of them is the implementer's to remove while
-tidying its verdicts, and a PR whose panel review has gone reads exactly like a slice that never ran a pass —
-so where a hand-back reports them posted and you find them missing, treat it as a missing write and ask,
-rather than as a slice that skipped the pass. **Read that hand-back line as the DETECTOR of a missing write,
-never as the write itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing
-and being caught
+reviewer who checks it against that brief and as nothing at all to one who does not:
+
+```sh
+gh-post.sh comment pr <n> --key dispatcher-grant/<leaf> --body-file <file>
+```
+
+**Attach the write to the review rather than to the PR opening**, an event nothing re-presents to you: an
+implementer that pushes, opens its draft PR and hands back as one closing sequence leaves no window between
+the two for a poll to land in, where a review cannot be skipped without skipping the merge. **Take the list
+off the slice's on-scope set and the hand-back's grant line, write every grant into that one body, and make
+the call every round** — it edits the grant comment in place and re-posts it where it has gone
+(`skills/procedures/github-writes.md`). **Where a hand-back reports the review pass's review and dimension
+comments posted and you find them missing, treat it as a missing write and ask**, rather than as a slice that
+skipped the pass. **Read the hand-back's grant line as the DETECTOR of a missing write, never as the write
+itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing and being caught
 by the one party it exists to protect, and a grant it can find only on the issue is that same report.
 **And a grant that line reports as answered AFTER the slice's review pass closed had no reader but you** —
 read the file it names against the diff yourself rather than leaning on that pass's goal verdict, which was
@@ -353,16 +351,18 @@ differ posts `REQUEST_CHANGES` for a needs-changes round and `APPROVE` for the s
 configure and nothing to keep in step.
 
 ```sh
-# the summary alone
-gh pr review <n> --comment --body-file <file>
+# the summary alone, event COMMENT
+gh-post.sh review <n> --key dispatcher-review/<n>/<head-sha> --body-file <file>
 
-# with the findings threaded on the lines they concern
+# findings threaded on the lines they concern, or APPROVE / REQUEST_CHANGES on a PR another account authored —
+# a raw call, since the helper posts a body with event COMMENT only
 gh api repos/{owner}/{repo}/pulls/<n>/reviews \
-  -f event=COMMENT -F "body=@<file>" \
+  -f event=<COMMENT|APPROVE|REQUEST_CHANGES> -F "body=@<file>" \
   -f 'comments[][path]=<path>' -F 'comments[][line]=<line>' -f 'comments[][body]=<text>'
 ```
 
-**Write the review body to a file and reference it with `-F` (not `-f`)** —
+**The head SHA in the key keeps each round its own review** while a re-run of one round edits it in place
+(`skills/procedures/github-writes.md`). **In the raw form, the body goes by file with `-F` (not `-f`)** —
 `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0.
 **The genuine literals stay on `-f`**: a path and a finding's text are sent verbatim, and `-F` would read a
 finding that opens with `@` as a filename; only the line number needs `-F`, which types a bare number as a

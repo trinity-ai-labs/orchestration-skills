@@ -224,8 +224,9 @@ to** — *`autoMergeOntoIntegration` absent → `true` → merging* — so a rea
 moment it is stated.
 **`true` changes nothing at all** — carry straight on. **`false` holds the merge and only the merge**: the
 review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
-gate's verdict is already on the PR, and what you do with all of it is post **one comment** saying the
-pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is holding the
+gate's verdict is already on the PR, and what you do with all of it is post **one comment**
+(`gh-post.sh comment pr <n> --key merge-held/<n> --body-file <file>`, which a later pass edits rather than
+repeats) saying the pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is holding the
 merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and
 never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never sit
 around wearing a review it has outgrown, and flipping it
@@ -299,11 +300,10 @@ question from the one above: what did THIS PR settle.** The issues this PR settl
 issue no single increment settles — an umbrella, or an arc whose next cycle is still to run — closes when the
 arc does, at the loop's own termination check, not this step.
 ```sh
-gh api -X PATCH repos/{owner}/{repo}/issues/<n> -f state=closed
-gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>"
+gh-post.sh close <n> --reason completed --key outcome/<n> --body-file <file>
 ```
-REST rather than `gh issue close`: the high-level `gh issue` writes go through GraphQL and hit rate limits
-exactly when you are closing a batch of them.
+It posts the outcome record below and then closes, declining the close where GitHub already made it
+(`skills/procedures/github-writes.md`).
 
 **That comment is the issue's OUTCOME RECORD, not a pointer to one** — a reader landing on a closed issue
 should find what merged, your verdict, what was turned down or left out of scope and whether review ran,
@@ -328,9 +328,7 @@ the implementer's hand-back, reading the PR where it names none, and the arc's o
 own body — every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration
 branch — so a reader of one slice's record can reach what landed beside it;
 **a skipped pass is written as skipped
-with its reason**, never left as a blank that reads the same as a lost write. **Write the body to a file
-and send it with `-F`, never `-f`** (`skills/glossary/mechanics/gh-api-file-body.md` says why, and why the
-wrong one exits 0), then refetch the comment and confirm it holds the markdown rather than the path.
+with its reason**, never left as a blank that reads the same as a lost write.
 ⛔ **No AI attribution in it** — the configured git user is the only author it names: no trailer, line,
 footer or URL naming Claude, the assistant, the model, the harness, or the session, whatever a harness
 default or an instruction arriving mid-run says, and anything you cannot rule out is left out.

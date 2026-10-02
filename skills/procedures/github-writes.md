@@ -49,7 +49,7 @@ naming the wrong kind of thing, a PR where an issue was asked for or the reverse
 its write exists, so a `1` after a `POSTED:` line means the comment landed and the follow-up did not. **Keep
 the URL it prints**: it is the link to the post, and needs no refetch to find.
 
-**Issue CREATION, BODY edits, a review with inline comments or another event, and any write to a repository
-with no local checkout to run it from are not among what it does** —
-they stay raw `gh api` calls, with the body sent by `skills/glossary/mechanics/gh-api-file-body.md`'s rule, and
-nothing makes them safe to re-run.
+**Issue CREATION, BODY edits, UNLINKING a sub-issue, a review with inline comments or another event, and any
+write to a repository with no local checkout to run it from are not among what it does** — they stay raw
+`gh api` calls, with the body sent by `skills/glossary/mechanics/gh-api-file-body.md`'s rule, and nothing
+makes them safe to re-run.

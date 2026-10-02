@@ -187,12 +187,12 @@ carries the approval a second signature would only duplicate.
 `/pipeline:review`, that pass reads the PR's own diff once the implementer's draft PR is open and posts its
 findings there as a review — the goal verdict, what it applied, what it rejected — before the dispatcher's
 loop has read anything. Same event `COMMENT`, same reason: the PR is self-authored. So two kinds of review
-legitimately sit on one PR, and **a reader tells them apart by the hidden key each carries and by content
-rather than by author**, since one account writes both: the panel's comes first and is the slice's own report on itself, written from
-the seat that wrote the code, and the dispatcher's follow it one per round, each naming what the next round
-is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is still the only thing that
-means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it has been
-read by nobody but the seat that built it.
+legitimately sit on one PR, and **a reader tells them apart by the hidden key each carries and by content rather
+than by author**, since one account writes both: the panel's comes first and is the slice's own report on
+itself, written from the seat that wrote the code, and the dispatcher's follow it one per round, each naming
+what the next round is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is still the
+only thing that means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it
+has been read by nobody but the seat that built it.
 
 **A third artifact can now sit on a PR, and unlike those two it can predate the flip by an arbitrary
 amount.** Three config keys — `autoMergeOntoIntegration`, `autoMergeOntoEpic` and `autoMergeEpicCloseOut`,
@@ -216,9 +216,8 @@ They stay on the PR. The issue gets the dispatcher's closing comment instead: an
 merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
 ran or was skipped and why, links back to the PR's reviews, dimension comments and gate comment, and the
 arc's other PRs that landed beside it — so a closed issue says what happened to it without anyone opening the
-PR. The dispatcher writes that run-or-skip
-decision into its own review on the PR as well, so a PR with no panel review on it reads as a recorded skip
-or as a write that went missing, never as a blank that could be either.
+PR. The dispatcher writes that run-or-skip decision into its own review on the PR as well, so a PR with no panel
+review on it reads as a recorded skip or as a write that went missing, never as a blank that could be either.
 
 A posted review is a different artifact from the
 gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that

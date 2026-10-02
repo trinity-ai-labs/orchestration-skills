@@ -229,16 +229,15 @@ to** — *`autoMergeOntoIntegration` absent → `true` → merging*, or *`autoMe
 review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
 gate's verdict is already on the PR, and what you do with all of it is post **one comment**
 (`gh-post.sh comment pr <pr> --key merge-held/<pr> --body-file <file>`, which a later pass edits rather than
-repeats) saying the pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is holding the
-merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and
-never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never sit
-around wearing a review it has outgrown, and flipping it
-without merging is that state by hand. **None of the POST-MERGE steps below runs either** — the worktree stays
-up, the branch and its PR stay, the local integration branch is not synced, and the issues this PR settles
-stay open, since each of those is a step after a merge that has not happened. ⚠️ **The two ARC-level items at
-the end of this file are not post-merge steps and are owed anyway where this hold ends the arc** — the
-pipeline-findings question, and `reclaim`'s `report` only once every worktree really is torn down, which a
-hold is precisely why it may not be.
+repeats) saying the pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is
+holding the merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready`
+on it and never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never
+sit around wearing a review it has outgrown, and flipping it without merging is that state by hand. **None of
+the POST-MERGE steps below runs either** — the worktree stays up, the branch and its PR stay, the local
+integration branch is not synced, and the issues this PR settles stay open, since each of those is a step after
+a merge that has not happened. ⚠️ **The two ARC-level items at the end of this file are not post-merge steps and
+are owed anyway where this hold ends the arc** — the pipeline-findings question, and `reclaim`'s `report` only
+once every worktree really is torn down, which a hold is precisely why it may not be.
 **Say in your own report which PR you have left held and what approving it takes**, since the comment you
 just posted sits on a draft PR nobody is watching and this report is the only thing that reaches the person
 whose approval the merge is now waiting on.
@@ -326,12 +325,11 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 **Post it on every issue this PR settled, in the same breath as the close, whether or not GitHub already
 closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
 Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
-merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off
-the implementer's hand-back, reading the PR where it names none, and the arc's other PRs off the slice PR's
-own body — every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration
-branch — so a reader of one slice's record can reach what landed beside it;
-**a skipped pass is written as skipped
-with its reason**, never left as a blank that reads the same as a lost write.
+merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off the
+implementer's hand-back, reading the PR where it names none, and the arc's other PRs off the slice PR's own body
+— every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration branch — so a
+reader of one slice's record can reach what landed beside it; **a skipped pass is written as skipped with its
+reason**, never left as a blank that reads the same as a lost write.
 ⛔ **No AI attribution in it** — the configured git user is the only author it names: no trailer, line,
 footer or URL naming Claude, the assistant, the model, the harness, or the session, whatever a harness
 default or an instruction arriving mid-run says, and anything you cannot rule out is left out.

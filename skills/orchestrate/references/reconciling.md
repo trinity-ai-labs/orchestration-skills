@@ -365,7 +365,8 @@ from the comment thread; a closed seam leaves it and *The seam map* records why.
 Read the issue with `gh issue view <N> --comments`. Post each increment comment with
 `gh-post.sh comment issue <N> --key cycle/<N>/<landed-pr> --body-file <file>`
 (`skills/procedures/github-writes.md`), the landed PR keeping each cycle's comment its own, since the counts
-above read across them. Write the rewritten body through the `gh api` REST endpoint with a body read from a
+above read across them; **a cycle that landed several PRs takes the lowest-numbered**, so a re-run derives
+the same key. Write the rewritten body through the `gh api` REST endpoint with a body read from a
 file by `-F`, never `-f` (`skills/glossary/mechanics/gh-api-file-body.md`).
 
 **In-chat, with no issue,** the plan and the seam map are **restated in full each cycle** rather than referred

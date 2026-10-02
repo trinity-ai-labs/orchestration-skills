@@ -389,7 +389,11 @@ rather than typed.
 If it needs changes, **dispatch a FRESH fix agent into that same worktree** (never a fork — it would inherit
 your dispatcher conversation), **naming its model tier for THIS round rather than carrying the slice's** — a
 fix round is usually cheaper than the build it corrects, a few named seats with the wording already supplied,
-so the tier the slice was dispatched at is the wrong default and an unstated one hands the agent yours — but
+so the tier the slice was dispatched at is the wrong default and an unstated one hands the agent yours — and
+**stating its test budget**: the test files it touches, plus, where the round changes a module's export
+surface — adds, removes or renames an export, or moves code between modules, converging duplicates onto a
+shared helper included — every test file that mocks or imports that module, found by grepping its specifier,
+still single files and never a suite — but
 only once that worktree's ticket has SETTLED, or has not been raised at all. **On the FIRST round it has not
 been raised**: you enqueue after this read, by the order above, so the tree is free and the round costs no
 withdraw. On a later round the test is the ticket's EXISTENCE rather than whether a gate is observably

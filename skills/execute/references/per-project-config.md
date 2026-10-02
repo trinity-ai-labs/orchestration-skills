@@ -37,7 +37,7 @@ hand-back, never marked ready by the implementer, never its own merge.
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
 `gate`. **A project declaring `fullGate` adds a `full` mode that runs it**, and that mode is never a slice's:
-it gates the integration points alone (the next section's `fullGate` reading).
+it gates the integration points alone.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &
@@ -55,12 +55,9 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
   for the ticket once it has read the diff, ends with committed work and no handoff.
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
-- **`fullGate` absent** → **`gate` is the full gate**, at every seat that runs it, and every gate in this flow
-  runs it. **`fullGate` declared** → that project's `gate` may be partial, so a per-PR gate is the floor and
-  the integration points run `fullGate`: the gate over an integrated whole, which then never skips on an
-  empty `^2` diff, a wave-end gate on each wave's merged tip, and the close-out's integration gate — each a
-  PR-less or close-out ticket in the `full` mode where the project has a queue (*Gate the integrated whole*).
-  A slice's own gate, in either gate mode, stays `gate`.
+- **`fullGate` absent** → **`gate` is the full gate at every seat.** **`fullGate` declared** → that project's
+  `gate` may be partial, so the integration points run `fullGate` (*Gate the integrated whole*), as a
+  `full`-mode ticket where the project has a queue. A slice's own gate, in either gate mode, stays `gate`.
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's

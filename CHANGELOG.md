@@ -16,7 +16,8 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   gate is the arc's close-out gate.
 - **Queue: a `full` ticket mode.** Integration, wave-end and close-out tickets carry `--mode full`, which runs
   `fullGate`; `default` still runs `gate`. A runner must reject a mode it does not know rather than gate it as
-  `default`, and one scaffolded before the mode is answered by a hand-run `fullGate`.
+  `default`, and `--mode full` goes only to a runner setup has verified takes it — otherwise `fullGate` is
+  hand-run.
 - **`/pipeline:setup` asks whether your `gate` is partial** — a fourth ask — and writes `fullGate` only on a
   yes, never inferring it. An undeclared `fullGate` is reported as absent on purpose, not as a delta.
 

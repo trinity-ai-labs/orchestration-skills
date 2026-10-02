@@ -43,18 +43,18 @@ lighter one (e.g. `docs`) for a prose-only slice.
 
 **`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode the
 dispatcher's integration, wave-end and close-out tickets carry there, since that project's `gate` may be
-partial. Where `fullGate` is absent there is no `full` mode, and `default` stays the full suite.
-**A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode — never fall
-back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate produced,
-on exactly the tickets whose purpose was the full gate.
+partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
+never fall back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate
+produced, on exactly the tickets whose purpose was the full gate.
 
 **`mode` is a property of the ticket, set at enqueue — never inferred from the branch name**, or a rename
 silently changes how a PR is gated.
 
 **`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the
-dispatcher's mid-arc integration gate, on a merged tree that exists *between* slice merges, before the epic →
-integration PR does. Such a ticket settles like any other and skips only the report, so its ledger entry is
-the verdict's only copy. Required fields leave that gate hand-run and unrecorded.
+dispatcher's mid-arc integration gate — and, where the project declares `fullGate`, its wave-end gate — on a
+merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles
+like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields
+leave that gate hand-run and unrecorded.
 
 **Record the absence at enqueue as a fact ON the ticket — undeliverable by construction, never inferred from
 two missing fields.** Invariant 8's prune and *Reporting* both have to distinguish a ticket nobody will ever

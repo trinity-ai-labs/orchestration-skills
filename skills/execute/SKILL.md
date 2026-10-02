@@ -87,12 +87,12 @@ Three things then change for the dispatcher:
 
 ## The durable gate queue
 
-The heavy gate (`gate` = build + full test suite — or, where the project declares `fullGate`, the per-PR share
-of it, `fullGate` being the full suite its integration points run) is CPU-saturating, and **the project's
-`enqueue`/`drain` decide who runs it** (`skills/execute/references/per-project-config.md`). Either way an
-implementer holds itself to the cheap **scoped check** (format-check + lint + typecheck) — enforced by a hook
-where one runs it, git's pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`,
-and run by the implementer before each commit where neither does — pushes, and opens its **draft PR**.
+The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
+`fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it**
+(`skills/execute/references/per-project-config.md`). Either way an implementer holds itself to the cheap
+**scoped check** (format-check + lint + typecheck) — enforced by a hook where one runs it, git's pre-commit
+hook or the host's commit-hook row in `skills/procedures/host-tools.md`, and run by the implementer before
+each commit where neither does — pushes, and opens its **draft PR**.
 
 - **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
   neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since
@@ -114,7 +114,8 @@ gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the 
 slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it; and,
 only where the project declares `fullGate`, the **wave-end gate** as a PR-less ticket too, every integration
 and close-out ticket there carrying the `full` mode that runs `fullGate`. A runner scaffolded before that
-ticket type or that mode refuses it, and only there is a hand-run gate sanctioned. **In a project declaring no
+ticket type refuses it, as one not verified to take that mode may, and only there is a hand-run gate
+sanctioned. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
 
@@ -171,10 +172,11 @@ says a gate finished, not that anyone read the change.
 
 ### 4. Land it → `skills/execute/references/landing.md`
 
-Gate the integrated whole when a merge combined work from more than one slice — with `fullGate` where the
-project declares it, no skip on an empty merge diff, and a wave-end gate on each wave's merged tip — then
-merge, clean up and sync as one step, and close each issue the PR settled with a comment that is its outcome
-record — one `gh-post` close per issue, keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
+Gate the integrated whole when a merge combined work from more than one slice — and, where the project
+declares `fullGate`, run it after every such merge with no skip on an empty merge diff, plus a wave-end gate
+on each wave's merged tip — then merge, clean up and sync as one step, and close each issue the PR settled
+with a comment that is its outcome record — one `gh-post` close per issue, keyed `outcome/<n>/<pr>`
+(`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.

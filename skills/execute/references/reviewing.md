@@ -21,15 +21,17 @@ are both enqueued now (*Gate the integrated whole*). So: **paths that produce no
 1.** A hand-run gate is the only one that writes no streamed log, no ticket and no ledger entry, and it is
 left in **two** places rather than one: in-line mode — every gate in a project that declares no queue, a
 slice's own included, and a slice put in override mode in one that does — and a queued project whose runner
-refuses the PR-less ticket, where the mid-arc integration gate alone falls back to it (*Gate the integrated
-whole*). **Paths that produce no PR comment go 3 → 2.** The close-out gains one, on the very PR the verdict is
-about; a PR-less integration ticket does not and never will, because there is no PR; and an in-line slice's
-comment is one the agent *writes* rather than one it reads. So the mid-arc gate does not leave this section's
-scope — what changes is what you read: **the verdict on its ticket in `done/`, not a shell's exit status.**
+refuses the PR-less ticket, where the mid-arc integration gate alone falls back to it — and, where the project
+declares `fullGate`, a runner not verified to take the `full` mode, where every `full` gate does (*Gate the
+integrated whole*). **Paths that produce no PR comment go 3 → 2.** The close-out gains one, on the very PR the
+verdict is about; a PR-less integration ticket does not and never will, because there is no PR; and an in-line
+slice's comment is one the agent *writes* rather than one it reads. So the mid-arc gate does not leave this
+section's scope — what changes is what you read: **the verdict on its ticket in `done/`, not a shell's exit
+status.**
 
 - **A gate spans every workspace — read every package's result, never one package's summary.** `gate` runs the
   task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types) — or, where the project
-  declares `fullGate`, across every package its diff can affect, `fullGate` being the run that spans them all.
+  declares `fullGate`, across every package its diff can affect.
   A `Failed: <pkg>#test` line plus a non-zero exit is **RED**, even when the *first* package's summary you
   happen to see looks like only the known baseline. Concluding "green-modulo-baseline" (see the transient-red
   window below) from one package's `Test Files N failed` line — without confirming the failing SET across
@@ -480,10 +482,10 @@ there is no queue or the runner refuses that ticket — only for a genuine reaso
 ticket, or a **merge integrates branches that weren't tested together** (one integration gate on the merged
 result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
 non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
-whole* below) — **except where the project declares `fullGate`**, where every merge that check reads runs
-`fullGate`, empty or not, and a wave-end gate runs it once per wave as well. Where it is absent, even then
-prefer the minimum — the affected/changed tests over the whole suite where possible. Your always-on job is
-reading the **diff**; heavy re-gating is conditional.
+whole* below) — **except where the project declares `fullGate`**, where every merge that check reads, and each
+wave's end, runs it (*Gate the integrated whole*). Where it is absent, even then prefer the minimum — the
+affected/changed tests over the whole suite where possible. Your always-on job is reading the **diff**; heavy
+re-gating is conditional.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket

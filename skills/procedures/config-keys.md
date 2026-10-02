@@ -44,9 +44,8 @@ a question rather than a default.
   decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
   than a gap. **Present, the flow's integration points run it in place of `gate`**: the gate over an
-  integrated whole, a gate at each wave's end on the merged tip, and the close-out's integration gate, a
-  queued project gating those tickets in a `full` mode that runs it. **Never inferred** — a partial gate's
-  green looks like a full one's, so the key is declared only on the maintainer's word that `gate` is partial.
+  integrated whole, a gate at each wave's end on the merged tip, and the close-out gate, a queued project
+  gating those tickets in a `full` mode that runs it.
 - **`scopedCheck`** — the cheap check a slice's commits are held to: format-check + lint + typecheck, no
   build, no test.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only

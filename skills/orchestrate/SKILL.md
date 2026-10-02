@@ -160,7 +160,9 @@ memory of it**, the comment the hold wrote onto the tracked issue being where it
 **Merged since the hold** and the leaf simply LANDED, so the horizon moves outward past it — **but a human
 who merged it on GitHub ran none of the steps this flow's own merge runs**, so its worktree still stands,
 its branch is still there and the local integration branch is still behind the tip every later cut is taken
-from, which makes finishing that close-out this cycle's first act rather than a tidy-up.
+from, which makes finishing that close-out this cycle's first act rather than a tidy-up — **followed, where
+the project declares `fullGate`, by the wave-end gate (step 3) on the tip it leaves**, before this cycle's
+horizon is ground, since a merge made outside this flow ran no integration gate at all.
 **Still open and held** and nothing has landed: report which PR is still held exactly as the exit that left
 it there has you report it, leave that leaf where it is, and run the cycle on whatever else is ready.
 
@@ -203,9 +205,11 @@ the queue, what is already live and what this host can take, recording your reas
 ⛔ **This step is not finished when the agents are dispatched — it is finished when they have merged, and you
 owe a divergence tick roughly every 10 minutes in between.** **Where a checkpoint's flag holds a slice's
 merge instead, the step ends AT that hold** — the merge it would otherwise wait on is not coming, and the
-cycle takes the sixth exit (*Repeat, or close out*) rather than ticking against an agent that finished. Arm it with whatever self-paced timer your host
-gives you, at ≈600s, callable right here rather than only from a looping command.
-**Arming it is part of dispatching, not something you reach for once something looks wrong** — a dispatch
+cycle takes the sixth exit (*Repeat, or close out*) rather than ticking against an agent that finished —
+after step 3's wave-end gate, where the project declares `fullGate` and anything of this wave did merge. Arm
+it with whatever self-paced timer your host gives you, at ≈600s, callable right here rather than only from a
+looping command. **Arming it is part of dispatching, not something you reach for once something looks wrong**
+— a dispatch
 report not naming the armed tick is a step still open — and **arm it LAST, after the implementers are
 launched.** Interval, purpose and requirement are settled **here**, because an instruction reached only by a
 pointer is one a reader can skip while satisfying every step in front of them, and
@@ -217,13 +221,12 @@ the message before the stop — are that pass's own, and you are in it.
 
 ⛔ **Where the project declares `fullGate` (`skills/procedures/config-keys.md`), the wave-end gate runs first,
 and this cycle does not move past it**: that project's `gate` may be partial, so once this increment's merges
-have landed, `fullGate` runs once on the merged tip — the epic branch where one was cut, the integration
-branch where none was — before this checklist and before the next horizon is ground. **A red holds the next
-wave**, reported like any red gate, and what it found is forced work the checklist hands the next horizon
-ahead of anything else in the plan; the loop grounds past it only off a green. The tree it runs in, the
-ticket's `full` mode and the reading are the dispatcher's *Gate the integrated whole*, which you hold from
-step 2. **Where `fullGate` is absent no wave-end gate runs, and neither does one in a cycle that merged
-nothing.**
+have landed, `fullGate` runs once on the merged tip, before this checklist and before the next horizon is
+ground — in a cycle that left some of its PRs held too, before it takes that exit. **A red holds the next
+wave**: reported like any red gate, its fix is the only slice the next horizon carries, and the gate runs again
+on the tip that fix lands on before anything else in the plan dispatches. Where and how it runs is the
+dispatcher's *Gate the integrated whole*, which you hold from step 2. **Where `fullGate` is absent no wave-end
+gate runs, and neither does one in a cycle that merged nothing.**
 
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can

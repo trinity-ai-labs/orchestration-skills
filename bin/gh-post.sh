@@ -327,6 +327,10 @@ sub-issue)
   elif [ -n "$CHILD_PARENT" ]; then
     # Another parent's link is another party's decision; re-parenting it is not
     # this helper's call.
+    # Named by number where that parent lives in this repo, by its URL where not.
+    case "$CHILD_PARENT" in
+    "${PARENT_API%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
+    esac
     die "#$CHILD is already a sub-issue of $CHILD_PARENT - not re-parenting it under #$PARENT"
   else
     gh_api "linking #$CHILD under #$PARENT" -X POST "repos/{owner}/{repo}/issues/$PARENT/sub_issues" \

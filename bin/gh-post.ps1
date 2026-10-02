@@ -396,6 +396,12 @@ try {
             } elseif ($childParent) {
                 # Another parent's link is another party's decision; re-parenting
                 # it is not this helper's call.
+                # Named by number where that parent lives in this repo, by its URL
+                # where not.
+                $repoApi = $p.Api.Substring(0, $p.Api.LastIndexOf('/') + 1)
+                if ($childParent.StartsWith($repoApi, [StringComparison]::Ordinal)) {
+                    $childParent = '#' + $childParent.Substring($childParent.LastIndexOf('/') + 1)
+                }
                 Exit-WithError "#$child is already a sub-issue of $childParent - not re-parenting it under #$parent"
             } else {
                 $url = Invoke-GhApi -What "linking #$child under #$parent" -GhArgs @(

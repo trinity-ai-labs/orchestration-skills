@@ -45,8 +45,8 @@
 # exits 1 with the posted URL already on stdout.
 #
 # Bodies always travel as `-F body=@file` - `-f` would store the literal path -
-# and every write is REST through `gh api`, never the GraphQL `gh issue` / `gh pr`
-# writes.
+# with the file named by its `cygpath -m` form under Git Bash, and every write
+# is REST through `gh api`, never the GraphQL `gh issue` / `gh pr` writes.
 #
 # Exit: 0 on any of the three answers; 1 on a failed gh or git call, with a
 # helper-owned message on stderr; 2 on bad usage (including a number that names
@@ -240,8 +240,12 @@ require_type() { # require_type <n> <issue|pr>
 
 # The body as posted: the caller's file with the marker appended as its last line,
 # unless the file already ends with it (a re-run handed back the body it wrote
-# last time).
-MARKED_FILE=""
+# last time). BODY_ARG is the `body=@<path>` argument gh is handed: under Git Bash
+# gh is a native Windows program that cannot open an MSYS path such as
+# /tmp/..., so where cygpath exists the path goes through `cygpath -m`, a
+# Windows path with forward slashes. Off Windows there is no cygpath and the
+# path passes through unchanged.
+MARKED_FILE="" BODY_ARG=""
 marked_body_file() {
   local body marker
   body=$(cat "$BODY_FILE") || die "could not read $BODY_FILE"
@@ -252,6 +256,11 @@ marked_body_file() {
   else
     printf '%s\n\n%s\n' "$body" "$marker" >"$MARKED_FILE"
   fi
+  local gh_path="$MARKED_FILE"
+  if command -v cygpath >/dev/null 2>&1; then
+    gh_path=$(cygpath -m "$MARKED_FILE") || die "could not convert $MARKED_FILE to a Windows path"
+  fi
+  BODY_ARG="body=@$gh_path"
 }
 
 # The first post on a listing endpoint carrying this key's marker. Every page is
@@ -278,11 +287,11 @@ post_comment() { # post_comment <n>
   find_marked "listing the comments on #$1" "repos/{owner}/{repo}/issues/$1/comments"
   if [ -n "$FOUND_ID" ]; then
     gh_api "editing comment $FOUND_URL" -X PATCH "repos/{owner}/{repo}/issues/comments/$FOUND_ID" \
-      -F "body=@$MARKED_FILE" --jq .html_url
+      -F "$BODY_ARG" --jq .html_url
     echo "UPDATED: $GH_OUT"
   else
     gh_api "commenting on #$1" -X POST "repos/{owner}/{repo}/issues/$1/comments" \
-      -F "body=@$MARKED_FILE" --jq .html_url
+      -F "$BODY_ARG" --jq .html_url
     echo "POSTED: $GH_OUT"
   fi
 }
@@ -301,11 +310,11 @@ review)
   find_marked "listing the reviews on PR #$PR" "repos/{owner}/{repo}/pulls/$PR/reviews"
   if [ -n "$FOUND_ID" ]; then
     gh_api "editing review $FOUND_URL" -X PUT "repos/{owner}/{repo}/pulls/$PR/reviews/$FOUND_ID" \
-      -F "body=@$MARKED_FILE" --jq .html_url
+      -F "$BODY_ARG" --jq .html_url
     echo "UPDATED: $GH_OUT"
   else
     gh_api "posting a review on PR #$PR" -X POST "repos/{owner}/{repo}/pulls/$PR/reviews" \
-      -f event=COMMENT -F "body=@$MARKED_FILE" --jq .html_url
+      -f event=COMMENT -F "$BODY_ARG" --jq .html_url
     echo "POSTED: $GH_OUT"
   fi
   ;;
@@ -326,19 +335,18 @@ close)
 sub-issue)
   PARENT="${POS[0]}" CHILD="${POS[1]}"
   require_type "$PARENT" issue
-  PARENT_API_URL="$TARGET_API_URL"
   gh_api "reading #$CHILD" "repos/{owner}/{repo}/issues/$CHILD" \
     --jq '[(.pull_request != null), .id, .parent_issue_url] | @tsv'
   IFS=$'\t' read -r CHILD_IS_PR CHILD_ID CHILD_PARENT <<<"$GH_OUT"
   [ "$CHILD_IS_PR" = false ] || usage "#$CHILD is a pull request, not an issue"
-  if [ "$CHILD_PARENT" = "$PARENT_API_URL" ]; then
+  if [ "$CHILD_PARENT" = "$TARGET_API_URL" ]; then
     echo "DECLINED: #$CHILD is already a sub-issue of #$PARENT"
   elif [ -n "$CHILD_PARENT" ]; then
-    # Another parent's link is another party's decision; re-parenting it is not
-    # this helper's call.
-    # Named by number where that parent lives in this repo, by its URL where not.
+    # Another parent's link is another party's decision, so it is never
+    # re-parented; that parent is named by number where it lives in this repo,
+    # by its URL where not.
     case "$CHILD_PARENT" in
-    "${PARENT_API_URL%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
+    "${TARGET_API_URL%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
     esac
     die "#$CHILD is already a sub-issue of $CHILD_PARENT - not re-parenting it under #$PARENT"
   else

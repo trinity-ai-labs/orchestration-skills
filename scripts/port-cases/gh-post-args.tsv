@@ -3,6 +3,8 @@
 #
 # arg	arg	...	expect   (every column but the last is one argument; a row of
 # only an expect column is a call with no arguments)
+# A field of `-` stands for an EMPTY string argument (both drivers map it), never a
+# literal dash.
 usage
 comment	issue	5	--key	gate/x	--body-file	f.md	comment
 comment	pr	12	--key	gate/x	--body-file	f.md	comment

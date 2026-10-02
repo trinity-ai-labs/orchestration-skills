@@ -280,7 +280,9 @@ that comparison rather than preparation for it, is in
 │   ├── merge-pr.sh
 │   ├── merge-pr.ps1
 │   ├── remove-worktree.sh
-│   └── remove-worktree.ps1
+│   ├── remove-worktree.ps1
+│   ├── gh-post.sh
+│   └── gh-post.ps1
 ├── scripts/check.sh             # the repo gate — contributor-only, never shipped
 ├── examples/worktree.json       # a complete per-project config
 └── skills/

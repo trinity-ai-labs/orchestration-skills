@@ -1220,108 +1220,175 @@ fi
 # the contract env vars match, the .ps1 is ASCII. It makes no claim about what the
 # two implementations DO, and cannot: comparing behaviour needs the behaviour run.
 # So a predicate written twice can diverge and stay green on everything else, and
-# the divergence surfaces as the same PR merging differently depending on which
+# the divergence surfaces as the same call behaving differently depending on which
 # shell the user's platform handed them.
 #
-# One table, asked of both. Extraction is by function name and a MISSING function
-# is a failure rather than a skip: renaming one silently is exactly how the pair
-# would stop being compared while this check kept reporting ok.
+# One table per predicate, each asked of both ports. Extraction is by function
+# name and a MISSING function is a failure rather than a skip: renaming one
+# silently is exactly how the pair would stop being compared while this check kept
+# reporting ok. For the same reason a table on disk that no row below names is a
+# failure, and so is an empty registry.
+#
+# One row per predicate, `|`-separated:
+#   table | .sh file | sh function [helpers it calls] | .ps1 file | ps1 function [helpers] | answer
+# `answer` is `print` when the predicate prints its answer, or `<yes>/<no>` when
+# its exit status (bash) or truthiness (PowerShell) is the answer, named by those
+# two words. In a table, every column but the last is an argument, in order, and
+# the last is the expected answer; `-` is an empty string and `\n` a newline.
 
-pc_cases=scripts/port-cases/squash-boundary.tsv
-pc_sh=bin/merge-pr.sh
-pc_ps1=bin/merge-pr.ps1
+pc_registry='squash-boundary.tsv|merge-pr.sh|squash_boundary_ok|merge-pr.ps1|Test-SquashBoundary|squash/merge
+gh-post-marker.tsv|gh-post.sh|build_marker|gh-post.ps1|Get-PipelineMarker|print
+gh-post-match.tsv|gh-post.sh|marker_matches build_marker|gh-post.ps1|Test-MarkerMatch Get-PipelineMarker|yes/no
+gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print'
 
-if [ ! -f "$pc_cases" ]; then
-	fail "port-cases: $pc_cases is missing — the shared table is what makes this a comparison"
-elif [ "$(grep -cv '^#' "$pc_cases" || true)" -lt 1 ]; then
-	# A table gutted to comments answers every comparison with silence, and silence
-	# compares equal to silence. That is the vacuous pass this check exists to deny.
-	fail "port-cases: $pc_cases holds no cases — an empty table agrees with itself"
-else
+pc_registered=''
+pc_unregistered=''
+pc_count=0
+while IFS='|' read -r pc_table pc_sh pc_shfns pc_ps1 pc_psfns pc_answer; do
+	[ -n "$pc_table" ] || continue
+	pc_count=$((pc_count + 1))
+	pc_registered="$pc_registered $pc_table "
+	pc_cases="scripts/port-cases/$pc_table"
+	pc_label="port-cases[$pc_table]"
+	pc_fn=${pc_shfns%% *}
+	pc_psfn=${pc_psfns%% *}
+
+	if [ ! -f "$pc_cases" ]; then
+		fail "$pc_label: $pc_cases is missing — the shared table is what makes this a comparison"
+		continue
+	fi
 	pc_n=$(grep -cv '^#' "$pc_cases" || true)
+	if [ "$pc_n" -lt 1 ]; then
+		# A table gutted to comments answers every comparison with silence, and silence
+		# compares equal to silence. That is the vacuous pass this check exists to deny.
+		fail "$pc_label: $pc_cases holds no cases — an empty table agrees with itself"
+		continue
+	fi
 	pc_tmp="$(mktemp -d)" || exit 2
 
-	python3 - "$pc_sh" "$pc_ps1" "$pc_tmp" <<'PY'
-import re, sys
-sh_path, ps1_path, out = sys.argv[1], sys.argv[2], sys.argv[3]
-src = open(sh_path, encoding="utf-8").read()
-i = src.find("squash_boundary_ok() {")
-j = src.find("\n}\n", i)
-if i < 0 or j < 0:
-    sys.exit("squash_boundary_ok not found in " + sh_path)
-open(out + "/fn.sh", "w", encoding="utf-8").write(src[i:j + 3])
-src = open(ps1_path, encoding="utf-8").read()
-i = src.find("function Test-SquashBoundary {")
-j = src.find("\n}\n", i)
-if i < 0 or j < 0:
-    sys.exit("Test-SquashBoundary not found in " + ps1_path)
-open(out + "/fn.ps1", "w", encoding="utf-8").write(src[i:j + 3])
+	python3 - "bin/$pc_sh" "$pc_shfns" "bin/$pc_ps1" "$pc_psfns" "$pc_tmp" <<'PY'
+import sys
+sh_path, sh_fns, ps1_path, ps_fns, out = sys.argv[1:6]
+
+def extract(path, names, opener, dest):
+    src = open(path, encoding="utf-8").read()
+    parts = []
+    for name in names.split():
+        i = src.find(opener(name))
+        j = src.find("\n}\n", i)
+        if i < 0 or j < 0:
+            sys.exit(name + " not found in " + path)
+        parts.append(src[i:j + 3])
+    open(dest, "w", encoding="utf-8").write("\n".join(parts))
+
+extract(sh_path, sh_fns, lambda n: n + "() {", out + "/fn.sh")
+extract(ps1_path, ps_fns, lambda n: "function " + n + " {", out + "/fn.ps1")
 PY
 	pc_extract=$?
 
 	if [ "$pc_extract" -ne 0 ]; then
-		fail "port-cases: could not extract both predicates — a rename leaves the pair uncompared while this check still reports ok"
+		fail "$pc_label: could not extract both predicates — a rename leaves the pair uncompared while this check still reports ok"
+		rm -rf "$pc_tmp"
+		continue
+	fi
+
+	# bash side. Written for bash 3.2, which is what /bin/bash is on macOS: an empty
+	# array under `set -u` is expanded through ${a[@]+...} rather than bare. printf
+	# rather than echo, whose XSI form under sh rewrites the backslashes in `\\n`.
+	{
+		printf '%s\n' "set -u"
+		printf '%s\n' ". $pc_tmp/fn.sh"
+		printf '%s\n' 'answer="$1"; tab="	"; nl="'
+		printf '%s\n' '"'
+		printf '%s\n' 'while IFS= read -r line; do'
+		printf '%s\n' '  case "$line" in "#"*) continue ;; esac'
+		printf '%s\n' '  IFS="$tab" read -r -a f <<<"$line"'
+		printf '%s\n' '  n=${#f[@]}; exp=${f[$((n - 1))]}; args=(); k=0'
+		printf '%s\n' '  while [ "$k" -lt $((n - 1)) ]; do'
+		printf '%s\n' '    v=${f[$k]}; [ "$v" = - ] && v=""; v=${v//\\n/$nl}; args+=("$v"); k=$((k + 1))'
+		printf '%s\n' '  done'
+		printf '%s\n' '  if [ "$answer" = print ]; then'
+		printf '%s\n' "    got=\$($pc_fn \${args[@]+\"\${args[@]}\"})"
+		printf '%s\n' "  elif $pc_fn \${args[@]+\"\${args[@]}\"}; then got=\${answer%%/*}"
+		printf '%s\n' '  else got=${answer#*/}; fi'
+		printf '%s\n' '  printf "%s\t%s\n" "$exp" "$got"'
+		printf '%s\n' "done < $pc_cases"
+	} > "$pc_tmp/run.sh"
+	bash "$pc_tmp/run.sh" "$pc_answer" > "$pc_tmp/out.sh" 2>"$pc_tmp/err.sh" </dev/null || true
+
+	pc_bad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": bash said " $2 ", the table says " $1 }' "$pc_tmp/out.sh")"
+	pc_rows=$(grep -c . "$pc_tmp/out.sh" || true)
+
+	if [ "$pc_rows" != "$pc_n" ]; then
+		sed 's/^/      /' "$pc_tmp/err.sh" >&2
+		fail "$pc_label: bash answered $pc_rows of $pc_n case(s) — the driver did not read the whole table"
+	elif [ -n "$pc_bad" ]; then
+		printf '%s\n' "$pc_bad" >&2
+		fail "$pc_label: bin/$pc_sh disagrees with the table"
+	elif ! command -v pwsh >/dev/null 2>&1; then
+		skip "$pc_label: bash agrees with all $pc_n case(s), but pwsh is not on PATH so bin/$pc_ps1 was NOT compared here; the check job on ubuntu-latest ships pwsh and does compare it"
 	else
-		# bash side
-		{
-			echo "set -u"
-			echo ". $pc_tmp/fn.sh"
-			echo 'while IFS="	" read -r i h b d e; do'
-			echo '  case "$i" in "#"*) continue ;; esac'
-			echo '  [ "$i" = - ] && i=""; [ "$b" = - ] && b=""; [ "$d" = - ] && d=""; [ "$h" = - ] && h=""'
-			echo '  if squash_boundary_ok "$i" "$h" "$b" "$d"; then g=squash; else g=merge; fi'
-			echo '  printf "%s\t%s\n" "$e" "$g"'
-			echo "done < $pc_cases"
-		} > "$pc_tmp/run.sh"
-		bash "$pc_tmp/run.sh" > "$pc_tmp/out.sh" 2>"$pc_tmp/err.sh" || true
-
-		pc_bad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": bash said " $2 ", the table says " $1 }' "$pc_tmp/out.sh")"
-		pc_rows=$(grep -c . "$pc_tmp/out.sh" || true)
-
-		if [ "$pc_rows" != "$pc_n" ]; then
-			fail "port-cases: bash answered $pc_rows of $pc_n case(s) — the driver did not read the whole table"
-		elif [ -n "$pc_bad" ]; then
-			printf '%s\n' "$pc_bad" >&2
-			fail "port-cases: bin/merge-pr.sh disagrees with the table"
-		elif ! command -v pwsh >/dev/null 2>&1; then
-			skip "port-cases: bash agrees with all $pc_n case(s), but pwsh is not on PATH so bin/merge-pr.ps1 was NOT compared here; the check job on ubuntu-latest ships pwsh and does compare it"
-		else
-			# Quoted heredoc: the driver is PowerShell, and an unquoted one lets the
-			# shell expand $line and $f before pwsh ever sees them. Paths arrive as
-			# arguments for the same reason.
-			cat > "$pc_tmp/run.ps1" <<'PS'
-param([string] $Fn, [string] $Cases)
+		# Quoted heredoc: the driver is PowerShell, and an unquoted one lets the
+		# shell expand $line and $f before pwsh ever sees them. Paths arrive as
+		# arguments for the same reason. Arguments are splatted POSITIONALLY, in
+		# table order, and empty fields are dropped as bash's tab-IFS read drops
+		# them, so both drivers see the same argument list.
+		cat > "$pc_tmp/run.ps1" <<'PS'
+param([string] $Fn, [string] $Cases, [string] $Func, [string] $Answer)
 . $Fn
-foreach ($line in Get-Content $Cases) {
+foreach ($line in Get-Content -Encoding utf8 $Cases) {
     if ($line.StartsWith('#')) { continue }
-    $f = $line -split "`t"
-    $v = @('', '', '', '')
-    for ($k = 0; $k -lt 4; $k++) { if ($f[$k] -ne '-') { $v[$k] = $f[$k] } }
-    $verdict = if (Test-SquashBoundary -IntegrationBranch $v[0] -Head $v[1] -Base $v[2] -DefaultBranch $v[3]) { 'squash' } else { 'merge' }
-    "$($f[4])`t$verdict"
+    $f = @($line -split "`t" | Where-Object { $_ -ne '' })
+    $vals = @()
+    for ($k = 0; $k -lt $f.Count - 1; $k++) {
+        $v = $f[$k]
+        if ($v -eq '-') { $v = '' }
+        $vals += $v.Replace('\n', "`n")
+    }
+    if ($Answer -eq 'print') {
+        $got = (& $Func @vals) -join "`n"
+    } else {
+        $words = $Answer -split '/'
+        $got = if (& $Func @vals) { $words[0] } else { $words[1] }
+    }
+    "$($f[$f.Count - 1])`t$got"
 }
 PS
-			pwsh -NoProfile -NonInteractive -File "$pc_tmp/run.ps1" "$pc_tmp/fn.ps1" "$pc_cases" > "$pc_tmp/out.ps1" 2>"$pc_tmp/err.ps1" || true
-			pc_prows=$(grep -c . "$pc_tmp/out.ps1" || true)
-			if [ "$pc_prows" != "$pc_n" ]; then
-				sed 's/^/      /' "$pc_tmp/err.ps1" >&2
-				fail "port-cases: pwsh answered $pc_prows of $pc_n case(s) — the driver did not read the whole table"
+		pwsh -NoProfile -NonInteractive -File "$pc_tmp/run.ps1" "$pc_tmp/fn.ps1" "$pc_cases" "$pc_psfn" "$pc_answer" > "$pc_tmp/out.ps1" 2>"$pc_tmp/err.ps1" </dev/null || true
+		pc_prows=$(grep -c . "$pc_tmp/out.ps1" || true)
+		if [ "$pc_prows" != "$pc_n" ]; then
+			sed 's/^/      /' "$pc_tmp/err.ps1" >&2
+			fail "$pc_label: pwsh answered $pc_prows of $pc_n case(s) — the driver did not read the whole table"
+		else
+			pc_pbad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": pwsh said " $2 ", the table says " $1 }' "$pc_tmp/out.ps1")"
+			pc_diff="$(paste "$pc_tmp/out.sh" "$pc_tmp/out.ps1" | awk -F'\t' '$2 != $4 { print "    row " NR ": bash said " $2 ", pwsh said " $4 }')"
+			if [ -n "$pc_pbad" ]; then
+				printf '%s\n' "$pc_pbad" >&2
+				fail "$pc_label: bin/$pc_ps1 disagrees with the table"
+			elif [ -n "$pc_diff" ]; then
+				printf '%s\n' "$pc_diff" >&2
+				fail "$pc_label: the two ports disagree — surface parity cannot see this"
 			else
-				pc_pbad="$(awk -F'\t' '$1 != $2 { print "    row " NR ": pwsh said " $2 ", the table says " $1 }' "$pc_tmp/out.ps1")"
-				pc_diff="$(paste "$pc_tmp/out.sh" "$pc_tmp/out.ps1" | awk -F'\t' '$2 != $4 { print "    row " NR ": bash said " $2 ", pwsh said " $4 }')"
-				if [ -n "$pc_pbad" ]; then
-					printf '%s\n' "$pc_pbad" >&2
-					fail "port-cases: bin/merge-pr.ps1 disagrees with the table"
-				elif [ -n "$pc_diff" ]; then
-					printf '%s\n' "$pc_diff" >&2
-					fail "port-cases: the two ports disagree — surface parity cannot see this"
-				else
-					ok "port-cases: both ports answer all $pc_n shared case(s) identically, and as the table says"
-				fi
+				ok "$pc_label: both ports answer all $pc_n shared case(s) identically, and as the table says"
 			fi
 		fi
 	fi
 	rm -rf "$pc_tmp"
+done <<EOF
+$pc_registry
+EOF
+
+for pc_file in scripts/port-cases/*.tsv; do
+	[ -f "$pc_file" ] || continue
+	case "$pc_registered" in
+	*" ${pc_file##*/} "*) ;;
+	*) pc_unregistered="$pc_unregistered ${pc_file##*/}" ;;
+	esac
+done
+if [ "$pc_count" -lt 1 ]; then
+	fail "port-cases: the registry names no predicate — this check compared nothing"
+elif [ -n "$pc_unregistered" ]; then
+	fail "port-cases: table(s) no registry row names:$pc_unregistered — a case there is asked of neither port"
 fi
 
 # --- 16. the slice-field enumerations agree -----------------------------------

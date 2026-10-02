@@ -261,8 +261,10 @@ fire later. **Each close carries a comment that is that issue's OUTCOME RECORD**
 finds what happened without opening a PR: the PR that settled it and the merge commit and base it landed as,
 your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran or was skipped and
 why, and links to that PR's dimension comments, its reviews and its gate comment — the umbrella's naming the
-close-out PR and each leaf's PR. Write it to a body file and send it with the `--field` form
-(`skills/glossary/mechanics/gh-api-file-body.md`), refetching to confirm the markdown landed, and name no AI
+close-out PR and each leaf's PR. Post it with the close,
+`gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>`, `<pr>` the one that
+settled it
+(`skills/procedures/github-writes.md`), which a re-run edits rather than repeats, and name no AI
 in it — no trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.
 **They stay OPEN where that close-out is held rather than merged** — the closes are
 termination's own half and a held merge has shipped nothing, so closing them there records a release that
@@ -300,7 +302,9 @@ termination takes a green close-out and a merge that has not happened is not one
 reports a problem and recommends a re-plan nothing here calls for — the plan emptied, the work landed as
 written, and the only thing outstanding is a signature.
 **Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue
-filed out of this arc that it did not land, that the loop is not coming back, and
+filed out of this arc —
+`gh-post.sh comment issue <n> --key arc-exit/<n> --body-file <file>`, `<n>` that follow-up — that it did not
+land, that the loop is not coming back, and
 **which state *Fold vs. file* left it in**. **They are not among the issues the close-out closes**, and
 **a halt owes this exactly as termination does** — **and a held arc owes none of it**, since it has not
 left: the loop is due back the moment that PR merges, so telling a follow-up otherwise writes down the one
@@ -314,8 +318,10 @@ issue, or onto the umbrella where the arc has one — as a COMMENT, never into t
 only whoever
 is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining
 plan and nothing parked beside it, so a line there that no checklist line, linked issue or recorded settle
-owns reads as a plan that is NOT empty at the very termination the hold is waiting on. That write takes the
-`--field` form every issue write in this loop takes (`skills/glossary/mechanics/gh-api-file-body.md`).
+owns reads as a plan that is NOT empty at the very termination the hold is waiting on. That write is
+`gh-post.sh comment issue <n> --key merge-held/<pr> --body-file <file>`
+(`skills/procedures/github-writes.md`), so a cycle that finds the arc still held edits it rather than
+stacking another.
 **The close-out's own pipeline-findings question below is owed here all the same**, the run ending whether
 or not the arc has; **and a held cycle is not one the fifth exit's two-cycle window counts**, since it
 wrote no cycle record and filed nothing, and counted it halts an arc over a backlog it never transferred.

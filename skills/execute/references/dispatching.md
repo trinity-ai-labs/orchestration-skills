@@ -95,7 +95,7 @@ value does to a brief, and every pasted block below whose right form depends on 
 | Setting | Value | What the brief says |
 |---|---|---|
 | `enqueue` + `drain` | both declared — **queue mode** | Scoped check only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
-| | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there; nobody enqueues anything. No ban block. |
+| | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
 | `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
 | commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
@@ -239,7 +239,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   - **In-line mode — the project declares neither, or you override a slice that is foundational or
     cross-cutting, or whose ticket no dispatcher will be there to drain, saying so in its brief:** tell the
     implementer to run the full `gate` itself, once, in the foreground, and **post the result as a comment
-    on its own PR** — no ticket exists to enqueue.
+    on its own PR**, keyed `gate-verdict/<leaf>` — no ticket exists to enqueue.
 
   In neither mode does the implementer enqueue anything, and both end in a draft PR carrying a gate comment:
   whether the diff was *read* is your call.
@@ -319,7 +319,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   your diff: do NOT run the full gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
   this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
   the draft PR is open run `gate` a single time, in the foreground — detached and polled in this same turn
-  where it outlasts one tool call — and comment its result on that PR, leading with the SHA it ran
+  where it outlasts one tool call — and comment its result on that PR with
+  `gh-post.sh comment pr <n> --key gate-verdict/<leaf> --body-file <file>`, leading with the SHA it ran
   against."*
 
   > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
@@ -430,7 +431,9 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
 - **A correction sent as a message leaves NO artifact, so put it where it outlives the run.** The agent's
   context dies with the agent, and the next reader — a fix agent, the PR reviewer, whoever picks the arc up
   tomorrow — sees only that the code came out a certain way. Write the correction onto the issue or PR the
-  brief points at, as a comment that explicitly supersedes what it replaces, and point the live agent at it.
+  brief points at, as a comment that explicitly supersedes what it replaces —
+  `gh-post.sh comment <issue|pr> <n> --key dispatcher-correction/<leaf>/<what-it-corrects> --body-file <file>`
+  — and point the live agent at it.
   **This is the half a message loses against a re-dispatch and the reason it is not simply cheaper**: a fresh
   brief is durable by construction and a message is not, so the durability has to be added by hand.
 - **A correction is CARRIED into the next tick as a check with an expected VALUE, since *not yet applied* and
@@ -464,7 +467,11 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   - **Take it** — widen the fence for that NAMED path and nothing wider, and write the grant where it outlives
     the run by the rule above: onto the issue the brief points at while no PR is open yet, and onto that
     slice's PR before you review its diff — headed `## Dispatcher grant`, the heading the brief names as yours,
-    and saying in as many words that it supersedes the brief's fence on that path. **Where the subject is
+    and saying in as many words that it supersedes the brief's fence on that path. **Post it with
+    `gh-post.sh comment <issue|pr> <n> --key dispatcher-grant/<leaf> --body-file <file>`, the body carrying
+    every grant the slice holds**, so on each target the next grant edits that one comment rather than adding
+    another
+    (`skills/procedures/github-writes.md`). **Where the subject is
     *every occurrence of X* rather than one path, the grant is an ENUMERATION and you write it as the named
     paths that derivation resolves to** — derive the extent from a
     command that filtered nothing, say what the count counts, and say the list is a FLOOR on what the change
@@ -567,7 +574,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   paths, and which brief items those already satisfy — so it builds on them rather than redoing them.
   **Restart from `$FP` only where what is there cannot be trusted**, making the work a git object first
   (`skills/ground-rules/SKILL.md`, rules 6 and 7), and write which you chose, and why, on the slice's issue or
-  PR, since the agent that knew is gone and that comment is the only record.
+  PR (`gh-post.sh comment <issue|pr> <n> --key dispatcher-recovery/<leaf> --body-file <file>`), since the
+  agent that knew is gone and that comment is the only record.
 - **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
   the same digest mean you cannot see work, not that there is none, so send the message that asks what the
   agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything

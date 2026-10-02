@@ -59,7 +59,11 @@ nothing re-establishes it afterwards: CI renames the gate script, a lockfile cha
 saying what was true that day. Run `/pipeline:setup` again and it re-grounds the repo as it stands now and
 hands back a **per-key delta**: *agrees*; *drifted*, saying what the repo now says rather than only that it
 differs; or *declared but unverified*, for the values no file can confirm — the ones you were asked for, which
-stay yours. A gate queue scaffolded against an older spec gets the same treatment one level over, as a
+stay yours. **The delta runs the other way too: a key the config declares that this plugin no longer reads is
+named as such**, since a value set there governs nothing while looking set, and where the plugin renamed that
+key the report names its replacement — no old name is honoured as an alias, so the rename is yours to make.
+`/pipeline:orchestrate` names the same keys in its dispatch report before an arc, and edits nothing. A gate
+queue scaffolded against an older spec gets the same treatment one level over, as a
 per-invariant delta against the reference, and the agent guidance gets its shape checked again, a monolith
 reported first and split in its own PR exactly as on onboarding. For the config and the queue it **reports
 and never rewrites**, for one reason that covers both: a divergence can be deliberate, an overwrite cannot tell a deliberate one from a stale one, and

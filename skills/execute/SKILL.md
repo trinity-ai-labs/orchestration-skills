@@ -169,7 +169,8 @@ says a gate finished, not that anyone read the change.
 ### 4. Land it → `skills/execute/references/landing.md`
 
 Gate the integrated whole when a merge combined work from more than one slice, then merge, clean up and sync
-as one step, and close each issue the PR settled with a comment that is its outcome record.
+as one step, and close each issue the PR settled with a comment that is its outcome record — one `gh-post`
+close per issue, keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.
@@ -242,7 +243,8 @@ reference.
    commit** — its readers were refused by the host's concurrent ceiling rather than failed; your PR is open
    and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
-8. **Gate in-line where your mode says so, then hand back.**
+8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
+   then hand back.**
    ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
    ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
    polled in this same turn (`skills/execute/references/implementer.md` has how).

@@ -25,7 +25,8 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
   and comments the verdict.
 - **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
   dispatcher's brief or the dispatching user EXPLICITLY puts there (override mode), never self-granted:** the
-  implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR, and
+  implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR under the
+  `gate-verdict/<leaf>` key, and
   **no ticket is created at all**. The verdict lands *before* the hand-back — wait for the hand-back before
   you tear down the tree or merge (*The PR review loop*).
 

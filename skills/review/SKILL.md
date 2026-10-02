@@ -405,12 +405,11 @@ what that reviewer reported running, or that it reported none:
 ```
 
 ```sh
-gh api repos/{owner}/{repo}/issues/<n>/comments -F "body=@<file>" --jq .html_url
+gh-post.sh comment pr <n> --key review-pass/<n>/<sha>/<dimension> --body-file <file>
 ```
 
-**Once per dimension per pass, and the same `-F`-and-refetch discipline as the review**: a body file,
-never `-f`, and the comment re-read to confirm it holds the markdown rather than the path — `<n>` being
-the PR's number, since a PR's conversation comments go through the issues endpoint. **A dimension
+**`<n>` is the PR's number and `<sha>` the head you read**, so a resumed pass edits its own comments in place
+and a later pass on a new head posts its own (`skills/procedures/github-writes.md`). **A dimension
 you judged this slice did not need gets no comment** and is named in the review body as before, and one
 that dispatched and never reported gets a comment saying so, since a missing comment reads as a missing
 write. **Nothing of this goes onto the issue the PR implements** — the dispatcher's closing comment there
@@ -418,9 +417,9 @@ links these, and a copy on the issue is a second record nothing keeps in step wi
 
 ```sh
 # the summary alone
-gh pr review <n> --comment --body-file <file>
+gh-post.sh review <n> --key review-pass/<n>/<sha> --body-file <file>
 
-# with the findings threaded on the lines they concern
+# with the findings threaded on the lines they concern — a raw call, since the helper posts a body only
 gh api repos/{owner}/{repo}/pulls/<n>/reviews \
   -f event=COMMENT -F "body=@<file>" \
   -f 'comments[][path]=<path>' -F 'comments[][line]=<line>' -f 'comments[][body]=<text>'
@@ -432,7 +431,7 @@ because the account that pushed the branch is the account `gh` is authenticated 
 either of the other two**: the approval belongs to the dispatcher's `draft → ready` flip, which this
 pass does not touch.
 
-**Write the review body to a file and reference it with `-F` (not `-f`)** —
+**In the raw form, the body goes by file with `-F` (not `-f`)** —
 `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0. **The genuine
 literals stay on `-f`**: a path and a finding's text are sent verbatim, and `-F` would read a finding
 that opens with `@` as a filename; only the line number needs `-F`, which types a bare number as a JSON
@@ -614,7 +613,8 @@ tell you which you have while `git status` and `git log` against the PR's base c
 comment a reviewer posted, and an issue it opened, leave nothing in the tree at all**, so those are checked
 on the PR and on the tracker rather than inferred from a clean `git status` — and the PR now carries writes
 that ARE authorized, the review and the dimension comments you post at step 4, so read a review or a
-comment found there by whether you are the party that wrote it rather than by its presence. An
+comment found there by whether it is one step 4 posted under your `review-pass/<n>/<sha>[/<dimension>]` keys rather than by
+its presence. An
 unauthorized write left standing costs more than the mess it makes: once one is in play nothing can
 tell authorized work from rogue work, and a sibling implementer seeing a branch and a PR appear mid-run
 quarantines a legitimate slice's gate ticket on an entirely wrong rationale.
@@ -628,7 +628,7 @@ applied — that ordering is the point, because nothing re-reads this diff for y
 Do not `git add`, `git commit`, `git push`, open a PR, merge one, enqueue anything, file an issue or
 comment on one, or run a formatter in write mode, and write no brief that asks a reviewer to.
 **The one sanctioned exception is what this pass posts onto the caller's own PR at step 4** — the
-review, `gh pr review <n> --comment --body-file <file>`, event `COMMENT`, once, and beside it one comment per
+review, by step 4's call, event `COMMENT`, once, and beside it one comment per
 dimension you dispatched, each once, all by you and none by a reviewer — and it widens nothing else: no
 arbitrary commit, no merge, no issue or comment on one, no formatter, never a fork. If you believe the change
 is finished, say so in the review and in your report and stop; the caller takes it from there.

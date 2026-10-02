@@ -144,6 +144,14 @@ a question rather than a default.
   fact and resolves the other way, the merge being the irreversible direction and so the one worth making
   somebody affirm.
 
+  **A retired name HOLDS until it is renamed**: where the config declares `autoMergeTrivial`, `autoMergeLeaves`
+  or `autoMergeEpic`, the merge its replacement governs — `autoMergeOntoIntegration`'s, `autoMergeOntoEpic`'s
+  and `autoMergeEpicCloseOut`'s respectively — is held whatever either key says, and the posture names the
+  retired key, its replacement and *held*: *`autoMergeTrivial` retired → `autoMergeOntoIntegration` → held*.
+  This is no alias, since that value is never honoured in the merging direction, and it holds for the
+  unreadable answer's reason, since a project that set the old name to hold would otherwise merge on its
+  replacement's absent default.
+
   ⚠️ **`autoMergeEpicCloseOut` is unrelated to `epicMerge` above, though both name the epic close-out**:
   `epicMerge` picks that one merge's MECHANICS — a squash or a real merge commit — and `merge-pr` reads it
   while performing the merge; `autoMergeEpicCloseOut` picks whether that merge happens without a human saying

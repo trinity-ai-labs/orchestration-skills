@@ -144,7 +144,10 @@ before you leave all three unset**: the two slice-level keys default to `true`, 
 exactly as they always have, while `autoMergeEpicCloseOut` defaults to `false`, so an epic's close-out into
 the integration branch waits for you unless you say otherwise. **Every report or comment stating a merge's
 posture names the key it read and the value that key resolved to** — *`autoMergeEpicCloseOut` absent →
-`false` → held* — so a decision read off the wrong key shows the moment it is stated. A held PR stays a
+`false` → held* — so a decision read off the wrong key shows the moment it is stated. **The keys' old names —
+`autoMergeTrivial`, `autoMergeLeaves`, `autoMergeEpic` — are no longer read, and one your config still
+declares holds the merge its replacement governs until you rename it**, whatever the replacement says, so a
+config written before the rename can make a merge wait for you but never make one happen. A held PR stays a
 **draft** and carries one comment saying so in those terms; you approve it by merging it on GitHub yourself
 or by telling the assistant to go ahead. What the
 flow does at each of the two checkpoints, and what it leaves undone while a merge is held, is in

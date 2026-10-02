@@ -321,7 +321,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   in the repo's own config ([Per-project config](per-project-config.md#per-project-config)) answer it, each
   named for the branch the PR targets: `autoMergeOntoIntegration` for a slice PR into the integration branch,
   `autoMergeOntoEpic` for a slice PR into an epic branch, `autoMergeEpicCloseOut` for the epic's own close-out
-  into the integration branch — the first two defaulting to `true`, the last to `false`. **Where the
+  into the integration branch — the first two defaulting to `true`, the last to `false`; a config still
+  declaring a retired name (`autoMergeTrivial`, `autoMergeLeaves`, `autoMergeEpic`) holds that checkpoint until
+  it is renamed. **Where the
   checkpoint's key holds it, everything upstream still runs**: none of the three touches whether a review pass
   or a gate happens. What the dispatcher does instead of merging is post one comment saying the pipeline is
   satisfied and naming the key holding the merge with the value it resolved to, and stop — **with the PR still a draft, no `gh pr ready` and no

@@ -219,9 +219,12 @@ neither reaches every step below exactly as written. (**The third key, `autoMerg
 one PR neither of those describes** — an epic branch's own close-out into the integration branch — **and its
 absence means `false`**, the opposite reading; it is stated where that close-out is run, at *The epic branch*
 → *Mechanics*, and this paragraph is not it.)
+**A retired name the config still declares holds this merge whatever the current key says** — `autoMergeLeaves`
+for a PR targeting an epic branch, `autoMergeTrivial` for one targeting the integration branch — so take the
+`false` path below until it is renamed, since its value is never honoured in the merging direction.
 **Every comment and report stating this merge's posture names the key you consulted and the value it resolved
-to** — *`autoMergeOntoIntegration` absent → `true` → merging* — so a reading off the wrong key shows at the
-moment it is stated.
+to** — *`autoMergeOntoIntegration` absent → `true` → merging*, or *`autoMergeTrivial` retired →
+`autoMergeOntoIntegration` → held* — so a reading off the wrong key shows at the moment it is stated.
 **`true` changes nothing at all** — carry straight on. **`false` holds the merge and only the merge**: the
 review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
 gate's verdict is already on the PR, and what you do with all of it is post **one comment**

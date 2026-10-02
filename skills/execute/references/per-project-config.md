@@ -75,10 +75,13 @@ targets** (`skills/procedures/config-keys.md` carries each one's meaning):
 | `autoMergeOntoEpic` | an epic branch, from a slice | `true` — merges |
 | `autoMergeEpicCloseOut` | the integration branch, from the epic branch's close-out | `false` — holds |
 
-**Only an exact `true` or a wholly absent key on the first two merges; anything else holds.** In an arc that
+**Only an exact `true` or a wholly absent key on the first two merges; anything else holds.** **A retired name
+the config still declares — `autoMergeTrivial`, `autoMergeLeaves`, `autoMergeEpic`, renamed to the three rows
+in that order — holds its row's merge whatever that row's key says**, until it is renamed. In an arc that
 cuts no epic branch every slice PR reads `autoMergeOntoIntegration`, and `autoMergeOntoEpic` governs nothing.
 **Any report stating a merge posture — the dispatch report, a held-merge comment, the merge itself — names the
-key it consulted and that key's resolved value**: *`autoMergeOntoIntegration` absent → `true` → merging*.
+key it consulted and that key's resolved value**: *`autoMergeOntoIntegration` absent → `true` → merging*, or
+for a retired name *`autoMergeTrivial` retired → `autoMergeOntoIntegration` → held*.
 The check itself runs at *Merge & cleanup*, after the gate and before the merge.
 
 ## Go through the task-runner, never around it

@@ -88,7 +88,8 @@ merging and pushing — so hand the config PR over.
 the keys this plugin reads — `examples/worktree.json` in the plugin's own tree is that list, and the only
 machine-readable copy of it. A key the plugin reads and the config does not declare is named in the dispatch
 report, with what declaring it would change, **and so is a declared key the list does not carry**, which
-nothing reads — then the arc proceeds. **Report the delta and route to
+nothing reads — except a retired `autoMerge*` name, which holds the merge its replacement governs until it is
+renamed, so report it as holding — then the arc proceeds. **Report the delta and route to
 `/pipeline:setup`; never rewrite the config here**, since a config edited by the pass that noticed is one
 nobody reviewed. **Never a stop**: every such key ships with a working fallback, and halting over a value that
 has one costs more than it saves. It is checked *here* because this is the last moment the config may safely

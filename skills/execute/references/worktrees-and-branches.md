@@ -319,6 +319,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   ⚠️ **Absent means `false`, and this is the one place in this file where a project that has declared
   nothing does NOT proceed** — the other two merge-automation keys default to `true` and this one defaults to
   holding, because this merge is the one that actually puts the arc's combined work on the shared branch.
+  **A declared `autoMergeEpic`, its retired name, holds it whatever `autoMergeEpicCloseOut` says** until it is
+  renamed, reported as *`autoMergeEpic` retired → `autoMergeEpicCloseOut` → held*.
   **Where it is `true`**, merge it with `merge-pr.sh` like any other — the one PR with no implementer behind
   it, so no hand-back to promote. **Where it is held**, post **one comment** on the close-out PR, keyed `merge-held/<pr>` as
   *Merge & cleanup*'s is, saying the pipeline is satisfied — ledger empty, panel review landed, any fix round in, gate green — and that

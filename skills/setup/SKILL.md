@@ -169,7 +169,8 @@ declaring it would change; the decision is the project's.
 
 **Run the difference the other way too: a key the config declares that `examples/worktree.json` does not
 carry is read by nothing**, so a value set there governs nothing while looking set. Name each one, and where
-it is a key this plugin renamed, name its replacement — **no old name is honoured as an alias**:
+it is a key this plugin renamed, name its replacement — **no old name is honoured as an alias, and a retired
+merge key declared there HOLDS the merge its replacement governs until it is renamed**, so say that too:
 
 | Declared as | Now read as |
 |---|---|

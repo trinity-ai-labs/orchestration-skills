@@ -161,7 +161,7 @@ FAILURE, not a subject area.** A finding buried in a neighbour closes when the h
 A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork,
 why it is not the one already there, and **at least one file, symbol or route**, since the loop re-tests this
 comment's verdict by intersecting exactly those and a comment carrying none reaches it as the narrowest input
-it ever gets — via Step 4's comment endpoint.
+it ever gets — via Step 4's comment call.
 
 ---
 
@@ -256,13 +256,17 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 
 **Then settle the shape — one issue, or umbrella + subs.**
 
-- **Single issue** (the default) — small-to-medium work that lands as one PR. One body, filed;
+- **Single issue** (the default) — small-to-medium work that lands as one PR, by goal and by the layer test
+  below. One body, filed;
   `/pipeline:ground` grounds it into the one dispatchable slice it already is, and enriches it with what an
   executor needs.
 - **Umbrella + sub-issues** (`skills/glossary/vocabulary/umbrella.md`) — large AND multi-area.
   **File each child so it lands as ONE PR**, since a child that is really two lands half its work against a
-  checklist line that cannot tick. The umbrella is the overview — goal, the phase map, a tracked
-  `- [ ] #<sub>` checklist; each sub is a self-contained forward-facing spec,
+  checklist line that cannot tick — **sized by the layers its Surface spans as well as by its goal**: one
+  spanning three or more pieces that each review differently is split along those seams unless it states why
+  they cannot land apart (`skills/write-issue/references/arc-planning.md`, *Sizing an item*). The umbrella is
+  the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is a self-contained
+  forward-facing spec,
   **titled with the phase it lands in** (`[P0]`, `[P1]`), the phase being the ORDERING over the children
   rather than the unit a child is. Author them at Step 4; nothing downstream converts a single issue into an
   umbrella for you.
@@ -291,7 +295,10 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   - Create:
     `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>" -F "milestone=<n>" --jq '.number'`
   - Edit body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`
-  - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"`
+- **Comment, close and native-link through `gh-post`** (`skills/procedures/github-writes.md`), so a re-run
+  edits or declines rather than repeating: a comment is
+  `gh-post.sh comment issue <N> --key write-issue/<N>/<what-it-adds> --body-file <file>`, the last segment a
+  short slug naming what that comment adds, so a second, different addition posts its own.
 - **Milestone** takes a number, not a title — resolve it first
   (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass
   `-F "milestone=<n>"`.
@@ -302,13 +309,13 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   without the frame it was written inside.
 - **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>`
   where the originating work sits under one, which is containment and takes the **native `sub_issues` link**
-  too. That native link is `skills/glossary/mechanics/sub-issue-link.md`. A bare `Follows #<N>` is provenance,
+  too: `gh-post.sh sub-issue <umbrella> <N>` (what it is, `skills/glossary/mechanics/sub-issue-link.md`). A bare `Follows #<N>` is provenance,
   not containment, and takes the backlink alone. **PATCH the umbrella's body to add the follow-up to its
   checklist**, or it reads as finished work that is not.
 - **Superseding a leaf**: take its checklist line out of the umbrella body and unlink it as a native
   sub-issue — both, since two readers key on one each — then close **each** leaf the re-author supersedes:
-  `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -f state=closed -f state_reason=not_planned`. The reason
-  field is not decoration: left off, the close reads as a fix that shipped.
+  `gh-post.sh close <N> --reason not_planned`. The reason is not decoration: a close without it reads as a
+  fix that shipped.
 - **Labels**: apply an existing `epic`/`umbrella` label where the repo has one; don't invent exotic ones. It
   names the **tracking shape**, never a branch decision, though it reads as the verdict it shares a word with.
 

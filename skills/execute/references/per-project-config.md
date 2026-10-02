@@ -6,7 +6,7 @@ nothing derives it from the tree you are standing in.
 
 **What each key MEANS, and what its absence means, is `skills/procedures/config-keys.md`.** This file carries
 what a DISPATCH does about those values: which gate mode the project is in, the three readings that change the
-flow, and the routing rule that sits on top of them.
+flow, whose merge each one is, and the routing rule that sits on top of them.
 
 **No config is a hard stop rather than a warning, and the stop is yours.** The helper cuts a bare worktree and
 says so on stderr only (`skills/procedures/config-keys.md`), and the implementer dispatched into it then fails
@@ -25,7 +25,8 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
   and comments the verdict.
 - **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
   dispatcher's brief or the dispatching user EXPLICITLY puts there (override mode), never self-granted:** the
-  implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR, and
+  implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR under the
+  `gate-verdict/<leaf>` key, and
   **no ticket is created at all**. The verdict lands *before* the hand-back — wait for the hand-back before
   you tear down the tree or merge (*The PR review loop*).
 
@@ -62,6 +63,25 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
   (*Reading a gate result*). **A non-null `isolatedBy` leaves the default fan-out in place, and does so for
   either of its two forms**, so the honest answer and the correct dispatch decision are the same answer, and a
   resource that is shared but safe by construction never has to be written `null` to be written truthfully.
+
+## The merge decision — read it here, before you report a dispatch
+
+Three keys decide whether each merge is yours to make, and **the axis they partition is the branch the PR
+targets** (`skills/procedures/config-keys.md` carries each one's meaning):
+
+| Key | Governs a PR targeting | Absent |
+|---|---|---|
+| `autoMergeOntoIntegration` | the integration branch, from a slice | `true` — merges |
+| `autoMergeOntoEpic` | an epic branch, from a slice | `true` — merges |
+| `autoMergeEpicCloseOut` | the integration branch, from the epic branch's close-out | `false` — holds |
+
+**Only an exact `true` or a wholly absent key on the first two merges; anything else holds**, and **a retired
+name the config still declares holds its row's merge** (`skills/procedures/config-keys.md` names them). In an
+arc that cuts no epic branch every slice PR reads `autoMergeOntoIntegration`, and `autoMergeOntoEpic` governs
+nothing. **Any report stating a merge posture — the dispatch report, a held-merge comment, the merge itself —
+names the key it consulted and that key's resolved value**: *`autoMergeOntoIntegration` absent → `true` →
+merging*, or for a retired name *`autoMergeTrivial` retired → `autoMergeOntoIntegration` → held*.
+The check itself runs at *Merge & cleanup*, after the gate and before the merge.
 
 ## Go through the task-runner, never around it
 

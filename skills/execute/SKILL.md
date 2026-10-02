@@ -125,7 +125,8 @@ lines are the rules whose action needs no reference, so they live here and nowhe
 **Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`,
 `epicMerge`, the three `autoMerge*` keys deciding whether each merge is yours to make, brief
 conventions. Everything below is provisioned from it. →
-`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, and
+`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, the merge
+decision your dispatch report states included, and
 `skills/procedures/config-keys.md` for what each key MEANS and what its absence means. The helper you
 provision with is `skills/procedures/worktree-helper.md`, and your host's tool for every capability named
 below is `skills/procedures/host-tools.md`.
@@ -168,7 +169,8 @@ says a gate finished, not that anyone read the change.
 ### 4. Land it → `skills/execute/references/landing.md`
 
 Gate the integrated whole when a merge combined work from more than one slice, then merge, clean up and sync
-as one step, and close each issue the PR settled with a comment that is its outcome record.
+as one step, and close each issue the PR settled with a comment that is its outcome record — one `gh-post`
+close per issue, keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.
@@ -192,7 +194,8 @@ reference.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
-   foreground or background. One targeted test file is the widest run you get; the one full run you ever
+   foreground or background. One targeted test file is the widest run you get — plus, on a change to a
+   module's export surface, each test file that mocks or imports it, run singly; the one full run you ever
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
@@ -202,7 +205,7 @@ reference.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
-6. **Commit, push, open a draft PR.**
+6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
    is a pushed branch and a draft PR.
@@ -240,7 +243,8 @@ reference.
    commit** — its readers were refused by the host's concurrent ceiling rather than failed; your PR is open
    and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
-8. **Gate in-line where your mode says so, then hand back.**
+8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
+   then hand back.**
    ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
    ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
    polled in this same turn (`skills/execute/references/implementer.md` has how).

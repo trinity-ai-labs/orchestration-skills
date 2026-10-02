@@ -24,7 +24,8 @@ none of which cites back, each admitted on a property naming what has no per-sea
 `/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is;
 `/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork
 ban first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures`
-holds the **procedure** every seat runs identically — the worktree helper's command-line contract, what each
+holds the **procedure** every seat runs identically — the worktree helper's command-line contract, the
+GitHub-write helper's, what each
 config key means and what its absence means, and each host's tool for a capability the flow needs.
 
 | You type | Does |
@@ -33,12 +34,12 @@ config key means and what its absence means, and each host's tool for a capabili
 | [`/pipeline:cut-release`](skills/cut-release/SKILL.md) | Cuts the next release branch and moves the version, as one reviewable commit in its own worktree that it PRs and merges on the yes it took before anything ran — the repository side only, never tags or publishing. It exists because that moment was the one nothing in the flow was present for, which is how `integrationBranch` went stale and the version moved invisibly. |
 | [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door, and where a request for your judgment on a shape lands as much as a request to build one. Writes the goal down as one testable sentence, classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. It shapes toward that goal rather than around the mechanisms it finds, so an existing check, ceiling or step is something it may propose changing or deleting. |
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Takes a shape you have already settled and **plans the arc**: grounds what the arc rests on — the real modules, the seams, whether the surface exists — sets the phases and their order, answers whether the work is one slice or an epic, and files it as a forward-facing issue. **It is also the one pass that cuts the plan's tree of tasks** — umbrella to sub-issues, two levels, one sub-issue being one slice and one PR — because nothing downstream adds a level to it. **Four ways in**: a shape settled in chat, a follow-up a live run surfaced and did not land, a pile of already-filed issues swept and clustered on a shared failure or a shared surface into an umbrella over the existing numbers, each report untouched and a backlink appended, or a re-author a live arc reported back — a leaf that cannot be one PR, or several that are one PR's worth of one change, the leaves it supersedes closed as not planned. Where the shape is not settled it hands back to `co-think` rather than filing. |
-| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | **The one command you type for dispatched work of any size.** Runs an arc to completion as a loop: grounds the horizon — the ready sub-issues — dispatches them, reviews them and lands them — merging where the checkpoint's `autoMerge*` flag allows it, holding the PR as a draft with one comment where it does not — reconciles the rest against the tree that increment produced, repeats. A cycle lands whole issues and absorbs what it finds rather than handing it back. Dependency phases are what make an arc take many cycles — leaves that are all ready at once are one wave and land in one — and a standalone issue is one cycle over one leaf. |
+| [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | **The one command you type for dispatched work of any size.** Runs an arc to completion as a loop: grounds the horizon — the ready sub-issues — dispatches them, reviews them and lands them — merging where the checkpoint's `autoMerge*` key allows it, holding the PR as a draft with one comment where it does not — reconciles the rest against the tree that increment produced, repeats. A cycle lands whole issues and absorbs what it finds rather than handing it back. Dependency phases are what make an arc take many cycles — leaves that are all ready at once are one wave and land in one — and a standalone issue is one cycle over one leaf. |
 
 | Behind them | Does |
 |---|---|
 | [`/pipeline:ground`](skills/ground/SKILL.md) | The **pre-execution grounding** pass, run once per cycle by the loop: verifies a deliberately big-picture issue against the code, fills in the detail an executor acts on and enriches the issue with it, then grounds the horizon — the ready issues, one slice each — into owned files, do-not-touch fences, the model tier the work needs and a verify bar, its brief also recommending whether the slice warrants a review pass and its breakdown a wave width the dispatching seat decides. It never cuts an issue into slices and never merges two into one: one too big to be one PR is reported back to the plan, and so are several it grounds as one PR's worth of one change. |
-| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass, reached from the loop rather than typed — it is the loop's own dispatcher half rather than a second seat: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review — saying whether the slice ran the review pass or skipped it and why — and merges, closing each issue the PR settled with a comment that is its outcome record — what merged where, the verdict, what was rejected or flagged, whether review ran, and links back to the PR's reviews, dimension comments and gate comment — unless the project's `autoMerge*` flag for that checkpoint holds the merge for you, which the epic close-out does by default. It is also where an **implementer** reads its own flow, which is the one half of it a user still enters directly. |
+| [`/pipeline:execute`](skills/execute/SKILL.md) | The **dispatch** pass, reached from the loop rather than typed — it is the loop's own dispatcher half rather than a second seat: cuts a worktree per slice, dispatches a fresh implementer into each, reviews the diffs, posts each round's verdict onto the PR as a review — saying whether the slice ran the review pass or skipped it and why — and merges, closing each issue the PR settled with a comment that is its outcome record — what merged where, the verdict, what was rejected or flagged, whether review ran, links back to the PR's reviews, dimension comments and gate comment, and a `Beside it` line linking the arc's other PRs, which each slice's own PR body lists when it opens — unless the project's `autoMerge*` key for that checkpoint holds the merge for you, which the epic close-out does by default, the holding comment naming the key and the value it resolved to. It is also where an **implementer** reads its own flow, which is the one half of it a user still enters directly. |
 | [`/pipeline:review`](skills/review/SKILL.md) | A caller's own quality pass over the **PR it has just opened**, read against that PR's real diff: one briefed reviewer per dimension it judges the change needs, each spawned at a tier that is named rather than inherited from the caller — standard for a reader over one dimension, higher where that dimension is genuinely hard — each reporting what it ran, all of them weighed by the caller, and the verdict posted back onto that PR as a review anyone can read, with one comment beside it per dimension carrying that reviewer's own findings and what the caller did with each — applied, rejected and why, or flagged out of scope. Reviewers themselves post nothing, and nothing is copied onto the issue. **Usually an implementer over its own slice; once per epic it is the orchestrator over the close-out PR**, where the panel runs un-narrowed between that PR's open and its gate against the combined diff no slice's own pass ever saw, and a fix agent — never the orchestrator, which writes no code — applies what it raises. |
 
 The loop invokes all three for you — that is what "behind them" means, and there is no size of work at which
@@ -59,6 +60,7 @@ gate can and cannot see of it is in [Adding a skill](docs/adding-a-skill.md).
 | `setup-worktree.sh` · `.ps1` | Creates a worktree — or attaches one to an existing branch with `--existing` — symlinks the project's env files, exports its env, installs deps |
 | `setup-workspace.sh` · `.ps1` | The polyrepo form: one worktree per member repo, same branch name in each — the members named outright plus the consumers of any contract one of them owns, or the default set less `--exclude <repo,repo>`, with `--dry-run` printing the resolved member set and creating nothing |
 | `merge-pr.sh` · `.ps1` | Atomic close-out: preflight mergeability, tear down the worktree, real merge commit — the merge call bounded at 120 seconds, and one that times out or fails judged by the PR's own state, so a PR GitHub did merge carries on to the sync and has any branch the call left behind deleted — fast-forward the local base branch — and, at the epic boundary only and only where the project opted in, squash instead — the PR's title and body as the commit's message — and verify the landed tree against the gated one before deleting the branch |
+| `gh-post.sh` · `.ps1` | Makes one of the flow's GitHub writes — a comment, a review body, an issue close, a native sub-issue link — so that a re-run never duplicates it: the caller names a key for its party and purpose, and the helper edits the post carrying that key's hidden marker rather than adding a second, never judging by author, since every party writes as one `gh` account. Prints `POSTED:`, `UPDATED:` or `DECLINED:`, and refuses to re-parent a sub-issue |
 | `remove-worktree.sh` · `.ps1` | Safely tear down a worktree — found by branch leaf in either layout, bare or workspace member, or named outright by absolute path — killing processes rooted in it first, and stopping loudly rather than reporting a clean no-op when the tree it was asked for is registered somewhere it did not look |
 
 ---
@@ -126,8 +128,8 @@ session. The directory name is the namespace.
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and eight
-executables (the four helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and ten
+executables (the five helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows
 the `pipeline` row with its version and install status.
 
 ### Prerequisites
@@ -280,7 +282,9 @@ that comparison rather than preparation for it, is in
 │   ├── merge-pr.sh
 │   ├── merge-pr.ps1
 │   ├── remove-worktree.sh
-│   └── remove-worktree.ps1
+│   ├── remove-worktree.ps1
+│   ├── gh-post.sh
+│   └── gh-post.ps1
 ├── scripts/check.sh             # the repo gate — contributor-only, never shipped
 ├── examples/worktree.json       # a complete per-project config
 └── skills/
@@ -305,7 +309,8 @@ that comparison rather than preparation for it, is in
     ├── ground-rules/SKILL.md     # the rules identical at every seat — read first by every pass, citing none
     ├── procedures/               # steps this pipeline OWNS, identical at every seat — cited by every pass, citing none
     │   ├── SKILL.md              # the index, and the admission property in its own voice
-    │   ├── worktree-helper.md    # the helpers' frozen command-line contract
+    │   ├── worktree-helper.md    # the worktree helpers' frozen command-line contract
+    │   ├── github-writes.md      # gh-post's call: comment, review, close, sub-issue link, safe to re-run
     │   ├── config-keys.md        # what each .agents/worktree.json key means, and what its absence means
     │   ├── host-tools.md         # the one file naming a host's tools, models and paths
     │   └── agent-guidance-layout.md  # reading, checking, placing and splitting a project's agent guidance

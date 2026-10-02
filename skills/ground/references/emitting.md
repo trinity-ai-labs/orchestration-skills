@@ -148,13 +148,13 @@ like any other once the horizon reaches it.
 - **Write the body to a file and reference it with `-F` (not `-f`)** —
   `skills/glossary/mechanics/gh-api-file-body.md` says why, and why the wrong one exits 0. **Verify after**:
   refetch the body and confirm it's the markdown, not the literal path.
-  - Comment: `gh api repos/{owner}/{repo}/issues/<N>/comments -F "body=@<file>"` (a temp file also spares you
-    quoting hell with long markdown).
   - New sub-issue: `gh api repos/{owner}/{repo}/issues -f "title=…" -F "body=@<file>"`, then capture the
     returned number. The title stays `-f` — a genuine literal; only the `@file` value needs `-F`.
   - Edit umbrella body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`.
-- **Native sub-issue link:** `skills/glossary/mechanics/sub-issue-link.md` carries the call, and the two ways
-  of getting its id wrong that both read as a missing endpoint.
+- **The grounding comment and the native sub-issue link go through `gh-post`**
+  (`skills/procedures/github-writes.md`), so a re-run edits or declines rather than repeating:
+  `gh-post.sh comment issue <N> --key grounding/<N>/<sha> --body-file <file>`, `<sha>` being the tip you
+  grounded against, and `gh-post.sh sub-issue <umbrella> <N>`.
 - **Cross-reference, don't auto-close.** Each sub carries `Part of #<umbrella>` in its body and the umbrella
   carries that sub in its `- [ ] #<sub>` checklist — both directions, every time — the backlink is a rule
   rather than a formatting nicety, because only it is readable from the child's own body, which is all an

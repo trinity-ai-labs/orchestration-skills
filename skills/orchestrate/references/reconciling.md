@@ -292,7 +292,8 @@ Two riders:
   bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership
   rule binds this loop as it binds a dispatcher, the two seats that file —
   **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native
-  call is `skills/glossary/mechanics/sub-issue-link.md`.
+  link is `gh-post.sh sub-issue <umbrella> <N>` (`skills/procedures/github-writes.md`; what it is,
+  `skills/glossary/mechanics/sub-issue-link.md`).
 - **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one
   named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence
   the dispatcher polls for (`skills/glossary/vocabulary/divergence.md`).
@@ -361,10 +362,12 @@ contract-seam map, a running union rather than a per-cycle re-derivation.** Seed
 `Seams` field, grow it with each cycle's breakdown, keep it in the **body** beside the plan, never assembled
 from the comment thread; a closed seam leaves it and *The seam map* records why.
 
-Read the issue with `gh issue view <N> --comments`; write the rewritten body and each increment comment
-through the `gh api` REST endpoints, passing a body read from a file with `--field`, never `--raw-field` —
-only `--field` expands a leading `@` into the file's contents, and the raw form stores the path and
-**exits 0 with a comment URL**.
+Read the issue with `gh issue view <N> --comments`. Post each increment comment with
+`gh-post.sh comment issue <N> --key cycle/<N>/<landed-pr> --body-file <file>`
+(`skills/procedures/github-writes.md`), the landed PR keeping each cycle's comment its own, since the counts
+above read across them; **a cycle that landed several PRs takes the lowest-numbered**, so a re-run derives
+the same key. Write the rewritten body through the `gh api` REST endpoint with a body read from a
+file by `-F`, never `-f` (`skills/glossary/mechanics/gh-api-file-body.md`).
 
 **In-chat, with no issue,** the plan and the seam map are **restated in full each cycle** rather than referred
 back to; past roughly two increments, file an umbrella.

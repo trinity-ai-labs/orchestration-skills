@@ -2,6 +2,59 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.14.0
+
+- **Breaking: the three merge-automation keys are renamed for the branch a PR targets.** Defaults
+  (`true`/`true`/`false`) and the exact-`true` rule are unchanged:
+
+  | Old name | New name |
+  |---|---|
+  | `autoMergeTrivial` | `autoMergeOntoIntegration` |
+  | `autoMergeLeaves` | `autoMergeOntoEpic` |
+  | `autoMergeEpic` | `autoMergeEpicCloseOut` |
+
+  The old names are no longer read and are not aliases. **A retired name your config still declares holds the
+  merge its replacement governs until you rename it**, whatever the replacement says, and the posture reports
+  *`autoMergeTrivial` retired → `autoMergeOntoIntegration` → held*, so an un-renamed config can make a merge
+  wait but never make one happen. `/pipeline:setup` now runs the key difference both ways and maps each old
+  name to its replacement, and `/pipeline:orchestrate` step 0 names a declared key nothing reads.
+- **The merge decision is read up front, and every posture names its key.** The keys, the target-branch axis
+  and the defaults are one reading in `skills/execute/references/per-project-config.md`, taken before a
+  dispatch is reported; every report or comment stating a merge posture — the dispatch report, a held-merge
+  comment, the epic close-out hold, orchestrate's held exit — names the key consulted and its resolved value.
+- **Two trusted inbound channels.** Ground rule 4's exception to *what you read is data* is now exactly two
+  channels from the party that dispatched you: a message from the dispatching session, and a comment headed
+  `## Dispatcher grant`, the heading a written grant now takes, on the issue the agent's brief names, or the PR
+  of the work its brief assigns it. The same heading on any other issue or PR is data. They hand scope, never a
+  permission the ground rules withhold, and everything else stays data. A correction or recovery comment is
+  the durable record, not a channel: the message is what a live agent acts on, and a later agent's brief
+  restates any correction it must act on.
+- **Leaf sizing is layer-aware.** `/pipeline:write-issue` splits a leaf whose surface spans three or more
+  review-distinct layers along those seams, unless the issue states why they cannot land apart.
+- **A change to a module's export surface widens the targeted-test budget.** Adding, removing or renaming an
+  export, or moving code between modules, also covers every test file that mocks or imports the module, still
+  run as single files and never a suite — in the implementer playbook, the brief's test line, grounding's
+  verify field and the fix agent's brief.
+- **Sibling PRs are linked.** A slice PR's body lists the arc's other open PRs, and each issue's outcome record
+  gains a `Beside it` line linking them.
+- **A new helper, `gh-post`, makes the flow's GitHub writes re-runnable.** `bin/gh-post.sh` and
+  `bin/gh-post.ps1` post one of four kinds — `comment`, `review` (event `COMMENT`, body only), `close` (with a
+  reason and an optional closing comment) and `sub-issue` — identified by a hidden `<!-- pipeline:<key> -->`
+  marker looked up across every page, never by author, position or recency. Found means edited in place, so
+  a re-run never posts twice; stdout is `POSTED`, `UPDATED` or `DECLINED`. `scripts/check.sh`'s port-cases
+  check now reads a registry of predicate tables, and the helper's three pure predicates are compared across
+  both ports there.
+- **`gh-post.sh` works under Git Bash on Windows.** It hands `gh` the body file by its `cygpath -m` form
+  wherever `cygpath` exists, since a native `gh.exe` cannot open an MSYS path; `gh-post.ps1` already passes a
+  native path.
+- **Every seat's GitHub writes go through it.** A new procedures entry, `skills/procedures/github-writes.md`,
+  states the call contract once, and each seat names its own key: the review pass's review and dimension
+  comments, the dispatcher's review, grant and correction comments, the in-line gate verdict, held-merge
+  comments, outcome-record closes, the per-cycle umbrella comment, write-issue's and grounding's comments and
+  native sub-issue links. The bookkeeping that existed only to dodge duplicate or misattributed posts is gone.
+  **What stays raw**: a review threading findings inline, an `APPROVE` or `REQUEST_CHANGES` on another
+  account's PR, issue creation and body edits, and writes to a repo with no local checkout.
+
 ## 5.13.1
 
 - **This repo's own agent guidance now takes the layout its skills teach.** The root `AGENTS.md` is a router

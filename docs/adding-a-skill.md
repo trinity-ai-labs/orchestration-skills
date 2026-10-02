@@ -33,11 +33,14 @@ lands nowhere near the character that caused it.
 **Most semantics are out of that check's reach**, so two ports can pass every surface comparison and still
 behave differently on the same input — until 3.40.0 a failed install exited with the install tool's own status
 in bash and `1` in PowerShell, and nothing in the check could see it. The exception is `scripts/port-cases/`:
-one table of inputs asked of **both** implementations and compared, so a predicate written twice cannot
-diverge quietly, and a renamed predicate fails there rather than skipping — a silent rename is how the pair
-would stop being compared while the check kept reporting ok. What actually holds the pair together is the
-frozen contract in [AGENTS.md](../AGENTS.md) and the review of every change to it; the check catches the drift
-that shows on the surface.
+**one table of inputs per predicate**, each asked of **both** implementations and compared, so a predicate
+written twice cannot diverge quietly. A registry in `scripts/check.sh` names, for each table, the script and
+function in each port that answers it and how the answer is read — printed, or a yes/no exit status — so
+adding a predicate is a table plus one registry row. A renamed predicate fails there rather than skipping —
+a silent rename is how the pair would stop being compared while the check kept reporting ok — and for the
+same reason **a table no registry row names fails**, as does an empty registry. What actually holds the pair
+together is the frozen contract in [the helpers chapter](../.agents/rules/helpers.md) and the review of every
+change to it; the check catches the drift that shows on the surface.
 
 The gate also checks that every `skills/` path to a `.md` file cited in a tracked `.md` still resolves in the
 tree — a `SKILL.md` and a reference doc alike, since the two are the same coordinate with the same failure

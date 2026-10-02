@@ -6,7 +6,7 @@ every remaining item whose dependencies have already landed, and never a leaf wh
 and **held**, which reads as ready on dependencies alone — dispatches it, then **reconciles** everything
 still outstanding against the tree that increment actually produced, rewrites what remains, and goes round
 again until the plan is empty and the close-out is green. **Or until it is held**: where the checkpoint's
-flag holds that close-out merge — which, with `autoMergeEpic` defaulting to `false`, is how an ordinary
+key holds that close-out merge — which, with `autoMergeEpicCloseOut` defaulting to `false`, is how an ordinary
 epic's arc ends — the plan is empty, the work is done and the close-out is simply not green yet, so the loop
 reports which PR is waiting on you and stops there rather than halting over it. Merge it, or say go ahead,
 and the same command picks the arc up where it left off.
@@ -14,7 +14,11 @@ and the same command picks the arc up where it left off.
 **The plan those items sit in is a two-level tree of tasks — an umbrella and its sub-issues, the children
 being leaves — and it is cut once, when the issues are authored.** `/pipeline:write-issue` is the pass that
 decides how many children there are and what each one is; every pass after it walks to the ready leaves and
-grounds them, adding no level and no leaf the plan does not already hold.
+grounds them, adding no level and no leaf the plan does not already hold. **It sizes each child by the layers
+its Surface spans as well as by its goal** — a layer being a piece that reviews differently from its
+neighbours: an execution path, an HTTP route, an agent tool, prompts or skills, a UI, a component other
+consumers share — so a child spanning three or more is split along those seams unless its body says why they
+cannot land apart, a goal that reads as one behaviour being no proof that it is one PR.
 **One sub-issue is one slice is one worktree is one PR**, as a constraint rather than a default, and the
 horizon is the set of ready leaves. That is what lets a cycle tick a checklist line as it runs: the thing a
 cycle lands and the thing the tracker holds are the same object, where a cycle landing pieces of an issue
@@ -183,20 +187,21 @@ carries the approval a second signature would only duplicate.
 `/pipeline:review`, that pass reads the PR's own diff once the implementer's draft PR is open and posts its
 findings there as a review — the goal verdict, what it applied, what it rejected — before the dispatcher's
 loop has read anything. Same event `COMMENT`, same reason: the PR is self-authored. So two kinds of review
-legitimately sit on one PR, and **a reader tells them apart by position and content rather than by author**,
-since one account writes both: the panel's comes first and is the slice's own report on itself, written from
+legitimately sit on one PR, and **a reader tells them apart by the hidden key each carries and by content
+rather than by author**, since one account writes both: the panel's comes first and is the slice's own report on itself, written from
 the seat that wrote the code, and the dispatcher's follow it one per round, each naming what the next round
 is dispatched to fix. **Neither is the approval.** The `draft → ready` flip is still the only thing that
 means a dispatcher read this diff and is merging it, and a PR arriving with a panel review on it has been
 read by nobody but the seat that built it.
 
 **A third artifact can now sit on a PR, and unlike those two it can predate the flip by an arbitrary
-amount.** Three config keys — `autoMergeTrivial`, `autoMergeLeaves` and `autoMergeEpic`, one per merge
-checkpoint ([Per-project config](per-project-config.md#per-project-config)) — decide whether the dispatcher
-merges once its own pipeline is satisfied or holds and waits for a human to approve. Where a checkpoint's
-flag holds it, everything up to the merge runs exactly as it always has and the merge alone does not: the
-dispatcher posts a plain **comment** saying the pipeline is satisfied and that this checkpoint's flag is
-holding the merge, and the PR stays a **draft**, because the flip and the merge are one atomic step and a PR
+amount.** Three config keys — `autoMergeOntoIntegration`, `autoMergeOntoEpic` and `autoMergeEpicCloseOut`,
+one per merge checkpoint and each named for the branch its PR targets
+([Per-project config](per-project-config.md#per-project-config)) — decide whether the dispatcher merges once
+its own pipeline is satisfied or holds and waits for a human to approve. Where a checkpoint's key holds it,
+everything up to the merge runs exactly as it always has and the merge alone does not: the dispatcher posts a
+plain **comment** saying the pipeline is satisfied and naming the key holding the merge with the value it
+resolved to, and the PR stays a **draft**, because the flip and the merge are one atomic step and a PR
 left ready but unmerged is precisely the stale-approval state that step exists to prevent. **That comment is
 no more an approval than the gate's comment is** — the same distinction, one sentence: it says this flow has
 nothing left to do, never that anyone approved the merge. So a PR can sit for minutes or for weeks carrying a
@@ -209,8 +214,9 @@ reviewer's own findings and what the pass did with every one of them — applied
 out of scope — and the review links them, so one click from the summary reaches a dimension's full report.
 They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record naming the
 merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
-ran or was skipped and why, and links back to the PR's reviews, dimension comments and gate comment — so a
-closed issue says what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip
+ran or was skipped and why, links back to the PR's reviews, dimension comments and gate comment, and the
+arc's other PRs that landed beside it — so a closed issue says what happened to it without anyone opening the
+PR. The dispatcher writes that run-or-skip
 decision into its own review on the PR as well, so a PR with no panel review on it reads as a recorded skip
 or as a write that went missing, never as a blank that could be either.
 

@@ -86,7 +86,7 @@ that model's default, so a slice meant for the top tier runs at a tier nobody ch
 
 **Which extension.** `<name>.sh` for a Bash shell tool, `<name>.ps1` for a PowerShell one; arguments, env
 vars, the `READY:` line and exit codes are identical (`skills/procedures/worktree-helper.md` carries that
-contract). A native-Windows session without Git for Windows has **no bash at all**, so `.sh` there is a
+contract, and `skills/procedures/github-writes.md` carries `gh-post`'s). A native-Windows session without Git for Windows has **no bash at all**, so `.sh` there is a
 command that does not exist rather than a script that fails, and the error reads as a broken plugin.
 
 **Bare command, or absolute path.** Claude Code puts an enabled plugin's `bin/` on the shell tool's

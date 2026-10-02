@@ -210,23 +210,23 @@ Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you m
 have exactly one correct order, and syncing the local integration branch is the one nothing forces.
 
 **One check stands in front of everything below, and it is a NEW step rather than a change to any of them:
-whether this merge is yours to make at all.** Take the key off the branch this PR TARGETS, which is the
-question the three keys actually partition (`skills/procedures/config-keys.md`) — **`autoMergeLeaves`** where
-it targets an **epic branch**, so this PR is a leaf of that epic; **`autoMergeTrivial`** where it targets the
-**integration branch**, which is a standalone single-slice arc's PR and equally a slice of a multi-slice arc
-whose user asked it to merge as it lands (*The epic branch* → *Two rules reach for one*) — **that second case
-targets the shared branch and so reads `autoMergeTrivial`, not `autoMergeLeaves`**, since what the key turns
-on is where the merge puts the work rather than how big the arc is. **Absent means `true` for both**, so a
-project that has declared neither reaches every step below exactly as written. (**The third key,
-`autoMergeEpic`, governs the one PR neither of those describes** — an epic branch's own close-out into the
-integration branch — **and its absence means `false`**, the opposite reading; it is stated where that
-close-out is run, at *The epic branch* → *Mechanics*, and this paragraph is not it.)
-**`true` changes nothing at all** — carry
-straight on. **`false` holds the merge and only the merge**: the review loop above ran unconditionally and its
-satisfied review is already posted (*The PR review loop*), the gate's verdict is already on the PR, and what
-you do with all of it is post **one comment** saying the pipeline is satisfied — build, review and gate all
-green — and that this checkpoint's flag is holding the merge, then stop there. **The PR stays exactly as it
-is, which is a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`** — the ready flip lives one
+whether this merge is yours to make at all.** Take the key off the branch this PR TARGETS, which is what each
+key is named for (`skills/procedures/config-keys.md`): **`autoMergeOntoEpic`** where it targets an **epic
+branch**, and **`autoMergeOntoIntegration`** where it targets the **integration branch** — a standalone
+single-slice arc's PR, and equally a slice of a multi-slice arc whose user asked it to merge as it lands (*The
+epic branch* → *Two rules reach for one*). **Absent means `true` for both**, so a project that has declared
+neither reaches every step below exactly as written. (**The third key, `autoMergeEpicCloseOut`, governs the
+one PR neither of those describes** — an epic branch's own close-out into the integration branch — **and its
+absence means `false`**, the opposite reading; it is stated where that close-out is run, at *The epic branch*
+→ *Mechanics*, and this paragraph is not it.)
+**Every comment and report stating this merge's posture names the key you consulted and the value it resolved
+to** — *`autoMergeOntoIntegration` absent → `true` → merging* — so a reading off the wrong key shows at the
+moment it is stated.
+**`true` changes nothing at all** — carry straight on. **`false` holds the merge and only the merge**: the
+review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
+gate's verdict is already on the PR, and what you do with all of it is post **one comment** saying the
+pipeline is satisfied — build, review and gate all green — and that this checkpoint's key, by name and
+resolved value, is holding the merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`** — the ready flip lives one
 line above the merge precisely so a PR can never sit around wearing a review it has outgrown, and flipping it
 without merging is that state by hand. **None of the POST-MERGE steps below runs either** — the worktree stays
 up, the branch and its PR stay, the local integration branch is not synced, and the issues this PR settles

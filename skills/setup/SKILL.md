@@ -160,12 +160,22 @@ than it saves.
 ⚠️ **A key absent on purpose is not a delta to fix.** `upstreamFindings`, `epicMerge`, `install` and
 `envFiles` are all omitted deliberately by projects that mean it, and `integrationBranch` is omitted honestly
 by a project nobody has confirmed a branch for. **The three `autoMerge*` keys are the same case reaching
-every project at once**, since each ships with a default and no project onboarded before them declares any:
-`autoMergeTrivial` and `autoMergeLeaves` default to `true`, so declaring them changes nothing whatever and an
-undeclared pair is the answer rather than a gap, while `autoMergeEpic` defaults to HOLDING the epic close-out
-for a human — the one of the three whose absence a project might genuinely want to overturn, and so the one
-worth naming out loud rather than listing. Report what is undeclared and what declaring it would change;
-the decision is the project's.
+every project at once**, since each ships with a default and most projects declare none:
+`autoMergeOntoIntegration` and `autoMergeOntoEpic` default to `true`, so declaring them changes nothing
+whatever and an undeclared pair is the answer rather than a gap, while `autoMergeEpicCloseOut` defaults to
+HOLDING the epic close-out for a human — the one of the three whose absence a project might genuinely want to
+overturn, and so the one worth naming out loud rather than listing. Report what is undeclared and what
+declaring it would change; the decision is the project's.
+
+**Run the difference the other way too: a key the config declares that `examples/worktree.json` does not
+carry is read by nothing**, so a value set there governs nothing while looking set. Name each one, and where
+it is a key this plugin renamed, name its replacement — **no old name is honoured as an alias**:
+
+| Declared as | Now read as |
+|---|---|
+| `autoMergeTrivial` | `autoMergeOntoIntegration` |
+| `autoMergeLeaves` | `autoMergeOntoEpic` |
+| `autoMergeEpic` | `autoMergeEpicCloseOut` |
 
 ## Step 2 — Write `.agents/worktree.json`
 

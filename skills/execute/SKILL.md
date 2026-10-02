@@ -125,7 +125,8 @@ lines are the rules whose action needs no reference, so they live here and nowhe
 **Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`,
 `epicMerge`, the three `autoMerge*` keys deciding whether each merge is yours to make, brief
 conventions. Everything below is provisioned from it. →
-`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, and
+`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, the merge
+decision your dispatch report states included, and
 `skills/procedures/config-keys.md` for what each key MEANS and what its absence means. The helper you
 provision with is `skills/procedures/worktree-helper.md`, and your host's tool for every capability named
 below is `skills/procedures/host-tools.md`.

@@ -24,8 +24,10 @@
 # identifies a post is the hidden marker `<!-- pipeline:<key> -->` appended to its
 # body, built from a key the caller chooses to name the party and the purpose.
 # Before writing, the helper pages through ALL the comments (or reviews) on the
-# target looking for that exact marker; a key that merely shares a prefix does not
-# match, because the marker's closing ` -->` follows the key directly.
+# target for one whose LAST non-blank line is exactly that marker. A key that
+# merely shares a prefix does not match, because the marker's closing ` -->`
+# follows the key directly, and a post that only quotes the marker somewhere in
+# its body is not ours.
 #
 #   found     -> edit it in place (issue comments; review bodies via the
 #                reviews update endpoint)              UPDATED: <url>
@@ -107,15 +109,20 @@ function Get-PipelineMarker {
 }
 
 function Test-MarkerMatch {
-    # Does a body carry exactly this key's marker? An ordinal, case-sensitive
-    # substring test, as the bash sibling's `case` glob is: `gate/x` does not match
-    # a body marked `gate/x-retry`, since the marker's ` -->` must follow the key
-    # immediately.
+    # Is this key's marker the body's LAST non-blank line, exactly? That is where
+    # this helper always puts it, and anchoring there is what keeps another party's
+    # post that merely QUOTES a marker from being taken for ours and edited.
+    # Ordinal and case-sensitive, as the bash sibling's `case` glob is. Trailing
+    # spaces, tabs, CRs and newlines are ignored - the same four characters the
+    # sibling strips, never .NET's wider idea of whitespace.
     param(
         [AllowEmptyString()] [string] $Body,
         [AllowEmptyString()] [string] $Key
     )
-    return $Body.Contains((Get-PipelineMarker -Key $Key))
+    $marker = Get-PipelineMarker -Key $Key
+    $trimmed = $Body.TrimEnd(' ', "`t", "`r", "`n")
+    if ($trimmed -ceq $marker) { return $true }
+    return $trimmed.EndsWith("`n" + $marker, [StringComparison]::Ordinal)
 }
 
 function Get-ArgKind {
@@ -123,7 +130,8 @@ function Get-ArgKind {
     # call. Purely syntactic: no file is read and nothing is fetched. A plain
     # function reading $args, so an argument such as `--key` is a value here and
     # never taken for a parameter name. Every comparison is case-sensitive, as the
-    # bash sibling's are.
+    # bash sibling's are, and every pattern anchors on \z rather than $, which
+    # also matches before a final newline the bash `case` would refuse.
     $argv = @($args | ForEach-Object { [string] $_ })
     if ($argv.Count -lt 1) { return 'usage' }
     $kind = $argv[0]
@@ -157,7 +165,7 @@ function Get-ArgKind {
         $first = 1
     }
     for ($k = $first; $k -lt $npos; $k++) {
-        if ($pos[$k] -cnotmatch '^[1-9][0-9]*$') { return 'usage' }
+        if ($pos[$k] -cnotmatch '^[1-9][0-9]*\z') { return 'usage' }
     }
     if ($kind -ceq 'sub-issue' -and $pos[0] -ceq $pos[1]) { return 'usage' }
     $haveKey = $flags.ContainsKey('--key')
@@ -175,7 +183,7 @@ function Get-ArgKind {
     # A key is what goes inside an HTML comment, so it is held to a closed ASCII
     # set: no space, no `>` (which could close the comment early). -cmatch keeps
     # [A-Z] to the ASCII capitals.
-    if ($haveKey -and $flags['--key'] -cnotmatch '^[A-Za-z0-9._/:-]+$') { return 'usage' }
+    if ($haveKey -and $flags['--key'] -cnotmatch '^[A-Za-z0-9._/:-]+\z') { return 'usage' }
     if ($haveBody -and -not $flags['--body-file']) { return 'usage' }
     return $kind
 }
@@ -252,12 +260,12 @@ function Get-Target {
     $row = Invoke-GhApi -What "reading #$Number" -GhArgs @(
         "repos/{owner}/{repo}/issues/$Number",
         '--jq', '[(.pull_request != null), .state, .url, .state_reason] | @tsv')
-    $f = $row -split "`t"
+    $cols = $row -split "`t"
     $type = 'issue'
-    if ($f[0] -ceq 'true') { $type = 'pr' }
+    if ($cols[0] -ceq 'true') { $type = 'pr' }
     $reason = ''
-    if ($f.Count -gt 3) { $reason = $f[3] }
-    return [pscustomobject]@{ Type = $type; State = $f[1]; Api = $f[2]; Reason = $reason }
+    if ($cols.Count -gt 3) { $reason = $cols[3] }
+    return [pscustomobject]@{ Type = $type; State = $cols[1]; ApiUrl = $cols[2]; Reason = $reason }
 }
 
 function Assert-TargetType {
@@ -265,19 +273,21 @@ function Assert-TargetType {
         [Parameter(Mandatory = $true)] [string] $Number,
         [Parameter(Mandatory = $true)] [string] $Type
     )
-    $t = Get-Target -Number $Number
-    if ($t.Type -cne $Type) {
-        Exit-WithUsage "#$Number is $(Get-KindWord -Type $t.Type), not $(Get-KindWord -Type $Type)"
+    $target = Get-Target -Number $Number
+    if ($target.Type -cne $Type) {
+        Exit-WithUsage "#$Number is $(Get-KindWord -Type $target.Type), not $(Get-KindWord -Type $Type)"
     }
-    return $t
+    return $target
 }
 
 function Get-MarkedBodyFile {
-    # The body as posted: the caller's file with the marker appended, unless the
-    # file already carries it. Trailing newlines are dropped first, as the bash
-    # sibling's command substitution drops them, so both ports post the same bytes.
+    # The body as posted: the caller's file with the marker appended as its last
+    # line, unless the file already ends with it. Trailing LFs are dropped first,
+    # exactly as the bash sibling's command substitution drops them (and nothing
+    # else - a CR stays), so an LF or CRLF file posts the same text from both
+    # ports; a UTF-8 BOM, which ReadAllText consumes, is the one difference.
     param([Parameter(Mandatory = $true)] [string] $Dir)
-    $body = ([IO.File]::ReadAllText((Resolve-Path -LiteralPath $BodyFile).ProviderPath)).TrimEnd("`r", "`n")
+    $body = ([IO.File]::ReadAllText((Resolve-Path -LiteralPath $BodyFile).ProviderPath)).TrimEnd("`n")
     if (Test-MarkerMatch -Body $body -Key $Key) {
         $text = "$body`n"
     } else {
@@ -301,17 +311,17 @@ function Find-MarkedPost {
         '--jq', '.[] | [.id, .html_url, (.body | values | @base64)] | @tsv')
     foreach ($line in ($rows -split "`r?`n")) {
         if (-not $line) { continue }
-        $f = $line -split "`t"
+        $cols = $line -split "`t"
         $body = ''
-        if ($f.Count -gt 2 -and $f[2]) {
+        if ($cols.Count -gt 2 -and $cols[2]) {
             try {
-                $body = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($f[2]))
+                $body = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($cols[2]))
             } catch {
                 Exit-WithError "could not decode a body from $Endpoint"
             }
         }
         if (Test-MarkerMatch -Body $body -Key $Key) {
-            return [pscustomobject]@{ Id = $f[0]; Url = $f[1] }
+            return [pscustomobject]@{ Id = $cols[0]; Url = $cols[1] }
         }
     }
     return $null
@@ -366,11 +376,11 @@ try {
         }
         'close' {
             $n = $Pos[0]
-            $t = Assert-TargetType -Number $n -Type 'issue'
+            $target = Assert-TargetType -Number $n -Type 'issue'
             # The closing comment first, so its URL is on stdout before the state
             # change that can still fail.
             if ($Key) { Send-Comment -Number $n -Dir $TmpDir }
-            if ($t.State -ceq 'closed' -and $t.Reason -ceq $Reason) {
+            if ($target.State -ceq 'closed' -and $target.Reason -ceq $Reason) {
                 Write-Output "DECLINED: #$n is already closed as $Reason"
             } else {
                 $url = Invoke-GhApi -What "closing #$n as $Reason" -GhArgs @(
@@ -382,23 +392,23 @@ try {
         'sub-issue' {
             $parent = $Pos[0]
             $child = $Pos[1]
-            $p = Assert-TargetType -Number $parent -Type 'issue'
+            $parentTarget = Assert-TargetType -Number $parent -Type 'issue'
             $row = Invoke-GhApi -What "reading #$child" -GhArgs @(
                 "repos/{owner}/{repo}/issues/$child",
                 '--jq', '[(.pull_request != null), .id, .parent_issue_url] | @tsv')
-            $f = $row -split "`t"
-            if ($f[0] -cne 'false') { Exit-WithUsage "#$child is a pull request, not an issue" }
-            $childId = $f[1]
+            $cols = $row -split "`t"
+            if ($cols[0] -cne 'false') { Exit-WithUsage "#$child is a pull request, not an issue" }
+            $childId = $cols[1]
             $childParent = ''
-            if ($f.Count -gt 2) { $childParent = $f[2] }
-            if ($childParent -ceq $p.Api) {
+            if ($cols.Count -gt 2) { $childParent = $cols[2] }
+            if ($childParent -ceq $parentTarget.ApiUrl) {
                 Write-Output "DECLINED: #$child is already a sub-issue of #$parent"
             } elseif ($childParent) {
                 # Another parent's link is another party's decision; re-parenting
                 # it is not this helper's call.
                 # Named by number where that parent lives in this repo, by its URL
                 # where not.
-                $repoApi = $p.Api.Substring(0, $p.Api.LastIndexOf('/') + 1)
+                $repoApi = $parentTarget.ApiUrl.Substring(0, $parentTarget.ApiUrl.LastIndexOf('/') + 1)
                 if ($childParent.StartsWith($repoApi, [StringComparison]::Ordinal)) {
                     $childParent = '#' + $childParent.Substring($childParent.LastIndexOf('/') + 1)
                 }

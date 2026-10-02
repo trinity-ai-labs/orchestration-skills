@@ -24,6 +24,8 @@ comment	issue	5	--key	gate x	--body-file	f.md	usage
 comment	issue	5	--key	gate-->	--body-file	f.md	usage
 comment	issue	5	--key	café	--body-file	f.md	usage
 comment	issue	5	--key	-	--body-file	f.md	usage
+comment	issue	5	--key	gate/x\n	--body-file	f.md	usage
+comment	issue	5\n	--key	gate/x	--body-file	f.md	usage
 comment	issue	5	--key	gate/x	--body-file	-	usage
 comment	issue	5	6	--key	gate/x	--body-file	f.md	usage
 comment	issue	5	--key	gate/x	--body-file	f.md	--force	usage

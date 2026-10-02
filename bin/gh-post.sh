@@ -17,9 +17,10 @@
 # the hidden marker `<!-- pipeline:<key> -->` appended to its body, built from a
 # key the caller chooses to name the party and the purpose
 # (`gate-verdict/<leaf>`, `dispatcher-grant/<leaf>`). Before writing, the helper
-# pages through ALL the comments (or reviews) on the target looking for that exact
-# marker; a key that merely shares a prefix does not match, because the marker's
-# closing ` -->` follows the key directly.
+# pages through ALL the comments (or reviews) on the target for one whose LAST
+# non-blank line is exactly that marker. A key that merely shares a prefix does
+# not match, because the marker's closing ` -->` follows the key directly, and a
+# post that only quotes the marker somewhere in its body is not ours.
 #
 #   found     -> edit it in place (issue comments; review bodies via the
 #                reviews update endpoint)              UPDATED: <url>
@@ -47,7 +48,7 @@
 # and every write is REST through `gh api`, never the GraphQL `gh issue` / `gh pr`
 # writes.
 #
-# Exit: 0 on any of the four answers; 1 on a failed gh or git call, with a
+# Exit: 0 on any of the three answers; 1 on a failed gh or git call, with a
 # helper-owned message on stderr; 2 on bad usage (including a number that names
 # the wrong kind of thing - a PR where an issue was asked for, or the reverse).
 set -euo pipefail
@@ -79,13 +80,19 @@ build_marker() {
   printf '<!-- pipeline:%s -->' "$1"
 }
 
-# Does a body carry exactly this key's marker? A literal substring test, case
-# sensitive: `gate/x` does not match a body marked `gate/x-retry`, since the
-# marker's ` -->` must follow the key immediately.
+# Is this key's marker the body's LAST non-blank line, exactly? That is where
+# this helper always puts it, and anchoring there is what keeps another party's
+# post that merely QUOTES a marker - in prose, in a code span - from being taken
+# for ours and edited. Case sensitive and literal: `gate/x` does not match a body
+# marked `gate/x-retry`. Trailing spaces, tabs, CRs and newlines are ignored;
+# anything else after the marker, or before it on its line, is not.
 #   marker_matches <body> <key>
 marker_matches() {
-  case "$1" in
-  *"$(build_marker "$2")"*) return 0 ;;
+  local body="$1" marker nl=$'\n'
+  marker=$(build_marker "$2")
+  body="${body%"${body##*[!$' \t\r\n']}"}"
+  case "$body" in
+  "$marker" | *"$nl$marker") return 0 ;;
   *) return 1 ;;
   esac
 }
@@ -98,9 +105,8 @@ arg_kind() {
   local -a pos=()
   [ $# -gt 0 ] && shift
   case "$kind" in
-  comment) npos=2 ;;
+  comment | sub-issue) npos=2 ;;
   review | close) npos=1 ;;
-  sub-issue) npos=2 ;;
   *) echo usage; return 0 ;;
   esac
   while [ $# -gt 0 ]; do
@@ -211,15 +217,17 @@ gh_api() { # gh_api <what-for> <gh-api-arg>...
 
 # `issue` or `pr` for a number, so a call naming the wrong kind is refused as bad
 # usage before anything is written. One read also carries the state the close
-# kind needs. No jq expression here carries a string literal: Windows PowerShell
-# 5.1 strips embedded double quotes from a native command's arguments, and the
-# sibling port passes these same expressions; @tsv prints a null as empty. The possibly-empty field rides LAST: a tab is IFS whitespace, so
-# `read` collapses an empty field in the middle and shifts every one after it.
-target_type() { # target_type <n> - sets TARGET_TYPE, TARGET_STATE, TARGET_API, TARGET_REASON
+# kind needs.
+target_type() { # target_type <n> - sets TARGET_TYPE, TARGET_STATE, TARGET_API_URL, TARGET_REASON
+  # No jq expression in this file carries a string literal: Windows PowerShell 5.1
+  # strips embedded double quotes from a native command's arguments, and the
+  # sibling port passes these same expressions. @tsv prints a null as empty.
   gh_api "reading #$1" "repos/{owner}/{repo}/issues/$1" \
     --jq '[(.pull_request != null), .state, .url, .state_reason] | @tsv'
+  # The possibly-empty field rides LAST: a tab is IFS whitespace, so `read`
+  # collapses an empty field in the middle and shifts every one after it.
   local is_pr
-  IFS=$'\t' read -r is_pr TARGET_STATE TARGET_API TARGET_REASON <<<"$GH_OUT"
+  IFS=$'\t' read -r is_pr TARGET_STATE TARGET_API_URL TARGET_REASON <<<"$GH_OUT"
   if [ "$is_pr" = true ]; then TARGET_TYPE="pr"; else TARGET_TYPE="issue"; fi
 }
 
@@ -230,18 +238,19 @@ require_type() { # require_type <n> <issue|pr>
   [ "$TARGET_TYPE" = "$2" ] || usage "#$1 is $(kind_word "$TARGET_TYPE"), not $(kind_word "$2")"
 }
 
-# The body as posted: the caller's file with the marker appended, unless the file
-# already carries it (a re-run handed back the body it wrote last time).
-MARKED=""
-marked_body() {
+# The body as posted: the caller's file with the marker appended as its last line,
+# unless the file already ends with it (a re-run handed back the body it wrote
+# last time).
+MARKED_FILE=""
+marked_body_file() {
   local body marker
   body=$(cat "$BODY_FILE") || die "could not read $BODY_FILE"
   marker=$(build_marker "$KEY")
-  MARKED="$TMP_DIR/body.md"
+  MARKED_FILE="$TMP_DIR/body.md"
   if marker_matches "$body" "$KEY"; then
-    printf '%s\n' "$body" >"$MARKED"
+    printf '%s\n' "$body" >"$MARKED_FILE"
   else
-    printf '%s\n\n%s\n' "$body" "$marker" >"$MARKED"
+    printf '%s\n\n%s\n' "$body" "$marker" >"$MARKED_FILE"
   fi
 }
 
@@ -265,15 +274,15 @@ find_marked() { # find_marked <what-for> <list-endpoint>
 }
 
 post_comment() { # post_comment <n>
-  marked_body
+  marked_body_file
   find_marked "listing the comments on #$1" "repos/{owner}/{repo}/issues/$1/comments"
   if [ -n "$FOUND_ID" ]; then
     gh_api "editing comment $FOUND_URL" -X PATCH "repos/{owner}/{repo}/issues/comments/$FOUND_ID" \
-      -F "body=@$MARKED" --jq .html_url
+      -F "body=@$MARKED_FILE" --jq .html_url
     echo "UPDATED: $GH_OUT"
   else
     gh_api "commenting on #$1" -X POST "repos/{owner}/{repo}/issues/$1/comments" \
-      -F "body=@$MARKED" --jq .html_url
+      -F "body=@$MARKED_FILE" --jq .html_url
     echo "POSTED: $GH_OUT"
   fi
 }
@@ -286,30 +295,30 @@ comment)
   post_comment "${POS[1]}"
   ;;
 review)
-  N="${POS[0]}"
-  require_type "$N" pr
-  marked_body
-  find_marked "listing the reviews on PR #$N" "repos/{owner}/{repo}/pulls/$N/reviews"
+  PR="${POS[0]}"
+  require_type "$PR" pr
+  marked_body_file
+  find_marked "listing the reviews on PR #$PR" "repos/{owner}/{repo}/pulls/$PR/reviews"
   if [ -n "$FOUND_ID" ]; then
-    gh_api "editing review $FOUND_URL" -X PUT "repos/{owner}/{repo}/pulls/$N/reviews/$FOUND_ID" \
-      -F "body=@$MARKED" --jq .html_url
+    gh_api "editing review $FOUND_URL" -X PUT "repos/{owner}/{repo}/pulls/$PR/reviews/$FOUND_ID" \
+      -F "body=@$MARKED_FILE" --jq .html_url
     echo "UPDATED: $GH_OUT"
   else
-    gh_api "posting a review on PR #$N" -X POST "repos/{owner}/{repo}/pulls/$N/reviews" \
-      -f event=COMMENT -F "body=@$MARKED" --jq .html_url
+    gh_api "posting a review on PR #$PR" -X POST "repos/{owner}/{repo}/pulls/$PR/reviews" \
+      -f event=COMMENT -F "body=@$MARKED_FILE" --jq .html_url
     echo "POSTED: $GH_OUT"
   fi
   ;;
 close)
-  N="${POS[0]}"
-  require_type "$N" issue
+  ISSUE="${POS[0]}"
+  require_type "$ISSUE" issue
   # The closing comment first, so its URL is on stdout before the state change
   # that can still fail.
-  [ -z "$KEY" ] || post_comment "$N"
+  [ -z "$KEY" ] || post_comment "$ISSUE"
   if [ "$TARGET_STATE" = closed ] && [ "$TARGET_REASON" = "$REASON" ]; then
-    echo "DECLINED: #$N is already closed as $REASON"
+    echo "DECLINED: #$ISSUE is already closed as $REASON"
   else
-    gh_api "closing #$N as $REASON" -X PATCH "repos/{owner}/{repo}/issues/$N" \
+    gh_api "closing #$ISSUE as $REASON" -X PATCH "repos/{owner}/{repo}/issues/$ISSUE" \
       -f state=closed -f "state_reason=$REASON" --jq .html_url
     echo "UPDATED: $GH_OUT"
   fi
@@ -317,19 +326,19 @@ close)
 sub-issue)
   PARENT="${POS[0]}" CHILD="${POS[1]}"
   require_type "$PARENT" issue
-  PARENT_API="$TARGET_API"
+  PARENT_API_URL="$TARGET_API_URL"
   gh_api "reading #$CHILD" "repos/{owner}/{repo}/issues/$CHILD" \
     --jq '[(.pull_request != null), .id, .parent_issue_url] | @tsv'
   IFS=$'\t' read -r CHILD_IS_PR CHILD_ID CHILD_PARENT <<<"$GH_OUT"
   [ "$CHILD_IS_PR" = false ] || usage "#$CHILD is a pull request, not an issue"
-  if [ "$CHILD_PARENT" = "$PARENT_API" ]; then
+  if [ "$CHILD_PARENT" = "$PARENT_API_URL" ]; then
     echo "DECLINED: #$CHILD is already a sub-issue of #$PARENT"
   elif [ -n "$CHILD_PARENT" ]; then
     # Another parent's link is another party's decision; re-parenting it is not
     # this helper's call.
     # Named by number where that parent lives in this repo, by its URL where not.
     case "$CHILD_PARENT" in
-    "${PARENT_API%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
+    "${PARENT_API_URL%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
     esac
     die "#$CHILD is already a sub-issue of $CHILD_PARENT - not re-parenting it under #$PARENT"
   else

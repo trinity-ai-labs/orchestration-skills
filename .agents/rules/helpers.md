@@ -65,23 +65,25 @@ attach a worktree to a branch that is already there (no base — an existing bra
 already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
 `merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path; `setup-workspace`
 takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
-`READY: <path>`. `gh-post` makes one of this flow's GitHub writes so that a re-run never duplicates it: it takes
-`comment <issue|pr> <n> --key <key> --body-file <file>`, `review <pr-n> --key <key> --body-file <file>`,
-`close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]` or
-`sub-issue <parent-n> <child-n>`, reads only `REPO`, and prints `POSTED: <url>` (a new post or link),
-`UPDATED: <url>` (the post carrying the marker `<!-- pipeline:<key> -->` was edited in place, or the close was
-written) or `DECLINED: <reason>` (nothing to do, which is an answer, never an error). Those three lines are its
-whole stdout. Each is one line, except `close` with a closing comment, which prints the comment's line first and
-the state line second. It finds its own post by that exact marker, paging through every comment or review, and
-never by author, position or recency, since every party writes as the same `gh` account. A re-run of `review`
-edits the review BODY only, so inline comments are never re-posted or updated through it. A sub-issue already
-under a different parent exits `1` and is never re-parented. Bodies go through `-F body=@file`, and every write
-is REST. It exits `0` on any of the three lines, `1` on a failed `gh` or `git` call (with a helper-owned
-message), and `2` on bad usage, including a number naming the wrong kind of thing (a PR where an issue was asked
-for, or the reverse). The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
+`READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
 its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed
 exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through,
 and never a silent success: a substitution inside an `echo` takes its status from the `echo`.
+
+`gh-post` makes one of this flow's GitHub writes so that a re-run never duplicates it. It takes
+`comment <issue|pr> <n> --key <key> --body-file <file>`, `review <pr-n> --key <key> --body-file <file>`,
+`close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]` or
+`sub-issue <parent-n> <child-n>`, and reads only `REPO`. Its whole stdout is three lines: `POSTED: <url>` (a new
+post or link), `UPDATED: <url>` (its own post edited in place, or the close written) and `DECLINED: <reason>`
+(nothing to do, which is an answer and never an error). Each call prints one, except `close` with a closing
+comment, which prints the comment's line first and the state line second. Its own post is the one whose LAST
+non-blank line is exactly `<!-- pipeline:<key> -->`, found across every comment or review on the target and
+never by author, position or recency, since every party writes as the same `gh` account; a post that only
+quotes the marker elsewhere in its body is never taken for its own. A re-run of `review` edits the review BODY
+only, so inline comments are never re-posted or updated through it. A sub-issue already under a different
+parent exits `1` and is never re-parented. It exits `0` on any of the three lines, `1` on a failed `gh` call
+as on a failed `git` one, and `2` on bad usage, including a number naming the wrong kind of thing (a PR where
+an issue was asked for, or the reverse).
 
 ## The `bin/` parity rule
 
@@ -103,10 +105,11 @@ the fact. **Surface parity is one half; the other half runs the code.** The pari
 no claim about behaviour, so a predicate written twice can diverge and stay green on everything else —
 surfacing as the same PR merging differently depending on which shell the platform handed the user.
 Each `scripts/port-cases/*.tsv` is one predicate's table asked of BOTH implementations, and a case added there is
-answered by each. A registry in `scripts/check.sh` names, for each table, the function in each port that answers it.
+answered by each. A registry in `scripts/check.sh` names, for each table, the function in each port that
+answers it.
 **A missing predicate is a failure, not a skip**: renaming one is exactly how the pair would stop being
-compared while the check kept reporting ok. So is a table no registry row names, and an empty registry. Where `pwsh` is absent the bash half still runs and the PowerShell
-half says plainly that it did not.
+compared while the check kept reporting ok. So is a table no registry row names, and an empty registry. Where
+`pwsh` is absent the bash half still runs and the PowerShell half says plainly that it did not.
 
 `scripts/check.sh`'s parity check fails closed on: a missing sibling in either direction; a usage-line
 mismatch, read from each script's runtime `usage:` line rather than its comments; a mismatch in which CONTRACT

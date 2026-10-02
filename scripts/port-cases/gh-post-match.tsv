@@ -1,12 +1,21 @@
-# gh-post: does a body carry exactly this key's marker? Read by BOTH ports
-# (marker_matches / Test-MarkerMatch). It decides which post a re-run edits, so a
-# false yes edits another party's post and a false no posts a duplicate.
+# gh-post: is this key's marker the body's LAST non-blank line, exactly? Read by
+# BOTH ports (marker_matches / Test-MarkerMatch). It decides which post a re-run
+# edits, so a false yes edits another party's post and a false no posts a duplicate.
 #
 # body	key	expect
 # "-" means an empty string; "\n" in a body is a newline.
 verdict\n\n<!-- pipeline:gate/x -->	gate/x	yes
 <!-- pipeline:gate/x -->	gate/x	yes
-text <!-- pipeline:gate/x --> more	gate/x	yes
+verdict\n\n<!-- pipeline:gate/x -->\n	gate/x	yes
+verdict\n\n<!-- pipeline:gate/x -->\n\n   \n	gate/x	yes
+verdict\n\n<!-- pipeline:gate/x -->  	gate/x	yes
+text <!-- pipeline:gate/x --> more	gate/x	no
+see <!-- pipeline:gate/x --> for how it works	gate/x	no
+quoting <!-- pipeline:gate/x -->\n\n<!-- pipeline:other/y -->	gate/x	no
+quoting <!-- pipeline:gate/x -->\n\n<!-- pipeline:other/y -->	other/y	yes
+<!-- pipeline:gate/x -->\nanswered below	gate/x	no
+verdict\n  <!-- pipeline:gate/x -->	gate/x	no
+verdict <!-- pipeline:gate/x -->	gate/x	no
 verdict\n\n<!-- pipeline:gate/x-retry -->	gate/x	no
 verdict\n\n<!-- pipeline:gate/x -->	gate/x-retry	no
 verdict\n\n<!-- pipeline:gate/x -->	gate	no
@@ -17,6 +26,7 @@ verdict\n\n<!--pipeline:gate/x -->	gate/x	no
 pipeline:gate/x	gate/x	no
 -	gate/x	no
 <!-- pipeline:a -->\n<!-- pipeline:b -->	b	yes
+<!-- pipeline:a -->\n<!-- pipeline:b -->	a	no
 <!-- pipeline:a -->\n<!-- pipeline:b -->	c	no
 <!-- pipeline:a.b -->	a*b	no
 <!-- pipeline:a?b -->	a?b	yes

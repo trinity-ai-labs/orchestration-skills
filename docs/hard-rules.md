@@ -170,8 +170,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   account — and edits it in place, so a re-run never duplicates a post and never touches another party's.
   Where a key carries the head SHA, each round keeps a post of its own. Two review forms stay raw `gh api`
   calls because the helper posts a review body with event `COMMENT` only: a review threading its findings on
-  the lines they concern, and `APPROVE` or `REQUEST_CHANGES` on a PR another account authored. Issue creation
-  and body edits stay raw too. The call's contract is
+  the lines they concern, and `APPROVE` or `REQUEST_CHANGES` on a PR another account authored. Issue creation,
+  body edits and any write to a repository with no local checkout to run the helper from stay raw too. The call's contract is
   [`skills/procedures/github-writes.md`](../skills/procedures/github-writes.md).
 - **The run's tests are single files, and a change to a module's exports widens which files, never to a
   suite.** An implementer runs one targeted test file while it builds; where its change adds, removes or

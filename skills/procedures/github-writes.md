@@ -24,7 +24,9 @@ gh-post.sh sub-issue <parent-n> <child-n>
   treats as its own only a post whose LAST non-blank line is exactly that marker, found across every comment
   or review on the target — never by author, position or recency, since every party writes as the one `gh`
   account. **So the same key edits one post in place, and a different key is a different post**: put in the
-  key whatever must stay separate (a round, a head SHA), and leave out whatever must not.
+  key whatever must stay separate (a round, a head SHA), and leave out whatever must not. A `<leaf>` in a key
+  is the branch leaf (`skills/glossary/mechanics/branch-leaf.md`), so every write about one slice derives the
+  same one.
 - **`review` writes the review BODY only, with event `COMMENT`**, and a re-run edits that body in place. A
   review that threads findings on lines, or carries `APPROVE` or `REQUEST_CHANGES`, is outside its kinds.
 - **`close` with `--key` posts or updates its closing comment first, then closes** with the reason.
@@ -47,6 +49,7 @@ naming the wrong kind of thing, a PR where an issue was asked for or the reverse
 its write exists, so a `1` after a `POSTED:` line means the comment landed and the follow-up did not. **Keep
 the URL it prints**: it is the link to the post, and needs no refetch to find.
 
-**Issue CREATION, BODY edits, and a review with inline comments or another event are not among its kinds** —
+**Issue CREATION, BODY edits, a review with inline comments or another event, and any write to a repository
+with no local checkout to run it from are not among what it does** —
 they stay raw `gh api` calls, with the body sent by `skills/glossary/mechanics/gh-api-file-body.md`'s rule, and
 nothing makes them safe to re-run.

@@ -2,8 +2,7 @@
 
 GitHub models a parent/child issue relationship natively, separately from any markdown that mentions it.
 The **native link** is one REST `POST` to the parent's `issues/<umbrella>/sub_issues` endpoint, carrying the
-child as `sub_issue_id`; this flow makes it through the `gh-post` helper's `sub-issue` kind, which resolves
-that id itself and declines a link already made.
+child as `sub_issue_id`.
 
 **`sub_issue_id` is the child's database id (`.id`, e.g. `5261102081`), not its issue number.** They are
 different fields on the same issue object and both are plain integers, so nothing about a value's shape

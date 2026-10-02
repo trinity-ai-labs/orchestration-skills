@@ -170,7 +170,7 @@ says a gate finished, not that anyone read the change.
 
 Gate the integrated whole when a merge combined work from more than one slice, then merge, clean up and sync
 as one step, and close each issue the PR settled with a comment that is its outcome record — one `gh-post`
-close per issue, keyed `outcome/<n>` (`skills/procedures/github-writes.md`).
+close per issue, keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.

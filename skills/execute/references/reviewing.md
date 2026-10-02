@@ -123,7 +123,8 @@ record having read it, and a red comment you have *judged* is not a blocker, onl
 carefully. **This window changes what a satisfied pipeline LOOKS like and never who may merge, so the
 checkpoint's `autoMerge*` key is read here exactly as it is on any other merge** (*Merge & cleanup*): a
 judged-green baseline failure is a satisfied pipeline, and where that key holds the merge you post the
-holding comment, naming the key and the value it resolved to, on that same bar instead of invoking the helper.
+holding comment, naming the key and the value it resolved to, on that same bar instead of invoking
+`merge-pr.sh`.
 
 ---
 
@@ -192,7 +193,7 @@ fall back to the first SHA-shaped token in the text.** A verdict has every reaso
 baseline it measured against most of all, and the first token in the comment is routinely that one: a commit
 on the integration branch the PR's head will never equal, which fails this comparison in the direction that
 manufactures work rather than the one that catches a stale verdict. **Compare timestamp against commit time
-instead**: the comment's own post time against HEAD's, taken as one commit rather than the whole log (`git log
+instead**: the comment's last-edit time (`updated_at`, since a re-gate edits its verdict in place) against HEAD's, taken as one commit rather than the whole log (`git log
 -1 --format=%cI`) — covered where HEAD committed no later than the verdict posted, stale where it committed
 after, the same reading the SHA comparison above gives when one is nameable.
 

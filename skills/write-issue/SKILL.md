@@ -161,7 +161,7 @@ FAILURE, not a subject area.** A finding buried in a neighbour closes when the h
 A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork,
 why it is not the one already there, and **at least one file, symbol or route**, since the loop re-tests this
 comment's verdict by intersecting exactly those and a comment carrying none reaches it as the narrowest input
-it ever gets — via Step 4's comment endpoint.
+it ever gets — via Step 4's comment call.
 
 ---
 
@@ -297,8 +297,8 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   - Edit body: `gh api -X PATCH repos/{owner}/{repo}/issues/<N> -F "body=@<file>"`
 - **Comment, close and native-link through `gh-post`** (`skills/procedures/github-writes.md`), so a re-run
   edits or declines rather than repeating: a comment is
-  `gh-post.sh comment issue <N> --key write-issue/<N>/<what it adds> --body-file <file>`, the key naming what
-  that comment adds so a second, different addition posts its own.
+  `gh-post.sh comment issue <N> --key write-issue/<N>/<what-it-adds> --body-file <file>`, the last segment a
+  short slug naming what that comment adds, so a second, different addition posts its own.
 - **Milestone** takes a number, not a title — resolve it first
   (`gh api repos/{owner}/{repo}/milestones --jq '.[] | "\(.number)\t\(.title)"'`) and pass
   `-F "milestone=<n>"`.

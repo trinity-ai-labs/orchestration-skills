@@ -409,8 +409,7 @@ gh-post.sh comment pr <n> --key review-pass/<n>/<sha>/<dimension> --body-file <f
 ```
 
 **`<n>` is the PR's number and `<sha>` the head you read**, so a resumed pass edits its own comments in place
-and a later pass on a new head posts its own; the line it prints carries the comment's URL
-(`skills/procedures/github-writes.md`). **A dimension
+and a later pass on a new head posts its own (`skills/procedures/github-writes.md`). **A dimension
 you judged this slice did not need gets no comment** and is named in the review body as before, and one
 that dispatched and never reported gets a comment saying so, since a missing comment reads as a missing
 write. **Nothing of this goes onto the issue the PR implements** — the dispatcher's closing comment there
@@ -614,7 +613,7 @@ tell you which you have while `git status` and `git log` against the PR's base c
 comment a reviewer posted, and an issue it opened, leave nothing in the tree at all**, so those are checked
 on the PR and on the tracker rather than inferred from a clean `git status` — and the PR now carries writes
 that ARE authorized, the review and the dimension comments you post at step 4, so read a review or a
-comment found there by whether it is one step 4 posted under your `review-pass/<n>/<sha>` key rather than by
+comment found there by whether it is one step 4 posted under your `review-pass/<n>/<sha>[/<dimension>]` keys rather than by
 its presence. An
 unauthorized write left standing costs more than the mess it makes: once one is in play nothing can
 tell authorized work from rogue work, and a sibling implementer seeing a branch and a PR appear mid-run

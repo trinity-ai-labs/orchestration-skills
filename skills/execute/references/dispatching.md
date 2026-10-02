@@ -431,7 +431,9 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
 - **A correction sent as a message leaves NO artifact, so put it where it outlives the run.** The agent's
   context dies with the agent, and the next reader — a fix agent, the PR reviewer, whoever picks the arc up
   tomorrow — sees only that the code came out a certain way. Write the correction onto the issue or PR the
-  brief points at, as a comment that explicitly supersedes what it replaces, and point the live agent at it.
+  brief points at, as a comment that explicitly supersedes what it replaces —
+  `gh-post.sh comment <issue|pr> <n> --key dispatcher-correction/<leaf>/<what-it-corrects> --body-file <file>`
+  — and point the live agent at it.
   **This is the half a message loses against a re-dispatch and the reason it is not simply cheaper**: a fresh
   brief is durable by construction and a message is not, so the durability has to be added by hand.
 - **A correction is CARRIED into the next tick as a check with an expected VALUE, since *not yet applied* and
@@ -467,7 +469,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
     slice's PR before you review its diff — headed `## Dispatcher grant`, the heading the brief names as yours,
     and saying in as many words that it supersedes the brief's fence on that path. **Post it with
     `gh-post.sh comment <issue|pr> <n> --key dispatcher-grant/<leaf> --body-file <file>`, the body carrying
-    every grant the slice holds**, so the next grant edits that one comment rather than adding another
+    every grant the slice holds**, so on each target the next grant edits that one comment rather than adding
+    another
     (`skills/procedures/github-writes.md`). **Where the subject is
     *every occurrence of X* rather than one path, the grant is an ENUMERATION and you write it as the named
     paths that derivation resolves to** — derive the extent from a
@@ -571,7 +574,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   paths, and which brief items those already satisfy — so it builds on them rather than redoing them.
   **Restart from `$FP` only where what is there cannot be trusted**, making the work a git object first
   (`skills/ground-rules/SKILL.md`, rules 6 and 7), and write which you chose, and why, on the slice's issue or
-  PR, since the agent that knew is gone and that comment is the only record.
+  PR (`gh-post.sh comment <issue|pr> <n> --key dispatcher-recovery/<leaf> --body-file <file>`), since the
+  agent that knew is gone and that comment is the only record.
 - **⛔ An unchanged DIGEST asks a question and never authorizes a resume on its own.** Two consecutive ticks at
   the same digest mean you cannot see work, not that there is none, so send the message that asks what the
   agent is waiting on — never one telling it to carry on, and never a re-dispatch, which discards everything

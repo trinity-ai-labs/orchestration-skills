@@ -362,10 +362,11 @@ contract-seam map, a running union rather than a per-cycle re-derivation.** Seed
 `Seams` field, grow it with each cycle's breakdown, keep it in the **body** beside the plan, never assembled
 from the comment thread; a closed seam leaves it and *The seam map* records why.
 
-Read the issue with `gh issue view <N> --comments`; write the rewritten body and each increment comment
-through the `gh api` REST endpoints, passing a body read from a file with `--field`, never `--raw-field` —
-only `--field` expands a leading `@` into the file's contents, and the raw form stores the path and
-**exits 0 with a comment URL**.
+Read the issue with `gh issue view <N> --comments`. Post each increment comment with
+`gh-post.sh comment issue <N> --key cycle/<N>/<landed-pr> --body-file <file>`
+(`skills/procedures/github-writes.md`), the landed PR keeping each cycle's comment its own, since the counts
+above read across them. Write the rewritten body through the `gh api` REST endpoint with a body read from a
+file by `-F`, never `-f` (`skills/glossary/mechanics/gh-api-file-body.md`).
 
 **In-chat, with no issue,** the plan and the seam map are **restated in full each cycle** rather than referred
 back to; past roughly two increments, file an umbrella.

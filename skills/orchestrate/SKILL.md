@@ -262,7 +262,8 @@ finds what happened without opening a PR: the PR that settled it and the merge c
 your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran or was skipped and
 why, and links to that PR's dimension comments, its reviews and its gate comment — the umbrella's naming the
 close-out PR and each leaf's PR. Post it with the close,
-`gh-post.sh close <n> --reason completed --key outcome/<n> --body-file <file>`
+`gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>`, `<pr>` the one that
+settled it
 (`skills/procedures/github-writes.md`), which a re-run edits rather than repeats, and name no AI
 in it — no trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.
 **They stay OPEN where that close-out is held rather than merged** — the closes are
@@ -301,7 +302,9 @@ termination takes a green close-out and a merge that has not happened is not one
 reports a problem and recommends a re-plan nothing here calls for — the plan emptied, the work landed as
 written, and the only thing outstanding is a signature.
 **Whichever exit the arc leaves by, the follow-ups it leaves behind are told so** — comment on each issue
-filed out of this arc, keyed `arc-exit/<n>`, that it did not land, that the loop is not coming back, and
+filed out of this arc —
+`gh-post.sh comment issue <n> --key arc-exit/<n> --body-file <file>`, `<n>` that follow-up — that it did not
+land, that the loop is not coming back, and
 **which state *Fold vs. file* left it in**. **They are not among the issues the close-out closes**, and
 **a halt owes this exactly as termination does** — **and a held arc owes none of it**, since it has not
 left: the loop is due back the moment that PR merges, so telling a follow-up otherwise writes down the one

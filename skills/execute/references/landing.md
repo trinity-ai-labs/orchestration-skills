@@ -225,7 +225,7 @@ moment it is stated.
 **`true` changes nothing at all** — carry straight on. **`false` holds the merge and only the merge**: the
 review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
 gate's verdict is already on the PR, and what you do with all of it is post **one comment**
-(`gh-post.sh comment pr <n> --key merge-held/<n> --body-file <file>`, which a later pass edits rather than
+(`gh-post.sh comment pr <pr> --key merge-held/<pr> --body-file <file>`, which a later pass edits rather than
 repeats) saying the pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is holding the
 merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and
 never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never sit
@@ -245,7 +245,7 @@ instruction handled like any other — `merge-pr.sh <pr-number>` runs completely
 this file applies unchanged from there. ⚠️ **A hold is unbounded, so treat the base as having MOVED when you
 come back to it**: `merge-pr.sh` preflights mergeability and stops cleanly on a conflict, but a gate verdict
 older than the base it is now merging into is a verdict about a tree nobody holds, so re-gate before you
-merge where the base has moved since that comment went up.
+merge where the base has moved since that comment was last written.
 
 The steps below have exactly one correct order, and syncing the local integration branch is the one with
 **no forcing feedback** — every visible signal after the merge (`✓ Merged`, branch deleted, PR closed) says
@@ -300,10 +300,10 @@ question from the one above: what did THIS PR settle.** The issues this PR settl
 issue no single increment settles — an umbrella, or an arc whose next cycle is still to run — closes when the
 arc does, at the loop's own termination check, not this step.
 ```sh
-gh-post.sh close <n> --reason completed --key outcome/<n> --body-file <file>
+gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>
 ```
-It posts the outcome record below and then closes, declining the close where GitHub already made it
-(`skills/procedures/github-writes.md`).
+(`skills/procedures/github-writes.md`), `<pr>` being the PR that settled it, so a later close of the same
+issue adds its own record rather than overwriting this one.
 
 **That comment is the issue's OUTCOME RECORD, not a pointer to one** — a reader landing on a closed issue
 should find what merged, your verdict, what was turned down or left out of scope and whether review ran,

@@ -309,7 +309,7 @@ that comparison rather than preparation for it, is in
     ├── ground-rules/SKILL.md     # the rules identical at every seat — read first by every pass, citing none
     ├── procedures/               # steps this pipeline OWNS, identical at every seat — cited by every pass, citing none
     │   ├── SKILL.md              # the index, and the admission property in its own voice
-    │   ├── worktree-helper.md    # the helpers' frozen command-line contract
+    │   ├── worktree-helper.md    # the worktree helpers' frozen command-line contract
     │   ├── github-writes.md      # gh-post's call: comment, review, close, sub-issue link, safe to re-run
     │   ├── config-keys.md        # what each .agents/worktree.json key means, and what its absence means
     │   ├── host-tools.md         # the one file naming a host's tools, models and paths

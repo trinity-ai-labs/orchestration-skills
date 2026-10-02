@@ -1,6 +1,6 @@
 # The worktree helpers
 
-Entry in `skills/procedures/SKILL.md`. **The command-line contract of the helpers this plugin ships, and
+Entry in `skills/procedures/SKILL.md`. **The command-line contract of the worktree helpers this plugin ships, and
 it is FROZEN** — the arguments, the recovery form, what a run creates, what it prints, and what it
 refuses. Read it before you run one, and before you accept a tree somebody else ran one to make.
 

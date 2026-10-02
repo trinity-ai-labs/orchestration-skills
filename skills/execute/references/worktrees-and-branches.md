@@ -299,8 +299,9 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   worktree** — that tree already exists and IS the merge point, so never cut a fresh one for this and never
   open a second PR — and it applies what you accepted, runs the project's scoped check and the test budget a
   fix agent's brief states (`skills/execute/references/reviewing.md`), commits, and pushes onto this SAME
-  close-out PR. **Where the project declares `install`, run it in that tree before the fix agent's check** — that tree outlives every merge landing in it, and a stale install there presents as a
-  module-resolution failure that reads as a defect in the merged code and sends the agent against code that
+  close-out PR. **Where the project declares `install`, run it in that tree before the fix agent's check** —
+  that tree outlives every merge landing in it, and a stale install there presents as a module-resolution
+  failure that reads as a defect in the merged code and sends the agent against code that
   is correct. **That is the one DISPATCHED exception to *nobody codes in the epic worktree* above**, and the
   fix agent commits and pushes for the reason every writer in that tree does: the gate ticket you raise next
   refuses a worktree carrying uncommitted tracked changes, and nothing takes a ticket back.

@@ -121,9 +121,9 @@ a regression; the absolute count drifts between tasks forked at different tips a
 it clears that bar, merge it with `merge-pr.sh` on that bar rather than a green exit — the merge is where you
 record having read it, and a red comment you have *judged* is not a blocker, only a verdict you have to read
 carefully. **This window changes what a satisfied pipeline LOOKS like and never who may merge, so the
-checkpoint's `autoMerge*` flag is read here exactly as it is on any other merge** (*Merge & cleanup*): a
-judged-green baseline failure is a satisfied pipeline, and where that flag holds the merge you post the
-holding comment on that same bar instead of invoking the helper.
+checkpoint's `autoMerge*` key is read here exactly as it is on any other merge** (*Merge & cleanup*): a
+judged-green baseline failure is a satisfied pipeline, and where that key holds the merge you post the
+holding comment, naming the key and the value it resolved to, on that same bar instead of invoking the helper.
 
 ---
 
@@ -307,8 +307,9 @@ a trailer is permanent history in a flow that never rebases, while a PR body or 
 repository has already been published.
 
 **A fence grant you made mid-build sits in exactly that class, and only you can supply it — post any grant
-this slice worked under onto its PR before you post this round's review**, since a diff carrying edits outside
-the brief's fence with nothing explaining them reads as drift to a reviewer who checks it against that brief
+this slice worked under onto its PR, headed `## Dispatcher grant`, before you post this round's review**,
+since a diff carrying edits outside the brief's fence with nothing explaining them reads as drift to a
+reviewer who checks it against that brief
 and as nothing at all to one who does not. **Attach the write to the review rather than to the PR opening**,
 an event nothing re-presents to you: an implementer that pushes, opens its draft PR and hands back as one
 closing sequence leaves no window between the two for a poll to land in, where a review cannot be skipped
@@ -389,13 +390,13 @@ rather than typed.
 If it needs changes, **dispatch a FRESH fix agent into that same worktree** (never a fork — it would inherit
 your dispatcher conversation), **naming its model tier for THIS round rather than carrying the slice's** — a
 fix round is usually cheaper than the build it corrects, a few named seats with the wording already supplied,
-so the tier the slice was dispatched at is the wrong default and an unstated one hands the agent yours — and
-**stating its test budget**: the test files it touches, plus, where the round changes a module's export
-surface — adds, removes or renames an export, or moves code between modules, converging duplicates onto a
-shared helper included — every test file that mocks or imports that module, found by grepping its specifier,
-still single files and never a suite — but
-only once that worktree's ticket has SETTLED, or has not been raised at all. **On the FIRST round it has not
-been raised**: you enqueue after this read, by the order above, so the tree is free and the round costs no
+so the tier the slice was dispatched at is the wrong default and an unstated one hands the agent yours — but
+only once that worktree's ticket has SETTLED, or has not been raised at all. **Its brief states its test
+budget**: the test files it touches, plus, where the round changes a module's export surface (adds, removes or
+renames an export, moves code between modules, or converges duplicates onto a shared helper), every test file
+that mocks or imports that module, found by grepping its specifier — still single files, never a suite. **On
+the FIRST round it has not been raised**: you enqueue after this read, by the order above, so the tree is free
+and the round costs no
 withdraw. On a later round the test is the ticket's EXISTENCE rather than whether a gate is observably
 running — a ticket sitting **queued and unclaimed** freezes the tree exactly as a claimed one does. So the
 check that feels sufficient here, looking for a live gate, is the one

@@ -256,15 +256,17 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 
 **Then settle the shape — one issue, or umbrella + subs.**
 
-- **Single issue** (the default) — small-to-medium work that lands as one PR. One body, filed;
+- **Single issue** (the default) — small-to-medium work that lands as one PR, by goal and by the layer test
+  below. One body, filed;
   `/pipeline:ground` grounds it into the one dispatchable slice it already is, and enriches it with what an
   executor needs.
 - **Umbrella + sub-issues** (`skills/glossary/vocabulary/umbrella.md`) — large AND multi-area.
   **File each child so it lands as ONE PR**, since a child that is really two lands half its work against a
   checklist line that cannot tick — **sized by the layers its Surface spans as well as by its goal**: one
   spanning three or more pieces that each review differently is split along those seams unless it states why
-  they cannot land apart (`skills/write-issue/references/arc-planning.md`, *Sizing an item*). The umbrella is the overview — goal, the phase map, a tracked
-  `- [ ] #<sub>` checklist; each sub is a self-contained forward-facing spec,
+  they cannot land apart (`skills/write-issue/references/arc-planning.md`, *Sizing an item*). The umbrella is
+  the overview — goal, the phase map, a tracked `- [ ] #<sub>` checklist; each sub is a self-contained
+  forward-facing spec,
   **titled with the phase it lands in** (`[P0]`, `[P1]`), the phase being the ORDERING over the children
   rather than the unit a child is. Author them at Step 4; nothing downstream converts a single issue into an
   umbrella for you.

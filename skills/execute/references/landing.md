@@ -225,9 +225,10 @@ moment it is stated.
 **`true` changes nothing at all** — carry straight on. **`false` holds the merge and only the merge**: the
 review loop above ran unconditionally and its satisfied review is already posted (*The PR review loop*), the
 gate's verdict is already on the PR, and what you do with all of it is post **one comment** saying the
-pipeline is satisfied — build, review and gate all green — and that this checkpoint's key, by name and
-resolved value, is holding the merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`** — the ready flip lives one
-line above the merge precisely so a PR can never sit around wearing a review it has outgrown, and flipping it
+pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is holding the
+merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready` on it and
+never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never sit
+around wearing a review it has outgrown, and flipping it
 without merging is that state by hand. **None of the POST-MERGE steps below runs either** — the worktree stays
 up, the branch and its PR stay, the local integration branch is not synced, and the issues this PR settles
 stay open, since each of those is a step after a merge that has not happened. ⚠️ **The two ARC-level items at
@@ -323,8 +324,9 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
 Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
 merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off
-the implementer's hand-back, reading the PR where it names none, and the arc's other PRs off
-`gh pr list --base <base> --state all`, so a reader of one slice's record can reach what landed beside it;
+the implementer's hand-back, reading the PR where it names none, and the arc's other PRs off the slice PR's
+own body — every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration
+branch — so a reader of one slice's record can reach what landed beside it;
 **a skipped pass is written as skipped
 with its reason**, never left as a blank that reads the same as a lost write. **Write the body to a file
 and send it with `-F`, never `-f`** (`skills/glossary/mechanics/gh-api-file-body.md` says why, and why the

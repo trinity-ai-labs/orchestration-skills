@@ -193,7 +193,8 @@ reference.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
-   foreground or background. One targeted test file is the widest run you get; the one full run you ever
+   foreground or background. One targeted test file is the widest run you get — plus, on a change to a
+   module's export surface, each test file that mocks or imports it, run singly; the one full run you ever
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**

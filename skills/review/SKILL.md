@@ -354,7 +354,9 @@ pile of them.** The test is *same site, different reasons*:
 
 **Then verify, on a fixed budget.** The project's **scoped check** (`scopedCheck` in
 `<repo>/.agents/worktree.json`; `skills/procedures/config-keys.md` carries what that key means) plus,
-at most, a **single targeted test file** run directly, where one covers what you changed. Read the
+at most, a **single targeted test file** run directly, where one covers what you changed — and where an
+edit you applied changes a module's export surface, each test file that mocks or imports that module, found
+by grepping its specifier, run singly. Read the
 project's config for the actual command rather than assuming one. If an edit breaks a check, fix the
 cause or revert that edit — never suppress the check.
 

@@ -87,8 +87,8 @@ merging and pushing — so hand the config PR over.
 **Present but BEHIND is a report, not a stop.** While the config is open, compare the keys it declares against
 the keys this plugin reads — `examples/worktree.json` in the plugin's own tree is that list, and the only
 machine-readable copy of it. A key the plugin reads and the config does not declare is named in the dispatch
-report, with what declaring it would change, **and so is a key the config declares that this list does not
-carry**, since nothing reads it and a renamed key's old name governs nothing — then the arc proceeds. **Report the delta and route to
+report, with what declaring it would change, **and so is a declared key the list does not carry**, which
+nothing reads — then the arc proceeds. **Report the delta and route to
 `/pipeline:setup`; never rewrite the config here**, since a config edited by the pass that noticed is one
 nobody reviewed. **Never a stop**: every such key ships with a working fallback, and halting over a value that
 has one costs more than it saves. It is checked *here* because this is the last moment the config may safely
@@ -309,8 +309,9 @@ thing about this exit that is false.
 **What a held exit owes instead is a report and a record of it, and the record is what a later cycle
 actually reads.** **Report which PR is held, which key is holding it with the value it resolved to, and what
 approving it takes** — a human merging it on GitHub, or telling this flow to go ahead — the comment the merge
-checkpoint already posted sitting on a draft nobody is watching. **Then write that same fact onto the tracked issue, or onto
-the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches only whoever
+checkpoint already posted sitting on a draft nobody is watching. **Then write that same fact onto the tracked
+issue, or onto the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches
+only whoever
 is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining
 plan and nothing parked beside it, so a line there that no checklist line, linked issue or recorded settle
 owns reads as a plan that is NOT empty at the very termination the hold is waiting on. That write takes the

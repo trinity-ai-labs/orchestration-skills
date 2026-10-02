@@ -1,0 +1,22 @@
+# gh-post: does a body carry exactly this key's marker? Read by BOTH ports
+# (marker_matches / Test-MarkerMatch). It decides which post a re-run edits, so a
+# false yes edits another party's post and a false no posts a duplicate.
+#
+# body	key	expect
+# "-" means an empty string; "\n" in a body is a newline.
+verdict\n\n<!-- pipeline:gate/x -->	gate/x	yes
+<!-- pipeline:gate/x -->	gate/x	yes
+text <!-- pipeline:gate/x --> more	gate/x	yes
+verdict\n\n<!-- pipeline:gate/x-retry -->	gate/x	no
+verdict\n\n<!-- pipeline:gate/x -->	gate/x-retry	no
+verdict\n\n<!-- pipeline:gate/x -->	gate	no
+verdict\n\n<!-- pipeline:gate/x -->	ate/x	no
+verdict\n\n<!-- pipeline:Gate/X -->	gate/x	no
+verdict\n\n<!-- pipeline:gate/x-->	gate/x	no
+verdict\n\n<!--pipeline:gate/x -->	gate/x	no
+pipeline:gate/x	gate/x	no
+-	gate/x	no
+<!-- pipeline:a -->\n<!-- pipeline:b -->	b	yes
+<!-- pipeline:a -->\n<!-- pipeline:b -->	c	no
+<!-- pipeline:a.b -->	a*b	no
+<!-- pipeline:a?b -->	a?b	yes

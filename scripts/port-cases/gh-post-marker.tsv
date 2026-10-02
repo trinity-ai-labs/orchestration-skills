@@ -1,0 +1,9 @@
+# gh-post: the hidden marker a key builds. Read by BOTH ports (build_marker /
+# Get-PipelineMarker); a case added here is asked of each.
+#
+# key	expect
+gate-verdict/feat-x	<!-- pipeline:gate-verdict/feat-x -->
+dispatcher-grant/552	<!-- pipeline:dispatcher-grant/552 -->
+a	<!-- pipeline:a -->
+review:panel.v2	<!-- pipeline:review:panel.v2 -->
+Gate/X	<!-- pipeline:Gate/X -->

@@ -1,0 +1,50 @@
+# gh-post: which kind an argument vector asks for, or "usage" for an invalid call.
+# Read by BOTH ports (arg_kind / Get-ArgKind). Purely syntactic: no file is read.
+#
+# arg	arg	...	expect   (every column but the last is one argument; a row of
+# only an expect column is a call with no arguments)
+usage
+comment	issue	5	--key	gate/x	--body-file	f.md	comment
+comment	pr	12	--key	gate/x	--body-file	f.md	comment
+comment	--key	gate/x	issue	5	--body-file	f.md	comment
+comment	issue	5	--body-file	f.md	--key	gate/x	comment
+comment	pull	5	--key	gate/x	--body-file	f.md	usage
+comment	Issue	5	--key	gate/x	--body-file	f.md	usage
+comment	5	--key	gate/x	--body-file	f.md	usage
+comment	issue	05	--key	gate/x	--body-file	f.md	usage
+comment	issue	0	--key	gate/x	--body-file	f.md	usage
+comment	issue	5a	--key	gate/x	--body-file	f.md	usage
+comment	issue	-5	--key	gate/x	--body-file	f.md	usage
+comment	issue	5	--key	gate/x	usage
+comment	issue	5	--body-file	f.md	usage
+comment	issue	5	--key	gate/x	--body-file	usage
+comment	issue	5	--key	gate/x	--key	gate/y	--body-file	f.md	usage
+comment	issue	5	--key	gate/x	--body-file	f.md	--reason	completed	usage
+comment	issue	5	--key	gate x	--body-file	f.md	usage
+comment	issue	5	--key	gate-->	--body-file	f.md	usage
+comment	issue	5	--key	café	--body-file	f.md	usage
+comment	issue	5	--key	-	--body-file	f.md	usage
+comment	issue	5	--key	gate/x	--body-file	-	usage
+comment	issue	5	6	--key	gate/x	--body-file	f.md	usage
+comment	issue	5	--key	gate/x	--body-file	f.md	--force	usage
+review	7	--key	review/panel	--body-file	r.md	review
+review	7	--key	review/panel	usage
+review	7	8	--key	review/panel	--body-file	r.md	usage
+review	pr	7	--key	review/panel	--body-file	r.md	usage
+close	9	--reason	completed	close
+close	9	--reason	not_planned	close
+close	9	--reason	not_planned	--key	close/9	--body-file	c.md	close
+close	9	--reason	duplicate	usage
+close	9	--reason	Completed	usage
+close	9	usage
+close	9	--reason	completed	--key	close/9	usage
+close	9	--reason	completed	--body-file	c.md	usage
+sub-issue	550	552	sub-issue
+sub-issue	550	550	usage
+sub-issue	550	usage
+sub-issue	550	552	553	usage
+sub-issue	550	552	--key	x	usage
+sub-issue	550	x	usage
+Comment	issue	5	--key	gate/x	--body-file	f.md	usage
+post	5	usage
+--key	gate/x	usage

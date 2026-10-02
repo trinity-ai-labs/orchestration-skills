@@ -113,10 +113,9 @@ the shared branch whenever a multi-slice arc does:
 - **One arc, N releases** — where shipped content must move a version, every merge into the integration branch
   is a release, with the version file and changelog a hotspot every slice touches.
 
-**Take that exception and every slice merge reads `autoMergeTrivial`, never `autoMergeLeaves`**
-(`skills/procedures/config-keys.md`), since those PRs target the integration branch and the keys partition by
-the branch a PR targets rather than by the size of the arc behind it — so a project holding merges onto its
-shared branch holds these too, which is the whole of what the exception puts there.
+**Take that exception and every slice merge reads `autoMergeOntoIntegration`, never `autoMergeOntoEpic`**
+(`skills/procedures/config-keys.md`), since those PRs target the integration branch — so a project holding
+merges onto its shared branch holds these too, which is the whole of what the exception puts there.
 
 **`ground` recommends; you decide and act.** It produces the seam map, so it is the pass positioned to see
 whether two halves must land together — Rule 1's question. A breakdown recommending nothing on a multi-slice
@@ -254,9 +253,9 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   slice PR based on the epic branch closes out identically, leaving the main checkout untouched. The one
   difference: the epic branch is checked out on every slice merge, so the helper fast-forwards it
   **inside that worktree** (`merge --ff-only`) instead of moving the ref from outside.
-  **What decides whether that close-out runs at all is `autoMergeLeaves`, not `autoMergeEpic`** — a slice of
-  this epic is a leaf and merges into this branch, while `autoMergeEpic` reaches only this branch's own merge
-  into the integration branch below. Both readings, and what to do where either holds, are in
+  **What decides whether that close-out runs at all is `autoMergeOntoEpic`, not `autoMergeEpicCloseOut`** — a
+  slice of this epic merges into this branch, while `autoMergeEpicCloseOut` reaches only this branch's own
+  merge into the integration branch below. Both readings, and what to do where either holds, are in
   *Merge & cleanup* and in the close-out bullet below respectively.
 - **Hand-close the issues the work resolved — an epic withdraws the fallback for every slice at once.** A
   slice PR bases on the epic branch, not the repository's **default** branch, so its closing keyword is inert
@@ -298,10 +297,11 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own
   worktree** — that tree already exists and IS the merge point, so never cut a fresh one for this and never
-  open a second PR — and it applies what you accepted, runs the project's scoped check, commits, and pushes
-  onto this SAME close-out PR. **Where the project declares `install`, run it in that tree before the fix
-  agent's check** — that tree outlives every merge landing in it, and a stale install there presents as a
-  module-resolution failure that reads as a defect in the merged code and sends the agent against code that
+  open a second PR — and it applies what you accepted, runs the project's scoped check and the test budget a
+  fix agent's brief states (`skills/execute/references/reviewing.md`), commits, and pushes onto this SAME
+  close-out PR. **Where the project declares `install`, run it in that tree before the fix agent's check** —
+  that tree outlives every merge landing in it, and a stale install there presents as a module-resolution
+  failure that reads as a defect in the merged code and sends the agent against code that
   is correct. **That is the one DISPATCHED exception to *nobody codes in the epic worktree* above**, and the
   fix agent commits and pushes for the reason every writer in that tree does: the gate ticket you raise next
   refuses a worktree carrying uncommitted tracked changes, and nothing takes a ticket back.
@@ -314,7 +314,7 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   able to take a ticket back. Where the project declares **no queue**, gate the epic
   branch in its own worktree yourself and read its exit status.
 
-  **Then one check stands between that green gate and the merge — `autoMergeEpic`
+  **Then one check stands between that green gate and the merge — `autoMergeEpicCloseOut`
   (`skills/procedures/config-keys.md`), read here, after the gate and before the helper.**
   ⚠️ **Absent means `false`, and this is the one place in this file where a project that has declared
   nothing does NOT proceed** — the other two merge-automation keys default to `true` and this one defaults to
@@ -322,7 +322,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **Where it is `true`**, merge it with `merge-pr.sh` like any other — the one PR with no implementer behind
   it, so no hand-back to promote. **Where it is held**, post **one comment** on the close-out PR saying the
   pipeline is satisfied — ledger empty, panel review landed, any fix round in, gate green — and that
-  `autoMergeEpic` is holding the merge, and stop there.
+  `autoMergeEpicCloseOut`, with the value it resolved to (*absent → `false` → held*), is holding the merge,
+  and stop there.
   ⛔ **That PR stays a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`**, the ready flip
   living one line above the merge precisely so a PR can never sit around wearing a review it has outgrown
   (*Merge & cleanup*). Nothing after the merge runs either — the epic worktree stays up, the epic branch

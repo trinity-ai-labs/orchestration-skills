@@ -21,9 +21,9 @@
   "format": "pnpm format",
   "upstreamFindings": false,
   "epicMerge": "merge",
-  "autoMergeTrivial": true,
-  "autoMergeLeaves": true,
-  "autoMergeEpic": false,
+  "autoMergeOntoIntegration": true,
+  "autoMergeOntoEpic": true,
+  "autoMergeEpicCloseOut": false,
   "sharedResources": [
     {
       "resource": "the Postgres database the test suite migrates and truncates",

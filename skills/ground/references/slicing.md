@@ -181,7 +181,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar
     names the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you
     write it that way (*gate in the default mode, not `--mode docs`*) rather than as a command line.
-    **The only check an implementer may be told to run directly is a single targeted test file**; route
+    **The only check an implementer may be told to run directly is a single targeted test file** — and where
+    the slice changes a module's export surface (adds, removes or renames an export, or moves code between
+    modules), each test file that mocks or imports that module, found by grepping its specifier, which the
+    bar names as files and never as a suite; route
     anything wider through the project's cached runner (Trinity: `pnpm check`, or
     `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
   - **A bar that asserts a NEGATIVE names what it is measured against** — *X is unchanged*, *no new Y*, *that

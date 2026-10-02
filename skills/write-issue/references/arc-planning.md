@@ -49,8 +49,14 @@ sits at rather than grounding**: it asks how big a piece is, never which files i
 
 - **Nothing downstream cuts an item for you**, so a level you leave uncut stays uncut — the pass that grounds
   the work grounds the leaves you filed and adds none.
-- **Where you cannot tell whether a piece is one PR, keep it whole** — an item too small buys its own
-  worktree, install, gate run and review pass and comes back mid-arc as a report to re-author it together with
+- **Size it by the LAYERS its Surface spans as well as by its goal.** A layer is a piece that reviews
+  differently from its neighbours — an execution path, an HTTP route, an agent tool, prompts or skills, a UI,
+  a component shared with other consumers — and a goal that reads as one behaviour can still span several.
+  **Three or more, and you split the item here along those seams**, unless its body states why they cannot
+  land apart; the count is read off the Surface you already wrote, so it needs no file-level grounding.
+- **Where neither its goal nor its layer count tells you whether a piece is one PR, keep it whole** — an item
+  too small buys its own worktree, install, gate run and review pass and comes back mid-arc as a report to
+  re-author it together with
   its neighbours, where one too big is reported back to you mid-arc and re-planned against a colder tree;
   neither direction is a cut anyone downstream can make for you.
   **Both reports are answered at one seat** — `skills/write-issue/SKILL.md`'s

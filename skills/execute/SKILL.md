@@ -125,7 +125,8 @@ lines are the rules whose action needs no reference, so they live here and nowhe
 **Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`,
 `epicMerge`, the three `autoMerge*` keys deciding whether each merge is yours to make, brief
 conventions. Everything below is provisioned from it. →
-`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, and
+`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, the merge
+decision your dispatch report states included, and
 `skills/procedures/config-keys.md` for what each key MEANS and what its absence means. The helper you
 provision with is `skills/procedures/worktree-helper.md`, and your host's tool for every capability named
 below is `skills/procedures/host-tools.md`.
@@ -192,7 +193,8 @@ reference.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
-   foreground or background. One targeted test file is the widest run you get; the one full run you ever
+   foreground or background. One targeted test file is the widest run you get — plus, on a change to a
+   module's export surface, each test file that mocks or imports it, run singly; the one full run you ever
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
@@ -202,7 +204,7 @@ reference.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
-6. **Commit, push, open a draft PR.**
+6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
    is a pushed branch and a draft PR.

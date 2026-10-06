@@ -205,9 +205,10 @@ reference.
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
-5. **Fix what is wrong outside your owned files, in this PR.** Not a sweep and not a report: repair what you
-   HIT while doing the slice, each in its own commit. Only two things go to your dispatcher instead — a fix
-   large enough to be its own unit of work, and a fix that would overturn a deliberate design decision.
+5. **Fix what is wrong outside your owned files, in this PR** — `skills/ground-rules/SKILL.md` rule 13's fold:
+   repair what you HIT while doing the slice, each in its own commit, never a sweep. Only two costly things go
+   to your dispatcher instead, surfaced as rule 13 says — a fix large enough to be its own unit of work, and a
+   fix that would overturn a deliberate design decision.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
@@ -267,17 +268,12 @@ you read them; the documented-suppression carve-out to their guardrail rule, and
 `skills/execute/references/implementer.md`. One rule binds both roles at any moment and reads differently for
 each, so it sits here rather than on a step.
 
-- ⛔ **FIX IT, DO NOT FILE IT.** A defect found is a
-  defect fixed, in the PR already open, with the cause in front of you. Writing the sentence that describes it
-  costs more than deleting it, and the sentence is only the start: a filed item then costs a read, a
-  discussion, a grounding pass, a worktree, an agent, a gate run and a merge to do what one edit would have
-  done — while the defect ships. **The expensive half is finding it, and you have already paid that.** Do not
-  go looking for more, either: fix what you hit, never what you can find. A pass whose purpose is to find work
-  always finds it, and the backlog it produces is indistinguishable from progress right up until nobody can
-  ship.
+- ⛔ **FIX IT, DO NOT FILE IT** — `skills/ground-rules/SKILL.md` rule 13's fold, in the PR already open, since a
+  filed item costs a read, a grounding pass, a worktree, an agent, a gate run and a merge to do what one edit
+  would have done. Fix what you hit, never what you can find.
   **Where the two roles part is the DISPOSITION rather than the preference.** ⛔ **An IMPLEMENTER opens no
   GitHub issue, in any circumstance, for any finding — and neither does any reviewer it dispatches, which is
   why every one of those briefs says so** — since a filing from either seat spends that whole unit of work on
-  what one raised sentence settles while the tree is still open. ⛔ **A DISPATCHER holds the disposition
+  what one surfaced message settles while the tree is still open. ⛔ **A DISPATCHER holds the disposition
   neither of them has**: filing is a verdict you return and then perform yourself, so the finding leaves the
   implementer's hands rather than landing back in them (*Judge what comes back*).

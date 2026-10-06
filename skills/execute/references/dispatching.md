@@ -464,7 +464,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   be rewritten by another slice, which is the reason it was fenced out of it — so absorbing the question IS
   the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
   the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
-  message on your next turn, carrying the path, what is wrong with it and a recommendation.
+  message on your next turn, carrying the path, what is wrong with it and what `skills/ground-rules/SKILL.md`
+  rule 13 asks of anything surfaced.
   **An ask to remove or narrow something on an absence — *nothing produces this*, *no caller passes that* —
   is answered only after you grep the tests naming that symbol**, and a test pinning the wider shape makes
   the answer *The premise did not hold*, since a search of producers says nothing about the contract a test

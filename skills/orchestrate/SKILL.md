@@ -106,6 +106,13 @@ correctly on a monolith, only dearer. **Never an edit by the loop**: a split rew
 states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
 briefed against the old files.
 
+**Setup debt is a report too, right under the monolith and never a stop** — a project with no domain map, no
+checked test tags, or a full-suite `gate` slow enough to matter (`skills/procedures/code-shape.md`'s signals,
+each with its unit; the terms are `skills/glossary/vocabulary/code-shape.md`'s) gets that named in the
+dispatch report, measured, with the split-gate recommendation and its cheaper alternatives as
+`skills/ground-rules/SKILL.md` rule 13 asks, and `/pipeline:setup` as where it is taken up. **Never an edit by
+the loop**: restructuring a project's gate is that project's own reviewable change.
+
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
 the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
 config did not follow — and the file is read for **provisioning**, not only for a base, so a dispatcher that
@@ -254,7 +261,9 @@ last, and the steps that ran to get there were the same ones either way.
 adjudicate.** Scope growing inside an arc is expected, so what the close-out owes is a record of the
 findings this arc folded and landed, written into the close-out report and the release entry that ships
 with it — **and no list of findings deferred, since no disposition defers one**; a list handed over as open
-questions is the filing channel doing the asking *The decide-don't-ask bar* forbids.
+questions is the filing channel doing the asking *The decide-don't-ask bar* forbids. **It also states what the
+project's rolling `Setup debt` issue gained this arc** (`skills/orchestrate/references/reconciling.md`, *Fold
+vs. file*) — a record of what was decided, never questions handed over.
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
@@ -404,7 +413,8 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   loop's calls to make and report**, not questions to put to the user:
   **the loop decides, folds, acts and reports**, and records what it decided. Escalate exactly one class —
   **a product or design fork the code and conventions cannot settle** — in plain chat,
-  **one question at a time, with your recommendation and why**. Two things are specific to a loop:
+  **one question at a time, carrying what `skills/ground-rules/SKILL.md` rule 13 asks**, and proceed on your
+  recommendation where the answer does not block. Two things are specific to a loop:
   **the bar is applied once per cycle, so setting it slightly too low multiplies**, and
   **this loop has two channels to the user** — most of what reaches one arrives as a *filed issue* rather than
   a question in chat, **which is why the issue channel is not a place to put a decision**: a filing handed

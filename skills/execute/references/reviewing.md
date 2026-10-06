@@ -276,12 +276,11 @@ this blank apart once it has.
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that
 same worktree, a resume message to the same implementer, or an issue **you** file and link, folded into the
 wave plan — that filing being yours to perform because **neither the implementer nor any reviewer it
-dispatched has a filing disposition at all** — and where the report carries a QUESTION about a fenced path
-that went unanswered while the slice ran, you answer it here on the same five answers, a *take it* becoming a
-fix agent into that worktree with the fence widened — whose edit lands after any pass that slice ran had
-already reported, so the round you review next is its only reader (*Hard rules* — the follow-up-ownership rule
-is yours to discharge here, neither the implementer nor a reviewer under it having a filing disposition of its
-own, and *The epic branch* says which branch the follow-up targets while one is live). **Read a hand-back that
+dispatched has a filing disposition at all** (*Hard rules*' follow-up-ownership rule; *The epic branch* says
+which branch the follow-up targets while one is live) — and where the report carries a QUESTION about a fenced
+path that went unanswered while the slice ran, you answer it here on the same five answers, a *take it*
+becoming a fix agent into that worktree with the fence widened — whose edit lands after any pass that slice
+ran had already reported, so the round you review next is its only reader. **Read a hand-back that
 surfaces an out-of-fence finding for the FIRST time here as a raise that came too late, never as merely a late
 question** — the implementer fixes what it hits and raises what a fence stops it from fixing before it pushes,
 precisely so one reaches you while its tree is open and *take it* still costs an edit, so answer this one on

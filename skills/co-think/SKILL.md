@@ -96,9 +96,8 @@ resolves.
 - **One question per message.** A topic needing more becomes several messages, never one message carrying
   three questions.
 - **Multiple choice wherever the answer has a small set of options**, open-ended where it does not.
-- **Every question carries what `skills/ground-rules/SKILL.md` rule 13 asks** — your recommendation first and
-  why, the alternatives with their costs, and what would change your mind — and on the architectural path the
-  alternatives are whole approaches with their trade-offs.
+- **Every question carries what `skills/ground-rules/SKILL.md` rule 13 asks, your recommendation first** — and
+  on the architectural path the alternatives are whole approaches with their trade-offs.
 - **Then proceed on your recommendation anyway**, marking the assumption you are proceeding under. A flip
   condition is information that makes an override cheap, not a gate — whoever disagrees corrects one
   sentence, whoever agrees says nothing and the work is already moving — because a recommendation handed back

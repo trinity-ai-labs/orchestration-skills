@@ -88,11 +88,9 @@ Every value must trace to a file you read.
   the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
   Step 2 — see *A monolith is fixed now* below.
 - **The code shape** — read it and take its signals with their units (`skills/procedures/code-shape.md`;
-  domain map, domain tag and setup debt are `skills/glossary/vocabulary/code-shape.md`'s): whether a domain
-  map exists and covers every tracked file, whether tests carry checked domain tags, the full gate's minutes
-  per run and test count, and the share of tests a domain filter can select. **A missing map, missing tags or
-  a full gate slow enough to matter is the first setup-debt item**, told right after any monolith — see
-  *Setup debt is told second* below.
+  domain map, domain tag and setup debt are `skills/glossary/vocabulary/code-shape.md`'s), named as the table
+  names them — Map coverage, Untagged tests, Selectable share, Full-gate cost among them. **No map, no checked
+  tags or a full gate slow enough to matter is the first setup-debt item** (*Setup debt is told second*).
 - **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current
   version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the
   half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another.
@@ -127,7 +125,9 @@ whoever gave it.
 
 **Surface a candidate; never write an entry** — put what you saw as a question carrying what
 `skills/ground-rules/SKILL.md` rule 13 asks, an inferred entry looking checked when that is precisely what it
-was not.
+was not; a consent or a partiality question (`upstreamFindings`, `fullGate`) is put flat instead, with no
+recommendation. **A `gate` that has become partial since the config was written re-opens the fourth ask**
+(Step 2).
 
 **One drift IS cheaply detectable, and in a project that rolls its branch it is the normal case.** The main
 checkout holds the integration branch and nothing else, so a `HEAD` naming a different branch than
@@ -140,8 +140,8 @@ and a field written now records a branch on its way out.
 **Re-check the guidance's shape too, and a monolith gets the same message, said first, and the same split** —
 *A monolith is fixed now* below; the guidance is not config, so the report-never-rewrite posture above does
 not cover it, and the split is a PR the maintainer reads rather than an edit made here. **Re-take the
-code-shape signals as well and report each beside its last value** — from the project's rolling `Setup debt`
-issue where one exists — so an item reads as trending rather than restated.
+code-shape signals as well and report each beside its last value** on the project's rolling `Setup debt`
+issue where one exists, so an item reads as trending rather than restated.
 
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a
 stop-and-report — the natural repair is the edit that freeze exists to forbid.
@@ -367,12 +367,13 @@ workspace-level `AGENTS.md` has no repository to land in, so hand its split back
 **Right after the monolith verdict — or first, where there is none — name the setup debt Step 1 measured**,
 each item as the signal with its unit, what it costs every change, and the move that removes it. **Where the
 gate is the full suite with no domain map or no checked tags, the recommendation is to split the gate** —
-bootstrap the map, tag the tests, add the changed-files gate with its loud full fallback, then declare
-`fullGate` at the fourth ask — **as the project's own reviewable change**, by
-`skills/procedures/code-shape.md`'s *The shape of a split gate*. **Put it as `skills/ground-rules/SKILL.md`
+bootstrap the map, tag the tests, add the changed-files gate with its loud full fallback, by
+`skills/procedures/code-shape.md`'s *The shape of a split gate* — **as the project's own change, routed
+through `/pipeline:co-think` → `/pipeline:write-issue`**, then re-run this pass so the fourth ask declares
+`fullGate` once the partial gate has landed. **Put it as `skills/ground-rules/SKILL.md`
 rule 13 asks**, the cheaper alternatives each with its cost beside it: the map alone, the tags alone, or the
 gate queue's machine-wide slot for full runs (Step 3). **Never a restructure made by this pass**, and never a
-stop: the flow runs correctly on a full gate, only dearer.
+stop: the flow runs correctly on a full gate, only dearer. In a workspace, measure and report per member.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then the setup debt
 and its recommendation. Then report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:

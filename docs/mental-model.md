@@ -60,7 +60,7 @@ folds into a named slice with its own wave when the arc's goal is not true witho
 floor of that question rather than the bar, and size deciding only how the work is carried).
 **Scope growing inside an arc is expected, so the loop absorbs what it finds rather than handing it back**: it
 files only what is genuinely a *different arc* — narrower than separable and narrower than real work worth
-doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the
+doing — as a new linked issue carrying the reasoning and a recommendation with its alternatives rather than a fork, or, where the
 tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a
 different arc is folded in too, whatever its size — as a phase of its own where it fits none the plan has —
 rather than parked as a line for a later arc, because the umbrella such a line would sit on is closed by the

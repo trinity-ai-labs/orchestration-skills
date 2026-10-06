@@ -76,9 +76,9 @@ you can find.
 
 **A comment claiming what OTHER code does is re-asserted before you reword it.** Every defect the checks here
 catch is a disagreement between two artifacts a tool can compare; this one is prose against behaviour, and
-nothing scans it. So open that code and confirm the claim first. A claim that turns out false is a finding — the code it describes
-fixed where `skills/ground-rules/SKILL.md` rule 13 folds it, surfaced where it does not — never something to
-quietly correct into accurate prose, which documents a bug as the design and
+nothing scans it. So open that code and confirm the claim first. A claim that turns out false is a finding, surfaced as
+`skills/ground-rules/SKILL.md` rule 13 asks and fixed only where which side is right is established — never
+something to quietly correct into accurate prose, which documents a bug as the design and
 removes the last thing that would have led anyone to look.
 
 **On a slice of an epic your brief inverts the last step, and only that step: record what you falsified, don't
@@ -298,8 +298,8 @@ threshold that fires is a *signal to fix the underlying code*, never an obstacle
 trips a max-lines cap, **split it** — extract a cohesive module and re-export it from the barrel; never shave
 comments, compact readable code, or nudge one line under. Never silence a rule to go green: no bare
 `eslint-disable`, no `@ts-ignore`-to-hush, no widening to `any`, no deleting the flagged assertion.
-**Zero warnings AND zero errors on every file you touch is the bar**; where the honest fix is too big, surface
-it by rule 13 rather than route around the check.
+**Zero warnings AND zero errors on every file you touch is the bar**; where the honest fix is too big, STOP
+and hand back, surfaced as rule 13 asks.
 
 **A test proves nothing if it cannot fail.** An assertion checked against the value that configured its own
 mock, a constant asserted against itself, a check the implementation could never violate — that is gaming the
@@ -348,7 +348,7 @@ conditions test one you ADD. If you think one fails, say so and leave it.
 **If you get stuck, hand back a reviewable artifact — never spin or die silently.** A blocker, an ambiguity
 you cannot resolve, a check you cannot get green, or running low on room all mean one thing: STOP and give the
 dispatcher something actionable. Commit-push and open a **draft PR** with what you have; failing that, report
-your worktree state, the error, and the decision you need. **Never leave a dirty worktree with no PR and no
+your worktree state, the error, and the decision you need, surfaced as rule 13 asks. **Never leave a dirty worktree with no PR and no
 report.**
 
 ⚠️ **This sanctions handing back when you are BLOCKED — never handing back work you simply did not do**, and
@@ -362,8 +362,9 @@ three look identical from outside.
 stuck.** Your brief needs something that identifies a real thing — an id, a key, an owner, a path, a version —
 and it does not exist yet, or you cannot reach it. Nothing errors: a value of the right *shape* is accepted
 everywhere downstream, types satisfied, check green, PR clean. **That is precisely the failure** — a
-fabricated identifier records the wrong fact quietly, every guardrail confirming it. So STOP and report what
-you needed, why it was unavailable, and what the dispatcher must decide.
+fabricated identifier records the wrong fact quietly, every guardrail confirming it. So never invent it:
+surface what you needed and why it was unavailable as rule 13 asks, carry on with what does not depend on it,
+and hand back once nothing does.
 
 ⚠️ **Narrow in the same way: this covers an input naming a real thing you cannot obtain — not a decision you
 would rather not make.** A gap an existing pattern, the project's agent guidance, or an obvious default

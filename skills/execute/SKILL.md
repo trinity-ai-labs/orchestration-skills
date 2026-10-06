@@ -205,10 +205,8 @@ reference.
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
-5. **Fix what is wrong outside your owned files, in this PR** — `skills/ground-rules/SKILL.md` rule 13's fold:
-   repair what you HIT while doing the slice, each in its own commit, never a sweep. Only two costly things go
-   to your dispatcher instead, surfaced as rule 13 says — a fix large enough to be its own unit of work, and a
-   fix that would overturn a deliberate design decision.
+5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →
+   `skills/execute/references/implementer.md`, *FIX IT — DO NOT FILE IT*.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.

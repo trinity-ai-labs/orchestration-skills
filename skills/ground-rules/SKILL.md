@@ -163,8 +163,8 @@ the seats here, and a seat that learns to spawn something is one of them the day
 
 - **A new unit, route, test or handler goes where its domain lives and is found by its folder** — picked up
   by being placed, never by an edit to a central list every domain shares.
-- **Dependencies point one way**: nothing reaches upward or sideways into a sibling domain, and what two
-  domains share is shared code, never one importing the other.
+- **Dependencies point one way**: nothing reaches into a sibling domain or against the project's declared
+  layering, and what two domains share is shared code, never one importing the other.
 - **Prefer deep modules — much behaviour behind a small interface — and test at the seam a caller or a user
   crosses, since the interface is the test surface**: callers and tests cross the same interface, so a test
   that has to reach past it says the module is the wrong shape. Integration and end-to-end tests carry the
@@ -172,7 +172,8 @@ the seats here, and a seat that learns to spawn something is one of them the day
 - **Every test names the domain it asserts about, in the project's own tag form, and a tag nothing checks is
   a guess** — derive it from what the test imports or calls, or have it checked.
 - **A project's own layout and testing rules win**; these are the default only where its agent guidance is
-  silent.
+  silent, and where the project offers no tag form or no folder-discovered form, that absence is setup debt
+  rather than a breach in each change.
 - **A signal or check worked out by hand more than once is a missing tool** — the fix is a script with its
   own check in the project's repository, never a longer brief.
 

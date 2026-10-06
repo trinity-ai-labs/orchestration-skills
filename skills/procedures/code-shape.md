@@ -16,8 +16,8 @@ recommended against differs by seat and is written where each seat acts.
    and whether anything checks it.
 3. **Find its test-tag form** — how a test names its domain: an annotation, a tag option, a naming
    convention, a registered list. None found is an answer: the tests carry no domain.
-4. **Where no map exists, name the domains from the top-level source folders** and say the list is
-   inferred.
+4. **Where no map exists, name the domains from the folder level at which the project divides by domain**,
+   and mark the list inferred.
 
 ## The signals, and how to take each
 
@@ -25,18 +25,17 @@ Take each on the fly with the project's own tooling — its tracked-file listing
 a search over import lines — and **state the unit beside every figure**, since a count of files, of tests and
 of import lines answer different questions.
 
-| Signal | What it measures | How to take it | Unit | What a value means |
+| Signal | What it measures | How to take it | Unit | What it costs |
 |---|---|---|---|---|
-| Map coverage | tracked files any domain glob matches | match every tracked file against the map | files, and their share of tracked files | below all of them, a changed-files gate cannot be safe: every unmapped file forces a full run |
-| Shared-spine share | tracked files mapped to every domain | count the files the map assigns to `all` | files, and their share of tracked files | the larger it is, the more often a split gate runs everything anyway |
-| Unmapped files | tracked files no glob matches | the complement of map coverage | files, listed | each is a hole the map's own check should fail on |
-| Folder disagreement | files whose mapped domain differs from their folder's | compare each file's map entry with its top-level folder | files, listed | code placed outside its domain, or a map that has drifted |
-| Cross-domain tests | tests whose imports or calls reach several domains | map each test file's import targets to domains and count the distinct domains | test files, each with its domain count | a test that cannot be selected by one domain, and widens every gate it is in |
-| Untested domains | domains no tagged test asserts about | domains minus the domains named by any tag | domains, listed | a change there gates nothing of its own |
-| Untagged tests | tests carrying no domain tag | tests minus tagged tests | test files, and their share of all test files | the share of the suite no split gate can select |
-| Wrong-way imports | imports that cross domains other than through shared code, or point upward | map each import line's source and target to domains | import lines, listed | a coupling the next change in either domain pays for |
-| Full-gate cost | what one full run of the suite costs | time one run, or read the last few from the project's own build history | minutes per run, and test count | what every slice spends where nothing narrows the gate |
-| Selectable share | tests a domain filter can pick | tagged tests whose tag is checked | test files, and their share of all test files | how much a split gate can narrow today |
+| Map coverage | tracked files any domain glob matches, and the unmapped rest | match every tracked file against the map; list the files no glob matches | files, and their share of tracked files; the unmapped listed | every unmapped file a change touches forces a full run |
+| Shared-spine share | tracked files mapped to every domain | count the files the map assigns to every domain | files, and their share of tracked files | every change touching one runs the whole suite |
+| Folder disagreement | files whose mapped domain differs from their folder's | compare each file's map entry with the folder at the domain level | files, listed | a change there is gated as a domain it does not live in |
+| Cross-domain tests | tests whose imports or calls reach several domains | map each test file's import targets to domains and count the distinct domains | test files, each with its domain count | each runs in the gate of every domain it reaches |
+| Untested domains | domains no tagged test asserts about | domains minus the domains named by any tag | domains, listed | a change there selects no test of its own |
+| Untagged tests | tests carrying no domain tag | tests minus tagged tests | test files, and their share of all test files | no domain filter can select them |
+| Wrong-way imports | imports crossing domains other than through shared code, or against the project's declared layering | map each import line's source and target to domains | import lines, listed | a change in either domain reaches the other |
+| Full-gate cost | what one full run of the suite costs | time one run, or read the last few from the project's own build history | minutes per run, and test count | spent by every change where nothing narrows the gate |
+| Selectable share | tests a domain filter can pick | tagged tests whose tag is checked | test files, and their share of all test files | the rest runs on every change |
 
 ## Placing new code and a new test — in order
 
@@ -46,14 +45,14 @@ Stop at the first answer that places it.
 2. **Which one domain's behaviour does it change?** → that domain's folder, beside the code there it most
    resembles.
 3. **Is it used by two or more domains and owned by none?** → shared code, in the project's shared location,
-   and it widens the shared spine — say so.
+   where it widens the shared spine.
 4. **Would placing it take an edit to a central list to be picked up?** → use the form the folder picks up;
-   where the project offers only the list, edit it and name the list as setup debt.
+   where the project offers only the list, edit it.
 5. **Run the deletion test on any new module** — imagine deleting it: where its complexity vanishes it was a
    pass-through and the code belongs in its caller; where it reappears across several callers, the module
    earns its place.
 6. **Add an interface only where two adapters vary across it** — a production implementation and a test
-   fake, say. One adapter is a hypothetical seam, so no interface goes in for it.
+   fake, say. One adapter is no variation point yet, so no interface goes in for it.
 
 **Then its test:**
 
@@ -75,7 +74,8 @@ Stop at the first answer that places it.
 
 ## The shape of a split gate
 
-The properties a partial per-change gate needs to be safe — properties, not a tool.
+The properties a split gate (`skills/glossary/vocabulary/code-shape.md`) needs to be safe — properties, not a
+tool.
 
 1. **A domain map covering every tracked file**, first matching glob wins, **whose own check fails on an
    unmapped file, an unused domain and a glob matching nothing.**
@@ -88,6 +88,5 @@ The properties a partial per-change gate needs to be safe — properties, not a 
    (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.
 5. **Optionally, a green cache** keyed on a hash of a domain's inputs — its files, the shared spine and the
    toolchain — skipping a domain whose key last passed.
-6. **A map derived from evidence — what each test imports or calls — under-approximates**: a test reaching a
-   domain through a runtime string or a config value is missed. It is safe only because the full gate still
-   runs before anything ships.
+6. **A map derived from evidence under-approximates** (the glossary entry says why), so it is safe only because
+   the full gate still runs before anything ships.

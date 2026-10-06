@@ -41,7 +41,8 @@ full run of your suite takes and how much of it a domain filter could select —
 Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt* it
 reports, right after any monolith: measured, with a recommendation to **split the gate** — bootstrap the map,
 tag the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map,
-then declare `fullGate` — as your own reviewable change, and the cheaper alternatives beside it, each with its
+then declare `fullGate` — as your own change, taken through `/pipeline:co-think` and `/pipeline:write-issue`
+with setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its
 cost: the map alone, the tags alone, or a gate queue so full runs at least stop contending. Setup never
 restructures your code or your gate itself, and never stops over this. Run again, it re-takes the same figures
 and reports each beside its last value; `/pipeline:orchestrate` names the same debt in its report before an

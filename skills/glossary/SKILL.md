@@ -57,7 +57,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 |---|---|
 | Adjacent | `skills/glossary/vocabulary/adjacent.md` |
 | agent guidance — router, rule chapter, pointer | `skills/glossary/vocabulary/agent-guidance.md` |
-| code shape — domain, domain map, domain tag, shared spine, seam test | `skills/glossary/vocabulary/code-shape.md` |
+| code shape — domain, domain map, domain tag, shared spine, seam test, split gate | `skills/glossary/vocabulary/code-shape.md` |
 | divergence | `skills/glossary/vocabulary/divergence.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
 | grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |

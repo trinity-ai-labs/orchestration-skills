@@ -354,9 +354,9 @@ plan for one arc, and nothing marks which of the two a later reader took.
   "epic" name the branch itself.
   - **A knowingly-red epic is what opens the transient-red window**, so carry that half of the verdict too
     rather than only the branch name — the *Transient-red window* entry above is what the dispatcher acts on.
-  - **Where your grounding CONTRADICTS the verdict, report it on the issue rather than settling it** — a
-    contract seam whose halves you now see landing in different waves, or a foundational change every consumer
-    must follow, against an issue that says one slice. Naming the contradiction is the finding; answering it
+  - **Where your grounding CONTRADICTS the verdict, report it on the issue as `skills/ground-rules/SKILL.md`
+    rule 13 asks rather than settling it** — a contract seam whose halves you now see landing in different
+    waves, or a foundational change every consumer must follow, against an issue that says one slice. Naming the contradiction is the finding; answering it
     here answers a question already settled somewhere a human reviewed it.
 - **Conflict map.** Name any pair of slices that will touch the same file **neither of them owns** (both add a
   route to one registry, both add a case to one exhaustive switch); the dispatcher resolves these

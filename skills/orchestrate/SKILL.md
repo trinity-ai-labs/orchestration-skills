@@ -106,12 +106,15 @@ correctly on a monolith, only dearer. **Never an edit by the loop**: a split rew
 states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
 briefed against the old files.
 
-**Setup debt is a report too, right under the monolith and never a stop** — a project with no domain map, no
-checked test tags, or a full-suite `gate` slow enough to matter (`skills/procedures/code-shape.md`'s signals,
-each with its unit; the terms are `skills/glossary/vocabulary/code-shape.md`'s) gets that named in the
-dispatch report, measured, with the split-gate recommendation and its cheaper alternatives as
-`skills/ground-rules/SKILL.md` rule 13 asks, and `/pipeline:setup` as where it is taken up. **Never an edit by
-the loop**: restructuring a project's gate is that project's own reviewable change.
+**Setup debt is a report too, right under the monolith and never a stop** — where `gate` is the full suite
+(no `fullGate` declared), its Map coverage, Untagged tests and Full-gate cost are taken by
+`skills/procedures/code-shape.md` with their units (the terms are `skills/glossary/vocabulary/code-shape.md`'s)
+and named in the dispatch report with the split-gate recommendation and its cheaper alternatives as
+`skills/ground-rules/SKILL.md` rule 13 asks, the route being the project's own change through
+`/pipeline:co-think` → `/pipeline:write-issue` and then `/pipeline:setup`'s `fullGate` ask; where `fullGate`
+is declared, only unchecked tags and uncovered files are named. **Each measured item is also recorded on the
+rolling `Setup debt` issue** (`skills/orchestrate/references/reconciling.md`, *Fold vs. file*). **Never an
+edit by the loop**: restructuring a project's gate is that project's own change.
 
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
 the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
@@ -278,7 +281,7 @@ cannot say whether the slices COMPOSE, and that combined diff is the first and o
 **Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
 anything you accepted from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after
 it and never by you. **A finding the umbrella body still carries that no checklist line,
-linked issue or recorded settle owns is a remaining plan that is NOT empty**, since closing that umbrella
+linked issue, recorded settle or rolling `Setup debt` item owns is a remaining plan that is NOT empty**, since closing that umbrella
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
 closing keywords, which fire only where that PR's base is the repository's **default** branch and never
@@ -338,7 +341,8 @@ takes** — a human merging it on GitHub, or telling this flow to go ahead — t
 already posted sitting on a draft nobody is watching. **Then write that same fact onto the tracked issue, or
 onto the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches only whoever
 is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining plan
-and nothing parked beside it, so a line there that no checklist line, linked issue or recorded settle owns reads
+and nothing parked beside it, so a line there that no checklist line, linked issue, recorded settle or
+`Setup debt` item owns reads
 as a plan that is NOT empty at the very termination the hold is waiting on. That write is
 `gh-post.sh comment issue <n> --key merge-held/<pr> --body-file <file>` (`skills/procedures/github-writes.md`),
 so a cycle that finds the arc still held edits it rather than stacking another.

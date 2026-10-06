@@ -87,10 +87,8 @@ Every value must trace to a file you read.
   shape*; router, chapter, pointer and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s) and keep
   the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
   Step 2 — see *A monolith is fixed now* below.
-- **The code shape** — read it and take its signals with their units (`skills/procedures/code-shape.md`;
-  domain map, domain tag and setup debt are `skills/glossary/vocabulary/code-shape.md`'s), named as the table
-  names them — Map coverage, Untagged tests, Selectable share, Full-gate cost among them. **No map, no checked
-  tags or a full gate slow enough to matter is the first setup-debt item** (*Setup debt is told second*).
+- **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health` and keep its
+  summary; this pass takes no code-shape signal itself (*Setup debt is told second*).
 - **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current
   version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the
   half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another.
@@ -139,9 +137,8 @@ and a field written now records a branch on its way out.
 
 **Re-check the guidance's shape too, and a monolith gets the same message, said first, and the same split** —
 *A monolith is fixed now* below; the guidance is not config, so the report-never-rewrite posture above does
-not cover it, and the split is a PR the maintainer reads rather than an edit made here. **Re-take the
-code-shape signals as well and report each beside its last value** on the project's rolling `Setup debt`
-issue where one exists, so an item reads as trending rather than restated.
+not cover it, and the split is a PR the maintainer reads rather than an edit made here. **Run
+`/pipeline:health` again too**, whose summary reports each item beside its last value.
 
 ⚠️ **Between arcs, never inside one.** Once worktrees are live the config is frozen for the arc, so drift is a
 stop-and-report — the natural repair is the edit that freeze exists to forbid.
@@ -362,20 +359,14 @@ integration branch** that the install-step exception above allows: a split rewri
 states, which is exactly what a maintainer must read before it lands. In a workspace, split per member; the
 workspace-level `AGENTS.md` has no repository to land in, so hand its split back as a proposal.
 
-### Setup debt is told second — measured, recommended, never restructured here
+### Setup debt is told second — measured by `/pipeline:health`, never restructured here
 
-**Right after the monolith verdict — or first, where there is none — name the setup debt Step 1 measured**,
-each item as the signal with its unit, what it costs every change, and the move that removes it. **Where the
-gate is the full suite with no domain map or no checked tags, the recommendation is to split the gate** —
-bootstrap the map, tag the tests, add the changed-files gate with its loud full fallback, by
-`skills/procedures/code-shape.md`'s *The shape of a split gate* — **as the project's own change, routed
-through `/pipeline:co-think` → `/pipeline:write-issue`**, then re-run this pass so the fourth ask declares
-`fullGate` once the partial gate has landed. **Put it as `skills/ground-rules/SKILL.md`
-rule 13 asks**, the cheaper alternatives each with its cost beside it: the map alone, the tags alone, or the
-gate queue's machine-wide slot for full runs (Step 3). **Never a restructure made by this pass**, and never a
-stop: the flow runs correctly on a full gate, only dearer. In a workspace, measure and report per member.
+**Right after the monolith verdict — or first, where there is none — quote the summary `/pipeline:health`
+returned in Step 1**: its items, most expensive first, each with its value, trend, recommendation and route.
+**A split gate it recommends is the project's own change**, and once its partial gate has landed this pass
+runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
-**Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then the setup debt
-and its recommendation. Then report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
+**Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
+`/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
 
 > **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and hands off to `/pipeline:orchestrate`, the one command that ships dispatched work of any size.

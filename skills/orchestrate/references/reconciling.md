@@ -285,14 +285,10 @@ backlog transfer is not; **settling is not absorbing**, producing a *decision* w
 
 **Setup debt (`skills/glossary/vocabulary/code-shape.md`) is the one *Adjacent* item with a fixed target.**
 Cheap debt touching what a slice already touches folds into the arc; a restructure of the project's setup is
-a different arc by definition, so it is *Adjacent*, filed as ONE item on the project's ONE rolling open issue
-titled `Setup debt` in that repository's own tracker — **searched for by that title before any create, and
-never a second** — each item named by its signal from `skills/procedures/code-shape.md`'s table (or as a
-missing tool or a central list, with the signal or path it concerns), measured with its unit and its last
-value, carrying its recommendation and alternatives, appended where new, updated where already listed, and
-ticked off when a re-measure finds it gone. **It is a record of what the loop decided, never a question**: each
-recommendation stands until the user edits its one line, and the rolling issue sits outside item 8's
-population, the rate and the arc-exit comments, since no arc owns it.
+a different arc by definition, so it is *Adjacent* — and **its record is `/pipeline:health`'s, never a filing
+by this loop**: carry each such item, named by the signal, tool or path it concerns, to the close-out's one
+run of that command, which records it. **It is a record of what the loop decided, never a question**, and it
+sits outside item 8's population, the rate and the arc-exit comments, since no arc owns it.
 
 **A filed item leaves the loop's hands only by being handed to a person — an ownership transfer the close-out
 records, never a decision put to the user mid-run, which the decide-don't-ask bar leaves no route for.** It is

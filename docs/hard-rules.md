@@ -41,7 +41,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **Code lands where its domain lives, so the next change stays cheap to scope, gate and review.** Every seat
   that writes, plans or reviews code holds it to one default: a new file goes in its domain's folder and is
   picked up by being placed there rather than by an edit to a shared list; dependencies point one way, never
-  sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses, so
+  sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses — the
+  interface is the test surface, so a test that must reach past it means the module is the wrong shape — so
   integration and end-to-end tests carry the weight and a unit test is kept for real logic; every test is
   tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than

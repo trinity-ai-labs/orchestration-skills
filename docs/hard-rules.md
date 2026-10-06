@@ -53,6 +53,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
   with what it costs, and what would change its mind, and the agent carries on with everything that does not
   depend on the answer. Surfacing is not filing — who may open an issue is still decided seat by seat below.
+  **And a fix that would remove or weaken something you can see working is never the cheap kind**: it is
+  raised with you before it is applied, even when a rule you agreed to or an accepted review finding seems
+  to call for it, since that rule may never have considered the case.
 - **A dispatched agent runs every check and command in the foreground and ends its turn only at its
   hand-back — a command it started is never something it waits on by ending the turn.** A detached command's
   exit re-invokes nothing the way a child's report does, so a turn ended on one IS the agent's hand-back, with
@@ -123,7 +126,12 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   only what a change can affect, so the gate over a merged tree runs `fullGate` and never skips because the
   merge added nothing new, a wave-end gate runs it once on the merged tip after each wave's merges and before
   the next wave is planned — with or without an epic branch — and the close-out gate runs it. A project that
-  declares no `fullGate` keeps `gate` as the full gate everywhere, and no wave-end gate runs.
+  declares no `fullGate` keeps `gate` as the full gate everywhere, and no wave-end gate runs. **A re-gate after
+  a fix round is proportionate**: where a head already passed the full gate, the next run is the partial gate
+  over what changed since, falling back to the full suite loudly when that touches shared or unmapped files,
+  and its verdict names both heads. Your own stricter rule wins, said with its cost so you can relax it, and
+  where the right scope is genuinely unclear you are asked — full, cached or scoped, each with its time and
+  what it would miss — since a full run costs far more than a question.
 - **Always verify HEAD before dispatching an agent into a worktree, and fetch first — the fetch is part of the
   check, not preparation for it.** The helper prints what it made — `READY: <path>`, then `HEAD: <sha>` — and,
   when it is forking a new branch, withholds both unless the tree it is about to hand back *contains* the

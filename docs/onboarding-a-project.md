@@ -35,6 +35,19 @@ rather than moved so you can object to each. `/pipeline:orchestrate` runs the sa
 puts a monolith at the top of its report, pointing back here; it never stops over one and never edits your
 guidance itself. No config key controls any of this.
 
+**Then it measures your code shape, and tells you second what costs every change.** It looks for a map from
+your files to the domains they belong to, for tests tagged with the domain they are about, and at how long one
+full run of your suite takes and how much of it a domain filter could select — each figure with its unit.
+Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt* it
+reports, right after any monolith: measured, with a recommendation to **split the gate** — bootstrap the map,
+tag the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map,
+then declare `fullGate` — as your own reviewable change, and the cheaper alternatives beside it, each with its
+cost: the map alone, the tags alone, or a gate queue so full runs at least stop contending. Setup never
+restructures your code or your gate itself, and never stops over this. Run again, it re-takes the same figures
+and reports each beside its last value; `/pipeline:orchestrate` names the same debt in its report before an
+arc, and keeps one rolling `Setup debt` issue in your tracker, appending what it measures and ticking off what
+a merge removes.
+
 It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where you
 named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two
 runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision

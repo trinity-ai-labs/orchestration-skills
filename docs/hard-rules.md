@@ -38,6 +38,20 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   being a property of the wave rather than of any slice in it. **All three are one principle and it is worth
   reading as one: the pass that reads the code RECOMMENDS, and the seat that holds the machine DECIDES** —
   what changes between them is only which facts each seat is the one holding.
+- **Code lands where its domain lives, so the next change stays cheap to scope, gate and review.** Every seat
+  that writes, plans or reviews code holds it to one default: a new file goes in its domain's folder and is
+  picked up by being placed there rather than by an edit to a shared list; dependencies point one way, never
+  sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses, so
+  integration and end-to-end tests carry the weight and a unit test is kept for real logic; every test is
+  tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
+  and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
+  once is a missing tool — the fix it recommends is a script with its own check in your repository, never a
+  longer brief.
+- **A finding is settled where that is cheap and within reach, and surfaced — with a recommendation — where it
+  is not.** Nothing is dropped silently, and nothing reaches you, a dispatcher or a caller as a bare list or a
+  bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
+  with what it costs, and what would change its mind, and the agent carries on with everything that does not
+  depend on the answer. Surfacing is not filing — who may open an issue is still decided seat by seat below.
 - **A dispatched agent runs every check and command in the foreground and ends its turn only at its
   hand-back — a command it started is never something it waits on by ending the turn.** A detached command's
   exit re-invokes nothing the way a child's report does, so a turn ended on one IS the agent's hand-back, with

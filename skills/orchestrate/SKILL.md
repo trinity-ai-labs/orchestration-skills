@@ -106,8 +106,11 @@ correctly on a monolith, only dearer. **Never an edit by the loop**: a split rew
 states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
 briefed against the old files.
 
-**Setup debt (`skills/glossary/vocabulary/code-shape.md`) is not measured here** — `/pipeline:health` owns
-it and this loop runs it once per arc, as the arc leaves (step 5). **Never an edit by the loop**:
+**Setup debt (`skills/glossary/vocabulary/code-shape.md`) is a one-line report too, right under the monolith,
+never a stop, and it measures nothing** — where `gate` is the full suite (no `fullGate` declared), the dispatch
+report says every gate runs the whole suite and that `/pipeline:health` holds the project's setup-debt record
+and is the command to run, read off the config alone, with no signal taken and no issue looked up. The loop
+runs `/pipeline:health` itself once per arc, as the arc leaves (step 5). **Never an edit by the loop**:
 restructuring a project's gate is that project's own change.
 
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds

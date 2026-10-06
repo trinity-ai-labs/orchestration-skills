@@ -2,6 +2,22 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.17.0
+
+- **New command `/pipeline:health` — one owner for how healthy a project's setup is.** Ask it at any time: it
+  measures the code-shape signals and the agent guidance's shape, each with its unit, compares each against
+  its last value, records the result on the project's one rolling `Setup debt` issue — appending new items,
+  updating listed ones with their trend, ticking off what a re-measure finds gone, and keeping a
+  recommendation a user edited — and reports every item most expensive first with its cost, a recommendation,
+  its alternatives and the route that removes it. It is read-only against the tree; the issue is its one
+  write.
+- **Setup and the loop hand it their setup-debt duty.** `/pipeline:setup` runs `/pipeline:health` on
+  onboarding and on reconcile and quotes its summary after any monolith verdict, instead of measuring and
+  recording setup debt itself. `/pipeline:orchestrate` no longer measures setup debt before an arc: it runs
+  `/pipeline:health` once per arc at close-out, handing it the costly setup debt the arc found, and reports
+  what the issue gained. `/pipeline:co-think` routes a question about setup health, or about every gate being
+  slow, to the new command.
+
 ## 5.16.0
 
 - **New ground rule 12 — code lands where its domain lives.** Every seat that writes, plans or reviews code

@@ -2,6 +2,30 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.16.0
+
+- **New ground rule 12 — code lands where its domain lives.** Every seat that writes, plans or reviews code
+  holds it to one default: placed in its domain's folder and found there rather than registered in a shared
+  list, dependencies pointing one way, deep modules, tests at the seam a caller or a user crosses with
+  integration and end-to-end tests carrying the weight, every test tagged with its domain and the tag checked.
+  A project's own layout and testing rules win wherever it states them, and a signal worked out by hand more
+  than once is a missing tool, recommended as a script with its own check in the project's repository.
+- **New ground rule 13 — fold what is cheap, surface what is costly, with a recommendation.** A finding settled
+  cheaply within reach is settled; one that is costly or out of reach is surfaced — never dropped, never a bare
+  list or question — carrying a recommendation and why, two or three alternatives each with its cost, and what
+  would change the agent's mind. It says *surface*, never *file*: who may file is unchanged at every seat. The
+  per-seat copies of this principle now cite the rule and say only what their seat does.
+- **New procedure `code-shape` and glossary entry.** Reading a project's code shape, the signals with their
+  units, placing new code and a new test, recognising a missing tool, and the properties a split gate needs —
+  an every-file domain map with its own check, checked test tags, a changed-files gate falling back to the
+  full suite loudly, and the full gate moved to the integration points (`fullGate`) rather than dropped.
+- **Setup and the loop report setup debt.** `/pipeline:setup` measures the code shape and, right after any
+  monolith, names a missing map, missing tags or a slow full gate as setup debt with a split-gate
+  recommendation and its cheaper alternatives — never restructuring the project itself. `/pipeline:orchestrate`
+  names the same debt in its dispatch report, and costly debt found mid-arc goes to one rolling `Setup debt`
+  issue in the project, appended and ticked off, which the close-out reports as a record rather than as
+  questions.
+
 ## 5.15.0
 
 - **New optional key `fullGate`: a project's per-PR gate may now be partial. The default is unchanged** — a

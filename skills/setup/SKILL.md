@@ -87,8 +87,9 @@ Every value must trace to a file you read.
   shape*; router, chapter, pointer and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s) and keep
   the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
   Step 2 — see *A monolith is fixed now* below.
-- **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health` and keep its
-  summary; this pass takes no code-shape signal itself (*Setup debt is told second*).
+- **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health`, handing it the
+  guidance verdict above, and keep its summary; this pass takes no code-shape signal itself (*Setup debt is
+  told second — measured by `/pipeline:health`, never restructured here*).
 - **Where a version lives, and where the docs are.** Grep the manifests and the changelog for the current
   version; read the docs tree's layout. **Ground candidates, then confirm the list is COMPLETE** — that is the
   half a search cannot supply, and an incomplete `bumpFiles` ships a version to one host and not another.
@@ -367,6 +368,7 @@ returned in Step 1**: its items, most expensive first, each with its value, tren
 runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
-`/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you scaffolded a queue, and the verification results. Then:
+`/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
+scaffolded a queue, and the verification results. Then:
 
 > **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and hands off to `/pipeline:orchestrate`, the one command that ships dispatched work of any size.

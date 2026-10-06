@@ -30,5 +30,5 @@ and fails when the behaviour across it breaks, which a test of wiring does not.
 
 **Setup debt** is a property of a project's setup that makes every future change dearer to scope, gate or
 review — no domain map, untagged tests, a full-suite gate slow enough to matter, a signal worked out by hand
-each time. It is a fact about the project, distinct from a defect in the code: nothing is broken, and every
-change pays for it.
+each time, agent guidance (`skills/glossary/vocabulary/agent-guidance.md`) every agent loads whole. It is a
+fact about the project, distinct from a defect in the code: nothing is broken, and every change pays for it.

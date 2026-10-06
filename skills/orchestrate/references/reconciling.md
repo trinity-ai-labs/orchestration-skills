@@ -286,9 +286,10 @@ backlog transfer is not; **settling is not absorbing**, producing a *decision* w
 **Setup debt (`skills/glossary/vocabulary/code-shape.md`) is the one *Adjacent* item with a fixed target.**
 Cheap debt touching what a slice already touches folds into the arc; a restructure of the project's setup is
 a different arc by definition, so it is *Adjacent* — and **its record is `/pipeline:health`'s, never a filing
-by this loop**: carry each such item, named by the signal, tool or path it concerns, to the close-out's one
-run of that command, which records it. **It is a record of what the loop decided, never a question**, and it
-sits outside item 8's population, the rate and the arc-exit comments, since no arc owns it.
+by this loop**: write each such item, named by the signal, tool or path it concerns, into that cycle's comment
+(*Rewriting the plan*), where it waits for the arc's one run of that command, which records it.
+**It is a record of what the loop decided, never a question**, and it sits outside item 8's population, the
+rate and the arc-exit comments, since no arc owns it.
 
 **A filed item leaves the loop's hands only by being handed to a person — an ownership transfer the close-out
 records, never a decision put to the user mid-run, which the decide-don't-ask bar leaves no route for.** It is
@@ -339,13 +340,13 @@ never the live one.
 rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding
 depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite.
 **The body holds that plan and nothing parked beside it: every finding leaves a cycle as a checklist line, a
-linked *Adjacent* issue, a settle recorded with what it rests on, or an item on the rolling `Setup debt`
-issue**, since the loop's own last act closes
+linked *Adjacent* issue, a settle recorded with what it rests on, or a setup-debt item carried in that
+cycle's comment for `/pipeline:health`**, since the loop's own last act closes
 this issue and nothing reads a closed issue again — **so a finding the body carries that none of the four
 owns makes the remaining plan NOT empty**, and the termination test reads it that way.
 **One comment per completed increment records what landed, what it invalidated, that cycle's two *Adjacent*
-numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there
-because the age of the oldest is counted in those comments.
+numbers, its setup-debt items carried for `/pipeline:health`, and that cycle's RATE**: comments the history,
+the body the state — and the numbers belong there because the age of the oldest is counted in those comments.
 
 **The rate is four more numbers — filed this cycle, PLAN closes this cycle, SELF-GENERATED closes this cycle,
 and the NET, which is FILED MINUS PLAN CLOSES, so a positive net is the backlog GROWING against the plan and a

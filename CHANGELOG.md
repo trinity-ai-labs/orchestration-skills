@@ -14,7 +14,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 - **Setup and the loop hand it their setup-debt duty.** `/pipeline:setup` runs `/pipeline:health` on
   onboarding and on reconcile and quotes its summary after any monolith verdict, instead of measuring and
   recording setup debt itself. `/pipeline:orchestrate` no longer measures setup debt before an arc: it runs
-  `/pipeline:health` once per arc at close-out, handing it the costly setup debt the arc found, and reports
+  `/pipeline:health` once per arc as the arc leaves, handing it the costly setup debt the arc found, and reports
   what the issue gained. `/pipeline:co-think` routes a question about setup health, or about every gate being
   slow, to the new command.
 

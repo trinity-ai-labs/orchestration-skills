@@ -91,4 +91,6 @@ tool.
 6. **A map derived from evidence under-approximates** (the glossary entry says why), so it is safe only because
    the full gate still runs before anything ships.
 7. **A re-gate after a fix round on a head that passed the full gate runs the split gate over the delta since
-   that head**, with the same loud fallback, and its verdict names both heads.
+   that head**, with the same loud fallback, and its verdict names both heads — the one bounded exception to
+   item 6, since the head that ships rests on the full run directly below it for every domain the delta left
+   untouched, which is why the fallback on any shared-spine or unmapped file is what makes it safe.

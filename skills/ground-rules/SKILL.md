@@ -181,7 +181,10 @@ the seats here, and a seat that learns to spawn something is one of them the day
 
 **A finding you can settle cheaply inside what you are allowed to touch, you settle** — in its own commit
 where you commit and it lies outside your change. **One that is costly, or outside your reach, you surface —
-never dropped silently, and never as a bare list or a bare question.**
+never dropped silently, and never as a bare list or a bare question.** **Cheap never covers removing or
+degrading existing user-visible behaviour**: that is surfaced before it is applied, even where an agreed rule
+or an accepted finding seems to call for it, since a rule meeting a case its author did not anticipate is a
+question for its author.
 
 **Every finding you surface, at every level — to a dispatcher, a caller or the user, a question asked about
 one included — carries your recommendation and why, two or three educated alternatives each with what it

@@ -180,7 +180,8 @@ whether the code changes, so a ticket raised first is both wasted (a full serial
 are about to replace) and *unsafe*: the fix agent you dispatch next would edit a worktree that ticket has
 already frozen, and nothing takes a ticket back (see *Draining the gate queue*). **The order per PR in queue
 mode — the project declares `enqueue`/`drain` — is: implementer hands back a draft PR → you read the diff
-first → post that round's verdict as a review → needs changes? dispatch the fix agent NOW, while there is
+first → post that round's verdict as a review → needs changes? dispatch the fix agent NOW — its brief saying
+to name and surface any behaviour a fix would remove or degrade before applying it (rule 13) — while there is
 still no ticket → re-review → and only once the code is final do you ENQUEUE, then drain** — so the gate
 verdict corresponds to the exact commit you are going to merge. A fix round after a ticket has settled
 re-pushes and is re-enqueued the same way, that raise being yours too. **In in-line mode — a project declaring
@@ -188,6 +189,12 @@ no queue, or a slice put in override mode — there is no ticket at any point** 
 already on the PR when the hand-back arrives (`skills/execute/references/per-project-config.md`). Then verify
 that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
+**Re-gate a fix round in proportion when the previous head gated green on the full gate**: where the project
+declares `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full
+gate, loudly, where the delta touches the shared spine or an unmapped file (`skills/procedures/code-shape.md`,
+*The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
+stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
+is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
 
 That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
 precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.

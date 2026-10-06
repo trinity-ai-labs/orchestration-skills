@@ -14,8 +14,8 @@ Rules from the other passes bind you even when you were invoked directly. Run th
   joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong,
   every gate green.
 - **The bare-string verify rider.** A rename crossing a string boundary — a table, a route, a cache key, an
-  env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file
-  are blind to a renamed literal.
+  env var — or a change to a user-visible string or display format needs a sweep for the old literal or
+  rendered form in its verify bar, or the brief goes back: a typecheck and one test file are blind to both.
 - **Grounding, and its instrument.** A command LOCATES a candidate and OPENING what it found is what
   establishes the claim, so every sentence asserting something about the code as fact is made from the file or
   marked an assumption to flag; nothing downstream checks a brief against the tree.

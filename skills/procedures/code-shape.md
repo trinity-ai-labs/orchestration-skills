@@ -90,3 +90,5 @@ tool.
    toolchain — skipping a domain whose key last passed.
 6. **A map derived from evidence under-approximates** (the glossary entry says why), so it is safe only because
    the full gate still runs before anything ships.
+7. **A re-gate after a fix round on a head that passed the full gate runs the split gate over the delta since
+   that head**, with the same loud fallback, and its verdict names both heads.

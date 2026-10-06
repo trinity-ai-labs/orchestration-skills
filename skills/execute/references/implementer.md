@@ -94,7 +94,8 @@ repoint here, since a docs gate validating path citations reds before your own c
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run
 it, commit in blocks as the work lands, push, and open your draft PR exactly as a slice running no pass
 would, and only THEN run the pass — against that PR, whose diff is what it and its readers read. Wait until
-every reviewer has reported before you change anything, apply what you accept, run the scoped check over
+every reviewer has reported before you change anything, apply what you accept — surfacing first, by name, any
+behaviour a fix would remove or degrade (rule 13) — run the scoped check over
 what you applied, make **one more** commit, and push it onto the same PR, which is never closed and never
 reopened. **Where the panel finds nothing to apply there is nothing more to do**: its review and dimension
 comments are posted on your PR, your one commit round already stands, and you go straight to the hand-back.

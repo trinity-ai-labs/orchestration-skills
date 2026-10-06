@@ -332,6 +332,8 @@ wait.
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
 consciously reject the rest. **You apply nothing on anyone's behalf**: nothing lands in this tree you
 did not decide on, and a finding you are not the party to act on is reported rather than delegated.
+**A fix that would remove or degrade user-visible behaviour stays out of Applied**: name the behaviour lost and
+surface it before applying (`skills/ground-rules/SKILL.md`, rule 13).
 **Before you apply a removal or a narrowing argued from an absence, grep the tests for the symbol it
 touches** — a test pinning the wider shape is the contract, and a finding that searched only producers has
 said nothing about it.

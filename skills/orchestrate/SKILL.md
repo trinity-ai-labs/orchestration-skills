@@ -429,9 +429,15 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   has been, and that cycle's filed, its closes against the plan, its closes of what the arc generated itself,
   and the net of the first two; a multiplication is a flow, so it shows up in the rate while a level rising by
   one a cycle reads as noise.
+  **One narrow exception, not a loosening**: a re-gate after a fix round on a head already green on the full
+  gate, where its scope is genuinely unclear — a project rule demanding a full run against a small delta, or a
+  delta whose shared-spine contact or map coverage cannot be established — is ASKED, carrying rule 13's options
+  (full, cached, scoped to the delta) with each one's time and what it would miss, since a full run costs far
+  more than a question; where the answer is clear, act — off the spine scoped, on it full.
 - ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table,
-  a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify
-  bar**, grepping the *old literal* across the whole tree, fixtures, snapshots, generated files, docs and
+  a route, a cache key, a config key, an env var, a feature flag — or changes a user-visible string or display
+  format carries a bare-string sweep in its verify bar**, grepping the *old literal* or the old rendered form
+  across the whole tree, fixtures, snapshots, generated files, docs and
   config included, and proving either zero hits or that every survivor is deliberate — since no check an
   implementer runs can see a literal in a fixture. It **attaches to a shape of slice, not to a change**, and
   **goes in at grounding time**, never at review.

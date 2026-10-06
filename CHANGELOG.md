@@ -25,6 +25,16 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   names the same debt in its dispatch report, and costly debt found mid-arc goes to one rolling `Setup debt`
   issue in the project, appended and ticked off, which the close-out reports as a record rather than as
   questions.
+- **A re-gate after a fix round is proportionate.** Where a project declares `fullGate` and the previous head
+  passed the full gate, the re-gate runs the partial gate over the delta since that head, falling back to the
+  full gate loudly on a shared-spine or unmapped file, its verdict naming both heads. A project's stricter rule
+  still wins, stated with its cost; where the scope is genuinely unclear the dispatcher asks — the one narrow
+  exception beside the decide-don't-ask bar.
+- **Removing or degrading user-visible behaviour is never "cheap".** Rule 13 has such a change surfaced before
+  it is applied, even where an agreed rule or an accepted finding seems to call for it; every seat that applies
+  findings names the behaviour lost first.
+- **The bare-string verify rider widens** from renames to any change in a user-visible string or display
+  format, sweeping the old rendered form across tests, fixtures and snapshots.
 
 ## 5.15.0
 

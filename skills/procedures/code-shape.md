@@ -49,6 +49,11 @@ Stop at the first answer that places it.
    and it widens the shared spine — say so.
 4. **Would placing it take an edit to a central list to be picked up?** → use the form the folder picks up;
    where the project offers only the list, edit it and name the list as setup debt.
+5. **Run the deletion test on any new module** — imagine deleting it: where its complexity vanishes it was a
+   pass-through and the code belongs in its caller; where it reappears across several callers, the module
+   earns its place.
+6. **Add an interface only where two adapters vary across it** — a production implementation and a test
+   fake, say. One adapter is a hypothetical seam, so no interface goes in for it.
 
 **Then its test:**
 

@@ -15,23 +15,24 @@ rough idea ─/pipeline:co-think─▶ /pipeline:write-issue ─▶ /pipeline:or
                                                           standalone issue, whose reconcile finds nothing)
 ```
 
-**Eleven skills in two families, and one front door.** Six **arc** passes ship work into the integration
-branch, starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is
-named for you by the pass before it. Two **project** passes change the project itself and are invoked rather
-than routed to: `/pipeline:setup` onboards a repo and reconciles its config, and `/pipeline:cut-release` rolls
-the version and the branch work lands on. The remaining three are **shared homes** every pass may cite and
-none of which cites back, each admitted on a property naming what has no per-seat form to restate:
-`/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is;
-`/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork
-ban first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures`
-holds the **procedure** every seat runs identically — the worktree helper's command-line contract, the
-GitHub-write helper's, what each
-config key means and what its absence means, and each host's tool for a capability the flow needs.
+**Twelve skills in two families, and one front door.** Six **arc** passes ship work into the integration branch,
+starting at `/pipeline:co-think`, which settles the shape and routes it — every command after that is named for
+you by the pass before it. Three **project** passes work on the project itself and are invoked rather than routed
+to: `/pipeline:setup` onboards a repo and reconciles its config, `/pipeline:cut-release` rolls the version and the
+branch work lands on, and `/pipeline:health` measures how healthy the setup is. The remaining three are **shared
+homes** every pass may cite and none of which cites back, each admitted on a property naming what has no per-seat
+form to restate: `/pipeline:glossary` is the map both families read, holding a **definition** — what a thing is;
+`/pipeline:ground-rules` is the short list of **rules** every seat is held to identically — the never-a-fork ban
+first — which every pass has its reader open before acting on anything in it; and `/pipeline:procedures` holds the
+**procedure** every seat runs identically — the worktree helper's command-line contract, the GitHub-write
+helper's, what each config key means and what its absence means, and each host's tool for a capability the flow
+needs.
 
 | You type | Does |
 |---|---|
 | [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo once: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if the project wants one, and verifies by cutting real worktrees. Checks the shape of the project's agent guidance, tells you first when it is a monolith every agent has to load whole, and splits it into routers and rule chapters in its own PR. Also reconciles a config that has gone stale — against its repo, or against this plugin. |
 | [`/pipeline:cut-release`](skills/cut-release/SKILL.md) | Cuts the next release branch and moves the version, as one reviewable commit in its own worktree that it PRs and merges on the yes it took before anything ran — the repository side only, never tags or publishing. It exists because that moment was the one nothing in the flow was present for, which is how `integrationBranch` went stale and the version moved invisibly. |
+| [`/pipeline:health`](skills/health/SKILL.md) | Answers how healthy a project's setup is, whenever you ask: measures its code shape — a domain map's coverage, tagged tests, what one full gate run costs and how much of it a domain filter could select — and the shape of its agent guidance, each figure with its unit, then compares each against its last value. Keeps one rolling `Setup debt` issue in your tracker, appending new items, updating listed ones with their trend and ticking off what is gone, and reports every item most expensive first with its cost, a recommendation, its alternatives and the command that removes it. It never restructures anything; `/pipeline:setup` runs it for you, and `/pipeline:orchestrate` runs it once per arc, as the arc leaves, carrying the setup debt the arc found. |
 | [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door, and where a request for your judgment on a shape lands as much as a request to build one. Writes the goal down as one testable sentence, classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. It shapes toward that goal rather than around the mechanisms it finds, so an existing check, ceiling or step is something it may propose changing or deleting. |
 | [`/pipeline:write-issue`](skills/write-issue/SKILL.md) | Takes a shape you have already settled and **plans the arc**: grounds what the arc rests on — the real modules, the seams, whether the surface exists — sets the phases and their order, answers whether the work is one slice or an epic, and files it as a forward-facing issue. **It is also the one pass that cuts the plan's tree of tasks** — umbrella to sub-issues, two levels, one sub-issue being one slice and one PR — because nothing downstream adds a level to it. **Four ways in**: a shape settled in chat, a follow-up a live run surfaced and did not land, a pile of already-filed issues swept and clustered on a shared failure or a shared surface into an umbrella over the existing numbers, each report untouched and a backlink appended, or a re-author a live arc reported back — a leaf that cannot be one PR, or several that are one PR's worth of one change, the leaves it supersedes closed as not planned. Where the shape is not settled it hands back to `co-think` rather than filing. |
 | [`/pipeline:orchestrate`](skills/orchestrate/SKILL.md) | **The one command you type for dispatched work of any size.** Runs an arc to completion as a loop: grounds the horizon — the ready sub-issues — dispatches them, reviews them and lands them — merging where the checkpoint's `autoMerge*` key allows it, holding the PR as a draft with one comment where it does not — reconciles the rest against the tree that increment produced, repeats. A cycle lands whole issues and absorbs what it finds rather than handing it back. Dependency phases are what make an arc take many cycles — leaves that are all ready at once are one wave and land in one — and a standalone issue is one cycle over one leaf. |
@@ -128,7 +129,7 @@ session. The directory name is the namespace.
 claude --plugin-dir ~/Code/orchestration-skills
 ```
 
-Verify with `/plugin list` on Claude Code — you should see `pipeline`, its eleven skills, and ten
+Verify with `/plugin list` on Claude Code — you should see `pipeline`, its twelve skills, and ten
 executables (the five helpers, each shipped in bash and in PowerShell). On Codex, `codex plugin list` shows
 the `pipeline` row with its version and install status.
 
@@ -292,6 +293,7 @@ that comparison rather than preparation for it, is in
     │   ├── SKILL.md
     │   └── references/gate-queue.md
     ├── cut-release/SKILL.md
+    ├── health/SKILL.md
     ├── co-think/SKILL.md
     ├── write-issue/
     │   ├── SKILL.md

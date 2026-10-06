@@ -68,9 +68,9 @@ loop's own last act and nothing reads a closed issue again; nor does it become a
 a number bought for work nobody is carrying yet is what turns a run into somebody's inbox. The reason
 recorded is the one it earned rather than the goal-completeness reason a forced item is folded on, and an
 umbrella body still carrying a finding nothing owns is a plan that is not empty. And the close-out reports
-what the arc absorbed once, as part of the release, along with what it added to your project's one rolling
-`Setup debt` issue — costly setup problems found on the way, each measured with a recommendation — as a record
-of what was decided, never as questions handed to you.
+what the arc absorbed once, as part of the release, then runs `/pipeline:health` — once per arc — to record on
+your project's one rolling `Setup debt` issue the costly setup problems found on the way, each measured with a
+recommendation, as a record of what was decided, never as questions handed to you.
 **Either of those names at least one file, symbol or
 route**, the comment included, because that is the coordinate the re-test below actually reads and an item
 carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later

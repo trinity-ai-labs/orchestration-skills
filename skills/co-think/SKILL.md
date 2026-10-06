@@ -167,6 +167,7 @@ Then hand off. **This pass terminates at a route** and never carries the work it
 | A pile of already-filed issues to group | `/pipeline:write-issue` — its third way in clusters them into one umbrella |
 | The repo has no pipeline config | `/pipeline:setup` first — unconfigured, it cuts bare worktrees and gates on a guess |
 | Cutting the next release, or rolling the branch work lands on | `/pipeline:cut-release` — a project pass, not an arc; it is not shaped work and does not want an issue |
+| How healthy the project's setup is, or why every gate is slow | `/pipeline:health` — a project pass, not an arc; it measures the setup debt, records it and routes each item |
 
 Name the route out loud with its command in it, so the user can take it themselves.
 

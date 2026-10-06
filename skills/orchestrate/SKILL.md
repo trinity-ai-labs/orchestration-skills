@@ -106,15 +106,12 @@ correctly on a monolith, only dearer. **Never an edit by the loop**: a split rew
 states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
 briefed against the old files.
 
-**Setup debt is a report too, right under the monolith and never a stop** — where `gate` is the full suite
-(no `fullGate` declared), its Map coverage, Untagged tests and Full-gate cost are taken by
-`skills/procedures/code-shape.md` with their units (the terms are `skills/glossary/vocabulary/code-shape.md`'s)
-and named in the dispatch report with the split-gate recommendation and its cheaper alternatives as
-`skills/ground-rules/SKILL.md` rule 13 asks, the route being the project's own change through
-`/pipeline:co-think` → `/pipeline:write-issue` and then `/pipeline:setup`'s `fullGate` ask; where `fullGate`
-is declared, only unchecked tags and uncovered files are named. **Each measured item is also recorded on the
-rolling `Setup debt` issue** (`skills/orchestrate/references/reconciling.md`, *Fold vs. file*). **Never an
-edit by the loop**: restructuring a project's gate is that project's own change.
+**Setup debt (`skills/glossary/vocabulary/code-shape.md`) is a one-line report too, right under the monolith,
+never a stop, and it measures nothing** — where `gate` is the full suite (no `fullGate` declared), the dispatch
+report says every gate runs the whole suite and that `/pipeline:health` holds the project's setup-debt record
+and is the command to run, read off the config alone, with no signal taken and no issue looked up. The loop
+runs `/pipeline:health` itself once per arc, as the arc leaves (step 5). **Never an edit by the loop**:
+restructuring a project's gate is that project's own change.
 
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
 the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
@@ -264,9 +261,13 @@ last, and the steps that ran to get there were the same ones either way.
 adjudicate.** Scope growing inside an arc is expected, so what the close-out owes is a record of the
 findings this arc folded and landed, written into the close-out report and the release entry that ships
 with it — **and no list of findings deferred, since no disposition defers one**; a list handed over as open
-questions is the filing channel doing the asking *The decide-don't-ask bar* forbids. **It also states what the
-project's rolling `Setup debt` issue gained this arc** (`skills/orchestrate/references/reconciling.md`, *Fold
-vs. file*) — a record of what was decided, never questions handed over.
+questions is the filing channel doing the asking *The decide-don't-ask bar* forbids.
+
+**Whichever exit the arc leaves by, held aside, run `/pipeline:health` — this arc's one run of it — once any
+close-out merge has landed on the integration branch**, so it measures the tree the arc produced, handing it
+the setup-debt items the cycle comments carry (`skills/orchestrate/references/reconciling.md`, *Fold vs.
+file*), and state what its summary says the `Setup debt` issue gained — a record of what was decided, never
+questions handed over. **A held arc runs it at the cycle that lands the held merge.**
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
@@ -281,7 +282,8 @@ cannot say whether the slices COMPOSE, and that combined diff is the first and o
 **Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
 anything you accepted from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after
 it and never by you. **A finding the umbrella body still carries that no checklist line,
-linked issue, recorded settle or rolling `Setup debt` item owns is a remaining plan that is NOT empty**, since closing that umbrella
+linked issue, recorded settle or setup-debt item carried for `/pipeline:health` owns is a remaining plan
+that is NOT empty**, since closing that umbrella
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
 closing keywords, which fire only where that PR's base is the repository's **default** branch and never
@@ -342,7 +344,7 @@ already posted sitting on a draft nobody is watching. **Then write that same fac
 onto the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches only whoever
 is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining plan
 and nothing parked beside it, so a line there that no checklist line, linked issue, recorded settle or
-`Setup debt` item owns reads
+setup-debt item carried for `/pipeline:health` owns reads
 as a plan that is NOT empty at the very termination the hold is waiting on. That write is
 `gh-post.sh comment issue <n> --key merge-held/<pr> --body-file <file>` (`skills/procedures/github-writes.md`),
 so a cycle that finds the arc still held edits it rather than stacking another.

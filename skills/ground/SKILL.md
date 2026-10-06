@@ -102,8 +102,8 @@ clothes.** And one rule gates it: **establish why a thing is the way it is befor
 what looks wrong to the constraint it satisfies or the consumer it exists for, and where it has a valid reason
 and is idiomatic for its context, leave it and record that you checked.
 
-**When you must ask, ask in plain chat — ONE question at a time.** State the gap, give your recommendation and
-why, ask the single most decision-blocking question, wait, fold the answer in, then ask the next only if still
+**When you must ask, ask in plain chat — ONE question at a time.** State the gap with what
+`skills/ground-rules/SKILL.md` rule 13 asks of anything surfaced, ask the single most decision-blocking question, wait, fold the answer in, then ask the next only if still
 open. No option-picker dialogs, no batched wall. If the user is unavailable and a gap is non-blocking, proceed
 with the stated assumption and mark it.
 

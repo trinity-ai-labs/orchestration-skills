@@ -41,11 +41,9 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     a floor still, and a path carrying a disposition is a path the change must land on.
   - ⛔ **`Owns` is a FLOOR, never a ceiling — the files the change must reach, not the only files it may
     touch.** Everything neither owned by this slice nor named in its `Do NOT touch` is the UNLISTED MIDDLE,
-    and the unlisted middle is fixable: a slice that finds something broken there repairs it in the PR it is
-    already building. Read as a closed allowlist instead, this field silently reclassifies every defect
-    outside it as somebody else's — which is what turns a one-line fix into a filed item, a read, a
-    discussion, a worktree, an agent, a gate run and a merge. A grounding pass that wants a path left alone
-    says so in `Do NOT touch` and gives the reason; silence means fix it.
+    inside the slice's reach for `skills/ground-rules/SKILL.md` rule 13's fold, since read as a closed
+    allowlist this field reclassifies every defect outside it as somebody else's. A grounding pass that wants
+    a path left alone says so in `Do NOT touch` and gives the reason; silence means fix it.
   - **On an epic a named doc carries one of THREE dispositions, not two**: ledger entry, coordinate fix, or
     both. Docs mostly leave *edit* scope to the closing docs slice, except a structural coordinate the slice
     moves — a file path, or a route literal in the same clause — which it repoints in its own PR, since a
@@ -116,6 +114,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no* there
     is**: a recommendation that only ever says yes is a default yes, which spends on every slice exactly what
     pricing the fan-out was for.
+  - **Name where the slice's new code and tests land** — the domain and folder, and the seam each test sits at
+    (`skills/ground-rules/SKILL.md`, rule 12; `skills/procedures/code-shape.md`, *Placing new code and a new
+    test*) — and say so where the placement widens the shared spine
+    (`skills/glossary/vocabulary/code-shape.md`).
   - **Point at the source, never at your conclusion about it** — *read the route handler and use the schema it
     parses the body with*, not *use `FooRequest`*, since an implementer cannot tell a name you verified from
     one you inferred.
@@ -352,9 +354,9 @@ plan for one arc, and nothing marks which of the two a later reader took.
   "epic" name the branch itself.
   - **A knowingly-red epic is what opens the transient-red window**, so carry that half of the verdict too
     rather than only the branch name — the *Transient-red window* entry above is what the dispatcher acts on.
-  - **Where your grounding CONTRADICTS the verdict, report it on the issue rather than settling it** — a
-    contract seam whose halves you now see landing in different waves, or a foundational change every consumer
-    must follow, against an issue that says one slice. Naming the contradiction is the finding; answering it
+  - **Where your grounding CONTRADICTS the verdict, report it on the issue as `skills/ground-rules/SKILL.md`
+    rule 13 asks rather than settling it** — a contract seam whose halves you now see landing in different
+    waves, or a foundational change every consumer must follow, against an issue that says one slice. Naming the contradiction is the finding; answering it
     here answers a question already settled somewhere a human reviewed it.
 - **Conflict map.** Name any pair of slices that will touch the same file **neither of them owns** (both add a
   route to one registry, both add a case to one exhaustive switch); the dispatcher resolves these
@@ -377,8 +379,8 @@ plan for one arc, and nothing marks which of the two a later reader took.
   **3+ slices all extending one structure** — a control loop's `tick()`, a reducer, an event handler, an
   exhaustive switch — is a decomposition smell: they fork off different bases, so the merges come out
   textually clean (git reports `MERGEABLE`) and behaviorally wrong, each adding its case only to the siblings
-  that existed when it forked. Land the extensibility seam first — an interface, a registry, a `Monitor[]` the
-  others *register into*. When you can't, do both: emit the **shared invariant** into every touching slice's
+  that existed when it forked. Land the extensibility seam first — an interface the others *plug into* from
+  their own files, found by folder where the project can (`skills/ground-rules/SKILL.md`, rule 12). When you can't, do both: emit the **shared invariant** into every touching slice's
   brief (*"every parked-state branch must freeze ALL kill-clocks"*), and mark the hotspot so
   `/pipeline:execute` reviews the merged region semantically rather than just resolving markers.
 - **Contract seams — who *defines* a shape someone else *consumes*.** Neither the conflict map nor the hotspot

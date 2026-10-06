@@ -311,7 +311,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **One panel run and at most one fix round, then carry straight on — this pass no more re-triggers itself
   here than it does on a slice.** That fix round's readers are the gate and your own read of the diff, both
   still ahead of the merge, so a second panel over the same diff buys a reading already scheduled.
-  **Gate AFTER the fix round, never before it**, since a ticket raised first both burns a serialized gate on
+  **Gate AFTER the fix round, never before it** — in proportion, by `skills/execute/references/reviewing.md`'s
+  re-gate rule — since a ticket raised first both burns a serialized gate on
   code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
   able to take a ticket back. Where the project declares **no queue**, gate the epic
   branch in its own worktree yourself — `fullGate` where the project declares it — and read its exit status.

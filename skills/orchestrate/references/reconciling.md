@@ -148,7 +148,9 @@ everything above produces findings, none of it explanations.
 **Establish why a thing is the way it is before you disposition it — this gates everything below.** Trace what
 looks wrong to what made it that way: the constraint it satisfies, the consumer it exists for, the commit that
 put it there. **If it has a valid reason and is idiomatic for its context, leave it and record that you
-checked**; only then fix, raise or file.
+checked**; only then disposition it by the forms below, which are `skills/ground-rules/SKILL.md` rule 13 at
+this seat — **the loop's reach is the whole arc**, so its fold takes work of any size that a narrower seat
+would surface as costly.
 
 **Then the first question is not where the item goes — it is whether it is yours to settle at all.**
 
@@ -279,7 +281,18 @@ still has to survive grounding, which can hand it back out.
 
 **When they conflict, lean toward settling**, since non-termination is visible from inside the loop and
 backlog transfer is not; **settling is not absorbing**, producing a *decision* where folding produces a
-*slice*. **Whatever you file or ask carries the reasoning and a recommendation, not a fork.**
+*slice*. **Whatever you file or ask carries what rule 13 asks of anything surfaced.**
+
+**Setup debt (`skills/glossary/vocabulary/code-shape.md`) is the one *Adjacent* item with a fixed target.**
+Cheap debt touching what a slice already touches folds into the arc; a restructure of the project's setup is
+a different arc by definition, so it is *Adjacent*, filed as ONE item on the project's ONE rolling open issue
+titled `Setup debt` in that repository's own tracker — **searched for by that title before any create, and
+never a second** — each item named by its signal from `skills/procedures/code-shape.md`'s table (or as a
+missing tool or a central list, with the signal or path it concerns), measured with its unit and its last
+value, carrying its recommendation and alternatives, appended where new, updated where already listed, and
+ticked off when a re-measure finds it gone. **It is a record of what the loop decided, never a question**: each
+recommendation stands until the user edits its one line, and the rolling issue sits outside item 8's
+population, the rate and the arc-exit comments, since no arc owns it.
 
 **A filed item leaves the loop's hands only by being handed to a person — an ownership transfer the close-out
 records, never a decision put to the user mid-run, which the decide-don't-ask bar leaves no route for.** It is
@@ -330,8 +343,9 @@ never the live one.
 rewritten every cycle** — state, not history, at the depth `skills/orchestrate/SKILL.md`'s *Two grounding
 depths* assigns, and `/pipeline:write-issue`'s forward-facing rule applies to every rewrite.
 **The body holds that plan and nothing parked beside it: every finding leaves a cycle as a checklist line, a
-linked *Adjacent* issue, or a settle recorded with what it rests on**, since the loop's own last act closes
-this issue and nothing reads a closed issue again — **so a finding the body carries that none of the three
+linked *Adjacent* issue, a settle recorded with what it rests on, or an item on the rolling `Setup debt`
+issue**, since the loop's own last act closes
+this issue and nothing reads a closed issue again — **so a finding the body carries that none of the four
 owns makes the remaining plan NOT empty**, and the termination test reads it that way.
 **One comment per completed increment records what landed, what it invalidated, that cycle's two *Adjacent*
 numbers, and that cycle's RATE**: comments the history, the body the state — and the numbers belong there

@@ -60,7 +60,7 @@ folds into a named slice with its own wave when the arc's goal is not true witho
 floor of that question rather than the bar, and size deciding only how the work is carried).
 **Scope growing inside an arc is expected, so the loop absorbs what it finds rather than handing it back**: it
 files only what is genuinely a *different arc* — narrower than separable and narrower than real work worth
-doing — as a new linked issue carrying the reasoning and a recommendation rather than a fork, or, where the
+doing — as a new linked issue carrying the reasoning and a recommendation with its alternatives rather than a fork, or, where the
 tracker already carries that failure, as a comment on the issue that has it. What is neither forced nor a
 different arc is folded in too, whatever its size — as a phase of its own where it fits none the plan has —
 rather than parked as a line for a later arc, because the umbrella such a line would sit on is closed by the
@@ -68,7 +68,9 @@ loop's own last act and nothing reads a closed issue again; nor does it become a
 a number bought for work nobody is carrying yet is what turns a run into somebody's inbox. The reason
 recorded is the one it earned rather than the goal-completeness reason a forced item is folded on, and an
 umbrella body still carrying a finding nothing owns is a plan that is not empty. And the close-out reports
-what the arc absorbed once, as part of the release.
+what the arc absorbed once, as part of the release, along with what it added to your project's one rolling
+`Setup debt` issue — costly setup problems found on the way, each measured with a recommendation — as a record
+of what was decided, never as questions handed to you.
 **Either of those names at least one file, symbol or
 route**, the comment included, because that is the coordinate the re-test below actually reads and an item
 carrying none can only be re-read on its own wording. **What it files, it records a reason for that a later

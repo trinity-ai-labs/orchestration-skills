@@ -180,7 +180,8 @@ whether the code changes, so a ticket raised first is both wasted (a full serial
 are about to replace) and *unsafe*: the fix agent you dispatch next would edit a worktree that ticket has
 already frozen, and nothing takes a ticket back (see *Draining the gate queue*). **The order per PR in queue
 mode — the project declares `enqueue`/`drain` — is: implementer hands back a draft PR → you read the diff
-first → post that round's verdict as a review → needs changes? dispatch the fix agent NOW, while there is
+first → post that round's verdict as a review → needs changes? dispatch the fix agent NOW — its brief saying
+to name and surface any behaviour a fix would remove or degrade before applying it (rule 13) — while there is
 still no ticket → re-review → and only once the code is final do you ENQUEUE, then drain** — so the gate
 verdict corresponds to the exact commit you are going to merge. A fix round after a ticket has settled
 re-pushes and is re-enqueued the same way, that raise being yours too. **In in-line mode — a project declaring
@@ -188,6 +189,12 @@ no queue, or a slice put in override mode — there is no ticket at any point** 
 already on the PR when the hand-back arrives (`skills/execute/references/per-project-config.md`). Then verify
 that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
+**Re-gate a fix round in proportion when the previous head gated green on the full gate**: where the project
+declares `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full
+gate, loudly, where the delta touches the shared spine or an unmapped file (`skills/procedures/code-shape.md`,
+*The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
+stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
+is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
 
 That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
 precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.
@@ -276,12 +283,11 @@ this blank apart once it has.
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that
 same worktree, a resume message to the same implementer, or an issue **you** file and link, folded into the
 wave plan — that filing being yours to perform because **neither the implementer nor any reviewer it
-dispatched has a filing disposition at all** — and where the report carries a QUESTION about a fenced path
-that went unanswered while the slice ran, you answer it here on the same five answers, a *take it* becoming a
-fix agent into that worktree with the fence widened — whose edit lands after any pass that slice ran had
-already reported, so the round you review next is its only reader (*Hard rules* — the follow-up-ownership rule
-is yours to discharge here, neither the implementer nor a reviewer under it having a filing disposition of its
-own, and *The epic branch* says which branch the follow-up targets while one is live). **Read a hand-back that
+dispatched has a filing disposition at all** (*Hard rules*' follow-up-ownership rule; *The epic branch* says
+which branch the follow-up targets while one is live) — and where the report carries a QUESTION about a fenced
+path that went unanswered while the slice ran, you answer it here on the same five answers, a *take it*
+becoming a fix agent into that worktree with the fence widened — whose edit lands after any pass that slice
+ran had already reported, so the round you review next is its only reader. **Read a hand-back that
 surfaces an out-of-fence finding for the FIRST time here as a raise that came too late, never as merely a late
 question** — the implementer fixes what it hits and raises what a fence stops it from fixing before it pushes,
 precisely so one reaches you while its tree is open and *take it* still costs an edit, so answer this one on

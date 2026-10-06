@@ -14,8 +14,8 @@ Rules from the other passes bind you even when you were invoked directly. Run th
   joins a wave already cut, and one dispatched beside its neighbours merges clean and semantically wrong,
   every gate green.
 - **The bare-string verify rider.** A rename crossing a string boundary — a table, a route, a cache key, an
-  env var — needs a bare-string sweep in its verify bar, or the brief goes back: a typecheck and one test file
-  are blind to a renamed literal.
+  env var — or a change to a user-visible string or display format needs a sweep for the old literal or
+  rendered form in its verify bar, or the brief goes back: a typecheck and one test file are blind to both.
 - **Grounding, and its instrument.** A command LOCATES a candidate and OPENING what it found is what
   establishes the claim, so every sentence asserting something about the code as fact is made from the file or
   marked an assumption to flag; nothing downstream checks a brief against the tree.
@@ -464,7 +464,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   be rewritten by another slice, which is the reason it was fenced out of it — so absorbing the question IS
   the job rather than overhead on it, and you escalate to the user only for the one class that already reaches
   the user, a product or design fork the code and conventions cannot settle. The ask arrives as a queued
-  message on your next turn, carrying the path, what is wrong with it and a recommendation.
+  message on your next turn, carrying the path, what is wrong with it and what `skills/ground-rules/SKILL.md`
+  rule 13 asks of anything surfaced.
   **An ask to remove or narrow something on an absence — *nothing produces this*, *no caller passes that* —
   is answered only after you grep the tests naming that symbol**, and a test pinning the wider shape makes
   the answer *The premise did not hold*, since a search of producers says nothing about the contract a test

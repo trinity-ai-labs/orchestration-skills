@@ -158,8 +158,9 @@ item's own words, and cover CLOSED issues as well as open.**
 **⛔ Not licence to skip filing because something RELATED exists — the test is whether two items share a
 FAILURE, not a subject area.** A finding buried in a neighbour closes when the host does.
 
-A comment reached this way **is** a filing — the failure, the reasoning, a recommendation rather than a fork,
-why it is not the one already there, and **at least one file, symbol or route**, since the loop re-tests this
+A comment reached this way **is** a filing — the failure, the reasoning, the recommendation with its
+alternatives that `skills/ground-rules/SKILL.md` rule 13 asks of anything surfaced, why it is not the one
+already there, and **at least one file, symbol or route**, since the loop re-tests this
 comment's verdict by intersecting exactly those and a comment carrying none reaches it as the narrowest input
 it ever gets — via Step 4's comment call.
 
@@ -203,12 +204,17 @@ not what the issue *carries* (Step 3's *Surface*).
   work lands in, up to the root, plus only the chapters those routers route it to, and a monolith whole**
   (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; the terms are
   `skills/glossary/vocabulary/agent-guidance.md`'s).
+- **Place each new file and test in its domain** (`skills/ground-rules/SKILL.md`, rule 12;
+  `skills/procedures/code-shape.md`, *Reading a project's code shape* and *Placing new code and a new test*),
+  so the Surface names the domain every new file lands in — and a placement that widens the shared spine
+  (`skills/glossary/vocabulary/code-shape.md`) says so.
 - **Writing about the repository that SHIPS these skills? Ground by the TREE's copy of these rules, not the
   installed one you are reading** — the tree is what the change ships. Read its steps there, `diff` where a
   rule looks wrong, take the tree's, and say which you used.
 
 Where the idea is under-specified, resolve what you can from the code and conventions and
-**state the assumption in the issue**; escalate only genuine product/design forks, one at a time.
+**state the assumption in the issue**; escalate only genuine product/design forks, one at a time, each carrying
+what rule 13 asks.
 
 ---
 
@@ -219,8 +225,8 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
 - **Goal** — one or two sentences: what changes and why it's worth doing. Forward-facing.
 - **Approach** — the chosen design, stated as decisions rather than options you're weighing.
 - **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each
-  change ripples into. The core of what Step 2 checked, and a **map, not a checklist** — nothing phrased as a
-  sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is
+  change ripples into, and the domain each new file and test lands in. The core of what Step 2 checked, and a
+  **map, not a checklist** — nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is
   `/pipeline:ground`'s, at the horizon.
 - **Type / interface sketch** — a short code block for a new type, API shape or contract, with real names.
 - **Phases** — the arc's ORDERING over the items you file, yours alone to set and mapped

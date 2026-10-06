@@ -106,6 +106,16 @@ correctly on a monolith, only dearer. **Never an edit by the loop**: a split rew
 states, so it is setup's reviewable change, and one landing mid-arc moves the rules under slices already
 briefed against the old files.
 
+**Setup debt is a report too, right under the monolith and never a stop** — where `gate` is the full suite
+(no `fullGate` declared), its Map coverage, Untagged tests and Full-gate cost are taken by
+`skills/procedures/code-shape.md` with their units (the terms are `skills/glossary/vocabulary/code-shape.md`'s)
+and named in the dispatch report with the split-gate recommendation and its cheaper alternatives as
+`skills/ground-rules/SKILL.md` rule 13 asks, the route being the project's own change through
+`/pipeline:co-think` → `/pipeline:write-issue` and then `/pipeline:setup`'s `fullGate` ask; where `fullGate`
+is declared, only unchecked tags and uncovered files are named. **Each measured item is also recorded on the
+rolling `Setup debt` issue** (`skills/orchestrate/references/reconciling.md`, *Fold vs. file*). **Never an
+edit by the loop**: restructuring a project's gate is that project's own change.
+
 **A config naming a branch the main checkout is not standing on is a STOP, not a note.** That checkout holds
 the integration branch and nothing else, so the two disagreeing means the project rolled its branch and the
 config did not follow — and the file is read for **provisioning**, not only for a base, so a dispatcher that
@@ -254,7 +264,9 @@ last, and the steps that ran to get there were the same ones either way.
 adjudicate.** Scope growing inside an arc is expected, so what the close-out owes is a record of the
 findings this arc folded and landed, written into the close-out report and the release entry that ships
 with it — **and no list of findings deferred, since no disposition defers one**; a list handed over as open
-questions is the filing channel doing the asking *The decide-don't-ask bar* forbids.
+questions is the filing channel doing the asking *The decide-don't-ask bar* forbids. **It also states what the
+project's rolling `Setup debt` issue gained this arc** (`skills/orchestrate/references/reconciling.md`, *Fold
+vs. file*) — a record of what was decided, never questions handed over.
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
@@ -269,7 +281,7 @@ cannot say whether the slices COMPOSE, and that combined diff is the first and o
 **Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
 anything you accepted from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after
 it and never by you. **A finding the umbrella body still carries that no checklist line,
-linked issue or recorded settle owns is a remaining plan that is NOT empty**, since closing that umbrella
+linked issue, recorded settle or rolling `Setup debt` item owns is a remaining plan that is NOT empty**, since closing that umbrella
 is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
 tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
 closing keywords, which fire only where that PR's base is the repository's **default** branch and never
@@ -329,7 +341,8 @@ takes** — a human merging it on GitHub, or telling this flow to go ahead — t
 already posted sitting on a draft nobody is watching. **Then write that same fact onto the tracked issue, or
 onto the umbrella where the arc has one — as a COMMENT, never into the body**: the report reaches only whoever
 is reading this run where step 1 of the next cycle reads the tracker, and the body carries the remaining plan
-and nothing parked beside it, so a line there that no checklist line, linked issue or recorded settle owns reads
+and nothing parked beside it, so a line there that no checklist line, linked issue, recorded settle or
+`Setup debt` item owns reads
 as a plan that is NOT empty at the very termination the hold is waiting on. That write is
 `gh-post.sh comment issue <n> --key merge-held/<pr> --body-file <file>` (`skills/procedures/github-writes.md`),
 so a cycle that finds the arc still held edits it rather than stacking another.
@@ -404,7 +417,8 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   loop's calls to make and report**, not questions to put to the user:
   **the loop decides, folds, acts and reports**, and records what it decided. Escalate exactly one class —
   **a product or design fork the code and conventions cannot settle** — in plain chat,
-  **one question at a time, with your recommendation and why**. Two things are specific to a loop:
+  **one question at a time, carrying what `skills/ground-rules/SKILL.md` rule 13 asks**, and proceed on your
+  recommendation where the answer does not block. Two things are specific to a loop:
   **the bar is applied once per cycle, so setting it slightly too low multiplies**, and
   **this loop has two channels to the user** — most of what reaches one arrives as a *filed issue* rather than
   a question in chat, **which is why the issue channel is not a place to put a decision**: a filing handed
@@ -415,9 +429,15 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   has been, and that cycle's filed, its closes against the plan, its closes of what the arc generated itself,
   and the net of the first two; a multiplication is a flow, so it shows up in the rate while a level rising by
   one a cycle reads as noise.
+  **One narrow exception, not a loosening**: a re-gate after a fix round on a head already green on the full
+  gate, where its scope is genuinely unclear — a project rule demanding a full run against a small delta, or a
+  delta whose shared-spine contact or map coverage cannot be established — is ASKED, carrying rule 13's options
+  (full, cached, scoped to the delta) with each one's time and what it would miss, since a full run costs far
+  more than a question; where the answer is clear, act — off the spine scoped, on it full.
 - ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table,
-  a route, a cache key, a config key, an env var, a feature flag — carries a bare-string sweep in its verify
-  bar**, grepping the *old literal* across the whole tree, fixtures, snapshots, generated files, docs and
+  a route, a cache key, a config key, an env var, a feature flag — or changes a user-visible string or display
+  format carries a bare-string sweep in its verify bar**, grepping the *old literal* or the old rendered form
+  across the whole tree, fixtures, snapshots, generated files, docs and
   config included, and proving either zero hits or that every survivor is deliberate — since no check an
   implementer runs can see a literal in a fixture. It **attaches to a shape of slice, not to a change**, and
   **goes in at grounding time**, never at review.

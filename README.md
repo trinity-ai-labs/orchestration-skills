@@ -313,7 +313,8 @@ that comparison rather than preparation for it, is in
     │   ├── github-writes.md      # gh-post's call: comment, review, close, sub-issue link, safe to re-run
     │   ├── config-keys.md        # what each .agents/worktree.json key means, and what its absence means
     │   ├── host-tools.md         # the one file naming a host's tools, models and paths
-    │   └── agent-guidance-layout.md  # reading, checking, placing and splitting a project's agent guidance
+    │   ├── agent-guidance-layout.md  # reading, checking, placing and splitting a project's agent guidance
+    │   └── code-shape.md         # reading a project's code shape, its signals, placing a file, a split gate's shape
     └── glossary/
         ├── SKILL.md              # the index both families read
         ├── vocabulary/           # what a shared term IS — defined once, cited from everywhere

@@ -96,13 +96,12 @@ resolves.
 - **One question per message.** A topic needing more becomes several messages, never one message carrying
   three questions.
 - **Multiple choice wherever the answer has a small set of options**, open-ended where it does not.
-- **Lead with your recommendation and why**, then the alternatives. On the architectural path that is two or
-  three approaches with their trade-offs, the recommended one first.
-- **Name what would change your mind, then proceed on your recommendation anyway**, marking the assumption you
-  are proceeding under. A flip condition is information that makes an override cheap, not a gate — whoever
-  disagrees corrects one sentence, whoever agrees says nothing and the work is already moving — because a
-  recommendation handed back with a fork attached is still a fork: the answer is already reasoned out, and
-  asking anyway costs the user a restatement of a goal they have already stated.
+- **Every question carries what `skills/ground-rules/SKILL.md` rule 13 asks, your recommendation first** — and
+  on the architectural path the alternatives are whole approaches with their trade-offs.
+- **Then proceed on your recommendation anyway**, marking the assumption you are proceeding under. A flip
+  condition is information that makes an override cheap, not a gate — whoever disagrees corrects one
+  sentence, whoever agrees says nothing and the work is already moving — because a recommendation handed back
+  with a fork attached is still a fork.
 - **Price a constraint before you let it narrow the design, and put the price in front of the user.** *We
   can't do X because Y* is a claim about **cost**, never about possibility, and an unpriced one removes an
   option from the conversation with nothing left behind to say it was removed: the user cannot object to an

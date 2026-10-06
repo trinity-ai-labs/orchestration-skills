@@ -83,7 +83,7 @@ What is in scope, once you have it:
 
 - **Only the code this change touched.**
 - **Stay inside the worktree you were given.** Never edit a file outside it.
-- **Do not refactor pre-existing code the change merely sits near.** Flag it in the report instead. A
+- **Do not refactor pre-existing code the change merely sits near.** Surface it in the report instead. A
   cleanup that widens the diff makes the dispatcher's PR review harder, and the slice's do-not-touch
   boundaries exist because another slice may own that file right now.
 - **Respect the brief's boundaries.** If the brief says a path is owned by another slice, it is out of
@@ -234,6 +234,12 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 - Vague names (`data`, `result`, `tmp`) — propose names that say what the value holds.
 - Comments restating the code, which go; comments explaining a non-obvious *why* or *how*, which stay.
 - Where the diff departs from the conventions of the files it is already in.
+- **Placement, tags and test level, against `skills/ground-rules/SKILL.md` rule 12 and the project's own
+  layout rules** — a new file outside its domain's folder, a registration in a central list, an import
+  pointing the wrong way, a test at the wrong seam, a test with no domain tag or one nothing checks — except
+  where the project offers no tag form or no folder-discovered form, which is setup debt reported once rather
+  than a finding on each diff (`skills/procedures/code-shape.md` names the signals; the terms are
+  `skills/glossary/vocabulary/code-shape.md`'s).
 
 **Not formatting or import order, though** — where the project declares `format` the formatter owns
 those and the caller runs it in write mode immediately before committing, and where it declares none they
@@ -250,6 +256,9 @@ reads. Nor
   chain of every directory the diff touches, up to the root, plus only the chapters those routers route it
   to, and a monolith whole** (`skills/procedures/agent-guidance-layout.md`, *Reading the guidance*; the
   terms are `skills/glossary/vocabulary/agent-guidance.md`'s).
+- **The project's own layout and testing rules, which win over rule 12's defaults** — a diff placing or
+  tagging code against them is a finding here, and the Altitude reviewer judges against rule 12 only where
+  they are silent.
 - **A line of guidance the diff adds or changes, held to that entry's guidance test** — placed where the
   test puts it, stated once, describing no code; a line added to a monolith without its topic moving out,
   or a `CLAUDE.md` the diff touches left holding content, is a finding.
@@ -262,7 +271,8 @@ reads. Nor
 
 ### The ceiling on every dimension
 
-**Anything whose reason a reviewer has not established, it leaves.** State this in every brief: trace
+**Every finding a reviewer reports carries what `skills/ground-rules/SKILL.md` rule 13 asks of anything
+surfaced**, and **anything whose reason a reviewer has not established, it leaves.** State both in every brief: trace
 what looks wrong to the constraint it satisfies, the consumer it exists for, or the commit that put it
 there, and where it has a valid reason and is idiomatic for its context, say you checked and move on.
 The case common enough to have earned its own line is **an existing suppression**
@@ -322,6 +332,8 @@ wait.
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
 consciously reject the rest. **You apply nothing on anyone's behalf**: nothing lands in this tree you
 did not decide on, and a finding you are not the party to act on is reported rather than delegated.
+**A fix that would remove or degrade user-visible behaviour stays out of Applied**: name the behaviour lost and
+surface it before applying (`skills/ground-rules/SKILL.md`, rule 13).
 **Before you apply a removal or a narrowing argued from an absence, grep the tests for the symbol it
 touches** — a test pinning the wider shape is the contract, and a finding that searched only producers has
 said nothing about it.
@@ -400,7 +412,7 @@ what that reviewer reported running, or that it reported none:
 ### Review — <dimension> · head `<sha>`
 
 **Findings (as reported)** — <finding> — <path>
-**Disposition** — Applied: <finding> — <reason> · Rejected: <finding> — <why> · Flagged out of scope: <finding> — <why>
+**Disposition** — Applied: <finding> — <reason> · Rejected: <finding> — <why> · Flagged out of scope: <finding> — <why> — <recommendation; alternatives>
 **Reviewer ran** — <what it reported running, or "reported none">
 ```
 
@@ -491,16 +503,11 @@ the one thing that tells a parked slice from a stalled one, whose trees look the
   cross-slice interaction no reviewer could verify from inside this worktree. **The admission test is
   narrow, and it is about the boundary rather than the effort:** an item belongs here only when
   fixing it falls outside the slice boundary the brief drew, or is genuinely unverifiable from
-  this worktree. It is not a bucket for work you could have done — for that the caller's flow
-  already has a sanctioned path, the out-of-scope fix isolated in its own commit, and that path
-  is preferred over deferring. What is genuinely left is the **caller's** to RAISE — where a fence
-  is what left it there, that goes to the caller's dispatcher before it goes to the tracker, raised
-  before the caller hands back while an answer is still one more commit onto a PR nobody has merged,
-  and becomes a linked issue, or a comment on the one already carrying that failure, **filed by the
-  seat that returns that verdict** and only where that is the answer that comes back; this pass reports
-  it and files nothing, exactly as it commits and pushes nothing — a filing from here spends a whole
-  unit of work on what one line of this report settles — and neither does the caller, nor any reviewer
-  it dispatched. The only thing it dispatches is a reader.
+  this worktree. It is not a bucket for work you could have done — what rule 13 folds, the caller's
+  flow already lands as an out-of-scope fix in its own commit. Each entry carries what rule 13 asks of
+  anything surfaced, and what is left is the **caller's** to surface to its dispatcher before it hands
+  back, **filed only by the seat that returns that verdict**; this pass files nothing, exactly as it
+  commits and pushes nothing, and neither does the caller nor any reviewer it dispatched.
 - **Verification** — which scoped check you ran and its result, and which single test file if any, **plus
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget

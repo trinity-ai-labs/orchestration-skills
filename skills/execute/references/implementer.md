@@ -76,8 +76,9 @@ you can find.
 
 **A comment claiming what OTHER code does is re-asserted before you reword it.** Every defect the checks here
 catch is a disagreement between two artifacts a tool can compare; this one is prose against behaviour, and
-nothing scans it. So open that code and confirm the claim first. A claim that turns out false is a finding to
-REPORT — never something to quietly correct into accurate prose, which documents a bug as the design and
+nothing scans it. So open that code and confirm the claim first. A claim that turns out false is a finding, surfaced as
+`skills/ground-rules/SKILL.md` rule 13 asks and fixed only where which side is right is established — never
+something to quietly correct into accurate prose, which documents a bug as the design and
 removes the last thing that would have led anyone to look.
 
 **On a slice of an epic your brief inverts the last step, and only that step: record what you falsified, don't
@@ -93,7 +94,8 @@ repoint here, since a docs gate validating path citations reds before your own c
 **Whether you run `/pipeline:review` is the dispatcher's call, made per slice in your brief.** If it says run
 it, commit in blocks as the work lands, push, and open your draft PR exactly as a slice running no pass
 would, and only THEN run the pass — against that PR, whose diff is what it and its readers read. Wait until
-every reviewer has reported before you change anything, apply what you accept, run the scoped check over
+every reviewer has reported before you change anything, apply what you accept — surfacing first, by name, any
+behaviour a fix would remove or degrade (rule 13) — run the scoped check over
 what you applied, make **one more** commit, and push it onto the same PR, which is never closed and never
 reopened. **Where the panel finds nothing to apply there is nothing more to do**: its review and dimension
 comments are posted on your PR, your one commit round already stands, and you go straight to the hand-back.
@@ -258,42 +260,39 @@ in-line mode there is no ticket at all, your one `gate` run landing between the 
    a grant you acted on was written down, or saying plainly that nothing was, since your report is then the
    only record of it, **and, where the slice ran a pass, saying for each grant whether you acted on it BEFORE
    that pass ran or AFTER it reported**, since only the second produces an edit no reviewer read —
-   **any stash of yours still on the stack**, by its marker and restore command, and anything ambiguous. Do
-   NOT wait for the gate.
+   **any stash of yours still on the stack**, by its marker and restore command, and anything ambiguous,
+   surfaced as rule 13 asks. Do NOT wait for the gate.
 
-**FIX IT — DO NOT FILE IT. This is the default and it has no bar to clear.** A defect you found is a defect
-you fix, in the PR you are already building, with the tree open and the cause in front of you.
-**Writing the sentence that describes a defect costs more than deleting the defect**, and the sentence is only
-the beginning: a filed item then costs a read, a discussion, a grounding pass, a worktree, an agent, a gate
-run and a merge to do what one edit would have done, while the defect sits in the product the whole time.
-**You have already paid the expensive part — finding it.** Spend the cheap part.
+**FIX IT — DO NOT FILE IT: `skills/ground-rules/SKILL.md` rule 13's fold is your default, and it has no bar
+to clear.** A defect you found is a defect you fix, in the PR you are already building — you have already paid
+the expensive part, finding it.
 
-**The fence does not decide this, because most of the tree is in neither list.** `Owns` is a FLOOR — the files
-your change must reach — and `Do NOT touch` names the files another live agent is editing right now.
-Everything else is the UNLISTED MIDDLE, and the unlisted middle is yours to repair. A path is off-limits only
-where your brief actually named it; silence is not a fence.
+**Your reach is everything your brief did not fence.** `Owns` is a FLOOR — the files your change must reach —
+and `Do NOT touch` names the files another live agent is editing right now; everything else is the UNLISTED
+MIDDLE and yours to repair, since silence is not a fence.
 
-**Two things, and only two, are worth a message instead of an edit**: a fix that is genuinely large enough to
-be its own unit of work, and a fix that would change a design decision somebody else made deliberately. Both
-go to your dispatcher as ONE sentence — what is wrong, where, and what you would do — and you carry on with
-everything that does not depend on the answer. **Neither is a ticket, and you never open one**: a GitHub issue
-is not a disposition available to you, in any circumstance, for any finding.
+**Two things, and only two, are costly enough to surface instead of an edit**: a fix genuinely large enough to
+be its own unit of work, and a fix that would change a design decision somebody made deliberately. Both go to
+your dispatcher as rule 13 says to surface, and **neither is a ticket**: a GitHub issue is not a disposition
+available to you, in any circumstance, for any finding.
 
-**Do not go looking, either.** Fix what you HIT while doing your slice — what you read to understand the code
-counts, what you happened to edit counts — and do not sweep the repository for more. A pass whose purpose is
-to find work will always find it, and the backlog it produces is indistinguishable from progress right up
-until nobody can ship.
+**Do not go looking, either.** Fix what you HIT — what you read to understand the code counts, what you
+happened to edit counts — and never sweep the repository for more, since a pass whose purpose is to find work
+always finds it.
 
-**Each out-of-slice repair goes in its OWN commit**, so whoever reads the diff can keep it or drop it without
-unpicking your slice, and your hand-back names it in one line.
+**Each out-of-slice repair goes in its OWN commit**, so whoever reads the diff can keep it or drop it, and your
+hand-back names it in one line.
 
 ## Craft, and the one sanctioned suppression
 
-**Don't be lazy — leave the tree cleaner than you found it.** A check that exits green but still prints
-warnings is NOT done: fix every warning and error your change hits or surfaces, even out of scope,
-**each in its OWN commit** so the dispatcher can keep or drop it — **and what you cannot fix here because a
-fence covers it, you ASK about** — and where the answer that comes back is *file it*,
-**the seat that decided files it**, never you.
+**Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
+`skills/procedures/code-shape.md`'s *Placing new code and a new test*, under the project's own layout rules
+where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in reach; a
+restructure is surfaced, never done unasked.**
+
+**Leave the tree cleaner than you found it — a check that exits green but still prints warnings is NOT
+done**: fix every warning and error your change hits or surfaces, by rule 13's fold, and where the answer to
+one a fence stopped you fixing is *file it*, **the seat that decided files it**, never you.
 
 **⛔ Never game a guardrail — fix the cause, not the number.** A lint rule, type check, size cap or complexity
 threshold that fires is a *signal to fix the underlying code*, never an obstacle to route around. If a file
@@ -301,7 +300,7 @@ trips a max-lines cap, **split it** — extract a cohesive module and re-export 
 comments, compact readable code, or nudge one line under. Never silence a rule to go green: no bare
 `eslint-disable`, no `@ts-ignore`-to-hush, no widening to `any`, no deleting the flagged assertion.
 **Zero warnings AND zero errors on every file you touch is the bar**; where the honest fix is too big, STOP
-and hand back.
+and hand back, surfaced as rule 13 asks.
 
 **A test proves nothing if it cannot fail.** An assertion checked against the value that configured its own
 mock, a constant asserted against itself, a check the implementation could never violate — that is gaming the
@@ -350,7 +349,7 @@ conditions test one you ADD. If you think one fails, say so and leave it.
 **If you get stuck, hand back a reviewable artifact — never spin or die silently.** A blocker, an ambiguity
 you cannot resolve, a check you cannot get green, or running low on room all mean one thing: STOP and give the
 dispatcher something actionable. Commit-push and open a **draft PR** with what you have; failing that, report
-your worktree state, the error, and the decision you need. **Never leave a dirty worktree with no PR and no
+your worktree state, the error, and the decision you need, surfaced as rule 13 asks. **Never leave a dirty worktree with no PR and no
 report.**
 
 ⚠️ **This sanctions handing back when you are BLOCKED — never handing back work you simply did not do**, and
@@ -364,22 +363,19 @@ three look identical from outside.
 stuck.** Your brief needs something that identifies a real thing — an id, a key, an owner, a path, a version —
 and it does not exist yet, or you cannot reach it. Nothing errors: a value of the right *shape* is accepted
 everywhere downstream, types satisfied, check green, PR clean. **That is precisely the failure** — a
-fabricated identifier records the wrong fact quietly, every guardrail confirming it. So STOP and report what
-you needed, why it was unavailable, and what the dispatcher must decide.
+fabricated identifier records the wrong fact quietly, every guardrail confirming it. So never invent it:
+surface what you needed and why it was unavailable as rule 13 asks, carry on with what does not depend on it,
+and hand back once nothing does.
 
 ⚠️ **Narrow in the same way: this covers an input naming a real thing you cannot obtain — not a decision you
 would rather not make.** A gap an existing pattern, the project's agent guidance, or an obvious default
 settles is not a missing input: adopt the answer, write the assumption into your report, and move on.
 
-**Something wrong OUTSIDE your owned files is something you FIX, not something you raise.** `Owns` is the
-floor your change must reach and `Do NOT touch` names the files another live agent holds right now; everything
-between them is the unlisted middle and it is yours. Repair what you hit there, in this PR, in its own commit.
-
-**Two cases go to your dispatcher instead, and they are about SIZE and DESIGN, never about ownership.** A fix
-large enough to be its own unit of work, and a fix that would overturn a decision somebody made deliberately.
-Your host carries a channel from a sub-agent to the session that dispatched it
-(`skills/procedures/host-tools.md` names the tool) and **your brief names the address**. Send the path, what
-is wrong, and what you would do — one message, one sentence each.
+**Something wrong OUTSIDE your owned files is the fold above, not a raise** — only its two costly cases, which
+are about SIZE and DESIGN and never about ownership, go to your dispatcher. Your host carries a channel from a
+sub-agent to the session that dispatched it (`skills/procedures/host-tools.md` names the tool) and **your
+brief names the address**: send one message carrying the path, what is wrong, and what rule 13 asks of
+anything surfaced.
 
 **A path your brief explicitly fenced is the third case**, and there the ask is the whole of your move: a
 named fence means a concurrent editor, so touching it risks a collision no amount of being right about the

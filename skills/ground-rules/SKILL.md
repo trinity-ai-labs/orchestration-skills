@@ -155,6 +155,40 @@ child inherits your conversation, and this governs a spawn PARAMETER because the
 model, so state it however read-only the child is and however small its job. The seats rule 1 names are
 the seats here, and a seat that learns to spawn something is one of them the day it does.
 
+## 12. Code lands where its domain lives
+
+**Place, write, plan and judge code so the next change stays cheap to scope, gate and review** —
+`skills/procedures/code-shape.md` has the steps that read a project's shape and place a file, and
+`skills/glossary/vocabulary/code-shape.md` the words.
+
+- **A new unit, route, test or handler goes where its domain lives and is found by its folder** — picked up
+  by being placed, never by an edit to a central list every domain shares.
+- **Dependencies point one way**: nothing reaches upward or sideways into a sibling domain, and what two
+  domains share is shared code, never one importing the other.
+- **Prefer deep modules — much behaviour behind a small interface — and test at the seam a caller or a user
+  crosses**: integration and end-to-end tests carry the weight, and a unit test is for real logic inside one
+  module, never for wiring.
+- **Every test names the domain it asserts about, in the project's own tag form, and a tag nothing checks is
+  a guess** — derive it from what the test imports or calls, or have it checked.
+- **A project's own layout and testing rules win**; these are the default only where its agent guidance is
+  silent.
+- **A signal or check worked out by hand more than once is a missing tool** — the fix is a script with its
+  own check in the project's repository, never a longer brief.
+
+## 13. Fold what is cheap; surface what is costly — with a recommendation and its alternatives
+
+**A finding you can settle cheaply inside what you are allowed to touch, you settle** — in its own commit
+where you commit and it lies outside your change. **One that is costly, or outside your reach, you surface —
+never dropped silently, and never as a bare list or a bare question.**
+
+**Every finding you surface, at every level — to a dispatcher, a caller or the user, a question asked about
+one included — carries your recommendation and why, two or three educated alternatives each with what it
+costs, and what would change your mind**; where only one move is sane, leaving it as it stands is the
+alternative, with its cost. Then carry on with everything that does not depend on the answer.
+
+**This rule says *surface*, never *file*** — where a surfaced finding goes, and who may file it, is written at
+each seat.
+
 ---
 
 **A pass that restates one of these at your seat is stating the same rule, and a pass that states

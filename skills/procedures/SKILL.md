@@ -3,10 +3,12 @@ name: procedures
 description: >-
   The steps this pipeline OWNS, stated once: the worktree helpers' command-line contract, the GitHub-write
   helper's, the meaning of every key a project declares, the host tool that spawns, times, watches and
-  stops an agent, and how a project's agent guidance is read, checked, written and split. Open an entry
+  stops an agent, how a project's agent guidance is read, checked, written and split, and how its code
+  shape is read, measured and placed into. Open an entry
   whenever you are about to run one of those — before you call a helper, before you read a project's
   config, before you spawn or time or stop an agent, before you comment, review, close or link on GitHub,
-  before you read or add a line of agent guidance — and whenever a pass cites one at the step you have
+  before you read or add a line of agent guidance, before you place new code or a test or take a
+  code-shape signal — and whenever a pass cites one at the step you have
   reached. Every pass may cite these entries and they cite nothing back. An entry carries a PROCEDURE whose
   steps are identical at every seat — the command and its flags, the order they run in, the meaning of the
   values it reads, the host tool that runs it, and what to verify once it has. What a seat DOES about the
@@ -31,6 +33,7 @@ GitHub and the `gh` CLI behave, true whether or not this pipeline exists — is 
 | `skills/procedures/config-keys.md` | Every key in `<repo>/.agents/worktree.json`, and the two a workspace declares in `.agents/workspace.json` — what each one means, and what its absence means |
 | `skills/procedures/host-tools.md` | The host tool behind each capability this flow needs, the tier-to-model table, and the two questions to answer before calling a helper |
 | `skills/procedures/agent-guidance-layout.md` | Reading a project's agent guidance for one piece of work, checking its shape for a monolith, the four-question test that places a line, and the steps of a split |
+| `skills/procedures/code-shape.md` | Reading a project's code shape, the signals and how to take each with its unit, placing new code and a new test, recognising a missing tool, and the properties a split gate needs to be safe |
 
 ## The admission test, and what it keeps out
 

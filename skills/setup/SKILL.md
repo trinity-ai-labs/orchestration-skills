@@ -200,7 +200,8 @@ different question and this pass's own.
    `sharedResources`, `[]` where nothing outside the tree is touched.
 2. **What DROPS what that mechanism creates, once the worktree is gone?** Same breath, and only where the
    first had a mechanism: it makes one resource per worktree and removes none, and `remove-worktree` knows
-   nothing the tree made. An existing sweep's two commands become `reclaim`; where there is none — the common
+   nothing the tree made on its own. An existing sweep's two commands become `reclaim`, and
+   `remove-worktree` then runs its `drop` after every removal; where there is none — the common
    answer — **that is a gap you hand back, not a command you invent**.
 3. **May a run that finds a defect in the *pipeline itself* file it into the pipeline's own public
    repository** — an issue, or a comment on one already describing it? That is `upstreamFindings`: consent,
@@ -324,11 +325,14 @@ first one.
    reversal cannot run there and the overlap alone is what it is held to** — say that, rather than reporting a
    reversal you never performed. With **no** `isolatedBy`, record the project as not parallel-safe —
    `/pipeline:execute` reads that before sizing a wave.
-6. **Tear down** with `remove-worktree`, both trees, running a declared `reclaim` on **both sides** of it: a
-   broken sweep and a correct one look identical afterwards, where standing the resources come back **live**
-   and removed the same ones and only those **dead**. Read the counts — considered, in scope, live, dead —
-   then **stop**; `drop` is the maintainer's call. **Say what this does not establish**: the cross-clone case
-   cannot be produced here, and with **no** `reclaim` nothing sweeps what was created.
+6. **Tear down** with `remove-worktree`, both trees, running a declared `reclaim`'s `report` on **both
+   sides** of it: a broken sweep and a correct one look identical afterwards, where standing the resources
+   come back **live** and removed the same ones and only those **dead**. `remove-worktree` itself runs
+   `drop` after each removal, so the report after the first teardown should already show that tree's
+   resources collected — read the counts (considered, in scope, live, dead) and say so if it does not.
+   You run `report` only; the `drop` that ran is the helper's, on a project that declared it.
+   **Say what this does not establish**: the cross-clone case cannot be produced here, and with **no**
+   `reclaim` nothing sweeps what was created.
 
 ## Step 5 — Land it as a reviewable PR
 

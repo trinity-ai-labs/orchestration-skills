@@ -9,9 +9,9 @@ your repo could contain, so expect to be asked and read no list of them as close
 **What your checks touch that lives outside the worktree** — a database, a Redis instance, a cache directory,
 a fixed port — and what gives each worktree its own: that becomes `sharedResources`, and "nothing" is an
 answer worth recording rather than a key to leave out. **Where that answer was not "nothing", the follow-on:
-what drops what the isolation creates, once the worktree is gone?** Nothing in this plugin does —
-`remove-worktree` takes the tree and knows nothing the tree made — so where you already have a sweep, its two
-commands become `reclaim`; where you do not, setup hands the gap back rather than writing one for you.
+what drops what the isolation creates, once the worktree is gone?** The plugin never knows what the tree
+made — so where you already have a sweep, its two commands become `reclaim`, and `remove-worktree` runs its
+`drop` after every removal; where you do not, setup hands the gap back rather than writing one for you.
 **Whether your gate is partial** — whether it runs only what a change can affect rather than the whole suite.
 Only a yes declares `fullGate`, your full-suite command, which the flow then runs at each integration point
 while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as
@@ -54,7 +54,7 @@ named an isolation mechanism it cuts a **second** worktree and runs the real gat
 runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision
 reproduces — an entry that instead names why the resource does not contend has no mechanism to reverse, so
 there the overlap alone is what it can report. Where you declared a `reclaim` it runs the report on **both**
-sides of the teardown, since a sweep that calls everything dead and a correct one are the same output on a box
+sides of the teardown (the teardown itself runs your `drop`), since a sweep that calls everything dead and a correct one are the same output on a box
 with one worktree. Where it scaffolded a queue the verification goes past that happy path too, because a round
 trip comes back green whether or not the queue holds up where a dispatcher later leans on it: it also asks the
 queue for its state read-only and confirms that asking moved nothing, puts two drains in contention to confirm

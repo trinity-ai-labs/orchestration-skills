@@ -29,7 +29,7 @@ of import lines answer different questions.
 |---|---|---|---|---|
 | Map coverage | tracked files any domain glob matches, and the unmapped rest | match every tracked file against the map; list the files no glob matches | files, and their share of tracked files; the unmapped listed | every unmapped file a change touches forces a full run |
 | Shared-spine share | tracked files mapped to every domain | count the files the map assigns to every domain | files, and their share of tracked files | every change touching one runs the whole suite |
-| Catch-all-only files | tracked files whose only matching glob is a catch-all spanning a whole product or package tree mapped to every domain, apart from deliberately shared spine files | match the map with the catch-all globs set aside, and list what then matches nothing, by area | files, and their share of tracked files; listed by area | every change to one runs the whole suite, though it affects one area |
+| Catch-all-only files | tracked files whose only matching glob is a catch-all — a glob spanning a whole product or package tree and mapped to every domain — apart from the spine files the project names as deliberately shared | match the map with the catch-all globs set aside and list, by area, the files a catch-all matched that then match nothing, leaving out the named spine files | files, and their share of tracked files; listed by area | every change to one runs the whole suite, though it affects one area |
 | Folder disagreement | files whose mapped domain differs from their folder's | compare each file's map entry with the folder at the domain level | files, listed | a change there is gated as a domain it does not live in |
 | Cross-domain tests | tests whose imports or calls reach several domains | map each test file's import targets to domains and count the distinct domains | test files, each with its domain count | each runs in the gate of every domain it reaches |
 | Untested domains | domains no tagged test asserts about | domains minus the domains named by any tag | domains, listed | a change there selects no test of its own |
@@ -80,14 +80,15 @@ tool.
 
 1. **A domain map covering every tracked file**, first matching glob wins, **whose own check fails on an
    unmapped file, an unused domain, a glob matching nothing, and a product file matched only by a catch-all**
-   spanning a whole product or package tree — a deliberately shared spine file being the one exception.
+   spanning a whole product or package tree and mapped to every domain — a spine file the project names as
+   deliberately shared being the one exception.
 2. **Tests tagged by domain, and the tags checked** — against the map, or against what each test imports or
    calls.
 3. **A changed-files gate that runs the union of the changed files' domains, and falls back to the full
    suite, loudly, on any unmapped file or any shared-spine file** — printing why — so its failure is always
    running too much, never too little. **Its changed files are diffed against the integration branch the
    change will merge into, named explicitly, never the branch's own remote-tracking ref** — a branch is never
-   its own base — **and an empty plan on a branch with commits beyond that base fails loudly**, never a green
+   its own base, and item 7's re-gate over a fix round's delta is the one exception — **and an empty plan on a branch with commits beyond that base fails loudly**, never a green
    over zero tests.
 4. **The full gate moved to the integration points, never dropped** — the project's `fullGate`
    (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.

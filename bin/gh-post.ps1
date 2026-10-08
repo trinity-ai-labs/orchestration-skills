@@ -44,7 +44,8 @@
 # link; a child already under a DIFFERENT parent exits 1 and is never re-parented.
 # The parent is always an issue in the repo the helper runs from; the child may
 # be named `<owner>/<repo>#<n>` to link an issue from another repository, and is
-# then read from that repository.
+# then read from that repository. GitHub refuses a child under a different owner
+# from the parent's, and that refusal is the failed gh call's exit 1.
 #
 # `review` writes the review BODY only. A re-run edits that body in place; it
 # never posts, re-posts or updates inline comments, so inline findings are not

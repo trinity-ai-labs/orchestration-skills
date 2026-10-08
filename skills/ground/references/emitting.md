@@ -114,8 +114,9 @@ What you do write onto a live umbrella is the cycle's grounding:
    `skills/ground/references/grounding.md` cheap**: its first step is one `/parent` call, which 404s on every
    child of a markdown-only umbrella and forces an arriving agent onto the timeline fallback. And *always*
    keep the `- [ ] #<sub>` checklist too — it is the index reviewers scan, and the artifact that fallback
-   matches on. **In a workspace a child may live in another member's repository, and it is linked the same
-   way, named `<owner>/<repo>#<n>`.**
+   matches on. **In a workspace a child may live in another member's repository under the same owner, and it
+   is linked the same way, named `<owner>/<repo>#<n>` — in its checklist line too, and its `Part of` backlink
+   names the umbrella as `<owner>/<repo>#<umbrella>`.**
 4. Label the umbrella (`epic`/`umbrella` if such a label exists; create nothing exotic).
 
 **Whether the work is one issue or an umbrella of children is not this pass's call at all** — it was answered
@@ -155,7 +156,7 @@ like any other once the horizon reaches it.
 - **The grounding comment and the native sub-issue link go through `gh-post`**
   (`skills/procedures/github-writes.md`), so a re-run edits or declines rather than repeating:
   `gh-post.sh comment issue <N> --key grounding/<N>/<sha> --body-file <file>`, `<sha>` being the tip you
-  grounded against, and `gh-post.sh sub-issue <umbrella> <N>`.
+  grounded against, and `gh-post.sh sub-issue <umbrella> <N|owner/repo#n>`.
 - **Cross-reference, don't auto-close.** Each sub carries `Part of #<umbrella>` in its body and the umbrella
   carries that sub in its `- [ ] #<sub>` checklist — both directions, every time — the backlink is a rule
   rather than a formatting nicety, because only it is readable from the child's own body, which is all an

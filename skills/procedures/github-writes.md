@@ -32,7 +32,8 @@ gh-post.sh sub-issue <parent-n> <child-n|owner/repo#n>
 - **`close` with `--key` posts or updates its closing comment first, then closes** with the reason.
 - **`sub-issue` makes the native link** (`skills/glossary/mechanics/sub-issue-link.md`), resolving the child's
   database id itself. A child already under a different parent exits `1` and is never re-parented. **A child in
-  another repository is named `<owner>/<repo>#<n>`; the parent is always the repository you run it from.**
+  another repository is named `<owner>/<repo>#<n>`; the parent is always the repository you run it from, and
+  GitHub refuses a child under a different owner from the parent's.**
 
 ## What it prints, and what to verify
 

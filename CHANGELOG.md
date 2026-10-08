@@ -6,7 +6,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 
 - **`gh-post sub-issue` links a child from another repository.** The child may now be named
   `<owner>/<repo>#<n>` as well as a bare number, so an umbrella in one workspace member can carry a leaf that
-  lives in another ([#567](https://github.com/trinity-ai-labs/orchestration-skills/issues/567)). The parent
+  lives in another under the same owner (GitHub refuses a child under a different owner) ([#567](https://github.com/trinity-ai-labs/orchestration-skills/issues/567)). The parent
   is still an issue in the repository the helper runs from; a qualified child is read from its own
   repository, an already-linked child is still declined and one under another parent is still never
   re-parented, and a qualified child whose number equals the parent's is not a self-link. Both ports change

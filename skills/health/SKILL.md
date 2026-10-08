@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
      could pick it up instead; an item naming its path.
    - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
      lint, guidance), so each may shrink but never grow; the item `Baseline: <path>`, its value the count of
-     entries with each one's size, ticked off only when the baseline is empty.
+     entries with each one's size in the unit the baseline records, ticked off only when the baseline is empty.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.

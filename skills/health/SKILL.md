@@ -43,12 +43,15 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the two items no table row carries**:
+4. **Name the three items no table row carries**:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
      an item naming the signal.
    - **A central list** — a file every domain edits to register a unit, a route or a test, where the folder
      could pick it up instead; an item naming its path.
+   - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
+     lint, guidance), so each may shrink but never grow; the item `Baseline: <path>`, its value the count of
+     entries with each one's size, ticked off only when the baseline is empty.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -68,7 +71,8 @@ be read.
 ## 3. Record
 
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
-signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>` or `Central list: <path>`
+signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>` or
+`Baseline: <path>`
 — **and anything else on the body is carried across unchanged**:
 
 ```
@@ -85,6 +89,12 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>` or 
 - **The recommendation for a full-suite gate with no domain map or no checked tags is to split the gate**, by
   `skills/procedures/code-shape.md`'s *The shape of a split gate*; its alternatives are the map alone, the
   tags alone, or a gate queue's machine-wide slot so full runs stop contending.
+- **The recommendation for `Catch-all-only files` is a map line per area plus a map check that fails on a
+  product file matched only by a catch-all**; its alternatives are narrowing one area at a time (each area
+  left runs the whole suite until its turn), or leaving it (every change there keeps running the whole suite).
+- **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
+  file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
+  (what each entry already costs, with no end).
 
 **Write it with `gh api` and a body file**, by `skills/glossary/mechanics/gh-api-file-body.md`:
 

@@ -312,7 +312,8 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   `- [ ] #<sub>` checklist. **Each sub also carries `Part of #<umbrella>` in its body, and that backlink is a
   rule rather than a formatting nicety**: only it is readable from the child's own body, all an agent arriving
   there directly has. A backlink-less child reads as complete, so an agent arriving at it grounds the slice
-  without the frame it was written inside.
+  without the frame it was written inside. **In a workspace a child may live in another member's repository,
+  and it is linked the same way, named `<owner>/<repo>#<n>`.**
 - **Follow-up linking**: a follow-up filed out of a live run carries `Follows #<N>` — or `Part of #<umbrella>`
   where the originating work sits under one, which is containment and takes the **native `sub_issues` link**
   too: `gh-post.sh sub-issue <umbrella> <N>` (what it is, `skills/glossary/mechanics/sub-issue-link.md`). A bare `Follows #<N>` is provenance,

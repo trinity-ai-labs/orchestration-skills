@@ -114,7 +114,8 @@ What you do write onto a live umbrella is the cycle's grounding:
    `skills/ground/references/grounding.md` cheap**: its first step is one `/parent` call, which 404s on every
    child of a markdown-only umbrella and forces an arriving agent onto the timeline fallback. And *always*
    keep the `- [ ] #<sub>` checklist too — it is the index reviewers scan, and the artifact that fallback
-   matches on.
+   matches on. **In a workspace a child may live in another member's repository, and it is linked the same
+   way, named `<owner>/<repo>#<n>`.**
 4. Label the umbrella (`epic`/`umbrella` if such a label exists; create nothing exotic).
 
 **Whether the work is one issue or an umbrella of children is not this pass's call at all** — it was answered

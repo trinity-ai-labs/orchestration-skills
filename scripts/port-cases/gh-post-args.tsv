@@ -44,6 +44,20 @@ close	9	usage
 close	9	--reason	completed	--key	close/9	usage
 close	9	--reason	completed	--body-file	c.md	usage
 sub-issue	550	552	sub-issue
+sub-issue	550	acme/consumer#7	sub-issue
+sub-issue	550	Acme-1/con.sumer_x#12	sub-issue
+sub-issue	550	a/b#550	sub-issue
+sub-issue	550	a/b#0	usage
+sub-issue	550	a/b#07	usage
+sub-issue	550	a#3	usage
+sub-issue	550	a/b/c#3	usage
+sub-issue	550	a/b#	usage
+sub-issue	550	/b#3	usage
+sub-issue	550	a/#3	usage
+sub-issue	550	a/b#3#4	usage
+sub-issue	550	a b/c#3	usage
+sub-issue	550	a/b#3\n	usage
+sub-issue	a/b#3	552	usage
 sub-issue	550	550	usage
 sub-issue	550	usage
 sub-issue	550	552	553	usage

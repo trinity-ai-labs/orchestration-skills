@@ -5,7 +5,7 @@
 #   gh-post.sh comment  <issue|pr> <n>  --key <key> --body-file <file>
 #   gh-post.sh review   <pr-n>          --key <key> --body-file <file>
 #   gh-post.sh close    <issue-n>       --reason <completed|not_planned> [--key <key> --body-file <file>]
-#   gh-post.sh sub-issue <parent-n> <child-n>
+#   gh-post.sh sub-issue <parent-n> <child-n|owner/repo#n>
 #
 # Run it from ANYWHERE inside the target repo (or set REPO=). Every gh call runs
 # from that repo's MAIN checkout, so `{owner}/{repo}` resolves to it.
@@ -35,6 +35,9 @@
 # when the close (or a changed reason) was written, DECLINED when the issue was
 # already closed with that reason. `sub-issue` prints POSTED: <parent-url> for a new
 # link; a child already under a DIFFERENT parent exits 1 and is never re-parented.
+# The parent is always an issue in the repo the helper runs from; the child may
+# be named `<owner>/<repo>#<n>` to link an issue from another repository, and is
+# then read from that repository.
 #
 # `review` writes the review BODY only. A re-run edits that body in place; it
 # never posts, re-posts or updates inline comments, so inline findings are not
@@ -64,7 +67,7 @@ usage() {
   echo "usage: gh-post.sh comment <issue|pr> <n> --key <key> --body-file <file>" >&2
   echo "       gh-post.sh review <pr-n> --key <key> --body-file <file>" >&2
   echo "       gh-post.sh close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]" >&2
-  echo "       gh-post.sh sub-issue <parent-n> <child-n>" >&2
+  echo "       gh-post.sh sub-issue <parent-n> <child-n|owner/repo#n>" >&2
   echo "  prints POSTED: <url>, UPDATED: <url> or DECLINED: <reason>, each on its own line" >&2
   echo "  run from inside the target repo, or set REPO=/path/to/repo" >&2
   exit 2
@@ -133,14 +136,37 @@ arg_kind() {
     case "${pos[0]}" in issue | pr) ;; *) echo usage; return 0 ;; esac
     first=1
   fi
-  local i
-  for ((i = first; i < npos; i++)); do
+  # A sub-issue's child may instead be `<owner>/<repo>#<n>`, checked on its own
+  # below, so only its parent is held to the bare-number rule here.
+  local i last=$npos
+  [ "$kind" != sub-issue ] || last=1
+  for ((i = first; i < last; i++)); do
     case "${pos[$i]}" in
     '' | 0* | *[!0123456789]*) echo usage; return 0 ;;
     esac
   done
-  if [ "$kind" = sub-issue ] && [ "${pos[0]}" = "${pos[1]}" ]; then
-    echo usage; return 0
+  if [ "$kind" = sub-issue ]; then
+    # The child: a bare number, or exactly one `/` between a non-empty owner and
+    # repo from a closed ASCII set (spelled out for the reason the key check below
+    # gives), then `#` and a positive number with no leading zero.
+    local c="${pos[1]}" ref cnum owner repo part
+    case "$c" in
+    *'#'*)
+      ref="${c%%#*}" cnum="${c#*#}"
+      case "$cnum" in '' | 0* | *[!0123456789]*) echo usage; return 0 ;; esac
+      case "$ref" in */*) ;; *) echo usage; return 0 ;; esac
+      owner="${ref%%/*}" repo="${ref#*/}"
+      for part in "$owner" "$repo"; do
+        case "$part" in
+        '' | *[!abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-]*) echo usage; return 0 ;;
+        esac
+      done
+      ;;
+    '' | 0* | *[!0123456789]*) echo usage; return 0 ;;
+    esac
+    # Only a bare child names the parent's own repository, so only a bare child
+    # can be a self-link.
+    [ "${pos[0]}" != "${pos[1]}" ] || { echo usage; return 0; }
   fi
   case "$kind" in
   comment | review)
@@ -334,13 +360,19 @@ close)
   ;;
 sub-issue)
   PARENT="${POS[0]}" CHILD="${POS[1]}"
+  # A qualified child is read from its own repository and named as given; a bare
+  # one lives in this repo and is named `#<n>`.
+  case "$CHILD" in
+  *'#'*) CHILD_REF="$CHILD" CHILD_API="repos/${CHILD%%#*}/issues/${CHILD#*#}" ;;
+  *) CHILD_REF="#$CHILD" CHILD_API="repos/{owner}/{repo}/issues/$CHILD" ;;
+  esac
   require_type "$PARENT" issue
-  gh_api "reading #$CHILD" "repos/{owner}/{repo}/issues/$CHILD" \
+  gh_api "reading $CHILD_REF" "$CHILD_API" \
     --jq '[(.pull_request != null), .id, .parent_issue_url] | @tsv'
   IFS=$'\t' read -r CHILD_IS_PR CHILD_ID CHILD_PARENT <<<"$GH_OUT"
-  [ "$CHILD_IS_PR" = false ] || usage "#$CHILD is a pull request, not an issue"
+  [ "$CHILD_IS_PR" = false ] || usage "$CHILD_REF is a pull request, not an issue"
   if [ "$CHILD_PARENT" = "$TARGET_API_URL" ]; then
-    echo "DECLINED: #$CHILD is already a sub-issue of #$PARENT"
+    echo "DECLINED: $CHILD_REF is already a sub-issue of #$PARENT"
   elif [ -n "$CHILD_PARENT" ]; then
     # Another parent's link is another party's decision, so it is never
     # re-parented; that parent is named by number where it lives in this repo,
@@ -348,9 +380,9 @@ sub-issue)
     case "$CHILD_PARENT" in
     "${TARGET_API_URL%/*}/"*) CHILD_PARENT="#${CHILD_PARENT##*/}" ;;
     esac
-    die "#$CHILD is already a sub-issue of $CHILD_PARENT - not re-parenting it under #$PARENT"
+    die "$CHILD_REF is already a sub-issue of $CHILD_PARENT - not re-parenting it under #$PARENT"
   else
-    gh_api "linking #$CHILD under #$PARENT" -X POST "repos/{owner}/{repo}/issues/$PARENT/sub_issues" \
+    gh_api "linking $CHILD_REF under #$PARENT" -X POST "repos/{owner}/{repo}/issues/$PARENT/sub_issues" \
       -F "sub_issue_id=$CHILD_ID" --jq .html_url
     echo "POSTED: $GH_OUT"
   fi

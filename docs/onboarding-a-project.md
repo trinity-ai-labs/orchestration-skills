@@ -12,6 +12,8 @@ answer worth recording rather than a key to leave out. **Where that answer was n
 what drops what the isolation creates, once the worktree is gone?** The plugin never knows what the tree
 made — so where you already have a sweep, its two commands become `reclaim`, and `remove-worktree` runs its
 `drop` after every removal; where you do not, setup hands the gap back rather than writing one for you.
+**If resources have already piled up, run your `drop` by hand once before adopting this** — the first removal
+otherwise pays the whole backlog in the foreground, during a merge.
 **Whether your gate is partial** — whether it runs only what a change can affect rather than the whole suite.
 Only a yes declares `fullGate`, your full-suite command, which the flow then runs at each integration point
 while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as

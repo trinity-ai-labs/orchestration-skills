@@ -26,6 +26,11 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   are a frozen contract and nothing in it already expressed a skip — so omitting `reclaim` is the only
   opt-out. `report` is unchanged: a dispatcher still runs it at an arc's close-out, now to read what the
   automatic sweeps could not collect, and no seat runs `drop` by hand.
+- **A project with an existing backlog should run its own `reclaim.drop` by hand once, before upgrading.**
+  The first automatic sweep otherwise collects everything accumulated, in the foreground, during a merge —
+  and the projects this fixes are the ones with the largest backlog. On the project that prompted this, that
+  one-off would have been 440 databases at about 4.5 minutes each, over 30 hours, with one drop alone stuck
+  for 29 minutes. Pay it once, off the merge path, so the first removal after upgrading has little to do.
 
 ## 5.17.0
 

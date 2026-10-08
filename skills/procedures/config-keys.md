@@ -208,6 +208,12 @@ a question rather than a default.
   `.sh` port, PowerShell where it is the `.ps1` — so write it as a single plain command invocation that
   is valid in both.
 
+  **Adopting this on a project with a backlog: run `drop` by hand once first.** The first removal after
+  the helper starts running it otherwise collects everything already accumulated, in the foreground, and
+  where the helper is reached through a merge's close-out that is a merge held for the whole sweep. A drop
+  that forces a checkpoint per resource (a database, say) can cost minutes each, so a backlog of hundreds
+  is hours. Pay it once, off the merge path, and the automatic sweeps then have one tree's worth to do.
+
   **The plugin gives the RULE, never the data** — never hand a project's command a live worktree set,
   since an empty one read as "nothing is alive" licenses dropping every database on the box. It must
   satisfy:

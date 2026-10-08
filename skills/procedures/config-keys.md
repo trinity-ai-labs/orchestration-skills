@@ -190,12 +190,29 @@ a question rather than a default.
     a live one's; the mark is the only thing that attributes it, and re-assertion covers a crash between
     create and mark. An unmarked resource is out of scope for `reclaim` forever.
 
-- **`reclaim`** — the project's own sweep for resources whose worktree is gone, run at an arc's
-  close-out: `{report, drop}`, both naming commands **in that project**. `report` lists and deletes
-  nothing; `drop` deletes. One object, so a config cannot ship a `drop` with no `report`. **Omit both
-  where nothing durable is created** — a `sharedResources` of `[]`, or only non-durable entries; that
-  absence is derived from a key already in the file, so this key has none of `sharedResources`' three-state
-  reading.
+- **`reclaim`** — the project's own sweep for resources whose worktree is gone: `{report, drop}`, both
+  naming commands **in that project**. `report` lists and deletes nothing; `drop` deletes. One object, so a
+  config cannot ship a `drop` with no `report`. **Omit both where nothing durable is created** — a
+  `sharedResources` of `[]`, or only non-durable entries; that absence is derived from a key already in
+  the file, so this key has none of `sharedResources`' three-state reading.
+
+  **`drop` runs automatically on every worktree removal.** `remove-worktree` runs it, from the main
+  checkout, after the tree has left git's registry — which is what makes that checkout's resources dead by
+  the classification below, so no second key is needed. It is best-effort: a `drop` that fails, is missing
+  or is slow is reported and never fails the removal, and it also runs when the tree was already absent.
+  `report` is still run at an arc's close-out, to read what the automatic sweeps left. A
+  project that omits `reclaim` is unaffected, and **omitting it is the only way to opt out** — the helper
+  takes no flag for it. A sweep one removal triggers may collect another session's genuinely dead
+  resources, which is correct; keeping it off live ones is the rule below, and the helper does not
+  re-implement it. The `drop` line is interpreted by the host's shell — bash where the helper is the
+  `.sh` port, PowerShell where it is the `.ps1` — so write it as a single plain command invocation that
+  is valid in both.
+
+  **Adopting this on a project with a backlog: run `drop` by hand once first.** The first removal after
+  the helper starts running it otherwise collects everything already accumulated, in the foreground, and
+  where the helper is reached through a merge's close-out that is a merge held for the whole sweep. A drop
+  that forces a checkpoint per resource (a database, say) can cost minutes each, so a backlog of hundreds
+  is hours. Pay it once, off the merge path, and the automatic sweeps then have one tree's worth to do.
 
   **The plugin gives the RULE, never the data** — never hand a project's command a live worktree set,
   since an empty one read as "nothing is alive" licenses dropping every database on the box. It must

@@ -58,6 +58,13 @@
 #     that fails loudly rather than reporting a teardown that never happened.
 #   - Exits non-zero with a descriptive message on real failure.
 #
+# After the removal (and after the prune on the already-absent path) it runs the
+# project's own `reclaim.drop` from <repo>/.agents/worktree.json, if declared: once
+# the tree has left git's worktree registry its resources are dead by the project's
+# own classification, so the existing command collects them. Best-effort - a reclaim
+# that fails, is missing or is slow is reported and never changes the exit status.
+# A project with no `reclaim` sees no change.
+#
 # Caveats:
 #   - The scan is an argv scan only, via Get-CimInstance Win32_Process. Windows has
 #     no cheap open-handle enumerator equivalent to `lsof +D`, which the bash
@@ -216,6 +223,87 @@ function Test-OnWindows {
     return $true
 }
 
+function Get-ConfigNested {
+    # One string two levels down in the project's own config (`reclaim.drop`), or an
+    # empty string. Mirrors the bash sibling's read_config_nested, including the
+    # CASE-SENSITIVE key match PowerShell does not do on its own (a PSObject property
+    # lookup ignores case, so "Reclaim" would be found here and not by the bash
+    # parse). An unreadable config reads as
+    # "not declared": the sweep is housekeeping and must never be the reason a
+    # removal reports an error.
+    param(
+        [Parameter(Mandatory = $true)] [string] $Path,
+        [Parameter(Mandatory = $true)] [string] $Name,
+        [Parameter(Mandatory = $true)] [string] $SubName
+    )
+    if (-not (Test-Path -LiteralPath $Path)) { return '' }
+    try {
+        $cfg = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+        foreach ($prop in $cfg.PSObject.Properties) {
+            if ($prop.Name -ceq $Name) {
+                if ($null -eq $prop.Value -or $prop.Value -is [string]) { return '' }
+                foreach ($sub in $prop.Value.PSObject.Properties) {
+                    if ($sub.Name -ceq $SubName) {
+                        if ($sub.Value -is [string]) { return $sub.Value }
+                        return ''
+                    }
+                }
+                return ''
+            }
+        }
+    } catch {
+        return ''
+    }
+    return ''
+}
+
+function Invoke-Reclaim {
+    # The project's own sweep, run once the tree is out of git's registry. See the
+    # bash sibling's run_reclaim for the full reasoning; in short: reclaim classifies
+    # by that registry, so the checkout just removed is dead to it only from here;
+    # the safety under concurrent sessions lives in the project's classification and
+    # is not re-implemented; and there is deliberately no flag or variable to skip it,
+    # because the helper's arguments and environment are a frozen contract - a project
+    # that wants no automatic sweep omits `reclaim`.
+    #
+    # NEVER FATAL: every path out returns normally. The command line runs in a CHILD
+    # PowerShell rather than through Invoke-Expression, so a line that ends in `exit`
+    # ends the child and not this script, and no failure inside it can raise here.
+    # Foreground with no timeout (killing a half-finished sweep is worse than
+    # waiting), output streaming live, stdin closed so a prompt cannot hang the
+    # teardown.
+    param([Parameter(Mandatory = $true)] [string] $MainDir)
+    try {
+        $cmd = Get-ConfigNested -Path (Join-Path $MainDir '.agents/worktree.json') -Name 'reclaim' -SubName 'drop'
+        # Nothing declared is the ordinary case and says nothing.
+        if (-not $cmd) { return }
+
+        Write-Output "remove-worktree: reclaim: running the project's reclaim.drop in $MainDir"
+        Write-Output "  `$ $cmd"
+        Write-Output "  (its own output follows; it collects what is dead now that this tree is out of git's registry)"
+
+        $psExe = (Get-Process -Id $PID).Path
+        $rc = 0
+        Push-Location -LiteralPath $MainDir
+        try {
+            $null | & $psExe -NoProfile -NonInteractive -Command $cmd
+            $rc = $LASTEXITCODE
+        } finally {
+            Pop-Location
+        }
+        if ($rc -eq 0) {
+            Write-Output "remove-worktree: reclaim: finished (exit 0)."
+        } else {
+            Write-Stderr "remove-worktree: WARNING: reclaim.drop exited ${rc}: $cmd"
+            Write-Stderr "  The worktree itself WAS removed and this run still succeeds. What the sweep did not"
+            Write-Stderr "  collect is still dead and the next removal, or the project's reclaim, will retry it."
+        }
+    } catch {
+        Write-Stderr "remove-worktree: WARNING: reclaim.drop could not be run: $($_.Exception.Message)"
+        Write-Stderr "  The worktree itself WAS removed and this run still succeeds."
+    }
+}
+
 if ($args.Count -lt 1) {
     Write-Stderr "usage: remove-worktree.ps1 <branch-leaf-or-absolute-path>"
     Write-Stderr "  e.g. remove-worktree.ps1 1322-compose-env"
@@ -329,6 +417,11 @@ no worktree at $Wt, but $Main has one REGISTERED at $Stray whose directory is na
     & git -C $Main worktree prune
     if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree prune failed (exit $LASTEXITCODE)" }
     Write-Output "remove-worktree: done (path was already absent)."
+    # Still owed: whatever that tree created is dead now and nothing else would
+    # collect it, and a re-run is how a sweep that failed last time gets its retry.
+    # Reached only with $Main established; the "cannot find repo" exit above has no
+    # repo to read a config from and rightly runs nothing.
+    Invoke-Reclaim -MainDir $Main
     exit 0
 }
 
@@ -467,3 +560,6 @@ if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree remove failed (exit $LAS
 & git -C $Main worktree prune
 if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree prune failed (exit $LASTEXITCODE)" }
 Write-Output "remove-worktree: done - $Wt removed."
+
+# The tree is now out of git's registry, so the resources it created are dead.
+Invoke-Reclaim -MainDir $Main

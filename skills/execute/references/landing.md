@@ -405,7 +405,9 @@ worktree is gone:
    **Do not use `git worktree remove` directly.** Plain `git worktree remove` evicts the directory but does
    NOT signal any running processes — so a gate running in it survives as an orphan. The helper kills all
    processes rooted in the worktree first — via `lsof` + `pgrep`, escalating SIGTERM → SIGKILL — then removes
-   the worktree. On Windows it instead scans `Win32_Process` command lines and kills the matching process
+   the worktree and, once the tree has left git's registry, runs the project's declared `reclaim.drop`
+   (`skills/procedures/config-keys.md`) — best-effort, in the foreground and ahead of the merge when `merge-pr`
+   makes this call, so a slow sweep delays that merge without failing it. On Windows it instead scans `Win32_Process` command lines and kills the matching process
    trees with `taskkill /T /F`, since neither `lsof` nor `pgrep` exists in Git Bash and there is no SIGTERM to
    escalate from; it also prints a notice that open-handle enumeration was **skipped** (the `lsof +D` half has
    no built-in Windows equivalent), so a removal that fails on a locked file has a stated cause rather than
@@ -480,10 +482,13 @@ an arc that surfaced nothing and one where nobody asked look identical afterward
 **And one arc-level action, on the same cadence and for a different reason: where the project declares
 `reclaim` (`skills/procedures/config-keys.md`), run its `report` here.** Every worktree the arc cut has by now
 been torn down, and each one that ran a check left behind whatever its `sharedResources` mechanism created —
-named after a path that no longer exists. Per arc, never per increment, and the reason is not noise: an arc's
-waves overlap, so a mid-arc run reports resources belonging to slices still live and invites exactly the wrong
-conclusion about them. **Run `report`; never `drop` on your own judgement.** A drop is the maintainer's call
-on the maintainer's box, for the same reason a merge is not yours to approve — and it is barred outright while
-any ticket is outstanding — queued as much as claimed — by the frozen-worktree rule (*Draining the gate
-queue*), because a queued ticket names a worktree whose resources a runner is about to need.
+named after a path that no longer exists. `remove-worktree` has already run `drop` after each removal, so
+this `report` reads what those sweeps could not collect — a `drop` that failed shows as dead items still
+standing. Per arc, never per increment, and the reason is not noise: an arc's waves overlap, so a mid-arc run
+reports resources belonging to slices still live and invites exactly the wrong conclusion about them.
+**Run `report`; never `drop` yourself.** The helper's automatic `drop` runs only after a removal, when that
+tree has left the registry, so it cannot reach a worktree a queued ticket still names — and a `drop` you ran
+by hand is the maintainer's call on the maintainer's box, for the same reason a merge is not yours to
+approve, barred outright while any ticket is outstanding — queued as much as claimed — by the frozen-worktree
+rule (*Draining the gate queue*).
 

@@ -20,6 +20,16 @@
 #   2. Runs `git worktree remove <path> --force` + `git worktree prune` to
 #      unregister the worktree from git.
 #
+#   3. Runs the project's own `reclaim.drop` (from <repo>/.agents/worktree.json),
+#      if it declares one, AFTER the tree has left git's worktree registry --
+#      which is what makes that checkout's resources dead by the classification
+#      `reclaim` already uses, so the project's existing command collects them.
+#      Strictly best-effort: the tree is already gone by then, so a reclaim that
+#      fails, is missing or is slow is reported and never changes the exit status.
+#      Also run when the tree was already absent (after the prune), since a
+#      resource can outlive a tree that something else deleted. A project with no
+#      `reclaim` sees no change. See run_reclaim below.
+#
 # Safety invariants:
 #   - Only kills processes rooted at the EXACT absolute worktree path (trailing
 #     slash anchored), so a leaf named "1322-foo" cannot match "1322-foo-retry".
@@ -138,6 +148,107 @@ WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 # and the PowerShell sibling, whose `\n` IS a newline, would then say something the
 # bash side does not.
 die() { printf 'remove-worktree: error: %b\n' "$*" >&2; exit 1; }
+
+# --- The project's own sweep, run once the tree is out of the registry ------------
+# `reclaim` is the project's command for the resources a checkout created and left
+# behind, named after a path rather than a branch and so indistinguishable from a
+# live checkout's until git forgets the tree. It classifies by git's worktree
+# registry, which is why this runs AFTER `worktree remove` + `prune` and never
+# before: the checkout just removed is dead to it only from this point. That
+# classification is the project's, and the safety under concurrent sessions lives
+# there -- another session's still-registered tree is live and untouched, a
+# genuinely dead one is collected, which is intended. This helper does not
+# re-implement any of it, and passes the command no worktree list (the plugin gives
+# the rule, never the data).
+#
+# There is deliberately NO flag or environment variable to skip it: this helper's
+# arguments and environment are a frozen contract, and nothing here already
+# expresses a "skip the slow optional step". A project that wants no automatic
+# sweep omits `reclaim`, and that is the only switch.
+#
+# NEVER FATAL. Every path out of run_reclaim returns 0 and the caller additionally
+# guards the call with `|| true`: the tree is already gone, and housekeeping must
+# not turn a successful teardown into an error. That covers a missing config, an
+# unreadable one, a command that cannot start, one that exits non-zero, and one that
+# is simply slow. (A machine with no node or python to read the config with reads it
+# as "not declared", so there the sweep is silently skipped rather than reported.) -- it is run in the foreground
+# with no timeout, because killing a half-finished sweep is worse than waiting for
+# it, and its output streams live so a long sweep is visibly progressing. Children the
+# command leaves running are not detached, so they keep the helper's stdout open for
+# any caller that captures it (none does today). stdin is
+# closed so a command that prompts cannot hang the teardown on a terminal nobody is
+# watching.
+#
+# Duplicated rather than shared with merge-pr.sh's read_config_scalar, for the
+# reason norm_path above gives. This one reads a key one level down.
+read_config_nested() { # read_config_nested <config-path> <key> <subkey>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 0
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      try {
+        const parent = JSON.parse(fs.readFileSync(process.argv[1], "utf8"))[process.argv[2]];
+        const value = parent && typeof parent === "object" ? parent[process.argv[3]] : undefined;
+        if (typeof value === "string") process.stdout.write(value);
+      } catch (err) { /* unreadable config reads as "not declared" */ }
+    ' "$1" "$2" "$3" 2>/dev/null || true
+  else
+    "${runner[@]}" - "$1" "$2" "$3" 2>/dev/null <<'PY' || true
+import json, sys
+try:
+    parent = json.load(open(sys.argv[1])).get(sys.argv[2])
+    value = parent.get(sys.argv[3]) if isinstance(parent, dict) else None
+except Exception:
+    value = None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
+
+run_reclaim() { # run_reclaim <main-checkout>
+  local main="$1" cmd rc=0
+  cmd=$(read_config_nested "$main/.agents/worktree.json" reclaim drop)
+  # Nothing declared is the ordinary case and says nothing.
+  [ -n "$cmd" ] || return 0
+
+  echo "remove-worktree: reclaim: running the project's reclaim.drop in $main"
+  echo "  \$ $cmd"
+  echo "  (its own output follows; it collects what is dead now that this tree is out of git's registry)"
+  # A subshell, so the cd cannot leak; bash -c, because the value is a command LINE.
+  # `|| rc=$?` is what keeps `set -e` from ending the run on a non-zero exit.
+  (cd "$main" && "${BASH:-bash}" -c "$cmd" </dev/null) || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo "remove-worktree: reclaim: finished (exit 0)."
+  else
+    echo "remove-worktree: WARNING: reclaim.drop exited $rc: $cmd" >&2
+    echo "  The worktree itself WAS removed and this run still succeeds. What the sweep did not" >&2
+    echo "  collect is still dead and the next removal, or the project's reclaim, will retry it." >&2
+  fi
+  return 0
+}
 
 if [ $# -lt 1 ]; then
   echo "usage: remove-worktree.sh <branch-leaf-or-absolute-path>" >&2
@@ -283,6 +394,13 @@ if [ ! -d "$WT" ]; then
   # surface shape rather than semantics.
   git -C "$MAIN" worktree prune || die "git worktree prune failed (exit $?)"
   echo "remove-worktree: done (path was already absent)."
+  # Still owed: whatever that tree created is dead now (the prune above is what drops
+  # a stale registration), and nothing else would ever collect it -- the removal that
+  # normally would have is the one that already happened, possibly without this
+  # helper. Re-running a close-out is also how a sweep that failed last time gets its
+  # retry. Reached only with $MAIN established; the "cannot find repo" exit above
+  # has no repo to read a config from and rightly runs nothing.
+  run_reclaim "$MAIN" || true
   exit 0
 fi
 
@@ -554,3 +672,6 @@ echo "remove-worktree: removing worktree $WT ..."
 git -C "$MAIN" worktree remove "$WT" --force || die "git worktree remove failed (exit $?)"
 git -C "$MAIN" worktree prune || die "git worktree prune failed (exit $?)"
 echo "remove-worktree: done — $WT removed."
+
+# The tree is now out of git's registry, so the resources it created are dead.
+run_reclaim "$MAIN" || true

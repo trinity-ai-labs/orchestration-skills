@@ -2,6 +2,36 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.18.0
+
+- **`remove-worktree` now runs the project's declared `reclaim.drop` after a removal.** `reclaim` was a sweep
+  the flow read, reported and told a human to run, and nothing ever ran it, so the resources a checkout
+  created (a database per checkout and per worker, in the project that measured it) outlived every worktree
+  until the machine degraded and the cleanup itself became unaffordable
+  ([#568](https://github.com/trinity-ai-labs/orchestration-skills/issues/568)). The helper now runs `drop`
+  from the main checkout once the tree has left git's worktree registry, which is what makes that checkout's
+  resources dead by the classification `reclaim` already uses — so the existing command collects them, with
+  no new config key and no new concept. The same holds in both ports (`remove-worktree.sh` and `.ps1`).
+- **Best-effort, reported, and never a reason for a removal to fail.** A `drop` that exits non-zero, cannot
+  start, is slow, or sits in a config that will not parse is reported on stderr and the helper still exits
+  `0` — the tree is already gone. It is not run when the removal itself fails (a locked worktree, a
+  refused path). It runs in the foreground with no timeout and its output streaming live, so what it
+  collected is visible, and with stdin closed so a prompt cannot hang the teardown. It also runs when the
+  tree was **already absent**, after the prune: a resource can outlive a tree something else deleted, and
+  re-running a close-out is the retry for a sweep that failed.
+- **What a project sees.** A project that declares no `reclaim` sees nothing change. One that declares it now
+  has `drop` run on every removal, so a sweep one removal triggers may collect another session's genuinely
+  dead resources, which is intended; keeping it off live ones stays the project's own classification, which
+  the helper does not re-implement. **There is no flag to skip it** — the helper's arguments and environment
+  are a frozen contract and nothing in it already expressed a skip — so omitting `reclaim` is the only
+  opt-out. `report` is unchanged: a dispatcher still runs it at an arc's close-out, now to read what the
+  automatic sweeps could not collect, and no seat runs `drop` by hand.
+- **A project with an existing backlog should run its own `reclaim.drop` by hand once, before upgrading.**
+  The first automatic sweep otherwise collects everything accumulated, in the foreground, during a merge —
+  and the projects this fixes are the ones with the largest backlog. On the project that prompted this, that
+  one-off would have been 440 databases at about 4.5 minutes each, over 30 hours, with one drop alone stuck
+  for 29 minutes. Pay it once, off the merge path, so the first removal after upgrading has little to do.
+
 ## 5.17.0
 
 - **New command `/pipeline:health` — one owner for how healthy a project's setup is.** Ask it at any time: it

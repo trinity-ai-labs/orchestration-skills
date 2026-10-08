@@ -308,7 +308,7 @@ Two riders:
   bare `Follows #<N>` on a plain issue is provenance and takes the backlink alone.** The follow-up-ownership
   rule binds this loop as it binds a dispatcher, the two seats that file —
   **a bullet in a report is not a follow-up** — and **the two-link case is this loop's default**. The native
-  link is `gh-post.sh sub-issue <umbrella> <N>` (`skills/procedures/github-writes.md`; what it is,
+  link is `gh-post.sh sub-issue <umbrella> <N|owner/repo#n>` (`skills/procedures/github-writes.md`; what it is,
   `skills/glossary/mechanics/sub-issue-link.md`).
 - **A fold is a new slice, never a widening of a live one**, since a fold is bulk new work rather than one
   named path, and growing a dispatched slice's scope by a widening nobody AUTHORIZED simply is the divergence

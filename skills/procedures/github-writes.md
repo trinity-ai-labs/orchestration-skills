@@ -14,7 +14,7 @@ inside the target repo, or prefix `REPO=/path/to/repo`.
 gh-post.sh comment <issue|pr> <n> --key <key> --body-file <file>
 gh-post.sh review <pr-n> --key <key> --body-file <file>
 gh-post.sh close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]
-gh-post.sh sub-issue <parent-n> <child-n>
+gh-post.sh sub-issue <parent-n> <child-n|owner/repo#n>
 ```
 
 - **The body travels as a FILE you write first** — `--body-file -` (stdin) is refused as bad usage. The helper
@@ -31,7 +31,9 @@ gh-post.sh sub-issue <parent-n> <child-n>
   review that threads findings on lines, or carries `APPROVE` or `REQUEST_CHANGES`, is outside its kinds.
 - **`close` with `--key` posts or updates its closing comment first, then closes** with the reason.
 - **`sub-issue` makes the native link** (`skills/glossary/mechanics/sub-issue-link.md`), resolving the child's
-  database id itself. A child already under a different parent exits `1` and is never re-parented.
+  database id itself. A child already under a different parent exits `1` and is never re-parented. **A child in
+  another repository is named `<owner>/<repo>#<n>`; the parent is always the repository you run it from, and
+  GitHub refuses a child under a different owner from the parent's.**
 
 ## What it prints, and what to verify
 

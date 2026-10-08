@@ -75,17 +75,18 @@ and never a silent success: a substitution inside an `echo` takes its status fro
 `gh-post` makes one of this flow's GitHub writes so that a re-run never duplicates it. It takes
 `comment <issue|pr> <n> --key <key> --body-file <file>`, `review <pr-n> --key <key> --body-file <file>`,
 `close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]` or
-`sub-issue <parent-n> <child-n>`, and reads only `REPO`. Its whole stdout is three lines: `POSTED: <url>` (a new
-post or link), `UPDATED: <url>` (its own post edited in place, or the close written) and `DECLINED: <reason>`
-(nothing to do, which is an answer and never an error). Each call prints one, except `close` with a closing
-comment, which prints the comment's line first and the state line second. Its own post is the one whose LAST
-non-blank line is exactly `<!-- pipeline:<key> -->`, found across every comment or review on the target and
-never by author, position or recency, since every party writes as the same `gh` account; a post that only
-quotes the marker elsewhere in its body is never taken for its own. A re-run of `review` edits the review BODY
-only, so inline comments are never re-posted or updated through it. A sub-issue already under a different
-parent exits `1` and is never re-parented. It exits `0` on any of the three lines, `1` on a failed `gh` call
-as on a failed `git` one, and `2` on bad usage, including a number naming the wrong kind of thing (a PR where
-an issue was asked for, or the reverse).
+`sub-issue <parent-n> <child-n|owner/repo#n>`, and reads only `REPO`. Its whole stdout is three lines:
+`POSTED: <url>` (a new post or link), `UPDATED: <url>` (its own post edited in place, or the close written) and
+`DECLINED: <reason>` (nothing to do, which is an answer and never an error). Each call prints one, except
+`close` with a closing comment, which prints the comment's line first and the state line second. Its own post
+is the one whose LAST non-blank line is exactly `<!-- pipeline:<key> -->`, found across every comment or review
+on the target and never by author, position or recency, since every party writes as the same `gh` account; a
+post that only quotes the marker elsewhere in its body is never taken for its own. A re-run of `review` edits
+the review BODY only, so inline comments are never re-posted or updated through it. A sub-issue's parent is
+always an issue in the repository the helper runs from, and a child named `<owner>/<repo>#<n>` is read from
+that repository; a child already under a different parent exits `1` and is never re-parented. It exits `0` on
+any of the three lines, `1` on a failed `gh` call as on a failed `git` one, and `2` on bad usage, including a
+number naming the wrong kind of thing (a PR where an issue was asked for, or the reverse).
 
 ## The `bin/` parity rule
 

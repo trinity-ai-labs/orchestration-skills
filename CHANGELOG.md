@@ -2,6 +2,31 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.19.0
+
+- **`gh-post sub-issue` links a child from another repository.** The child may now be named
+  `<owner>/<repo>#<n>` as well as a bare number, so an umbrella in one workspace member can carry a leaf that
+  lives in another under the same owner (GitHub refuses a child under a different owner) ([#567](https://github.com/trinity-ai-labs/orchestration-skills/issues/567)). The parent
+  is still an issue in the repository the helper runs from; a qualified child is read from its own
+  repository, an already-linked child is still declined and one under another parent is still never
+  re-parented, and a qualified child whose number equals the parent's is not a self-link. Both ports change
+  together, and the frozen helper contract, `skills/procedures/github-writes.md` and the umbrella-linking
+  steps in `ground` and `write-issue` name the new form.
+- **A split gate's changed files are diffed against the integration branch, and zero tests is never green.**
+  `code-shape`'s *The shape of a split gate* now names that base explicitly, never the branch's own
+  remote-tracking ref, and has an empty plan on a branch with commits beyond it fail loudly; an epic
+  close-out running a changed-files gate names the integration branch as its base
+  ([#570](https://github.com/trinity-ai-labs/orchestration-skills/issues/570)).
+- **A new code-shape signal, `Catch-all-only files`**: tracked files whose only matching glob is a catch-all
+  spanning a whole product or package tree, listed by area, since every change to one runs the whole suite.
+  The split gate's map check also fails on a product file matched only by a catch-all, and `health`
+  recommends a map line per area plus that check
+  ([#571](https://github.com/trinity-ai-labs/orchestration-skills/issues/571)).
+- **`health` names a ratchet or allowlist baseline as setup debt.** A non-empty baseline (file size, lint,
+  guidance) becomes the item `Baseline: <path>`, its value the entries with each one's size, recommending a
+  burn-down of one leaf per entry, and it ticks off only when the baseline is empty
+  ([#572](https://github.com/trinity-ai-labs/orchestration-skills/issues/572)).
+
 ## 5.18.0
 
 - **`remove-worktree` now runs the project's declared `reclaim.drop` after a removal.** `reclaim` was a sweep

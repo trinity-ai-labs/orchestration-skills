@@ -193,7 +193,9 @@ cadence buys this, not just bounded conflicts). Then the epic already contains e
 branch has, the gate covers the exact tree the closing merge will produce, and that merge's `^2` diff comes
 back empty. Skip the cadence and it won't, and the gate moves to *after* the closing merge, on the shared
 branch — in a throwaway tree cut from its tip, the close-out having torn the epic worktree down — where a
-cross-slice break is found only once every slice has already landed on it.
+cross-slice break is found only once every slice has already landed on it. **A close-out that runs a
+changed-files gate rather than a full one names the integration branch as that gate's base rather than taking
+a default.**
 
 **And when that closing merge is a squash, the same reasoning has a consequence: the cadence stops being
 advisory.** A squash commit has no second parent, so there is no `^2` to read at all — the tree comparison

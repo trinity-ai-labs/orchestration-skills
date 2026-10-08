@@ -5,7 +5,7 @@
 #   gh-post.ps1 comment  <issue|pr> <n>  --key <key> --body-file <file>
 #   gh-post.ps1 review   <pr-n>          --key <key> --body-file <file>
 #   gh-post.ps1 close    <issue-n>       --reason <completed|not_planned> [--key <key> --body-file <file>]
-#   gh-post.ps1 sub-issue <parent-n> <child-n>
+#   gh-post.ps1 sub-issue <parent-n> <child-n|owner/repo#n>
 #
 # The PowerShell sibling of gh-post.sh, for a native Windows session with no bash
 # at all. Same arguments, the same REPO environment variable, the same stdout
@@ -42,6 +42,10 @@
 # when the close (or a changed reason) was written, DECLINED when the issue was
 # already closed with that reason. `sub-issue` prints POSTED: <parent-url> for a new
 # link; a child already under a DIFFERENT parent exits 1 and is never re-parented.
+# The parent is always an issue in the repo the helper runs from; the child may
+# be named `<owner>/<repo>#<n>` to link an issue from another repository, and is
+# then read from that repository. GitHub refuses a child under a different owner
+# from the parent's, and that refusal is the failed gh call's exit 1.
 #
 # `review` writes the review BODY only. A re-run edits that body in place; it
 # never posts, re-posts or updates inline comments, so inline findings are not
@@ -82,7 +86,7 @@ function Exit-WithUsage {
     Write-Stderr "usage: gh-post.ps1 comment <issue|pr> <n> --key <key> --body-file <file>"
     Write-Stderr "       gh-post.ps1 review <pr-n> --key <key> --body-file <file>"
     Write-Stderr "       gh-post.ps1 close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]"
-    Write-Stderr "       gh-post.ps1 sub-issue <parent-n> <child-n>"
+    Write-Stderr "       gh-post.ps1 sub-issue <parent-n> <child-n|owner/repo#n>"
     Write-Stderr "  prints POSTED: <url>, UPDATED: <url> or DECLINED: <reason>, each on its own line"
     Write-Stderr "  run from inside the target repo, or set REPO=/path/to/repo"
     exit 2
@@ -164,10 +168,22 @@ function Get-ArgKind {
         if (-not ($pos[0] -ceq 'issue' -or $pos[0] -ceq 'pr')) { return 'usage' }
         $first = 1
     }
-    for ($k = $first; $k -lt $npos; $k++) {
+    # A sub-issue's child may instead be `<owner>/<repo>#<n>`, checked on its own
+    # below, so only its parent is held to the bare-number rule here.
+    $last = $npos
+    if ($kind -ceq 'sub-issue') { $last = 1 }
+    for ($k = $first; $k -lt $last; $k++) {
         if ($pos[$k] -cnotmatch '^[1-9][0-9]*\z') { return 'usage' }
     }
-    if ($kind -ceq 'sub-issue' -and $pos[0] -ceq $pos[1]) { return 'usage' }
+    if ($kind -ceq 'sub-issue') {
+        # A bare number, or exactly one `/` between a non-empty owner and repo
+        # from a closed ASCII set, then `#` and a positive number with no
+        # leading zero.
+        if ($pos[1] -cnotmatch '^([1-9][0-9]*|[A-Za-z0-9._-]+/[A-Za-z0-9._-]+#[1-9][0-9]*)\z') { return 'usage' }
+        # Only a bare child names the parent's own repository, so only a bare
+        # child can be a self-link.
+        if ($pos[0] -ceq $pos[1]) { return 'usage' }
+    }
     $haveKey = $flags.ContainsKey('--key')
     $haveBody = $flags.ContainsKey('--body-file')
     $haveReason = $flags.ContainsKey('--reason')
@@ -392,17 +408,27 @@ try {
         'sub-issue' {
             $parent = $Pos[0]
             $child = $Pos[1]
+            # A qualified child is read from its own repository and named as
+            # given; a bare one lives in this repo and is named `#<n>`.
+            $hash = $child.IndexOf('#')
+            if ($hash -ge 0) {
+                $childRef = $child
+                $childApi = "repos/$($child.Substring(0, $hash))/issues/$($child.Substring($hash + 1))"
+            } else {
+                $childRef = "#$child"
+                $childApi = "repos/{owner}/{repo}/issues/$child"
+            }
             $parentTarget = Assert-TargetType -Number $parent -Type 'issue'
-            $row = Invoke-GhApi -What "reading #$child" -GhArgs @(
-                "repos/{owner}/{repo}/issues/$child",
+            $row = Invoke-GhApi -What "reading $childRef" -GhArgs @(
+                $childApi,
                 '--jq', '[(.pull_request != null), .id, .parent_issue_url] | @tsv')
             $cols = $row -split "`t"
-            if ($cols[0] -cne 'false') { Exit-WithUsage "#$child is a pull request, not an issue" }
+            if ($cols[0] -cne 'false') { Exit-WithUsage "$childRef is a pull request, not an issue" }
             $childId = $cols[1]
             $childParent = ''
             if ($cols.Count -gt 2) { $childParent = $cols[2] }
             if ($childParent -ceq $parentTarget.ApiUrl) {
-                Write-Output "DECLINED: #$child is already a sub-issue of #$parent"
+                Write-Output "DECLINED: $childRef is already a sub-issue of #$parent"
             } elseif ($childParent) {
                 # Another parent's link is another party's decision; re-parenting
                 # it is not this helper's call.
@@ -412,9 +438,9 @@ try {
                 if ($childParent.StartsWith($repoApi, [StringComparison]::Ordinal)) {
                     $childParent = '#' + $childParent.Substring($childParent.LastIndexOf('/') + 1)
                 }
-                Exit-WithError "#$child is already a sub-issue of $childParent - not re-parenting it under #$parent"
+                Exit-WithError "$childRef is already a sub-issue of $childParent - not re-parenting it under #$parent"
             } else {
-                $url = Invoke-GhApi -What "linking #$child under #$parent" -GhArgs @(
+                $url = Invoke-GhApi -What "linking $childRef under #$parent" -GhArgs @(
                     '-X', 'POST', "repos/{owner}/{repo}/issues/$parent/sub_issues",
                     '-F', "sub_issue_id=$childId", '--jq', '.html_url')
                 Write-Output "POSTED: $url"

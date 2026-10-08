@@ -204,7 +204,9 @@ a question rather than a default.
   project that omits `reclaim` is unaffected, and **omitting it is the only way to opt out** — the helper
   takes no flag for it. A sweep one removal triggers may collect another session's genuinely dead
   resources, which is correct; keeping it off live ones is the rule below, and the helper does not
-  re-implement it.
+  re-implement it. The `drop` line is interpreted by the host's shell — bash where the helper is the
+  `.sh` port, PowerShell where it is the `.ps1` — so write it as a single plain command invocation that
+  is valid in both.
 
   **The plugin gives the RULE, never the data** — never hand a project's command a live worktree set,
   since an empty one read as "nothing is alive" licenses dropping every database on the box. It must

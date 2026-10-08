@@ -89,7 +89,7 @@ is its designed mode is written as that fact, since `null` is read as narrow-the
 project's whole fan-out protecting something nothing can corrupt. And a mechanism that derives a per-worktree
 name from the worktree's own absolute path — the only thing already unique per tree — creates resources that
 **outlive the tree**: they are named after a path rather than a branch, so a dead worktree's is
-indistinguishable *by name* from a live one's, and `remove-worktree` knows nothing it created, so it calls `reclaim`'s `drop`. `reclaim` is
+indistinguishable *by name* from a live one's, and `remove-worktree` knows nothing it created, which is why `reclaim`'s `drop` runs after it. `reclaim` is
 what owns that cleanup, and it puts one requirement back on the mechanism: as it creates each resource it must
 **mark** it with the worktree's absolute path — a `COMMENT ON DATABASE`, a key in the keyspace, a file in the
 directory — taken from `git rev-parse --path-format=absolute --show-toplevel` and never from `$PWD`, which

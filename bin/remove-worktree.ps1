@@ -228,8 +228,7 @@ function Get-ConfigNested {
     # empty string. Mirrors the bash sibling's read_config_nested, including the
     # CASE-SENSITIVE key match PowerShell does not do on its own (a PSObject property
     # lookup ignores case, so "Reclaim" would be found here and not by the bash
-    # parse). Iterating the properties also keeps this safe under Set-StrictMode,
-    # where a plain read of an absent property throws. An unreadable config reads as
+    # parse). An unreadable config reads as
     # "not declared": the sweep is housekeeping and must never be the reason a
     # removal reports an error.
     param(

@@ -405,7 +405,9 @@ worktree is gone:
    **Do not use `git worktree remove` directly.** Plain `git worktree remove` evicts the directory but does
    NOT signal any running processes — so a gate running in it survives as an orphan. The helper kills all
    processes rooted in the worktree first — via `lsof` + `pgrep`, escalating SIGTERM → SIGKILL — then removes
-   the worktree. On Windows it instead scans `Win32_Process` command lines and kills the matching process
+   the worktree and, once the tree has left git's registry, runs the project's declared `reclaim.drop`
+   (`skills/procedures/config-keys.md`) — best-effort, in the foreground and ahead of the merge when `merge-pr`
+   makes this call, so a slow sweep delays that merge without failing it. On Windows it instead scans `Win32_Process` command lines and kills the matching process
    trees with `taskkill /T /F`, since neither `lsof` nor `pgrep` exists in Git Bash and there is no SIGTERM to
    escalate from; it also prints a notice that open-handle enumeration was **skipped** (the `lsof +D` half has
    no built-in Windows equivalent), so a removal that fails on a locked file has a stated cause rather than

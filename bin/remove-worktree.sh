@@ -169,10 +169,13 @@ die() { printf 'remove-worktree: error: %b\n' "$*" >&2; exit 1; }
 # NEVER FATAL. Every path out of run_reclaim returns 0 and the caller additionally
 # guards the call with `|| true`: the tree is already gone, and housekeeping must
 # not turn a successful teardown into an error. That covers a missing config, an
-# unreadable one, no interpreter to read it with, a command that cannot start, one
-# that exits non-zero, and one that is simply slow -- it is run in the foreground
+# unreadable one, a command that cannot start, one that exits non-zero, and one that
+# is simply slow. (A machine with no node or python to read the config with reads it
+# as "not declared", so there the sweep is silently skipped rather than reported.) -- it is run in the foreground
 # with no timeout, because killing a half-finished sweep is worse than waiting for
-# it, and its output streams live so a long sweep is visibly progressing. stdin is
+# it, and its output streams live so a long sweep is visibly progressing. Children the
+# command leaves running are not detached, so they keep the helper's stdout open for
+# any caller that captures it (none does today). stdin is
 # closed so a command that prompts cannot hang the teardown on a terminal nobody is
 # watching.
 #
@@ -227,7 +230,7 @@ PY
 
 run_reclaim() { # run_reclaim <main-checkout>
   local main="$1" cmd rc=0
-  cmd=$(read_config_nested "$main/.agents/worktree.json" reclaim drop) || cmd=""
+  cmd=$(read_config_nested "$main/.agents/worktree.json" reclaim drop)
   # Nothing declared is the ordinary case and says nothing.
   [ -n "$cmd" ] || return 0
 

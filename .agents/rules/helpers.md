@@ -63,7 +63,9 @@ sign off on, not a unilateral edit discovered later as a behavioral mismatch.
 As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or `--existing <branch>` to
 attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it
 already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
-`merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path; `setup-workspace`
+`merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path, and after the
+removal (or the prune, for a tree already absent) prints its own `reclaim:` lines while running the
+project's `reclaim.drop`, which can never change its exit status; `setup-workspace`
 takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
 `READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
 its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed

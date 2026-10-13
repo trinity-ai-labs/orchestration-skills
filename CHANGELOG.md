@@ -6,7 +6,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 
 - **The full gate runs at an epic's close-out only.** Where a project declares `fullGate`, it runs at the epic's
   close-out gate and on demand: the per-merge and wave-end gates are gone, a standalone issue or an arc with no
-  epic branch never runs it, a suite baseline is reused rather than re-taken, and a gate tool's own self-checks
+  epic branch never runs it, a slice's suite baseline is skipped where a green gate verdict already covers the same tree, and a gate tool's own self-checks
   run only on a change to that tool ([#578](https://github.com/trinity-ai-labs/orchestration-skills/issues/578)).
 - **A new optional config key, `targetedTest`**: a command template taking `{files}` or `{names}`, so an
   implementer's one targeted run works in any language; absent, it is one test file run directly. `setup`
@@ -18,8 +18,8 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 - **A test policy.** A permanent test is a guard, never a probe, and a bug earns one only when it is easy to
   reintroduce, would slip by unnoticed and is costly if shipped; an existing test is extended before a new one
   is added, one representative is the default with sweeps at close-out only, and a test that costs more than
-  its bug is deleted. Rule 12 now asks for the cheapest level that exercises the seam, and verify-bar counts
-  are taken from the command ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).
+  its bug is deleted. Rule 12 now asks for the cheapest level that exercises the seam, and a verify bar states
+  the tests it adds or extends, the case count and each new guard's reason ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).
 - **`review` gains a *Redundant or over-swept tests* dimension**, firing where the diff adds or changes tests:
   duplicates, unreasoned sweeps, probes committed as guards and guards failing the three-part bar, each with
   the deletion or merge proposed ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).

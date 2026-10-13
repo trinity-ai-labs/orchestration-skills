@@ -286,10 +286,9 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
   invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
   one comment per dimension beside it, and it runs here unaltered right through that post; **what differs is
-  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers on this
-  project — seven where the project states
-  conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
-  like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
+  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers here —
+  Rules & Conventions where the project states conventions worth a pass, Redundant or over-swept tests where
+  the diff adds or changes tests — and never a selection narrowed to what this diff looks like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
   is left for this run is the one thing none of those could see: how the slices COMPOSE, the state they
   share, the interactions that exist only once they sit together. **It costs ONE flat panel per epic however
   many slices the arc held**, which is what parts it from running this pass twice anywhere else here: a

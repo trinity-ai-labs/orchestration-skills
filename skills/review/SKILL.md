@@ -7,8 +7,8 @@ description: >-
   flow has pushed its slice and opened its draft PR, when an orchestrator has opened an epic's
   close-out PR, when a dispatcher runs a review checkpoint over an epic PR, whenever the brief you
   were dispatched with says to run a review pass for the slice, and whenever you are asked to review,
-  tighten, simplify or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
-  over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
+  tighten, simplify or clean up a change that is already up as a PR. Dispatches one briefed reviewer
+  per dimension over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
   efficiency, altitude, redundant or over-swept tests and a project's stated rules and conventions — then
   weighs what they report, applies what it judges right, posts its findings onto the PR as a review with
   one comment beside it per dimension it dispatched, and reports what it rejected.
@@ -399,17 +399,16 @@ epic close-out's `fullGate` where it declares one — and running it here satura
 needs. Backgrounding a banned run does not make it allowed. **No reviewer runs one either**, which is why no
 brief you write names a test command.
 
-⛔ **Never background a check and end your turn on it — a rule about checks and commands, and NOT about the
-reviewers you dispatched**, ALL of whom you wait on as this step opens by saying, since reading this ban as
-reaching them leaves you with one reader again. The run that actually stalls this pass is a *permitted* one,
-so the ban above cannot reach it: your whole budget is allowed, and the stall shape does not care which run
-it was — the turn ends, and the caller never gets the report. So this rule is keyed to the handoff rather
-than to the ban. Both of your checks run in the **foreground**
-— **where one can outlast a single tool call, raise that call's timeout to its limit, and past the limit
-detach it with its exit status written into its own log and poll that log with foreground calls in this same
-turn until the exit line appears** (`skills/procedures/host-tools.md` has the limit and the form) — and this
-pass ends at its report, never at a wait — a wait on the reviewers you dispatched ends a TURN, never the
-pass.
+⛔ **Never end your turn on a check whose exit cannot wake you — a rule about checks and commands, and NOT
+about the reviewers you dispatched**, ALL of whom you wait on as this step opens by saying, since reading this
+ban as reaching them leaves you with one reader again. The run that actually stalls this pass is a *permitted*
+one, so the ban above cannot reach it: your whole budget is allowed, and the stall shape does not care which
+run it was — the turn ends, and the caller never gets the report. So this rule is keyed to the handoff rather
+than to the ban. **Where `skills/procedures/host-tools.md` says a backgrounded command's exit re-invokes you,
+background a long check with the shell tool's flag and end your turn; its completion resumes you.** Otherwise
+both of your checks run in the **foreground**, that call's timeout raised to its limit, and past the limit
+host-tools' detach-and-poll fallback applies only where your host keeps a detached command alive — and this
+pass ends at its report, never at a wait — a wait on the reviewers you dispatched ends a TURN, never the pass.
 
 ---
 

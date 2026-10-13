@@ -11,16 +11,16 @@ list and say so in your report.**
 | Fresh sub-agent, never a fork | `Agent`, any `subagent_type` but `fork` | `spawn_agent` with `fork_turns: "none"` |
 | Dispatched reader — a full agent its brief holds read-only | `subagent_type: "general-purpose"`: every tool, so the write ban and the no-children rule live in the brief rather than the tool set — never `Explore`, which reads excerpts and is built to locate code rather than establish a claim | `spawn_agent` with `fork_turns: "none"` |
 | Dispatch in the background | `run_in_background: true` | every spawn is detached |
-| Wait on agents you dispatched | end your turn with no tool call — it is safe: each report re-invokes you as a new turn. The tell you can read is the background spawn call's own result, which says you will be notified when that agent completes — the host's promise to re-invoke you. Observed from a main session and from a sub-agent dispatched in the background waiting on its own children | **not established — read your tool list** |
-| Correct or resume a live one — the FIRST lever | `SendMessage` | `followup_task` |
+| Wait on agents you dispatched | end your turn with no tool call — it is safe: each report re-invokes you as a new turn. The tell you can read is the background spawn call's own result, which says you will be notified when that agent completes — the host's promise to re-invoke you. Observed from a main session and from a sub-agent dispatched in the background waiting on its own children | `wait_agent`, a call that returns as soon as the child ends its turn, whatever it left running — observed |
+| Correct or resume a live one — the FIRST lever | `SendMessage` | `send_message` (`collaboration.send_message`) — observed |
 | List the live ones — the agents YOU spawned, never their children | `ListAgents` | `list_agents` |
-| Stop one — the SECOND lever, for a changed scope | `TaskStop` | **not established — read your tool list** |
+| Stop one — the SECOND lever, for a changed scope | `TaskStop` | `interrupt_agent` — observed |
 | Reach the agent that SPAWNED you, from inside a sub-agent | `SendMessage`, `to: "main"` — from a BACKGROUND sub-agent | **not established — read your tool list** |
 | Self-paced tick | `ScheduleWakeup`, ≈600s | `wait_agent`, `timeout_ms` 300000–600000 |
 | Persistent watch over a ledger directory | `Monitor`, whose command runs in **zsh** on macOS | **not established — read your tool list** |
-| Longest single foreground command | the shell tool's `timeout`, up to 600000 ms (default 120000) | **not established — read your tool list** |
-| When a sub-agent is reported completed | when it stops with no live background children of its own — one that ended its turn to wait on its children is not reported | **not established — read your tool list** |
-| A command you detached, seen from inside a sub-agent | unlike a child agent's report, its exit re-invokes nothing: the sub-agent's ended turn is its hand-back, reported completed with the command still running — observed, not documented | **not established — read your tool list** |
+| Longest single foreground command | the shell tool's `timeout`, up to 600000 ms (default 120000); past it, the shell tool's `run_in_background: true`, whose exit re-invokes you (the row below) | **not established — read your tool list** |
+| When a sub-agent is reported completed | when it stops with no live background children of its own — one that ended its turn to wait on its children is not reported; a notice that it stopped with background work of its own still running is interim, not its hand-back | **not established — read your tool list** |
+| A command you detached, seen from inside a sub-agent | run with the shell tool's `run_in_background: true`, its exit re-invokes the sub-agent, so ending the turn on it is a safe wait; the parent first sees an interim completion naming background work still running — observed | a shell-backgrounded command does not survive the call or the turn, and the shell tool has no background parameter: a long check runs in the foreground, within the shell tool's yield or timeout, and the turn never ends on it — observed |
 | Concurrent sub-agent ceiling | 20 running at once by default, changed by `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`; an over-cap spawn is REFUSED, not queued, with `Concurrent subagent limit reached. You can run N subagents at once. Do not retry.` | **not established — read your tool list** |
 | Standard tier | `model: "sonnet"` | a mid preset **and** `reasoning_effort` |
 | Top tier | `model: "opus"` | a top preset **and** `reasoning_effort` |
@@ -57,21 +57,19 @@ but does not require, so a foreground dispatch has no channel and the row is not
 the listing row runs one way only**: a sub-agent is not given the tool that enumerates live agents, so it
 cannot discover an address the way a spawning agent discovers one.
 
-⚠️ **A check that outlasts one foreground call is detached with its exit status written INSIDE the detached
-shell, then polled with foreground calls in the same turn:**
+⚠️ **The detach-and-poll fallback is for a host whose detached command survives the call but does not
+re-invoke you on exit — a case not established on either shipped host**, Claude Code re-invoking on a
+backgrounded command's exit and Codex not keeping one alive. There, write the exit status INSIDE the detached
+shell and poll with foreground calls in the same turn:
 
 ```sh
 nohup sh -c '{ <check>; } > check.log 2>&1; echo "EXIT=$?" >> check.log' >/dev/null 2>&1 &
 for i in $(seq 1 55); do grep -q '^EXIT=' check.log && break; sleep 10; done; tail -n 40 check.log
 ```
 
-Run the second line as its own call with its timeout at the limit above, and again until the tail shows the
-`EXIT=` line — each call returns the log, so it is a watch whose result you act on rather than a call made to
-keep a turn open. **The braces put the whole check under one redirect**, since a redirect on an `&&` chain
-binds to its last command alone and the rest of the output never reaches the log; **and the exit line goes
-inside `sh -c`**, since outside it `&` detaches only the last command and the line lands nowhere. On a shell
-without these, any equivalent that writes the whole check's output and its own exit status into its log does
-the job.
+Run the second line as its own call at the timeout limit, again until the tail shows the `EXIT=` line. **The
+braces put the whole check under one redirect and the exit line sits inside `sh -c`**, or the log misses
+output or the status.
 
 ⚠️ **The ceiling row answers why a spawn failed before you decide what failed.** A refusal there is a
 capacity answer about the whole session and says nothing about the child you asked for; spawning succeeds

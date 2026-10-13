@@ -251,9 +251,10 @@ reference.
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
 8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
    then hand back.**
-   ⛔ **Never end your turn on a check or command you started** — its exit does not re-invoke you, so that
-   ended turn is your hand-back with no verdict in it; a gate that outlasts one tool call is detached and
-   polled in this same turn (`skills/execute/references/implementer.md` has how).
+   ⛔ **Never end your turn on a check or command whose exit cannot wake you** — where your host re-invokes
+   you on a backgrounded command's exit, background a long gate and end your turn; elsewhere that ended turn
+   is your hand-back with no verdict in it, so the gate runs in the foreground
+   (`skills/execute/references/implementer.md` has how).
    ⛔ **The attribution ban above covers the gate verdict you comment here** exactly as it covers the commit
    message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.

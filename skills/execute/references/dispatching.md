@@ -184,19 +184,18 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   result a slice needs is always yours**, as its failure SET by name and taken on that commit before you
   dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run — and in
   queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result
-  outright where it is green and the project declares no `fullGate`, so no baseline ticket is gated, and
-  where it is red only where its failure-set field names every failure by identifier, a failing tail alone
-  never being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is the slice's
-  own domains run on the fork point.** Where no recorded verdict serves, you gate that commit on the worktree
-  you are about to dispatch into, as a
-  PR-less ticket where the project declares `enqueue`/`drain` and by running `gate` there yourself where it
-  declares neither, dispatching once it settles. **Read the ticket's per-step executed-or-replayed record
-  before you hand a green down**: a replayed step says the task's inputs hash to a result already recorded
-  green and says nothing about running here, so a green whose steps all replayed establishes the tree
-  unchanged for that task rather than a suite that covered it, and it is blind to exactly the environmental
-  and shared-resource reds a fresh execution surfaces. **A number taken on another commit is not a baseline**:
-  re-take it on this commit before dispatch, or leave it out and have the brief say to take it before the
-  first edit, which is where anything else the slice needs goes too.
+  outright where it is green and the project declares no `fullGate`, so no baseline ticket is gated, and where
+  it is red only where its failure-set field names every failure by identifier, a failing tail alone never
+  being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is the slice's own
+  domains run on the fork point.** Where no recorded verdict serves, you gate that commit on the worktree you
+  are about to dispatch into, as a PR-less ticket where the project declares `enqueue`/`drain` and by running
+  `gate` there yourself where it declares neither, dispatching once it settles. **Read the ticket's per-step
+  executed-or-replayed record before you hand a green down**: a replayed step says the task's inputs hash to a
+  result already recorded green and says nothing about running here, so a green whose steps all replayed
+  establishes the tree unchanged for that task rather than a suite that covered it, and it is blind to exactly
+  the environmental and shared-resource reds a fresh execution surfaces. **A number taken on another commit is
+  not a baseline**: re-take it on this commit before dispatch, or leave it out and have the brief say to take
+  it before the first edit, which is where anything else the slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`
   (`<repo>/.agents/worktree.json`) that bite this slice, beside the agent guidance that bites it — the key
   carrying the facts that change how this pipeline dispatches and gates, and the guidance the coding
@@ -290,12 +289,13 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   or, where neither does, by the implementer running `scopedCheck` itself before each commit.
 - **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
   scoped check and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
-  reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on
-  it. **It states the two waits as two rules, each naming its own subject** — a command the slice started,
-  whose exit re-invokes nothing, and a sub-agent it spawned, whose report does — since one sentence carrying
-  the second as an exception to the first lets a backgrounded command pass as the exception.
-  **Its long-check sentence is the permitted route for a gate that outlasts one tool call**, the common case
-  in in-line mode on a long suite, where a bare prohibition leaves backgrounding reading as the only route.
+  reaches only a banned run; this stall comes from a **permitted** check whose exit cannot wake the slice,
+  with the turn ended on it. **It states the two waits as two rules, each naming its own subject** — a command
+  the slice started, whose exit re-invokes it on some hosts and on others not, and a sub-agent it spawned,
+  whose report does — since one sentence carrying the second as an exception to the first lets a command
+  pass as the exception. **Its long-check sentence carries both host branches**, the common case being a
+  gate in in-line mode on a long suite. **A notice that a slice stopped with background work of its own still
+  running is interim: read the slice as still working, never as handed back.**
   **Its second paragraph is the wait on the slice's own sub-agents, written for a host that re-invokes an
   agent as each child reports, and it leads with that safe case** — where `skills/procedures/host-tools.md`
   does not give yours as an ended turn, put your host's blocking wait in its place, and **where it gives
@@ -303,7 +303,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   hand-back with nothing coming to re-invoke it, so the slice reports on what has landed and names the
   children still out.
 
-  > **Run every check and command in the FOREGROUND, and end your turn only at the hand-back.** A command you started — whatever detached it: a harness background flag, `&`, `nohup` — does not re-invoke you when it exits the way a child's report does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool call, raise that call's timeout to its limit first; past the limit, detach it with its exit status written into its own log and poll that log with foreground calls in this same turn until the `EXIT=` line appears** (`skills/procedures/host-tools.md` has the limit and the exact form).
+  > **End your turn only at the hand-back, or on a check whose exit will wake you.** **Where `skills/procedures/host-tools.md` says a backgrounded command's exit re-invokes you, run a long check or gate with the shell tool's background flag and end your turn; its completion resumes you.** **Otherwise run every check and command in the FOREGROUND, raising the call's timeout to its limit**: there a command you started does not re-invoke you when it exits, so a turn you end on one IS your hand-back, with no verdict in it, and past the limit you detach it with `EXIT=` written into its own log and poll that log in this same turn, only where your host keeps a detached command alive (host-tools has the form).
   >
   > **Sub-agents you spawned are a different case, and a safe one: their reports DO re-invoke you, so ending your turn with no tool call is how you wait on them** — it hands nothing back, and each report arrives as a new turn. **Never make a call whose result you do not need just so your turn does not end.** **Where this host gives you neither a re-invocation as each child reports nor a call that blocks until one does, do not wait silently — hand back on what has landed and name which children are still out.**
 - **The stash-before-the-tree-moves rule — it goes in EVERY brief**, since the wrong move — a bare
@@ -318,8 +318,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   — this project declares `enqueue`/`drain`, so the gate ticket is your dispatcher's, raised once it has read
   your diff: do NOT run the gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
   this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
-  the draft PR is open run `gate` a single time, in the foreground — detached and polled in this same turn
-  where it outlasts one tool call — and comment its result on that PR with
+  the draft PR is open run `gate` a single time — backgrounded with your turn ended on it where your host
+  re-invokes you on its exit, in the foreground otherwise — and comment its result on that PR with
   `gh-post.sh comment pr <n> --key gate-verdict/<leaf> --body-file <file>`, leading with the SHA it ran
   against."*
 
@@ -547,8 +547,8 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
   finding it: a branch carrying no commit past `$FP`, or no remote branch at all, means this agent **stopped
   rather than finished**, however clean its report reads. **In in-line mode a draft PR carrying no
   gate-verdict comment is the same shape** — the gate runs between the PR and the hand-back, so an agent that
-  ended its turn on a detached gate leaves a pushed branch, an open PR and no verdict; name the gate's log in
-  the resume. **The lever is the message, matching the preference
+  ended its turn on a gate that could not wake it leaves a pushed branch, an open PR and no verdict; name the
+  gate's log in the resume. **The lever is the message, matching the preference
   already stated nearby** (*A stop is not the safe default* above, and the INFRA-stall case below) **— never a
   stop and never a re-dispatch**: resume the SAME agent, since the tree's work is intact and only the
   hand-back is missing, and re-dispatching would discard a full build for a hand-back alone.
@@ -639,7 +639,7 @@ never gate and never enqueue at all.
   completion event of yours at all. The signal that IS yours is *Wait on your own tickets settling — one
   Monitor over the queue's ledger* below. ⚠️ **Detaching the drain is not in tension with the
   check-backgrounding ban** — *The foreground-handoff rule* above, and
-  `skills/execute/references/implementer.md` → *Never background a check and end your turn on it*.
+  `skills/execute/references/implementer.md` → *Never end your turn on a check that cannot wake you*.
   **That ban binds the seat whose ended turn IS its hand-back** — a dispatched agent's; a dispatcher's turn
   ends on the tick, hands nothing back, and waits on no result at all.
 - **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains
@@ -783,7 +783,7 @@ not a settlement, so no event. It is a wake-up, not a liveness check: the diverg
 stopped moving, and the queue directory says where a ticket is.
 
 **⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer
-section's *Never background a check and end your turn on it* by nothing. An implementer has a
+section's *Never end your turn on a check that cannot wake you* by nothing. An implementer has a
 **durable handoff**, push → draft PR → hand back, so the wait is unnecessary there and the ticket is by
 construction somebody else's — yours — to raise and to watch; a dispatcher has no handoff to end on and holds
 the merge decision the settlement feeds.

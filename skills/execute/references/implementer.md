@@ -155,12 +155,12 @@ your dispatcher's at the close-out and on demand:
   dispatcher's, raised after it reads your diff.
 - **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this
   slice there (override mode):** once your draft PR is open and any review pass your brief asked for has
-  reported and had its findings committed, run `gate` a single time, in the foreground —
-  detached and polled in this same turn where it outlasts one tool call (*Never background a check* below) —
-  and comment the result on it. That one run is the only gate run you make, and every other run the
-  queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
-  `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this flow's only
-  evidence a gate ran.
+  reported and had its findings committed, run `gate` a single time — backgrounded with your turn ended on it
+  where your host re-invokes you on its exit, in the foreground otherwise (*Never end your turn on a check
+  that cannot wake you* below) — and comment the result on it. That one run is the only gate run you make, and
+  every other run the queue-mode ban names stays banned. **Capture that gate's own exit status, never a
+  pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
+  flow's only evidence a gate ran.
 
 **In both you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
 signature that it read your diff), **and never merge it**.
@@ -179,15 +179,15 @@ review pass's review and dimension comments**, sit there under the same account,
 diff editing outside the brief's fence with nothing on the PR explaining why, while a panel review gone reads
 to your dispatcher exactly like a slice that ran no pass at all.
 
-**Never background a check and end your turn on it — a rule about checks and commands, and not about the
+**Never end your turn on a check that cannot wake you — a rule about checks and commands, and not about the
 sub-agents you spawned**, which the next paragraph covers. This is keyed to the HANDOFF, not the run, so it
 reaches the checks you ARE allowed to run: the stall does not care which one it was, only that the turn ended
-and the handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back** — a
-command you started, whatever detached it, does not re-invoke you when it exits the way a child's report
-does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool
-call, raise that call's timeout to its limit first; past the limit, detach the check with its exit status
-written into its own log, and poll that log with foreground calls in this same turn until the `EXIT=` line
-appears** — `skills/procedures/host-tools.md` has the limit and the form.
+and the handoff never happened. **Where `skills/procedures/host-tools.md` says a backgrounded command's exit
+re-invokes you, run a long check with the shell tool's background flag and end your turn; its completion
+resumes you.** **Otherwise run it in the foreground, raising the call's timeout to its limit, and end your
+turn only at the hand-back** — there a turn you end on a running command IS your hand-back, with no verdict
+in it; past the limit, host-tools' detach-and-poll fallback applies only where your host keeps a detached
+command alive.
 
 **Wait on sub-agents you spawned by ending your turn with no tool call, where your host re-invokes you as each
 one reports — that is safe: it hands nothing back, and each report arrives as a new turn**

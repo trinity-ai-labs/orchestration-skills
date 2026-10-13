@@ -65,16 +65,16 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   **And a fix that would remove or weaken something you can see working is never the cheap kind**: it is
   raised with you before it is applied, even when a rule you agreed to or an accepted review finding seems
   to call for it, since that rule may never have considered the case.
-- **A dispatched agent runs every check and command in the foreground and ends its turn only at its
-  hand-back — a command it started is never something it waits on by ending the turn.** A detached command's
-  exit re-invokes nothing the way a child's report does, so a turn ended on one IS the agent's hand-back, with
-  no verdict in it. Where a check outlasts one tool call the agent raises that call's timeout to its limit
-  and, past it, detaches the check with its exit status written into its own log and polls that log in the
-  same turn until the exit line appears
-  ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has the form). This rule is about
-  commands, not the sub-agents the agent spawned — waiting on those is the one thing an ended turn safely
-  does, which is the next rule — and a dispatcher's detached drain is neither, since its turn ends on a tick
-  and hands nothing back.
+- **A dispatched agent ends its turn only at its hand-back, or on a check whose exit will wake it.** On Claude
+  Code a command run with the shell tool's background flag re-invokes the agent when it exits, so a long check
+  or gate is backgrounded and the turn ended on it; the parent first sees an interim notice that the agent
+  stopped with background work still running, which is not its hand-back. Where a host does not re-invoke —
+  Codex, whose shell-backgrounded command does not survive the turn — every check runs in the foreground with
+  the call's timeout at its limit, since a turn ended on a running command there IS the agent's hand-back,
+  with no verdict in it ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has each
+  host's row). This rule is about commands, not the sub-agents the agent spawned — waiting on those is the
+  next rule — and a dispatcher's detached drain is neither, since its turn ends on a tick and hands nothing
+  back.
 - **An agent waiting on sub-agents it dispatched ends its turn with no tool call wherever its host re-invokes
   it as each child reports — that is safe, since the ended turn hands nothing back and each report arrives as
   a new turn.** It never makes a call whose result it does not need just so its turn does not end: the ban is

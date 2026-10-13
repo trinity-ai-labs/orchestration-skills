@@ -2,6 +2,46 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.20.0
+
+- **The full gate runs at an epic's close-out only.** Where a project declares `fullGate`, it runs at the epic's
+  close-out gate and on demand — a maintainer's ask, run in the epic worktree or a throwaway tree, never the
+  main checkout: the per-merge and wave-end gates are gone, a standalone issue or an arc with no epic branch
+  never runs it, a slice's suite baseline is skipped where a green gate verdict already covers the same tree and
+  no `fullGate` is declared, and a gate tool's own self-checks run only on a change to that tool
+  ([#578](https://github.com/trinity-ai-labs/orchestration-skills/issues/578)).
+- **A new optional config key, `targetedTest`**: a command template using one of `{files}` or `{names}`, so an
+  implementer's one targeted run works in any language; absent, it is single test files, each run singly.
+  `setup` derives and confirms it ([#578](https://github.com/trinity-ai-labs/orchestration-skills/issues/578)).
+- **Review checkpoints over the epic tip replace per-slice panels by default.** A review checkpoint is one
+  `/pipeline:review` panel reading the epic's change since a base SHA, net of the base branch, onto an epic PR
+  that opens as a draft at the first one: none mid-epic on an arc of four slices or fewer, otherwise after a
+  contract seam or about every three to four merged slices, its fix agent gating its delta before the next
+  slice forks. The close-out panel still reads the PR's whole diff with every dimension, and the ledger now
+  holds that panel and the ready flip rather than the PR's open. A per-slice panel stays for seams, security,
+  auth, data or irreversible work, and substantial work with no epic branch
+  ([#578](https://github.com/trinity-ai-labs/orchestration-skills/issues/578)).
+- **A test policy.** A permanent test is a guard, a check run once is a probe, and a bug earns a guard only when
+  it is easy to reintroduce, would slip by unnoticed and is costly if shipped; an existing test is extended
+  before a new one is added, one representative is the default — a sweep needs a written reason and runs only
+  under `fullGate` where one is declared, on every gate otherwise — and a test that cannot fail or costs more
+  than its bug is deleted. Rule 12 now asks for the cheapest level that exercises the seam, and a verify bar
+  states the tests it adds or extends, the case count and each new guard's reason
+  ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).
+- **`review` gains a *Redundant or over-swept tests* dimension**, firing where the diff adds or changes tests:
+  tests the policy would not admit and duplicates, each with the deletion or merge proposed
+  ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).
+- **`health` lists `Prune candidates` and recommends pruning first.** Each test is listed with its file, cost and
+  reason, never deleted by health, with per-domain test counts, minutes and sweep multiplicity as new signals,
+  all taken without running the suite; a slow gate's first recommendation is to prune or merge, splitting the
+  gate the alternative ([#579](https://github.com/trinity-ai-labs/orchestration-skills/issues/579)).
+- **A backgrounded check resumes the agent on Claude Code.** A long check or gate run with the shell tool's
+  background flag re-invokes the agent when it exits, so ending the turn on it is a safe wait; the dispatcher
+  reads the interim "stopped with background work still running" notice as still working. On Codex, where a
+  backgrounded command does not survive the turn, checks stay in the foreground.
+
+Source report: [trinity-ai-labs/claude-plugins#2](https://github.com/trinity-ai-labs/claude-plugins/issues/2).
+
 ## 5.19.0
 
 - **`gh-post sub-issue` links a child from another repository.** The child may now be named

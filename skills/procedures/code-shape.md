@@ -1,7 +1,8 @@
-# Code shape — reading it, its signals, placing a file, a missing tool, a split gate
+# Code shape — reading it, its signals, the test policy, placing a file, pruning, a missing tool, a split gate
 
-Entry in `skills/procedures/SKILL.md`. **Five procedures over one shape** — domain, domain map, domain tag,
-shared spine, seam test and setup debt are defined in `skills/glossary/vocabulary/code-shape.md`, and every
+Entry in `skills/procedures/SKILL.md`. **Procedures over one shape** — domain, domain map, domain tag,
+shared spine, seam test, guard, probe and setup debt are defined in
+`skills/glossary/vocabulary/code-shape.md`, and every
 step below uses those words in exactly that sense. `skills/ground-rules/SKILL.md` rule 12 is the rule they
 serve. The steps are the same whoever runs them.
 
@@ -23,7 +24,8 @@ recommended against differs by seat and is written where each seat acts.
 
 Take each on the fly with the project's own tooling — its tracked-file listing, its test tool's listing mode,
 a search over import lines — and **state the unit beside every figure**, since a count of files, of tests and
-of import lines answer different questions.
+of import lines answer different questions. **Nothing here runs the suite**: a timing comes from the latest
+gate or CI output only, and a figure with no such output is *not taken*.
 
 | Signal | What it measures | How to take it | Unit | What it costs |
 |---|---|---|---|---|
@@ -35,8 +37,27 @@ of import lines answer different questions.
 | Untested domains | domains no tagged test asserts about | domains minus the domains named by any tag | domains, listed | a change there selects no test of its own |
 | Untagged tests | tests carrying no domain tag | tests minus tagged tests | test files, and their share of all test files | no domain filter can select them |
 | Wrong-way imports | imports crossing domains other than through shared code, or against the project's declared layering | map each import line's source and target to domains | import lines, listed | a change in either domain reaches the other |
-| Full-gate cost | what one full run of the suite costs | time one run, or read the last few from the project's own build history | minutes per run, and test count | spent by every change where nothing narrows the gate |
+| Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output | minutes per run, and test count | spent by every change where nothing narrows the gate, and once per epic close-out where `fullGate` narrows it; past 10 minutes a run it is debt either way |
 | Selectable share | tests a domain filter can pick | tagged tests whose tag is checked | test files, and their share of all test files | the rest runs on every change |
+| Tests per domain | how many tests assert about each domain | count the tests per domain tag, or per domain folder where tests carry no tag | tests, per domain | each runs on every change its domain's gate selects |
+| Minutes per domain | what each domain's tests cost per run | sum the per-test or per-file timings the project's own gate prints, grouped by domain | minutes per run, per domain | paid by every change that selects that domain |
+| Sweep multiplicity | how many times a loop runs each case written once — unit × theme × size and the like | for each parameterised loop, the cases it runs divided by the cases written in it; past 200 test files, a sample of 200, stated as a sample | cases run per case written, per loop, with its file | every written case in the loop costs that many runs on every gate |
+
+## Test policy
+
+Whether a permanent test should exist at all — a guard or a probe, both defined in
+`skills/glossary/vocabulary/code-shape.md`.
+
+- **Extend an existing test that fails on the bug before adding a new one** — the fix's test, extended or new,
+  is new only where no existing test can carry the case.
+- **A bug earns a guard only when all three hold: it is easy to reintroduce, it would slip by unnoticed, and
+  it is costly if shipped** — otherwise the fix plus a probe is the proof.
+- **One representative unit, theme or size by default** — a sweep across every combination needs a written
+  reason beside it, and runs only in `fullGate` where the project declares one; without `fullGate` it runs on
+  every gate, which that reason must justify.
+- **A test that cannot fail is deleted** — an assertion against the value that configured its own mock, a
+  constant asserted against itself, a check the implementation could never violate.
+- **A test that costs more to run than its bug would cost to ship is deleted.**
 
 ## Placing new code and a new test — in order
 
@@ -58,10 +79,22 @@ Stop at the first answer that places it.
 **Then its test:**
 
 1. **Find the seam** — the narrowest boundary a caller or a user crosses that exercises the behaviour: a
-   route, a command, a module's public interface. Test there.
+   route, a command, a module's public interface. Test there, at the cheapest level that exercises it.
 2. **A unit test only for logic with real branches inside one module.**
 3. **Tag it with its domain in the project's form**, and where tags are checked from evidence, confirm what
    the test imports or calls points at that domain.
+
+## Pruning
+
+The candidates for deletion or merge, each listed with its file, its cost in the unit named and the reason it
+qualifies under the *Test policy*:
+
+- **The slowest tests or specs** — minutes per run, from the gate or CI output.
+- **The loops with the highest sweep multiplicity** — cases run per case written.
+- **Same-shaped files repeated per unit, theme or product** — merge candidates for one table-driven test,
+  counted in files.
+- **Probes committed as permanent cases** — test files.
+- **Tests that cannot fail** — test files.
 
 ## Recognising a missing tool
 
@@ -71,7 +104,8 @@ Stop at the first answer that places it.
    unit and exits non-zero on the condition it guards.
 3. **It carries its own check** — a fixture it must fail on — so a tool that silently stops matching goes red
    rather than green.
-4. **The project's gate runs it**, never a brief.
+4. **The project's gate runs it when the change touches that tool** — its script, fixtures or map — never a
+   brief.
 
 ## The shape of a split gate
 
@@ -88,15 +122,17 @@ tool.
    suite, loudly, on any unmapped file or any shared-spine file** — printing why — so its failure is always
    running too much, never too little. **Its changed files are diffed against the integration branch the
    change will merge into, named explicitly, never the branch's own remote-tracking ref** — a branch is never
-   its own base, and item 7's re-gate over a fix round's delta is the one exception — **and an empty plan on a branch with commits beyond that base fails loudly**, never a green
-   over zero tests.
-4. **The full gate moved to the integration points, never dropped** — the project's `fullGate`
-   (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.
+   its own base, and item 7's re-gate over a fix round's delta is the one exception — **and an empty plan on
+   a branch with commits beyond that base fails loudly**, never a green over zero tests. **It runs one
+   representative per sweep; a sweep runs only under `fullGate`.**
+4. **The full gate moved to the epic's close-out and to on-demand runs, never dropped** — the project's
+   `fullGate` (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.
 5. **Optionally, a green cache** keyed on a hash of a domain's inputs — its files, the shared spine and the
    toolchain — skipping a domain whose key last passed.
-6. **A map derived from evidence under-approximates** (the glossary entry says why), so it is safe only because
-   the full gate still runs before anything ships.
+6. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
+   caught by the full gate at an epic's close-out or an on-demand run, a standalone change resting on the
+   split gate alone.
 7. **A re-gate after a fix round on a head that passed the full gate runs the split gate over the delta since
-   that head**, with the same loud fallback, and its verdict names both heads — the one bounded exception to
-   item 6, since the head that ships rests on the full run directly below it for every domain the delta left
-   untouched, which is why the fallback on any shared-spine or unmapped file is what makes it safe.
+   that head**, with the same loud fallback, and its verdict names both heads — an exception to item 6 bounded
+   by that full run, since the head that ships rests on the full run directly below it for every domain the
+   delta left untouched, which is why the fallback on any shared-spine or unmapped file is what makes it safe.

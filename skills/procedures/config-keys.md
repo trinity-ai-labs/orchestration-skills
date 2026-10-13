@@ -43,9 +43,15 @@ a question rather than a default.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
-  than a gap. **Present, the flow's integration points run it in place of `gate`**: the gate over an
-  integrated whole, a gate at each wave's end on the merged tip, and the close-out gate, a queued project
-  gating those tickets in a `full` mode that runs it.
+  than a gap. **Present, it runs in place of `gate` at an epic's close-out gate and on demand, and nowhere
+  else**: every slice and integration gate stays `gate`, a standalone issue never runs it, and a queued
+  project gates those tickets in a `full` mode that runs it. **An on-demand `fullGate` is a maintainer's
+  ask**, run as a PR-less `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from
+  the integration tip — never the main checkout.
+- **`targetedTest`** — optional: a template using one of `{files}` (test file paths) or `{names}` (test
+  names), values space-separated unless the template quotes them, running those tests in any language — e.g.
+  `vitest run {files}`, `TEST_FILTER={names} ./run_tests`. **Absent means a targeted run is single test
+  files, each run singly.**
 - **`scopedCheck`** — the cheap check a slice's commits are held to: format-check + lint + typecheck, no
   build, no test.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only
@@ -178,7 +184,8 @@ a question rather than a default.
 
   **The key DECLARES; nothing here PROVISIONS**, and this plugin never calls a project's mechanism.
   Placement is the project's, at the entry point *every* invocation reaches — the test bootstrap, not the
-  `gate` or `fullGate` command — since a verify bar routinely has a single test file run directly. Two rules
+  `gate` or `fullGate` command — since a verify bar routinely has one targeted test run (the project's
+  `targetedTest` where declared, else single test files, each run singly). Two rules
   bind it:
 
   - **Take the worktree path from `git rev-parse --path-format=absolute --show-toplevel`, never `$PWD`.**

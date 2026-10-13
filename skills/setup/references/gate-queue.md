@@ -42,7 +42,7 @@ selects the gate — `default` runs `gate`, the full suite wherever the project 
 lighter one (e.g. `docs`) for a prose-only slice.
 
 **`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode the
-dispatcher's integration, wave-end and close-out tickets carry there, since that project's `gate` may be
+dispatcher's close-out ticket and an on-demand run carry there, since that project's `gate` may be
 partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
 never fall back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate
 produced, on exactly the tickets whose purpose was the full gate.
@@ -51,8 +51,8 @@ produced, on exactly the tickets whose purpose was the full gate.
 silently changes how a PR is gated.
 
 **`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the
-dispatcher's mid-arc integration gate — and, where the project declares `fullGate`, its wave-end gate — on a
-merged tree that exists *between* slice merges, before the epic → integration PR does. Such a ticket settles
+dispatcher's mid-arc integration gate, or an on-demand `fullGate` run, on a merged tree that has no PR of
+its own — one that exists *between* slice merges, whether or not the epic PR is open. Such a ticket settles
 like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields
 leave that gate hand-run and unrecorded.
 

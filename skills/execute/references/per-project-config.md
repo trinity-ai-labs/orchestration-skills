@@ -5,7 +5,7 @@ or run a project's gate** — `cat <repo>/.agents/worktree.json`, since every va
 nothing derives it from the tree you are standing in.
 
 **What each key MEANS, and what its absence means, is `skills/procedures/config-keys.md`.** This file carries
-what a DISPATCH does about those values: which gate mode the project is in, the four readings that change the
+what a DISPATCH does about those values: which gate mode the project is in, the five readings that change the
 flow, whose merge each one is, and the routing rule that sits on top of them.
 
 **No config is a hard stop rather than a warning, and the stop is yours.** The helper cuts a bare worktree and
@@ -37,7 +37,7 @@ hand-back, never marked ready by the implementer, never its own merge.
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
 `gate`. **A project declaring `fullGate` adds a `full` mode that runs it**, and that mode is never a slice's:
-it gates the integration points alone.
+it gates the epic's close-out and an on-demand run alone.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &
@@ -47,7 +47,7 @@ merge, never carrying a SHA forward — and enqueue in the **default** mode if a
 prose set appears. It reads the merged **file set**, not the branch name. Nothing else catches it: a
 re-enqueued PR carries a gate comment whose SHA matches its head whichever gate ran.
 
-## Four readings that change the flow
+## Five readings that change the flow
 
 - **No `enqueue`/`drain`** → **this project gates in-line, and that is the DEFAULT here rather than a grant**
   (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
@@ -56,8 +56,10 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
 - **`fullGate` absent** → **`gate` is the full gate at every seat.** **`fullGate` declared** → that project's
-  `gate` may be partial, so the integration points run `fullGate` (*Gate the integrated whole*), as a
-  `full`-mode ticket where the project has a queue. A slice's own gate, in either gate mode, stays `gate`.
+  `gate` may be partial, and you run `fullGate` where `skills/procedures/config-keys.md` places it, as a
+  `full`-mode ticket where the project has a queue; every other gate stays `gate`.
+- **`targetedTest` declared** → an implementer's one targeted test run is that template with its one of
+  `{files}` or `{names}` filled; **absent** → it is single test files, each run singly, never a suite.
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's
@@ -96,5 +98,5 @@ whole-package or whole-suite run that is *supposed to happen* — the drained ga
 in-line slice's gate, a `fullGate` run — through the cached command (`turbo run <task> --filter=<pkg>`, or the
 project's `scopedCheck`), and say so in briefs and in the project's agent guidance. Routing, not permission:
 for a queue-mode implementer those runs are banned outright (`skills/execute/SKILL.md`'s Implementer section).
-Reserve a direct-binary run for a **single targeted file**; guidance documenting the raw form as a package
-default is a leak to fix.
+Reserve a direct-binary run for one targeted test run — the project's `targetedTest` where declared, else
+single test files, each run singly; guidance documenting the raw form as a package default is a leak to fix.

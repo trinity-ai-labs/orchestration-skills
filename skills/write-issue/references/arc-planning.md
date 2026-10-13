@@ -36,8 +36,8 @@ the tracked unit is the item below it.
   where a partial state would be broken, or where the piece is too large to land and review as one thing.
 - **Read the cost out of the project, never out of a cost model you brought with you.** This pass is
   project-agnostic, so what a phase costs to land is the repo's own `gate`, its queue and its review load,
-  taken from its config and its agent guidance — plus a `fullGate` run at each wave's end where it declares
-  one, its `gate` then being partial. **How many items a phase holds is yours as well**, decided here
+  taken from its config and its agent guidance — plus one `fullGate` run at an epic's close-out where it
+  declares one, its `gate` then being partial. **How many items a phase holds is yours as well**, decided here
   against that same gate: the grounding pass grounds the items you filed and never cuts one into two, so an
   oversized item has no seat downstream to fix it.
 
@@ -56,13 +56,12 @@ sits at rather than grounding**: it asks how big a piece is, never which files i
   **Three or more, and you split the item here along those seams**, unless its body states why they cannot
   land apart; the count is read off the Surface you already wrote, so it needs no file-level grounding.
 - **Where neither its goal nor its layer count tells you whether a piece is one PR, keep it whole** — an item
-  too small buys its own worktree, install, gate run and review pass and comes back mid-arc as a report to
-  re-author it together with
-  its neighbours, where one too big is reported back to you mid-arc and re-planned against a colder tree;
-  neither direction is a cut anyone downstream can make for you.
-  **Both reports are answered at one seat** — `skills/write-issue/SKILL.md`'s
-  *A re-author reported back from a live arc is a fourth way in*, which carries the mechanics: what the
-  replacement is, and what becomes of the leaves it supersedes.
+  too small buys its own worktree, install, gate run and, off an epic branch, review pass and comes back
+  mid-arc as a report to re-author it together with its neighbours, where one too big is reported back to you
+  mid-arc and re-planned against a colder tree; neither direction is a cut anyone downstream can make for you.
+  **Both reports are answered at one seat** — `skills/write-issue/SKILL.md`'s *A re-author reported back from
+  a live arc is a fourth way in*, which carries the mechanics: what the replacement is, and what becomes of
+  the leaves it supersedes.
 
 ## Epic or one slice — answer it in one line, every time
 

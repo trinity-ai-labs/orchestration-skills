@@ -19,12 +19,6 @@ increment has merged and this checklist has already run against it.
 Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement
 each time**: a cycle that skips a re-derived step produces exactly the output of one that found nothing.
 
-**Before item 1, where the project declares `fullGate`: read the wave-end gate's verdict** (the loop's step 3),
-since that project's per-PR gate may be partial and nothing else has gated the merged tree whole. **A red is
-revealed forced work (item 3), and its fix is the only slice the next horizon carries**; the rest of the plan
-waits for a green wave-end gate on the tip that fix lands on. Absent the key there is no such gate, and the
-checklist starts at item 1.
-
 **1. Coordinate drift.** Every path, symbol, table, route or key named in the remaining plan: does it still
 resolve against the merged tree? Check them; do not recall them. **A target that does not resolve is stale by
 definition, not a maybe**, and shape depth keeps the list short but **short is not empty**.

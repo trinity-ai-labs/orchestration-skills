@@ -1,4 +1,4 @@
-# code shape — domain, domain map, domain tag, shared spine, seam test, setup debt
+# code shape — domain, domain map, domain tag, shared spine, seam test, guard, probe, setup debt
 
 **Code shape** is how a project's files divide by what they are about, and how cheaply that division lets a
 change be scoped, gated and reviewed.
@@ -21,12 +21,16 @@ build setup — so a change to any of them can affect everything, and a gate tha
 whole suite whenever one is touched.
 
 A **split gate** is a partial per-change gate narrowed by domain — it runs the tests of the domains a change
-touches, falling back to the whole suite on anything it cannot map — with the full gate kept at the points
-where changes meet rather than dropped.
+touches, falling back to the whole suite on anything it cannot map — with the full gate kept rather than
+dropped.
 
 A **seam test** is a test written at a boundary a caller or a user crosses — a route, a command, a module's
 public interface — rather than against a module's internals. It survives a refactor behind that boundary
 and fails when the behaviour across it breaks, which a test of wiring does not.
+
+A **guard** is a permanent test — committed, and run by every gate whose selection reaches it. A **probe** is
+a check run once to learn something or to prove a fix, and never committed as a permanent case. The same
+assertion can be either; what separates them is whether it stays in the suite.
 
 **Setup debt** is a property of a project's setup that makes every future change dearer to scope, gate or
 review — no domain map, untagged tests, a full-suite gate slow enough to matter, a signal worked out by hand

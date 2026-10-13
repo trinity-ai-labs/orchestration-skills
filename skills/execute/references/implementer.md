@@ -39,7 +39,8 @@ what you accept, scoped check, one more commit, push again onto the same PR) →
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
 in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
 (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
-**one targeted test file run directly** — the widest test execution you get.
+**one targeted test run** — the project's `targetedTest` where declared, else single test files, each run
+singly, never a suite — the widest test execution you get.
 **A change to a module's export surface widens that budget** — adding, removing or renaming an export, or
 moving code between modules, breaks every test that mocks or imports the module, and none of those is a file
 you touched — so it also covers every test file that mocks or imports that module, found by grepping its
@@ -145,7 +146,7 @@ before each commit, where neither does.
 
 **Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
 self-granted, never inferred — **and a declared `fullGate` is never yours in either mode**, its runs being
-your dispatcher's at the integration points:
+your dispatcher's at the close-out and on demand:
 
 - **Queue mode — the project declares `enqueue` and `drain`: you do NOT run `gate`, and the ban is on
   the WORK, not the command name.** Never run the full suite or any whole-package test run
@@ -154,12 +155,12 @@ your dispatcher's at the integration points:
   dispatcher's, raised after it reads your diff.
 - **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this
   slice there (override mode):** once your draft PR is open and any review pass your brief asked for has
-  reported and had its findings committed, run `gate` a single time, in the foreground —
-  detached and polled in this same turn where it outlasts one tool call (*Never background a check* below) —
-  and comment the result on it. That one run is the only gate run you make, and every other run the
-  queue-mode ban names stays banned. **Capture that gate's own exit status, never a pipeline's** —
-  `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this flow's only
-  evidence a gate ran.
+  reported and had its findings committed, run `gate` a single time — backgrounded with your turn ended on it
+  where your host re-invokes you on its exit, in the foreground otherwise (*Never end your turn on a check
+  that cannot wake you* below) — and comment the result on it. That one run is the only gate run you make, and
+  every other run the queue-mode ban names stays banned. **Capture that gate's own exit status, never a
+  pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
+  flow's only evidence a gate ran.
 
 **In both you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
 signature that it read your diff), **and never merge it**.
@@ -178,15 +179,15 @@ review pass's review and dimension comments**, sit there under the same account,
 diff editing outside the brief's fence with nothing on the PR explaining why, while a panel review gone reads
 to your dispatcher exactly like a slice that ran no pass at all.
 
-**Never background a check and end your turn on it — a rule about checks and commands, and not about the
+**Never end your turn on a check that cannot wake you — a rule about checks and commands, and not about the
 sub-agents you spawned**, which the next paragraph covers. This is keyed to the HANDOFF, not the run, so it
 reaches the checks you ARE allowed to run: the stall does not care which one it was, only that the turn ended
-and the handoff never happened. **Run your checks in the foreground, and end your turn at the hand-back** — a
-command you started, whatever detached it, does not re-invoke you when it exits the way a child's report
-does, so a turn you end on one IS your hand-back, with no verdict in it. **Where a check can outlast one tool
-call, raise that call's timeout to its limit first; past the limit, detach the check with its exit status
-written into its own log, and poll that log with foreground calls in this same turn until the `EXIT=` line
-appears** — `skills/procedures/host-tools.md` has the limit and the form.
+and the handoff never happened. **Where `skills/procedures/host-tools.md` says a backgrounded command's exit
+re-invokes you, run a long check with the shell tool's background flag and end your turn; its completion
+resumes you.** **Otherwise run it in the foreground, raising the call's timeout to its limit, and end your
+turn only at the hand-back** — there a turn you end on a running command IS your hand-back, with no verdict
+in it; past the limit, host-tools' detach-and-poll fallback applies only where your host keeps a detached
+command alive.
 
 **Wait on sub-agents you spawned by ending your turn with no tool call, where your host re-invokes you as each
 one reports — that is safe: it hands nothing back, and each report arrives as a new turn**
@@ -286,9 +287,9 @@ hand-back names it in one line.
 ## Craft, and the one sanctioned suppression
 
 **Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
-`skills/procedures/code-shape.md`'s *Placing new code and a new test*, under the project's own layout rules
-where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in reach; a
-restructure is surfaced, never done unasked.**
+`skills/procedures/code-shape.md`'s *Test policy* and *Placing new code and a new test*, under the project's
+own layout rules where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in
+reach; a restructure is surfaced, never done unasked.**
 
 **Leave the tree cleaner than you found it — a check that exits green but still prints warnings is NOT
 done**: fix every warning and error your change hits or surfaces, by rule 13's fold, and where the answer to
@@ -308,18 +309,17 @@ suite exactly as a suppressed lint rule games the linter, and it counts as cover
 Write the assertion against the behavior the change is for, not against whatever the code already returns.
 
 **PROVING it can fail — the reversal your bar names — MOVES your tree, so git holds that work before it
-moves** (`skills/ground-rules/SKILL.md`, rule 6 — a commit or a marked stash, never a copy parked outside
-git), **or you arrive at the restore with no object to come back to and take the quickest way out instead.**
-**What picks the shape is that a reversal needs the new test STANDING while the code under it is
-pre-change**: commit the work, make the breaking edit, run the one targeted test file, then restore with
-`git checkout -- <file>` or from that commit; or, with nothing commit-ready, push a marked stash of the
-PRODUCTION file alone — that push is itself the breaking edit, it leaves your new test in the tree, and
-popping that one entry by its marker puts the file back (rule 7 has the push and the resolve).
-⛔ **Never stash the whole tree for a reversal**: it carries the new test away with the change, leaving the
-bar nothing to run, and the pop back over a breaking edit is refused outright with your entry left on the
-stack. **Where your slice's fork point already carries the pre-change behaviour, run the reversal against
-the FORK POINT and leave your tree where it stands.** ⚠️ **"Confirmed by reading the diff" is an UNRUN
-reversal**, so where that is all you have, say in your hand-back that no reversal was run rather than
+moves** (`skills/ground-rules/SKILL.md`, rule 6), **or you arrive at the restore with no object to come back
+to and take the quickest way out instead.** **What picks the shape is that a reversal needs the fix's test
+STANDING while the code under it is pre-change**: commit the work, make the breaking edit, run that test by
+the one targeted test run, then restore with `git checkout -- <file>` or from that commit; or, with nothing
+commit-ready, push a marked stash of the PRODUCTION file alone — that push is itself the breaking edit, it
+leaves that test in the tree, and popping that one entry by its marker puts the file back (rule 7 has the push
+and the resolve). ⛔ **Never stash the whole tree for a reversal**: it carries that test's case away with the
+change, leaving the bar nothing to run, and the pop back over a breaking edit is refused outright with your
+entry left on the stack. **Where your slice's fork point already carries the pre-change behaviour, run the
+reversal against the FORK POINT and leave your tree where it stands.** ⚠️ **"Confirmed by reading the diff" is
+an UNRUN reversal**, so where that is all you have, say in your hand-back that no reversal was run rather than
 reporting the bar met — a diff shows what the change did, never what the test does when the change is taken
 back out.
 

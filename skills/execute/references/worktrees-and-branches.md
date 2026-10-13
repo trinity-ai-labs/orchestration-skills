@@ -108,8 +108,8 @@ the shared branch whenever a multi-slice arc does:
   sibling merged in between, so the shared branch routinely carries a tree no gate ran; an epic branch
   converges and gates once.
 - **Revert granularity** — N merges to unpick from the branch everyone forks from, against one.
-- **Cross-slice seam review** — *The PR review loop* wants both halves of a seam diffed against each other
-  before either merges, far easier on a branch you control.
+- **Cross-slice review** — review checkpoints and the close-out panel read the slices together over the epic
+  tip (*Review checkpoints*), which needs an epic tip to read.
 - **One arc, N releases** — where shipped content must move a version, every merge into the integration branch
   is a release, with the version file and changelog a hotspot every slice touches.
 
@@ -166,11 +166,11 @@ merge-holder is least equipped to resolve. Deferring wholesale fails too:
   question nobody is assigned to answer: each can correctly conclude the entry is a sibling's, and all of
   them report clean over a mechanism documented nowhere.
 - **The epic cannot close with a non-empty ledger.** Every entry is answered by the closing slice's PR, and
-  the epic → integration PR does not open while any remains — a precondition over the **open**, where the
-  close-out gate is one over the **merge**. **Test each entry against the merged tree by its identifying
-  constants — a symbol, a lifetime, a limit — never by the ledger's own wording, and count the homes**: none
-  is an entry still unanswered, one is answered, and two is one mechanism written into two pages, which every
-  reader of either page takes for coverage.
+  while any remains the close-out panel and gate do not run and the epic → integration PR is not marked ready
+  — that PR may already be open as a review checkpoint's draft. **Test each entry against the merged tree by
+  its identifying constants — a symbol, a lifetime, a limit — never by the ledger's own wording, and count the
+  homes**: none is an entry still unanswered, one is answered, and two is one mechanism written into two
+  pages, which every reader of either page takes for coverage.
 
 **Three carve-outs.** A **docs-only slice** writes inline: its diff *is* the closing slice's work.
 **Single-slice work has no end of an epic** — docs ship in the same PR as the behaviour. The third reaches
@@ -219,9 +219,9 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   and `merge-pr.sh` fails mid-close-out when it fast-forwards the base **inside that worktree**.
   **Resolve a conflicted tick before you walk away** — resolve, commit, push.
   **The seat holding the merges already writes here — the conflicted tick above, a merge-reconcile commit, a
-  regenerated derived artifact — and the close-out panel adds the one DISPATCHED writer: the fix agent its
-  findings send in** (*Close-out is at most one gate plus one ordinary PR*). **Every one of them commits and
-  pushes before walking away**, which is the whole of what this bullet asks, and no fresh worktree is cut for
+  regenerated derived artifact — and a review checkpoint or the close-out panel adds the one DISPATCHED
+  writer: the fix agent its findings send in** (*Review checkpoints*). **Every one of them commits and pushes
+  before walking away**, which is the whole of what this bullet asks, and no fresh worktree is cut for
   any of them.
 - **A module-resolution failure in the epic worktree is a stale install until proven otherwise, not a defect
   in the merged code.** This tree outlives the merges landing in it, so its dependencies fall behind; the
@@ -267,14 +267,14 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts
   afterwards is provisioned the old way and you hand-apply. *Worktree creation* is the authoritative copy.
-- **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before either** (*Docs
-  land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
-  **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT, run one full
-  `/pipeline:review` panel against it, land any fix round it earns, and only THEN enqueue the gate against
-  it — in that order**, naming the epic worktree as the ticket's worktree, and in the `full` mode where the
-  project declares `fullGate` (`skills/procedures/config-keys.md`), its `gate` being partial there.
-  **Under `"epicMerge": "squash"` that PR's title and body become the arc's one surviving commit message**
-  (*Mechanics*), so write them as that.
+- **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before its panel runs**
+  (*Docs land at the end*). Once the last slice merges, merge the integration branch into the epic one final
+  time **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT where no review
+  checkpoint has opened it, run one full `/pipeline:review` panel against its whole diff, land any fix round
+  it earns, and only THEN enqueue the gate against it — in that order**, naming the epic worktree as the
+  ticket's worktree, and in the `full` mode where the project declares `fullGate`
+  (`skills/procedures/config-keys.md`), its `gate` being partial there. **Under `"epicMerge": "squash"` that
+  PR's title and body become the arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
@@ -283,18 +283,13 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   comment, posted review, merge — instead of being the one gate with no ticket, no log and no recorded
   verdict.
 
-  **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
-  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
-  one comment per dimension beside it, and it runs here unaltered right through that post; **what differs is
-  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers on this
-  project — seven where the project states
-  conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
-  like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
-  is left for this run is the one thing none of those could see: how the slices COMPOSE, the state they
-  share, the interactions that exist only once they sit together. **It costs ONE flat panel per epic however
-  many slices the arc held**, which is what parts it from running this pass twice anywhere else here: a
-  second per-slice run multiplies by the slice count, while this is once, at the top, over the only diff
-  nothing else reads whole.
+  **That panel step is `/pipeline:review` invoked against THIS PR by number with no base SHA, exactly as any
+  other caller invokes it** — the pass reads the PR's whole diff, whatever review checkpoints already read,
+  and posts its findings back onto it as a review, with one comment per dimension beside it, and it runs here
+  unaltered right through that post; **what differs is only who acts on the findings**, which is the next
+  rule. **Ask it for every dimension review offers on this diff, never a selection narrowed to what this diff
+  looks like**, since how the slices COMPOSE — the state they share, the interactions that exist only once
+  they sit together — is visible on no slice's own diff and on no single checkpoint's window.
 
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own
@@ -398,3 +393,21 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   already gone, so all that is left is the `transient-red/<epic-slug>` marker —
   **delete it yourself, and the window closes with it**, or it outlives the epic and quietly relaxes the next
   unrelated slice's compile check.
+
+## Review checkpoints
+
+**A review checkpoint (`skills/glossary/vocabulary/review-checkpoint.md`) is one `/pipeline:review` panel over
+the epic tip, invoked by you against the epic's own draft PR into the integration branch with a base SHA**,
+and your dispatch report states the plan for them.
+
+- **The default cadence is none mid-epic for an arc of four slices or fewer**, since the close-out panel reads
+  the whole diff anyway; otherwise run one after a contract seam later slices build on lands, or about one per
+  three to four merged slices.
+- **The base is the previous checkpoint's reviewed head, or the epic's fork point the first time**, and each
+  dimension comment's head SHA is the next checkpoint's base. The epic PR opens as a draft at the first
+  checkpoint and stays one until the close-out merge.
+- **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
+  (*Mechanics*), **and its delta is gated before the next slice forks**, since every later slice forks from
+  that push: a PR-less ticket you enqueue where the project declares `enqueue`/`drain`, and the fix agent's
+  own one in-line `gate` run where it declares neither.
+- **The close-out panel is not one of them**: it always runs, over the PR's whole diff, with no base SHA.

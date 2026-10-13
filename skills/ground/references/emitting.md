@@ -40,7 +40,7 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 - Do NOT touch: any UI under app/ (Wave 2 owns those)
 - Derives: reports/unimported.json — regenerated from the whole tree; report the delta, don't hand-edit
 - Brief: <2–5 sentences>
-- Verify: <acceptance + tests, incl. the reversal that proves the new test fails pre-change>
+- Verify: <acceptance + tests added or extended, the case count, each new guard's reason, incl. the reversal that proves the fix's test fails pre-change>
 
 #### Sub-issue C — <title>   <!-- gate-anchor:enum-4:end -->
 ...

@@ -275,9 +275,9 @@ nothing, which is the exact indistinguishability that list exists to remove. So 
 made in the brief, then read the silence: correct where you skipped it, a round trip where you did not — and
 a slice you told to run the pass whose PR carries neither its review nor its dimension comments is a missing
 write, whatever its hand-back says. **Write that decision onto the PR in each review you post, and into the
-issue's closing comment** — `Review pass: ran`, or `Review pass: skipped — <reason>`, naming it where you
-overrode the breakdown's recommendation — since the brief dies with the run, and that line is what tells
-this blank apart once it has.
+issue's closing comment** — `Review pass: ran`, `Review pass: skipped — <reason>`, or
+`Review pass: review checkpoint — <epic PR review URL>`, naming it where you overrode the breakdown's
+recommendation — since the brief dies with the run, and that line is what tells this blank apart once it has.
 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that
@@ -475,11 +475,10 @@ drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs`
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
-diff can affect and the integration points run `fullGate` instead (*Gate the integrated whole*). Beyond that
-one run an implementer's commits are held only to the cheap scoped check — by a hook where one runs it, git's
-pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`, by the implementer before
-each commit where neither does — and release-branch PRs typically get no CI, so that gate run is what stands
-in for CI.
+diff can affect. Beyond that one run an implementer's commits are held only to the cheap scoped check — by a
+hook where one runs it, git's pre-commit hook or the host's commit-hook row in
+`skills/procedures/host-tools.md`, by the implementer before each commit where neither does — and
+release-branch PRs typically get no CI, so that gate run is what stands in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,
 the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
@@ -488,10 +487,8 @@ there is no queue or the runner refuses that ticket — only for a genuine reaso
 ticket, or a **merge integrates branches that weren't tested together** (one integration gate on the merged
 result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
 non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
-whole* below) — **except where the project declares `fullGate`**, where every merge that check reads, and each
-wave's end, runs it (*Gate the integrated whole*). Where it is absent, even then prefer the minimum — the
-affected/changed tests over the whole suite where possible. Your always-on job is reading the **diff**; heavy
-re-gating is conditional.
+whole* below). Even then prefer the minimum — the affected/changed tests over the whole suite where possible.
+Your always-on job is reading the **diff**; heavy re-gating is conditional.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket

@@ -262,26 +262,21 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is `<targetedTest>` over the slice's own tests, or where the project declares none a SINGLE targeted test file (`vitest run path/to/x.test.ts`), and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
-  `/pipeline:review` is the implementer's own quality + correctness pass over the PR it has just pushed, read
-  against that PR's real diff and posted back onto it as a review with one comment per dimension beside it:
-  worth it on substantial work, noise on a one-liner or a mechanical rename. Decide per slice and say so —
-  in the brief, and again in the review you post on that PR and in the issue's closing comment, since a PR
-  carrying no panel review otherwise reads the same whether you skipped the pass or its write went missing;
-  the decision sets the handoff ordering below. **The breakdown recommends, you decide, and going the other
-  way puts your reason in the brief and in that record** — the seat that recommended had the slice's real
-  files in front of it and priced this fan as the dominant term in the wave, so an override with no reason
-  beside it is the one move that leaves nothing recording which of the two judgements the slice actually got.
-  A slice arriving with no
-  recommendation you decide here exactly as before. ⚠️ **Name the pipeline skill in the brief** — an
-  improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a PR,
-  hand back* included, which they then execute, while the shipped pass dispatches fresh reviewers
-  carrying the slice's goal, the PR and its resolved base, the diff and one dimension each and nothing else,
-  and sizes that reader count itself per slice. **The tell is the worktree rather than the hand-back**: an implementer reporting that it
-  waited on review sub-agents ran the pass as designed, and one whose reviewers left commits, a push or a PR
-  forked them — so read `git log` on the branch before you read the report.
-- **The handoff ordering — set by the review decision above.** Both kinds of slice commit in logical blocks
-  as the work lands, push, and open a draft PR; what the review decision changes is what happens AFTER that
-  PR is open, since the pass now reads the PR's own diff. For a review slice paste this, its
+  **On an epic branch the default is NONE**: review moves to the epic tip, at the checkpoints you plan
+  (*Checkpoint review*, `skills/execute/references/worktrees-and-branches.md`), the close-out panel being the
+  last of them. A slice's own `/pipeline:review` pass over its PR before it merges is the exception, for a
+  contract seam later slices build on, for security, auth, data migration or anything irreversible, and for
+  substantial work on an arc with no epic branch, where there is no epic tip to review. Say which in the
+  brief, and again in the review you post on that PR and in the issue's closing comment, since a PR carrying
+  no panel review otherwise reads the same whether it was left to a checkpoint or its write went missing.
+  **Going against the recommendation puts your reason in that same record**; a slice arriving with none, you
+  decide here. ⚠️ **Name the pipeline skill in the brief** — an improvised pass that FORKS its reviewers hands
+  them the implementer's whole brief, *commit, push, open a PR, hand back* included, which they then
+  execute; **the tell is the worktree rather than the hand-back**, so read `git log` on the branch for
+  commits, a push or a PR its reviewers left before you read the report.
+- **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the
+  work lands, pushes and opens a draft PR, and one running no pass then hands back. For a review slice paste
+  this, its
   `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each commit."* where the
   project declares one, and *"This project declares no `format`, so there is no formatter step."* where it
   declares none:

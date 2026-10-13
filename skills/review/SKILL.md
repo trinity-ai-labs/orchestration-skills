@@ -64,6 +64,11 @@ it is taken at, then read the current on-disk version of every file the change t
 imports out of them far enough to spot the existing helper you should be reusing instead of the one
 you just wrote.
 
+**Where your brief also names a base SHA on that PR — a checkpoint over an epic branch's tip — read only
+the change since it**: `git diff <base-sha> <head>` over the files
+`git log --format= --name-only <base-sha>..<head> --not origin/<pr-base>` names, so work the PR's base
+branch already holds is not reviewed as this change.
+
 **The PR is the whole of the change, so there is no uncommitted or untracked state left to gather.**
 The caller committed and pushed before it invoked you; a file still sitting untracked in the worktree
 is one the PR never contained, which is a **finding about** the change rather than a part of it to

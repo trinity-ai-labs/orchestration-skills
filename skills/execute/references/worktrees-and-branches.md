@@ -219,8 +219,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   and `merge-pr.sh` fails mid-close-out when it fast-forwards the base **inside that worktree**.
   **Resolve a conflicted tick before you walk away** — resolve, commit, push.
   **The seat holding the merges already writes here — the conflicted tick above, a merge-reconcile commit, a
-  regenerated derived artifact — and the close-out panel adds the one DISPATCHED writer: the fix agent its
-  findings send in** (*Close-out is at most one gate plus one ordinary PR*). **Every one of them commits and
+  regenerated derived artifact — and a checkpoint or close-out panel adds the one DISPATCHED writer: the fix
+  agent its findings send in** (*Checkpoint review*). **Every one of them commits and
   pushes before walking away**, which is the whole of what this bullet asks, and no fresh worktree is cut for
   any of them.
 - **A module-resolution failure in the epic worktree is a stale install until proven otherwise, not a defect
@@ -267,10 +267,17 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts
   afterwards is provisioned the old way and you hand-apply. *Worktree creation* is the authoritative copy.
+- **Checkpoint review — one `/pipeline:review` panel over the epic tip, after whichever merges or wave you
+  choose**, and your dispatch report states that plan. It reads the diff since the last checkpoint's reviewed
+  head, or since the epic's fork point the first time, and posts onto the epic's own draft PR into the
+  integration branch, which opens at the first checkpoint and stays a draft until the close-out merge; each
+  dimension comment's head SHA is the next checkpoint's base. Accepted findings go to ONE fix agent in the
+  epic worktree, exactly as the close-out panel's below, pushed onto the epic branch before the next slice
+  forks. **The close-out panel is the last checkpoint and always runs.**
 - **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before either** (*Docs
   land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
-  **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT, run one full
-  `/pipeline:review` panel against it, land any fix round it earns, and only THEN enqueue the gate against
+  **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT where no checkpoint has
+  opened it, run one full `/pipeline:review` panel against it since the last checkpoint's reviewed head, land any fix round it earns, and only THEN enqueue the gate against
   it — in that order**, naming the epic worktree as the ticket's worktree, and in the `full` mode where the
   project declares `fullGate` (`skills/procedures/config-keys.md`), its `gate` being partial there.
   **Under `"epicMerge": "squash"` that PR's title and body become the arc's one surviving commit message**
@@ -284,17 +291,13 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   verdict.
 
   **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
-  invokes it** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
+  invokes it, naming the last checkpoint's reviewed head as its base where one ran** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
   one comment per dimension beside it, and it runs here unaltered right through that post; **what differs is
   only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers on this
   project — seven where the project states
   conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
-  like**, since every dimension already ran per slice against that slice's own diff in isolation and all that
-  is left for this run is the one thing none of those could see: how the slices COMPOSE, the state they
-  share, the interactions that exist only once they sit together. **It costs ONE flat panel per epic however
-  many slices the arc held**, which is what parts it from running this pass twice anywhere else here: a
-  second per-slice run multiplies by the slice count, while this is once, at the top, over the only diff
-  nothing else reads whole.
+  like**, since how the slices COMPOSE — the state they share, the interactions that exist only once they sit
+  together — is visible on no slice's own diff.
 
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own

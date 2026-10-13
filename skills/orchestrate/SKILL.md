@@ -223,6 +223,10 @@ the message before the stop — are that pass's own, and you are in it.
 
 ## 3. Reconcile against the merged tree → `skills/orchestrate/references/reconciling.md`
 
+**On an epic branch, decide first whether this cycle's merges end a checkpoint**, by the plan your dispatch
+report stated: where they do, run the dispatcher's *Checkpoint review* — one `/pipeline:review` panel over
+the epic tip, its fix agent's push landing — before this checklist reads the tree.
+
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
 falsify anything. **Which is why a cycle whose own increment merged NOTHING — every PR it dispatched left
@@ -263,7 +267,7 @@ increment's own gate and merge are the whole of it**, since work that cuts no ep
 on the integration branch at step 2. **Where the project declares `fullGate`, the close-out gate runs it
 where an epic branch was cut; where none was, `fullGate` never runs**, the increment's own PR gate and its
 integration gate being the whole of its gate. **Where one WAS cut, green takes a third thing and only there: that
-close-out PR's own full `/pipeline:review` panel, run between its open and its gate and posting its review
+close-out PR's own full `/pipeline:review` panel, the last checkpoint, run before its gate and posting its review
 and one comment per dimension onto that PR** — a close-out that
 gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and
 cannot say whether the slices COMPOSE, and that combined diff is the first and only place they sit together.

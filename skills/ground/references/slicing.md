@@ -105,10 +105,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
   model however small the diff.
 - **Brief** — 2–5 sentences the dispatcher can hand almost verbatim to an implementer: what to build, the
   pattern or file to copy, the hard boundaries, any research-first step.
-  - **Say in it whether this slice warrants a `/pipeline:review` pass and why, on the same reading the `Model`
-    field above took** — one predictor answers both, so a mechanical rename mirroring an existing pattern
-    earns neither the stronger model nor a fan of readers, while work adjudicating two sources of truth earns
-    both, and *Sizing* below prices that fan as the dominant term in a wave.
+  - **Say in it whether this slice warrants its own `/pipeline:review` pass before it merges and why** —
+    on an epic branch the default is no, review running at checkpoints over the epic tip and at the
+    close-out; the exceptions are a contract seam later slices build on, security, auth, data migration or
+    anything irreversible, and substantial work on an arc with no epic branch.
     **It is a RECOMMENDATION the dispatcher may override with a reason of its own, which is why it rides in
     this field rather than becoming a field of its own** — that seat holds the same facts about the wave it
     raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no* there
@@ -233,11 +233,9 @@ looks**, since the `Owns` constraint above is absolute where this trigger is a m
 **Size against the gate, not against an idealized infinite machine.** Where the project declares
 `enqueue`/`drain`, `/pipeline:execute` drains the queue one PR at a time behind a slim machine-wide slot, so N
 slices means N sequential gate runs; where it declares neither, each implementer runs its own, so N slices
-means N gate runs with no slot between them. Either way add N review passes —
-and a review pass is **several fresh readers rather than one unit beside the worktree and the install, up to
-one per dimension, with how many fire that pass's own per-slice call** — so the reader cost is N times that
-count rather than N times one — **and the `Brief` field above is where each slice says whether it fires that
-fan at all, which is the only place in this pass the dominant term can be argued down.**
+means N gate runs with no slot between them. Either way add one review panel per checkpoint on an epic
+branch, plus one per slice the `Brief` field above marks as an exception — a panel being **several fresh
+readers, up to one per dimension**, so the reader cost is that count per panel rather than one.
 **Make each slice carry enough weight that its share of the gate cost is justified.**
 
 - **A gate run's cost is proportional to what the slice CHANGED, because of the shared build cache**, so

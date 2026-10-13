@@ -112,7 +112,8 @@ comment, posted review, merge — draft-before-gate all along, the panel and the
 with the close-out review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration
 gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a
 slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it, unless a
-green `gate` verdict already covers that same tree and the project declares no `fullGate`; only the close-out
+green `gate` verdict already covers that same tree and the project declares no `fullGate` (where it does,
+`skills/execute/references/dispatching.md` has the baseline); only the close-out
 ticket and an on-demand run (`skills/procedures/config-keys.md`) carry the `full` mode that runs a declared
 `fullGate`. A runner scaffolded before that ticket type refuses it, as one
 not verified to take that mode may, and only there is a hand-run gate sanctioned. **In a project declaring no

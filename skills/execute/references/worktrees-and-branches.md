@@ -407,6 +407,7 @@ and your dispatch report states the plan for them.
   dimension comment's head SHA is the next checkpoint's base. The epic PR opens as a draft at the first
   checkpoint and stays one until the close-out merge.
 - **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
-  (*Mechanics*), **and it runs `gate` once, in-line, over its delta and pushes onto the epic branch before the
-  next slice forks**, since every later slice forks from that push.
+  (*Mechanics*), **and its delta is gated before the next slice forks**, since every later slice forks from
+  that push: a PR-less ticket you enqueue where the project declares `enqueue`/`drain`, and the fix agent's
+  own one in-line `gate` run where it declares neither.
 - **The close-out panel is not one of them**: it always runs, over the PR's whole diff, with no base SHA.

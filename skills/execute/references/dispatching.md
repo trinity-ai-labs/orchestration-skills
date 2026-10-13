@@ -186,16 +186,19 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result
   outright where it is green and the project declares no `fullGate`, so no baseline ticket is gated, and where
   it is red only where its failure-set field names every failure by identifier, a failing tail alone never
-  being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is the slice's own
-  domains run on the fork point.** Where no recorded verdict serves, you gate that commit on the worktree you
-  are about to dispatch into, as a PR-less ticket where the project declares `enqueue`/`drain` and by running
-  `gate` there yourself where it declares neither, dispatching once it settles. **Read the ticket's per-step
-  executed-or-replayed record before you hand a green down**: a replayed step says the task's inputs hash to a
-  result already recorded green and says nothing about running here, so a green whose steps all replayed
-  establishes the tree unchanged for that task rather than a suite that covered it, and it is blind to exactly
-  the environmental and shared-resource reds a fresh execution surfaces. **A number taken on another commit is
-  not a baseline**: re-take it on this commit before dispatch, or leave it out and have the brief say to take
-  it before the first edit, which is where anything else the slice needs goes too.
+  being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is `gate` run at the
+  fork point with the slice's domains named to it explicitly — the map's domains for its `Owns`; where that
+  `gate` cannot take named domains, no suite baseline is taken, and a red in the slice's own gate is checked
+  by re-running only that failing test at the fork point.** Where no recorded verdict serves, you gate that
+  commit on the worktree you are about to dispatch into, as a PR-less ticket where the project declares
+  `enqueue`/`drain` and by running `gate` there yourself where it declares neither, dispatching once it
+  settles. **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a replayed
+  step says the task's inputs hash to a result already recorded green and says nothing about running here, so
+  a green whose steps all replayed establishes the tree unchanged for that task rather than a suite that
+  covered it, and it is blind to exactly the environmental and shared-resource reds a fresh execution
+  surfaces. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
+  or leave it out and have the brief say to take it before the first edit, which is where anything else the
+  slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`
   (`<repo>/.agents/worktree.json`) that bite this slice, beside the agent guidance that bites it — the key
   carrying the facts that change how this pipeline dispatches and gates, and the guidance the coding

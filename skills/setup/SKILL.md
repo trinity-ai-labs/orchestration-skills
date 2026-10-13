@@ -229,7 +229,7 @@ different question and this pass's own.
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
 | `scopedCheck` | The no-build, no-test subset |
-| `targetedTest` | The project's test runner, as a template running named tests or files: `{files}` for test paths, `{names}` for test names (`vitest run {files}`). **Omit** where no runner takes either |
+| `targetedTest` | The project's test runner, as a template using one of `{files}` (test paths) or `{names}` (test names), values space-separated unless the template quotes them (`vitest run {files}`). **Omit** where no runner takes either |
 | `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |
 | `sharedResources` | **The maintainer's answer, not a file's** — the first ask; `[]` when nothing |
 | `reclaim` | `{report, drop}`, the project's own sweep — the second ask. **Omit** unless an entry is durable AND the commands exist |
@@ -371,7 +371,8 @@ workspace-level `AGENTS.md` has no repository to land in, so hand its split back
 
 **Right after the monolith verdict — or first, where there is none — quote the summary `/pipeline:health`
 returned in Step 1**: its items, most expensive first, each with its value, trend, recommendation and route.
-**A split gate it recommends is the project's own change**, and once its partial gate has landed this pass
+**For a slow gate its first route is the `Prune candidates` item, a split gate the alternative.** **A split
+gate it recommends is the project's own change**, and once its partial gate has landed this pass
 runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then

@@ -25,11 +25,7 @@ parallel case the reasoning above is really about.
 executes the same tree for the same answer. A run that cuts every worktree from the current tip and merges
 sequentially without conflicts comes back empty on every merge and needs no dedicated integration gate at all.
 
-**Where the project declares `fullGate` (`skills/procedures/config-keys.md`), this gate still runs `gate`,
-with both readings and the skip exactly as written** — `fullGate` runs at the epic's close-out gate and on
-demand, never after a merge.
-
-**It is a check rather than a rule, because it runs both ways.** An unconditional
+**The skip is a check rather than a rule, because it runs both ways.** An unconditional
 close-out gate re-executes a tree that was already gated — on a monorepo with a ten-minute gate that is real
 cost for zero information. And "the last slice was green, so the epic is green" costs nothing and is wrong the
 moment two slices ran in parallel, which is this flow's default dispatch shape.
@@ -327,7 +323,7 @@ without opening a PR or a transcript, and one click from each dimension's full f
 Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 
 **Goal**: <your verdict on the slice's goal>
-**Review pass**: ran — <the dimensions it dispatched> · or skipped — <why, naming an override of the breakdown's recommendation>
+**Review pass**: ran — <the dimensions it dispatched> · or skipped — <why, naming an override of the breakdown's recommendation> · or review checkpoint — <epic PR review URL>
 **Rejected**: <each finding turned down, the reviewers that raised it, and why> — or "none"
 **Flagged**: <each out-of-scope item and where it went> — or "none"
 **On the PR**: dimension comments <urls> · reviews <urls> · gate comment <url>

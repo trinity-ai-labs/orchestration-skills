@@ -121,15 +121,17 @@ you have decided is wrong.
 ## 9. Never bypass the shared build cache
 
 Cache-eligible tasks go through the project's task runner, never the raw binary; the one sanctioned
-direct run is targeted test files, each run singly — never a suite.
+direct run is one targeted test run — the project's `targetedTest` where declared, else single test files,
+each run singly — never a suite.
 
 ## 10. Wait on agents you dispatched by ending your turn — never by a call made to keep it open
 
 **Where your host re-invokes you as each agent you dispatched reports, wait on them by ending your turn with
-no tool call — that is safe: it hands nothing back, and each report arrives as a new turn.** Read no warning
-about ending a turn on a command you detached as reaching this wait, since a command's exit re-invokes nothing
-and a dispatched agent's report does. `skills/procedures/host-tools.md`'s wait row says whether your host is
-this one and what you can read from inside a run to tell.
+no tool call — that is safe: it hands nothing back, and each report arrives as a new turn.** **A command you
+backgrounded is a separate subject with its own row**: where your host re-invokes you on its exit, ending
+your turn on it is a safe wait too, and where it does not, that ended turn is a hand-back with no verdict in
+it. `skills/procedures/host-tools.md`'s wait and detached-command rows say which your host is and what you
+can read from inside a run to tell.
 
 **Never make a call whose result you do not need just so your turn does not end** — it is a paid round trip
 that learns nothing, and one whose own completion re-invokes you wakes you into making the next. **The ban is
@@ -171,8 +173,9 @@ the seats here, and a seat that learns to spawn something is one of them the day
   end-to-end test is only for what a user actually crosses, a computed invariant over the data (contrast,
   sizes, radii, a table of units) replaces a browser case per combination, and a unit test is for real logic
   inside one module, never for wiring.
-- **A permanent test is added only where the test policy admits it** — `skills/procedures/code-shape.md`,
-  *Placing new code and a new test*.
+- **Extend a test before adding one; a new guard only for a bug easy to reintroduce, that would slip by
+  unnoticed and is costly to ship; one representative by default** — `skills/procedures/code-shape.md`,
+  *Test policy*.
 - **Every test names the domain it asserts about, in the project's own tag form, and a tag nothing checks is
   a guess** — derive it from what the test imports or calls, or have it checked.
 - **A project's own layout and testing rules win**; these are the default only where its agent guidance is

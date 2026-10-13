@@ -100,8 +100,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
 | `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
 | | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours at the close-out and on demand. |
-| `targetedTest` | declared | The ban's *Your only test execution* sentence names it, its `{files}` or `{names}` filled with the slice's tests. |
-| | absent | That sentence keeps its one-file form. |
+| `targetedTest` | declared | The ban's `<targeted run>` is that template, its one of `{files}` or `{names}` filled with the slice's tests. |
+| | absent | The ban's `<targeted run>` is single test files, each run singly (`vitest run path/to/x.test.ts`). |
 | commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
 | | neither does, or each runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
@@ -180,21 +180,23 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   it, taken on the commit this wave was cut from (`skills/execute/references/worktrees-and-branches.md`,
   invariant 2), hand it down named by that SHA and by what it counts, **as the baseline and never as a number
   to re-take** — a slice re-measuring what you hold spends a run for nothing, and one that reads the
-  instruction after its first edit has to move its tree off its own work to reach the fork point.
-  **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before
-  you dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run —
-  and in queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that
-  result outright where it is green, so no baseline ticket is gated, and where it is red only where its
-  failure-set field names every failure by identifier, a failing tail alone never being one — and where it is not, you gate that commit on the worktree you are about to dispatch into, as a
+  instruction after its first edit has to move its tree off its own work to reach the fork point. **A suite
+  result a slice needs is always yours**, as its failure SET by name and taken on that commit before you
+  dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run — and in
+  queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result
+  outright where it is green and the project declares no `fullGate`, so no baseline ticket is gated, and
+  where it is red only where its failure-set field names every failure by identifier, a failing tail alone
+  never being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is the slice's
+  own domains run on the fork point.** Where no recorded verdict serves, you gate that commit on the worktree
+  you are about to dispatch into, as a
   PR-less ticket where the project declares `enqueue`/`drain` and by running `gate` there yourself where it
-  declares neither, dispatching once it settles.
-  **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a
-  replayed step says the task's inputs hash to a result already recorded green and says nothing about running
-  here, so a green whose steps all replayed establishes the tree unchanged for that task rather than a suite
-  that covered it, and it is blind to exactly the environmental and shared-resource reds a fresh execution
-  surfaces. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
-  or leave it out and have the brief say to take it before the first edit, which is where anything else the
-  slice needs goes too.
+  declares neither, dispatching once it settles. **Read the ticket's per-step executed-or-replayed record
+  before you hand a green down**: a replayed step says the task's inputs hash to a result already recorded
+  green and says nothing about running here, so a green whose steps all replayed establishes the tree
+  unchanged for that task rather than a suite that covered it, and it is blind to exactly the environmental
+  and shared-resource reds a fresh execution surfaces. **A number taken on another commit is not a baseline**:
+  re-take it on this commit before dispatch, or leave it out and have the brief say to take it before the
+  first edit, which is where anything else the slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`
   (`<repo>/.agents/worktree.json`) that bite this slice, beside the agent guidance that bites it — the key
   carrying the facts that change how this pipeline dispatches and gates, and the guidance the coding
@@ -260,26 +262,25 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   and the brief says instead that this run is the only gate run the slice makes, carrying the ban's
   *Your only test execution* sentence as its test budget all the same:
 
-  > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is `<targetedTest>` over the slice's own tests, or where the project declares none a SINGLE targeted test file (`vitest run path/to/x.test.ts`), and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
+  > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is ONE targeted test run, `<targeted run>`, never a suite, and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
-  **On an epic branch the default is NONE**: review moves to the epic tip, at the checkpoints you plan
-  (*Checkpoint review*, `skills/execute/references/worktrees-and-branches.md`), the close-out panel being the
-  last of them. A slice's own `/pipeline:review` pass over its PR before it merges is the exception, for a
+  **On an epic branch the default is NONE**: review moves to the epic tip, at the review checkpoints you plan
+  (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the close-out panel over
+  the whole diff. A slice's own `/pipeline:review` pass over its PR before it merges is the exception, for a
   contract seam later slices build on, for security, auth, data migration or anything irreversible, and for
   substantial work on an arc with no epic branch, where there is no epic tip to review. Say which in the
   brief, and again in the review you post on that PR and in the issue's closing comment, since a PR carrying
-  no panel review otherwise reads the same whether it was left to a checkpoint or its write went missing.
-  **Going against the recommendation puts your reason in that same record**; a slice arriving with none, you
-  decide here. ⚠️ **Name the pipeline skill in the brief** — an improvised pass that FORKS its reviewers hands
-  them the implementer's whole brief, *commit, push, open a PR, hand back* included, which they then
-  execute; **the tell is the worktree rather than the hand-back**, so read `git log` on the branch for
-  commits, a push or a PR its reviewers left before you read the report.
+  no panel review otherwise reads the same whether it was left to a review checkpoint or its write went
+  missing. **Going against the recommendation puts your reason in that same record**; a slice arriving with
+  none, you decide here. ⚠️ **Name the pipeline skill in the brief** — an improvised pass that FORKS its
+  reviewers hands them the implementer's whole brief, *commit, push, open a PR, hand back* included, which
+  they then execute; **the tell is the worktree rather than the hand-back**, so read `git log` on the branch
+  for commits, a push or a PR its reviewers left before you read the report.
 - **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the
   work lands, pushes and opens a draft PR, and one running no pass then hands back. For a review slice paste
-  this, its
-  `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each commit."* where the
-  project declares one, and *"This project declares no `format`, so there is no formatter step."* where it
-  declares none:
+  this, its `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each commit."*
+  where the project declares one, and *"This project declares no `format`, so there is no formatter step."*
+  where it declares none:
 
   > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
@@ -616,8 +617,8 @@ the tick's other riders below reach it: the integration-branch sync, the stash s
 On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
 the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
 queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree — `gate` by
-default, and `fullGate` on a `full` ticket — the close-out's or an on-demand run's — where the project declares it —
-**behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on
+default, and `fullGate` on a `full` ticket where the project declares it — **behind the slim machine-wide slot
+— one gate at a time** — then comments the verdict on the PR, a pass on
 green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick
 re-invokes it.
 

@@ -167,7 +167,9 @@ memory of it**, the comment the hold wrote onto the tracked issue being where it
 **Merged since the hold** and the leaf simply LANDED, so the horizon moves outward past it — **but a human
 who merged it on GitHub ran none of the steps this flow's own merge runs**, so its worktree still stands,
 its branch is still there and the local integration branch is still behind the tip every later cut is taken
-from, which makes finishing that close-out this cycle's first act rather than a tidy-up.
+from, which makes finishing that close-out this cycle's first act rather than a tidy-up — and that
+close-out includes *Gate the integrated whole*'s `^2` check on that merge, running `gate` where it is
+non-empty, since a merge made outside this flow ran no integration gate.
 **Still open and held** and nothing has landed: report which PR is still held exactly as the exit that left
 it there has you report it, leave that leaf where it is, and run the cycle on whatever else is ready.
 
@@ -223,9 +225,10 @@ the message before the stop — are that pass's own, and you are in it.
 
 ## 3. Reconcile against the merged tree → `skills/orchestrate/references/reconciling.md`
 
-**On an epic branch, decide first whether this cycle's merges end a checkpoint**, by the plan your dispatch
-report stated: where they do, run the dispatcher's *Checkpoint review* — one `/pipeline:review` panel over
-the epic tip, its fix agent's push landing — before this checklist reads the tree.
+**On an epic branch, decide first whether this cycle's merges end a review checkpoint**, by the plan your
+dispatch report stated: where they do, run the dispatcher's *Review checkpoints* — one `/pipeline:review`
+panel over the epic tip since its base SHA, its fix agent's gated push landing — before this checklist reads
+the tree.
 
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
 MERGED tree** rather than the PR diffs: the tree the next increment forks from is the only one that can
@@ -264,33 +267,31 @@ questions handed over. **A held arc runs it at the cycle that lands the held mer
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **Where the project declares `fullGate`, the close-out gate runs it
-where an epic branch was cut; where none was, `fullGate` never runs**, the increment's own PR gate and its
-integration gate being the whole of its gate. **Where one WAS cut, green takes a third thing and only there: that
-close-out PR's own full `/pipeline:review` panel, the last checkpoint, run before its gate and posting its review
-and one comment per dimension onto that PR** — a close-out that
-gated and skipped the panel is not yet green, since a gate says the suite passed over the combined tree and
-cannot say whether the slices COMPOSE, and that combined diff is the first and only place they sit together.
-**Apply nothing it raises yourself** — you write no code at any step of this loop — so green also means
-anything you accepted from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after
-it and never by you. **A finding the umbrella body still carries that no checklist line,
-linked issue, recorded settle or setup-debt item carried for `/pipeline:health` owns is a remaining plan
-that is NOT empty**, since closing that umbrella
-is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed — the
-tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a PR's
-closing keywords, which fire only where that PR's base is the repository's **default** branch and never
+on the integration branch at step 2. **Where the project declares `fullGate`, the close-out gate runs it where
+an epic branch was cut, and where none was it never runs.** **Where one WAS cut, green takes a third thing and
+only there: that close-out PR's own full `/pipeline:review` panel over the PR's whole diff, run before its
+gate and posting its review and one comment per dimension onto that PR** — a close-out that gated and skipped
+the panel is not yet green, since a gate says the suite passed over the combined tree and cannot say whether
+the slices COMPOSE, and that combined diff is the first and only place they sit together. **Apply nothing it
+raises yourself** — you write no code at any step of this loop — so green also means anything you accepted
+from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after it and never by you.
+**A finding the umbrella body still carries that no checklist line, linked issue, recorded settle or
+setup-debt item carried for `/pipeline:health` owns is a remaining plan that is NOT empty**, since closing
+that umbrella is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed
+— the tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a
+PR's closing keywords, which fire only where that PR's base is the repository's **default** branch and never
 fire later. **Each close carries a comment that is that issue's OUTCOME RECORD**, so a reader landing on it
 finds what happened without opening a PR: the PR that settled it and the merge commit and base it landed as,
-your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran or was skipped and
-why, and links to that PR's dimension comments, its reviews and its gate comment — the umbrella's naming the
-close-out PR and each leaf's PR. Post it with the close,
-`gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>`, `<pr>` the one that settled
-it (`skills/procedures/github-writes.md`), which a re-run edits rather than repeats, and name no AI in it — no
-trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.
-**They stay OPEN where that close-out is held rather than merged** — the closes are
-termination's own half and a held merge has shipped nothing, so closing them there records a release that
-did not happen on the one surface the next invocation of this loop reads; that is the sixth exit below
-rather than a case inside this one.
+your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran, was skipped and why,
+or was left to a review checkpoint and which, and links to that PR's dimension comments, its reviews and its
+gate comment — the umbrella's naming the close-out PR and each leaf's PR. Post it with the close,
+`gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>`, `<pr>` the one that
+settled it (`skills/procedures/github-writes.md`), which a re-run edits rather than repeats, and name no AI in
+it — no trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.
+**They stay OPEN where that close-out is held rather than merged** — the closes are termination's own half and
+a held merge has shipped nothing, so closing them there records a release that did not happen on the one
+surface the next invocation of this loop reads; that is the sixth exit below rather than a case inside this
+one.
 
 **Six exits, and only one is finishing — the five here, and a sixth below them that reports no problem at
 all**: an empty plan and a green close-out **terminates**;

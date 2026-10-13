@@ -249,15 +249,15 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   code ↔ config — where nothing mechanical links the halves. The arc's running seam map is **seeded** from
   this field and re-derived nowhere, so a seam left out is one nothing downstream ever looks for.
 - **Verify** — what "done" looks like: the behavior, the tests added or extended with the case count and each
-  new guard's reason (`skills/procedures/code-shape.md`, *Placing new code and a new test*), the gate, the
-  greps that must come back empty — a checkable bar, not a vibe. **A negative names its baseline** (*unchanged*, *no new X* — the fork point
-  unless you name another) and **a grep names the domain it sweeps**; a bar naming neither is satisfied by
-  whichever end whoever runs it picks. **A filed bar outlives the arc, so read it against the rest of the body
-  first**: against the **Constraints**; against what the **Approach** asks for; any requirement against the
-  vocabulary the target can express it with; any *derive X from Y* against whether Y is reachable from where
-  the work will live; and any requirement against what the project's own gate, linter and ratchets will accept
-  for the files it names, since a bar can be expressible, reachable and still ask for something that project
-  refuses.
+  new guard's reason (`skills/procedures/code-shape.md`, *Test policy*), the gate, the greps that must come
+  back empty — a checkable bar, not a vibe. **A negative names its baseline** (*unchanged*, *no new X* — the
+  fork point unless you name another) and **a grep names the domain it sweeps**; a bar naming neither is
+  satisfied by whichever end whoever runs it picks. **A filed bar outlives the arc, so read it against the
+  rest of the body first**: against the **Constraints**; against what the **Approach** asks for; any
+  requirement against the vocabulary the target can express it with; any *derive X from Y* against whether Y
+  is reachable from where the work will live; and any requirement against what the project's own gate, linter
+  and ratchets will accept for the files it names, since a bar can be expressible, reachable and still ask for
+  something that project refuses.
 - **Constraints** — the project conventions that bind it, from those routers and chapters, each named by its
   file: compat policy, comment style, the rest.
 

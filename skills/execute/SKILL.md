@@ -112,8 +112,9 @@ comment, posted review, merge — draft-before-gate all along, the panel and the
 with the close-out review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration
 gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a
 slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it, unless a
-green `gate` verdict already covers that same tree; only the close-out ticket and an on-demand run carry the
-`full` mode that runs a declared `fullGate`. A runner scaffolded before that ticket type refuses it, as one
+green `gate` verdict already covers that same tree and the project declares no `fullGate`; only the close-out
+ticket and an on-demand run (`skills/procedures/config-keys.md`) carry the `full` mode that runs a declared
+`fullGate`. A runner scaffolded before that ticket type refuses it, as one
 not verified to take that mode may, and only there is a hand-run gate sanctioned. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
@@ -164,7 +165,8 @@ Read the diff and post the verdict you form onto the PR as a review each round, 
 slice ran the review pass or skipped it and why. **Where the project declares `enqueue`, enqueue that slice's
 gate only once the code is final**, then read the verdict the runner comments; **where it does not**, the
 implementer's own verdict is already on the PR, and its hand-back, not that comment, is what you wait on
-before you merge.
+before you merge. **On an epic branch, plan and run review checkpoints over the epic tip**
+(`skills/execute/references/worktrees-and-branches.md`, *Review checkpoints*).
 
 ⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
 says a gate finished, not that anyone read the change.
@@ -173,8 +175,8 @@ says a gate finished, not that anyone read the change.
 
 Gate the integrated whole with `gate` when a merge combined work from more than one slice — a declared
 `fullGate` runs only at the epic's close-out and on demand — then merge, clean up and sync as one step, and
-close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue, keyed `outcome/<n>/<pr>`
-(`skills/procedures/github-writes.md`).
+close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue,
+keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.
@@ -198,10 +200,10 @@ reference.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
-   foreground or background. One targeted test run — `targetedTest` where declared, else one test file — is
-   the widest run you get — plus, on a change to a
-   module's export surface, each test file that mocks or imports it, run singly; the one gate run you ever
-   make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
+   foreground or background. One targeted test run — the project's `targetedTest` where declared, else single
+   test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
+   export surface, each test file that mocks or imports it, run singly; the one gate run you ever make is
+   in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.
 4. **Update the docs your change made stale.**
 5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →

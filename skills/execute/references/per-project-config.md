@@ -56,11 +56,10 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
 - **`fullGate` absent** → **`gate` is the full gate at every seat.** **`fullGate` declared** → that project's
-  `gate` may be partial, and `fullGate` runs only at the epic's close-out gate and on demand, as a
-  `full`-mode ticket where the project has a queue. A slice's own gate and every integration gate stay `gate`,
-  and a standalone issue never runs `fullGate`.
-- **`targetedTest` declared** → an implementer's one targeted test run is that template with `{files}` or
-  `{names}` filled; **absent** → it is one targeted test file run directly.
+  `gate` may be partial, and you run `fullGate` where `skills/procedures/config-keys.md` places it, as a
+  `full`-mode ticket where the project has a queue; every other gate stays `gate`.
+- **`targetedTest` declared** → an implementer's one targeted test run is that template with its one of
+  `{files}` or `{names}` filled; **absent** → it is single test files, each run singly, never a suite.
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's
@@ -99,5 +98,5 @@ whole-package or whole-suite run that is *supposed to happen* — the drained ga
 in-line slice's gate, a `fullGate` run — through the cached command (`turbo run <task> --filter=<pkg>`, or the
 project's `scopedCheck`), and say so in briefs and in the project's agent guidance. Routing, not permission:
 for a queue-mode implementer those runs are banned outright (`skills/execute/SKILL.md`'s Implementer section).
-Reserve a direct-binary run for a **single targeted file**, or `targetedTest` where declared; guidance documenting the raw form as a package
-default is a leak to fix.
+Reserve a direct-binary run for one targeted test run — the project's `targetedTest` where declared, else
+single test files, each run singly; guidance documenting the raw form as a package default is a leak to fix.

@@ -106,7 +106,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
 - **Brief** — 2–5 sentences the dispatcher can hand almost verbatim to an implementer: what to build, the
   pattern or file to copy, the hard boundaries, any research-first step.
   - **Say in it whether this slice warrants its own `/pipeline:review` pass before it merges and why** —
-    on an epic branch the default is no, review running at checkpoints over the epic tip and at the
+    on an epic branch the default is no, review running at review checkpoints over the epic tip and at the
     close-out; the exceptions are a contract seam later slices build on, security, auth, data migration or
     anything irreversible, and substantial work on an arc with no epic branch.
     **It is a RECOMMENDATION the dispatcher may override with a reason of its own, which is why it rides in
@@ -153,24 +153,23 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     Carrying it here is what makes the chain end to end rather than stopping at the phase boundary — arc goal,
     phase deliverable, slice goal, and a reader at each of the two ends of the slice.
 - **Verify** — what "done" looks like: the behavior, the tests added or extended with the case count, each
-  new guard's reason (`skills/procedures/code-shape.md`, *Placing new code and a new test*), and the
-  acceptance check.
-  - **For a slice that adds a check or fixes a bug, the bar includes proving that the test carrying the fix,
-    extended or new, fails against the PRE-change code — and names the specific reversal that proves it**:
-    restore the old matcher and confirm the new fixture goes red, point the test's mock back at the old
-    symbol, reverse the rename and confirm the formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an implementer
-    can report with nothing behind it.
+  new guard's reason (`skills/procedures/code-shape.md`, *Test policy*), and the acceptance check.
+  - **For a slice that adds a check or fixes a bug, the bar includes proving that the fix's test fails against
+    the PRE-change code — and names the specific reversal that proves it**: restore the old matcher and
+    confirm the new fixture goes red, point the test's mock back at the old symbol, reverse the rename and
+    confirm the formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an
+    implementer can report with nothing behind it.
   - **A reversal MOVES the implementer's tree, so a bar that names one names the mechanic beside it, or the
-    seat performing it reaches for whatever is quickest** — a blind pop off a stack every worktree of the
-    repo shares, a copy of the file parked outside git where one `rm` ends it. **A reversal needs that
-    test STANDING while the code under it is pre-change, and that is what decides which mechanic the bar can
-    ask for** (`skills/ground-rules/SKILL.md`, rules 6 and 7): the commit shape — commit, break, run the one
-    targeted test, restore with `git checkout -- <file>` or from that commit — or a marked stash of the
-    production file alone, whose push is itself the break and whose pop restores it. A bar that instead asks
-    for the whole tree stashed has asked for that test's case to be carried away with the change.
-    **Or write the bar so the reversal runs against the FORK POINT**, where the pre-change code is already a
-    commit and no tree has to move at all — the cheapest of the three whenever the slice's own base still
-    carries the behaviour being broken.
+    seat performing it reaches for whatever is quickest** — a blind pop off a stack every worktree of the repo
+    shares, a copy of the file parked outside git where one `rm` ends it. **A reversal needs that test
+    STANDING while the code under it is pre-change, and that is what decides which mechanic the bar can ask
+    for** (`skills/ground-rules/SKILL.md`, rules 6 and 7): the commit shape — commit, break, run that test by
+    the one targeted test run, restore with `git checkout -- <file>` or from that commit — or a marked stash
+    of the production file alone, whose push is itself the break and whose pop restores it. A bar that instead
+    asks for the whole tree stashed has asked for that test's case to be carried away with the change. **Or
+    write the bar so the reversal runs against the FORK POINT**, where the pre-change code is already a commit
+    and no tree has to move at all — the cheapest of the three whenever the slice's own base still carries the
+    behaviour being broken.
   - **When the bar asserts agreement with a consumer the slice does not own, name the INSTRUMENT as well as
     the property, and make it the entry point the production caller reaches** — otherwise the cheapest
     instrument is a local reimplementation that diverges on the day the test was supposed to fire, and calling
@@ -182,16 +181,16 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     correct slice, a wider one passes an incorrect one, and only the narrow direction is ever visible.
   - **A whole-package or whole-suite check named here is the GATE's, never a run the implementer makes while
     it builds** — a runner executes it on the ticket where the project declares `enqueue`/`drain`, and the
-    implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar
-    names the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you
-    write it that way (*gate in the default mode, not `--mode docs`*) rather than as a command line.
-    **Never the `full` mode**: where the project declares `fullGate` that mode is the close-out's and an
-    on-demand run's, and the slice's own `gate` may be partial, so say so where the bar leans on a suite-wide property.
-    **The only check an implementer may be told to run directly is a single targeted test file** — and where
-    the slice changes a module's export surface (adds, removes or renames an export, or moves code between
-    modules), each test file that mocks or imports that module, found by grepping its specifier, which the
-    bar names as files and never as a suite; route
-    anything wider through the project's cached runner (Trinity: `pnpm check`, or
+    implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar names
+    the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you write it
+    that way (*gate in the default mode, not `--mode docs`*) rather than as a command line. **Never the `full`
+    mode**: where the project declares `fullGate` that mode is the close-out's and an on-demand run's, and the
+    slice's own `gate` may be partial, so say so where the bar leans on a suite-wide property. **The only
+    check an implementer may be told to run directly is one targeted test run — the project's `targetedTest`
+    where declared, else single test files, each run singly — never a suite**, and where the slice changes a
+    module's export surface (adds, removes or renames an export, or moves code between modules), each test
+    file that mocks or imports that module, found by grepping its specifier, which the bar names as files and
+    never as a suite; route anything wider through the project's cached runner (Trinity: `pnpm check`, or
     `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
   - **A bar that asserts a NEGATIVE names what it is measured against** — *X is unchanged*, *no new Y*, *that
     grep comes back empty* are claims about a difference, and the end an implementer reaches for is its own
@@ -235,10 +234,9 @@ looks**, since the `Owns` constraint above is absolute where this trigger is a m
 **Size against the gate, not against an idealized infinite machine.** Where the project declares
 `enqueue`/`drain`, `/pipeline:execute` drains the queue one PR at a time behind a slim machine-wide slot, so N
 slices means N sequential gate runs; where it declares neither, each implementer runs its own, so N slices
-means N gate runs with no slot between them. Either way add one review panel per checkpoint on an epic
-branch, plus one per slice the `Brief` field above marks as an exception — a panel being **several fresh
-readers, up to one per dimension**, so the reader cost is that count per panel rather than one.
-**Make each slice carry enough weight that its share of the gate cost is justified.**
+means N gate runs with no slot between them. Either way add one review panel per review checkpoint on an epic
+branch and per slice the `Brief` field above marks as an exception, **each up to one fresh reader per
+dimension**. **Make each slice carry enough weight that its share of the gate cost is justified.**
 
 - **A gate run's cost is proportional to what the slice CHANGED, because of the shared build cache**, so
   **prefer package-disjoint slices** and keep an edit to a low-level shared package — which invalidates every

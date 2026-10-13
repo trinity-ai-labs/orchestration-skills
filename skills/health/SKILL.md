@@ -35,15 +35,16 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
 
 1. **Read the code shape** by `skills/procedures/code-shape.md`'s *Reading a project's code shape*.
 2. **Take every signal in its table** with the project's own tooling, **each figure with its unit beside it**.
-   One the tooling cannot take is reported as not taken, with what it would take, never estimated.
-   **A signal is an item only where some change pays the table's *What it costs*** — an unmapped file, an
-   untagged test, a full gate nothing narrows; one with nothing to pay is a value, not an item. No map at all
-   is the `Map coverage` item, its value `no map`. **Full-gate cost is an item once one full run passes 10
-   minutes**, whether or not the project declares `fullGate`.
+   One the tooling cannot take is reported as not taken, with what it would take, never estimated, and **no
+   signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
+   it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
+   at all is the `Map coverage` item, its value `no map`. **Full-gate cost is an item past the threshold its
+   row names**, whether or not the project declares `fullGate`.
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the four items no table row carries**:
+4. **Name the items no single table row carries** — three no row measures, and `Prune candidates`, drawn from
+   the *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* rows:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
      an item naming the signal.
@@ -52,14 +53,9 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
      lint, guidance), so each may shrink but never grow; the item `Baseline: <path>`, its value the count of
      entries with each one's size in the unit the baseline records, ticked off only when the baseline is empty.
-   - **Prune candidates** — the specific tests to clear, judged against the test policy in
-     `skills/procedures/code-shape.md`'s *Placing new code and a new test*, each listed with its file, its unit
-     cost and the reason it qualifies: the slowest tests or specs by minutes; the loops with the highest sweep
-     multiplicity; same-shaped files repeated per unit, theme or product, as merge candidates for one
-     table-driven test; probes committed as permanent cases; and tests that cannot fail — an assertion against
-     the value that configured its own mock, a constant asserted against itself. The item `Prune candidates`,
-     its value the count of tests listed and the minutes per run they cost, the list beneath it. **Health lists
-     them and never deletes one.**
+   - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
+     item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
+     beneath it. **Health lists them and never deletes one.**
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -96,8 +92,8 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
 - **Gone on re-measure: tick it off** (`- [x]`) with the value that cleared it. A ticked item is left in place,
   and one that comes back is unticked with its trend, never appended a second time.
 - **The first recommendation for a slow gate is to prune or merge tests**, from the `Prune candidates`
-  item — one arc of deletions and merges, paid once, against the minutes those candidates cost every run.
-  **Splitting the gate is the alternative**, by `skills/procedures/code-shape.md`'s *The shape of a split
+  item — one arc of deletions and merges, paid once. **Splitting the gate is the alternative**, by
+  `skills/procedures/code-shape.md`'s *The shape of a split
   gate*, for a full-suite gate with no domain map or no checked tags — its cost the map, the tags and the
   checks on both; the map alone, the tags alone, or a gate queue's machine-wide slot so full runs stop
   contending are the cheaper alternatives after it.

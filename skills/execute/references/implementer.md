@@ -39,8 +39,8 @@ what you accept, scoped check, one more commit, push again onto the same PR) →
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
 in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
 (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
-**one targeted test run** — the project's `targetedTest` over your tests where it declares one, and one test
-file run directly where it does not — the widest test execution you get.
+**one targeted test run** — the project's `targetedTest` where declared, else single test files, each run
+singly, never a suite — the widest test execution you get.
 **A change to a module's export surface widens that budget** — adding, removing or renaming an export, or
 moving code between modules, breaks every test that mocks or imports the module, and none of those is a file
 you touched — so it also covers every test file that mocks or imports that module, found by grepping its
@@ -287,9 +287,9 @@ hand-back names it in one line.
 ## Craft, and the one sanctioned suppression
 
 **Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
-`skills/procedures/code-shape.md`'s *Placing new code and a new test*, under the project's own layout rules
-where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in reach; a
-restructure is surfaced, never done unasked.**
+`skills/procedures/code-shape.md`'s *Test policy* and *Placing new code and a new test*, under the project's
+own layout rules where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in
+reach; a restructure is surfaced, never done unasked.**
 
 **Leave the tree cleaner than you found it — a check that exits green but still prints warnings is NOT
 done**: fix every warning and error your change hits or surfaces, by rule 13's fold, and where the answer to
@@ -310,17 +310,16 @@ Write the assertion against the behavior the change is for, not against whatever
 
 **PROVING it can fail — the reversal your bar names — MOVES your tree, so git holds that work before it
 moves** (`skills/ground-rules/SKILL.md`, rule 6), **or you arrive at the restore with no object to come back
-to and take the quickest way out instead.** **What picks the shape is that a reversal needs the test carrying
-the fix, extended or new, STANDING while the code under it is pre-change**: commit the work, make the breaking
-edit, run the one targeted test file, then restore with `git checkout -- <file>` or from that commit; or, with
-nothing commit-ready, push a marked stash of the PRODUCTION file alone — that push is itself the breaking
-edit, it leaves that test in the tree, and popping that one entry by its marker puts the file back (rule 7
-has the push and the resolve).
-⛔ **Never stash the whole tree for a reversal**: it carries that test's case away with the change, leaving the
-bar nothing to run, and the pop back over a breaking edit is refused outright with your entry left on the
-stack. **Where your slice's fork point already carries the pre-change behaviour, run the reversal against
-the FORK POINT and leave your tree where it stands.** ⚠️ **"Confirmed by reading the diff" is an UNRUN
-reversal**, so where that is all you have, say in your hand-back that no reversal was run rather than
+to and take the quickest way out instead.** **What picks the shape is that a reversal needs the fix's test
+STANDING while the code under it is pre-change**: commit the work, make the breaking edit, run that test by
+the one targeted test run, then restore with `git checkout -- <file>` or from that commit; or, with nothing
+commit-ready, push a marked stash of the PRODUCTION file alone — that push is itself the breaking edit, it
+leaves that test in the tree, and popping that one entry by its marker puts the file back (rule 7 has the push
+and the resolve). ⛔ **Never stash the whole tree for a reversal**: it carries that test's case away with the
+change, leaving the bar nothing to run, and the pop back over a breaking edit is refused outright with your
+entry left on the stack. **Where your slice's fork point already carries the pre-change behaviour, run the
+reversal against the FORK POINT and leave your tree where it stands.** ⚠️ **"Confirmed by reading the diff" is
+an UNRUN reversal**, so where that is all you have, say in your hand-back that no reversal was run rather than
 reporting the bar met — a diff shows what the change did, never what the test does when the change is taken
 back out.
 

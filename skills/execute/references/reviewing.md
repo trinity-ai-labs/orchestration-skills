@@ -475,7 +475,7 @@ drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs`
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
-diff can affect and the integration points run `fullGate` instead (*Gate the integrated whole*). Beyond that
+diff can affect and `fullGate` runs only at the epic's close-out and on demand. Beyond that
 one run an implementer's commits are held only to the cheap scoped check — by a hook where one runs it, git's
 pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`, by the implementer before
 each commit where neither does — and release-branch PRs typically get no CI, so that gate run is what stands
@@ -488,8 +488,7 @@ there is no queue or the runner refuses that ticket — only for a genuine reaso
 ticket, or a **merge integrates branches that weren't tested together** (one integration gate on the merged
 result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
 non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
-whole* below) — **except where the project declares `fullGate`**, where every merge that check reads, and each
-wave's end, runs it (*Gate the integrated whole*). Where it is absent, even then prefer the minimum — the
+whole* below), with or without `fullGate`. Even then prefer the minimum — the
 affected/changed tests over the whole suite where possible. Your always-on job is reading the **diff**; heavy
 re-gating is conditional.
 

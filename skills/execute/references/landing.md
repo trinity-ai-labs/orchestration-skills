@@ -25,17 +25,11 @@ parallel case the reasoning above is really about.
 executes the same tree for the same answer. A run that cuts every worktree from the current tip and merges
 sequentially without conflicts comes back empty on every merge and needs no dedicated integration gate at all.
 
-**Where the project declares `fullGate` (`skills/procedures/config-keys.md`), both readings above give way to
-one: the integrated whole runs `fullGate`, after every merge this check reads, and never skips on an empty
-`^2` diff** — that project's `gate` may be partial, so the branch tip an empty diff points back to was gated
-only on what its own diff could affect, never gated whole. **Only a `fullGate` already green over this same
-tree stands in for that run** — the epic's close-out gate, whose tree the closing merge reproduces once the
-cadence has run, or the wave-end gate below — compared as `git rev-parse <merge>^{tree}` against `git
-rev-parse <gated-sha>^{tree}`, the gated SHA taken off the ticket or, for a hand run, `HEAD` in the tree you
-gated. The derived artifacts, the tree, the install, the ticket (in its `full` mode) and the exit-status
-reading are unchanged. **Where `fullGate` is absent, the two readings and the skip stand exactly as written.**
+**Where the project declares `fullGate` (`skills/procedures/config-keys.md`), this gate still runs `gate`,
+with both readings and the skip exactly as written** — `fullGate` runs at the epic's close-out gate and on
+demand, never after a merge.
 
-**Where `fullGate` is absent it is a check rather than a rule, because it runs both ways.** An unconditional
+**It is a check rather than a rule, because it runs both ways.** An unconditional
 close-out gate re-executes a tree that was already gated — on a monorepo with a ten-minute gate that is real
 cost for zero information. And "the last slice was green, so the epic is green" costs nothing and is wrong the
 moment two slices ran in parallel, which is this flow's default dispatch shape.
@@ -109,8 +103,7 @@ never holds.
 
 **Enqueue it rather than running it — the tree has no PR, and the ticket shape admits that.** In a project
 whose runner takes the ticket this gate goes in as a **PR-less ticket** on the tree above:
-`enqueue --branch <branch> --worktree <worktree>`, plus `--mode full` where the project declares `fullGate`
-— the mode that runs it, since the `default` mode runs `gate` — naming the epic branch and the epic worktree
+`enqueue --branch <branch> --worktree <worktree>`, naming the epic branch and the epic worktree
 where one holds the merges and the gate branch and its throwaway tree otherwise — never the main checkout,
 where another session's close-out moves the tree mid-gate and the frozen-worktree rule cannot be held — with no
 `--pr-number` and no `--pr-url`; those two fields are optional on a ticket precisely so this gate can be
@@ -219,18 +212,6 @@ against it (*The epic branch* → *Mechanics*) — read the other way round, as 
 forces the one gate whose tree no per-slice gate has ever seen to run with nothing to attach a ticket to: no
 log, no ledger entry, no comment, and a verdict surviving only as an exit status in one terminal, on the
 least-witnessed gate in the flow.
-
-**The wave-end gate — only where the project declares `fullGate`.** Once per wave, after that wave's merges
-— whatever else that wave left held — and before the next horizon is ground, run `fullGate` on the merged
-tip: the epic branch in its own worktree where one was cut, and the integration branch otherwise, in a
-throwaway tree cut from its tip as above, since the main checkout is never a gate tree. The derived artifacts,
-install, `full`-mode ticket (or hand run, as above) and exit-status reading are as above. **Red holds the next
-wave**: the only horizon ground off a red tip is the fix slice that answers it, reported and fixed forward
-like any red integration gate, and the wave-end gate runs again on the tip that fix lands on before anything
-else dispatches. **Where a `fullGate` run already went green over this same tree** — `git rev-parse
-<tip>^{tree}` against `git rev-parse <gated-sha>^{tree}`, as above — that verdict IS the wave-end gate.
-**With no epic branch, the last wave's gate is the close-out gate**, the slices' own gates being partial, so
-the arc is not green until it is.
 
 ---
 

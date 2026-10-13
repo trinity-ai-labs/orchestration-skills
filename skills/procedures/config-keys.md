@@ -43,9 +43,13 @@ a question rather than a default.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
-  than a gap. **Present, the flow's integration points run it in place of `gate`**: the gate over an
-  integrated whole, a gate at each wave's end on the merged tip, and the close-out gate, a queued project
-  gating those tickets in a `full` mode that runs it.
+  than a gap. **Present, it runs in place of `gate` at an epic's close-out gate and on demand, and nowhere
+  else**: every slice and integration gate stays `gate`, a standalone issue never runs it, and a queued
+  project gates those tickets in a `full` mode that runs it.
+- **`targetedTest`** — optional: a command template running named tests or files in any language,
+  with the placeholders `{files}` (test file paths) and `{names}` (test names) — e.g.
+  `vitest run {files}`, `OA_TEST_ONLY={names} build/tests/core_tests`. **Absent means a
+  targeted run is one test file run directly.**
 - **`scopedCheck`** — the cheap check a slice's commits are held to: format-check + lint + typecheck, no
   build, no test.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only

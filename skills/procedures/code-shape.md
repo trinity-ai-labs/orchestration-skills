@@ -86,7 +86,8 @@ Then place the code — stop at the first answer that places it.
    unit and exits non-zero on the condition it guards.
 3. **It carries its own check** — a fixture it must fail on — so a tool that silently stops matching goes red
    rather than green.
-4. **The project's gate runs it**, never a brief.
+4. **The project's gate runs it when the change touches that tool** — its script, fixtures or map — never a
+   brief.
 
 ## The shape of a split gate
 
@@ -105,12 +106,13 @@ tool.
    change will merge into, named explicitly, never the branch's own remote-tracking ref** — a branch is never
    its own base, and item 7's re-gate over a fix round's delta is the one exception — **and an empty plan on a branch with commits beyond that base fails loudly**, never a green
    over zero tests.
-4. **The full gate moved to the integration points, never dropped** — the project's `fullGate`
-   (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.
+4. **The full gate moved to the epic's close-out and to on-demand runs, never dropped** — the project's
+   `fullGate` (`skills/procedures/config-keys.md`), with the partial gate as its `gate`.
 5. **Optionally, a green cache** keyed on a hash of a domain's inputs — its files, the shared spine and the
    toolchain — skipping a domain whose key last passed.
-6. **A map derived from evidence under-approximates** (the glossary entry says why), so it is safe only because
-   the full gate still runs before anything ships.
+6. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
+   caught by the full gate at an epic's close-out or an on-demand run, a standalone change resting on the
+   split gate alone.
 7. **A re-gate after a fix round on a head that passed the full gate runs the split gate over the delta since
    that head**, with the same loud fallback, and its verdict names both heads — the one bounded exception to
    item 6, since the head that ships rests on the full run directly below it for every domain the delta left

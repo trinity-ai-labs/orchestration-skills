@@ -23,11 +23,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   every spawn, may **raise** it on what the grounding could not see, with its reason beside it and nobody's
   permission, and may **lower** it only with a written reason in the brief, since the cheaper reading is
   always the defensible one and a silent downgrade leaves no artifact at all — the hand-back names no tier and
-  the diff carries none. The same pass's brief also **recommends** whether a slice warrants a review pass, on
-  the same reading, which the dispatcher may override with a reason of its own; whichever way it decides, the
+  the diff carries none. The same pass's brief also **recommends** how a slice is reviewed, on
+  the same reading: on an epic branch, checkpoint reviews over the epic tip by default, and a per-slice panel
+  for seams, security, auth, data or irreversible changes, or substantial work with no epic branch; the
+  dispatcher may override it with a reason of its own; whichever way it decides, the
   decision and its reason are written into the review it posts on that slice's PR and into the issue's closing
   comment, so a PR with no panel review reads as a recorded skip rather than a blank. It is a recommendation
-  rather than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no pass*.
+  rather than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no panel*.
   **The wave's WIDTH is the third of that shape**: the grounding pass recommends how many ready issues go out
   together and states the evidence only it holds — which are the same mechanical change, which have an
   ordering between them, which share a contract seam or a fence, which owned paths overlap — and the
@@ -43,7 +45,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   picked up by being placed there rather than by an edit to a shared list; dependencies point one way, never
   sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses — the
   interface is the test surface, so a test that must reach past it means the module is the wrong shape — so
-  integration and end-to-end tests carry the weight and a unit test is kept for real logic; every test is
+  a test sits at the cheapest level that exercises the seam, a browser test is only for what a user crosses,
+  a computed invariant replaces a case per combination, and a unit test is kept for real logic. **A permanent
+  test is a guard, never a probe**: a bug earns one only when it is easy to reintroduce, would slip by
+  unnoticed and is costly if shipped, an existing test is extended before a new one is added, one
+  representative unit, theme or size is the default with sweeps at an epic's close-out only, and a test that
+  costs more than its bug is deleted (`skills/procedures/code-shape.md`, *Placing new code and a new test*;
+  review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). Every test is
   tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
   once is a missing tool — the fix it recommends is a script with its own check in your repository, never a
@@ -121,12 +129,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   there — by hand, or as the PR-less ticket's worktree — and once the verdict is in, which for a ticket means
   once it has settled, removes the tree with `remove-worktree.sh` and deletes its branch, which was never
   pushed and carries no commit: a derived artifact regenerated there goes back as a fix instead.
-- **Where a project declares `fullGate`, the full suite runs wherever slices meet, and a red there holds the
-  next wave** ([Per-project config](per-project-config.md#per-project-config)). That project's `gate` may run
-  only what a change can affect, so the gate over a merged tree runs `fullGate` and never skips because the
-  merge added nothing new, a wave-end gate runs it once on the merged tip after each wave's merges and before
-  the next wave is planned — with or without an epic branch — and the close-out gate runs it. A project that
-  declares no `fullGate` keeps `gate` as the full gate everywhere, and no wave-end gate runs. **A re-gate after
+- **Where a project declares `fullGate`, the full suite runs at an epic's close-out and on demand, and
+  nowhere else** ([Per-project config](per-project-config.md#per-project-config)). That project's `gate` may
+  run only what a change can affect, so every slice and merged-tree gate stays `gate`, no gate runs after a
+  wave, and a standalone issue or an arc with no epic branch never runs `fullGate`. A project that declares
+  no `fullGate` keeps `gate` as the full gate everywhere. **A re-gate after
   a fix round is proportionate**: where a head already passed the full gate, the next run is the partial gate
   over what changed since, falling back to the full suite loudly when that touches shared or unmapped files,
   and its verdict names both heads. Your own stricter rule wins, said with its cost so you can relax it, and
@@ -202,7 +209,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   raw `gh api` call, and the call's contract, that list included, is
   [`skills/procedures/github-writes.md`](../skills/procedures/github-writes.md).
 - **The run's tests are single files, and a change to a module's exports widens which files, never to a
-  suite.** An implementer runs one targeted test file while it builds; where its change adds, removes or
+  suite.** An implementer runs one targeted test run — the project's `targetedTest` where it declares one, else one test file — while it builds; where its change adds, removes or
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
@@ -271,7 +278,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   matches or several is a stop; never an argument-less `git stash pop`, `apply` or `drop`; `git stash clear`
   is banned outright.
 - **A reversal is RUN rather than read off the diff, and a reader never runs one.** A verify bar that proves
-  a new test fails against the pre-change code has some seat move a tree to do it, so the bar states how
+  the test carrying the fix, extended or new, fails against the pre-change code has some seat move a tree to do it, so the bar states how
   rather than leaving the means to whatever is quickest. The shape is decided by the reversal needing the
   new test standing while the code under it is pre-change: commit the work, make the breaking edit, run the
   one targeted test, then restore it — or stash the production file alone under the agent's own marker,

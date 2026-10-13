@@ -239,11 +239,17 @@ branch, which the orchestrator authors and then merges. It is a draft like every
 *first* and the integrated close-out check runs against it — enqueued, its verdict commented there, where the
 project declares a queue, and run by the dispatcher in the epic's own worktree where it declares none — green
 before the **merge**, which is the step that actually puts the change set on the shared branch, rather than
-before the open, which puts nothing anywhere. What stands in for the hand-back there is two things rather than
-one: every slice was already reviewed as its own draft PR, **and the close-out PR carries a full
-`/pipeline:review` panel of its own**, run between its open and its gate over the combined diff no slice's own
-pass ever saw — the same dimensions every slice already ran in isolation, asked once more of how those slices
-compose. So the close-out PR ends up carrying the same two artifacts a slice's PR does, the panel's review
+before the open, which puts nothing anywhere. What stands in for the hand-back there is the epic's panels: **the close-out PR carries a full
+`/pipeline:review` panel of its own**, the last checkpoint, run between its open (where no checkpoint opened
+it) and its gate over the epic's change since the last checkpoint's reviewed head — every dimension the
+project offers, asked of how the slices compose, which no slice's own diff shows. **Checkpoint review is how the epic is read before then.** On an epic branch the dispatcher runs one
+`/pipeline:review` panel over the epic tip after whichever merges or wave it chooses, rather than a panel per
+slice, and its dispatch report states that plan. A checkpoint reads the diff since the last checkpoint's
+reviewed head (the fork point the first time), posts onto the epic's own PR into the integration branch,
+which opens as a draft at the first checkpoint and stays one until the close-out merge, and sends accepted
+findings to one fix agent in the epic worktree before the next slice forks. A slice still gets its own panel
+for seams, security, auth, data or irreversible changes, or substantial work with no epic branch. So the
+close-out PR ends up carrying the same two artifacts a slice's PR does, the panel's review
 first and the orchestrator's own read after it, and neither of them the approval — the `draft → ready` flip is
 still that. **What does not carry across is the sentence above about who wrote the panel.** A slice's panel is
 the seat that wrote the code reporting on itself, which is why a PR arriving with one has been read by nobody
@@ -336,10 +342,10 @@ outstanding.
   dispatcher enqueues once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
   draft PR are pushed before the hand-back either way.
-- **A partial per-change gate, where a project declares `fullGate`** → a slice's own gate can run only what
-  its change affects, because the full suite runs where slices meet instead: after a merge that combined
-  slices, with no skip, once on the merged tip at the end of each wave before the next is planned — a red
-  holds the next wave — and at close-out. A project that declares nothing keeps one full gate everywhere.
+- **A partial per-change gate, where a project declares `fullGate`** → every slice and merged-tree gate can
+  run only what its change affects, because the full suite runs once, at the epic's close-out, and on demand;
+  a standalone issue or an arc with no epic branch never runs it. A project that declares nothing keeps one
+  full gate everywhere.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
   place that trade is worth re-opening, because that branch is scaffolding rather than history —

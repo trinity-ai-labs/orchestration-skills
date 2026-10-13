@@ -21,8 +21,8 @@ build setup — so a change to any of them can affect everything, and a gate tha
 whole suite whenever one is touched.
 
 A **split gate** is a partial per-change gate narrowed by domain — it runs the tests of the domains a change
-touches, falling back to the whole suite on anything it cannot map — with the full gate kept at the points
-where changes meet rather than dropped.
+touches, falling back to the whole suite on anything it cannot map — with the full gate kept at an epic's close-out
+and on demand rather than dropped.
 
 A **seam test** is a test written at a boundary a caller or a user crosses — a route, a command, a module's
 public interface — rather than against a module's internals. It survives a refactor behind that boundary

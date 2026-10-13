@@ -215,9 +215,10 @@ different question and this pass's own.
 4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
    suite? **Only a yes declares `fullGate`**, its value the project's full-suite command, grounded like `gate`
    and confirmed; a no, a maybe or nobody to ask omits it, which keeps `gate` the full gate at every seat.
+   Declared, it runs only at an epic's close-out and on demand.
    ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
-   exactly like a full one's, and while a wrong yes only spends a second full run at each integration point, a
-   wrong no lets a cross-domain break past every one of them.
+   exactly like a full one's, and while a wrong yes only spends a full run at each close-out, a wrong no lets
+   a cross-domain break past it.
 
 ### Then write the keys
 
@@ -228,6 +229,7 @@ different question and this pass's own.
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
 | `scopedCheck` | The no-build, no-test subset |
+| `targetedTest` | The project's test runner, as a template running named tests or files: `{files}` for test paths, `{names}` for test names (`vitest run {files}`). **Omit** where no runner takes either |
 | `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |
 | `sharedResources` | **The maintainer's answer, not a file's** — the first ask; `[]` when nothing |
 | `reclaim` | `{report, drop}`, the project's own sweep — the second ask. **Omit** unless an entry is durable AND the commands exist |
@@ -303,7 +305,8 @@ first one.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip resolved **locally**
    (`git -C <repo> rev-parse <base>`) — no fetch, no freshness count: the config's reader is what is under
    test. The full fetch-and-compare belongs at **dispatch**.
-3. **The gate command exists.** Run the *scoped* check for real; for the heavy ones — `gate`, and `fullGate`
+3. **The gate command exists.** Run the *scoped* check for real, and `targetedTest` where declared over one
+   existing test; for the heavy ones — `gate`, and `fullGate`
    where declared — `<pm> run <script> --help` is enough.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
    the PR carries the verdict comment. Then three more, each invisible to the one before it:

@@ -39,7 +39,8 @@ what you accept, scoped check, one more commit, push again onto the same PR) →
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
 in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
 (`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
-**one targeted test file run directly** — the widest test execution you get.
+**one targeted test run** — the project's `targetedTest` over your tests where it declares one, and one test
+file run directly where it does not — the widest test execution you get.
 **A change to a module's export surface widens that budget** — adding, removing or renaming an export, or
 moving code between modules, breaks every test that mocks or imports the module, and none of those is a file
 you touched — so it also covers every test file that mocks or imports that module, found by grepping its
@@ -145,7 +146,7 @@ before each commit, where neither does.
 
 **Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
 self-granted, never inferred — **and a declared `fullGate` is never yours in either mode**, its runs being
-your dispatcher's at the integration points:
+your dispatcher's at the close-out and on demand:
 
 - **Queue mode — the project declares `enqueue` and `drain`: you do NOT run `gate`, and the ban is on
   the WORK, not the command name.** Never run the full suite or any whole-package test run

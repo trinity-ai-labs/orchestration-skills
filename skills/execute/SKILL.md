@@ -111,11 +111,10 @@ its own draft PR, whose shape is draft, panel review with its dimension comments
 comment, posted review, merge — draft-before-gate all along, the panel and the fix round it can earn arriving
 with the close-out review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration
 gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a
-slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it; and,
-only where the project declares `fullGate`, the **wave-end gate** as a PR-less ticket too, every integration
-and close-out ticket there carrying the `full` mode that runs `fullGate`. A runner scaffolded before that
-ticket type refuses it, as one not verified to take that mode may, and only there is a hand-run gate
-sanctioned. **In a project declaring no
+slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it, unless a
+green `gate` verdict already covers that same tree; only the close-out ticket and an on-demand run carry the
+`full` mode that runs a declared `fullGate`. A runner scaffolded before that ticket type refuses it, as one
+not verified to take that mode may, and only there is a hand-run gate sanctioned. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
 
@@ -172,10 +171,9 @@ says a gate finished, not that anyone read the change.
 
 ### 4. Land it → `skills/execute/references/landing.md`
 
-Gate the integrated whole when a merge combined work from more than one slice — and, where the project
-declares `fullGate`, run it after every such merge with no skip on an empty merge diff, plus a wave-end gate
-on each wave's merged tip — then merge, clean up and sync as one step, and close each issue the PR settled
-with a comment that is its outcome record — one `gh-post` close per issue, keyed `outcome/<n>/<pr>`
+Gate the integrated whole with `gate` when a merge combined work from more than one slice — a declared
+`fullGate` runs only at the epic's close-out and on demand — then merge, clean up and sync as one step, and
+close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue, keyed `outcome/<n>/<pr>`
 (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
@@ -200,7 +198,8 @@ reference.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.**
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
-   foreground or background. One targeted test file is the widest run you get — plus, on a change to a
+   foreground or background. One targeted test run — `targetedTest` where declared, else one test file — is
+   the widest run you get — plus, on a change to a
    module's export surface, each test file that mocks or imports it, run singly; the one gate run you ever
    make is in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there.

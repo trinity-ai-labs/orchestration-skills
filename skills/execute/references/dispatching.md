@@ -99,7 +99,9 @@ value does to a brief, and every pasted block below whose right form depends on 
 | `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
 | `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
-| | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours (*Gate the integrated whole*). |
+| | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours at the close-out and on demand. |
+| `targetedTest` | declared | The ban's *Your only test execution* sentence names it, its `{files}` or `{names}` filled with the slice's tests. |
+| | absent | That sentence keeps its one-file form. |
 | commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
 | | neither does, or each runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
@@ -182,9 +184,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   **A suite result a slice needs is always yours**, as its failure SET by name and taken on that commit before
   you dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run —
   and in queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that
-  result only where it names every failure — **which is a field on the ticket, the failure set by identifier,
-  so a red verdict IS a usable baseline where that field is filled in and a failing tail alone still is
-  not** — and where it is not, you gate that commit on the worktree you are about to dispatch into, as a
+  result outright where it is green, so no baseline ticket is gated, and where it is red only where its
+  failure-set field names every failure by identifier, a failing tail alone never being one — and where it is not, you gate that commit on the worktree you are about to dispatch into, as a
   PR-less ticket where the project declares `enqueue`/`drain` and by running `gate` there yourself where it
   declares neither, dispatching once it settles.
   **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a
@@ -259,7 +260,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   and the brief says instead that this run is the only gate run the slice makes, carrying the ban's
   *Your only test execution* sentence as its test budget all the same:
 
-  > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is a SINGLE targeted test file (`vitest run path/to/x.test.ts`), and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
+  > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is `<targetedTest>` over the slice's own tests, or where the project declares none a SINGLE targeted test file (`vitest run path/to/x.test.ts`), and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
   `/pipeline:review` is the implementer's own quality + correctness pass over the PR it has just pushed, read
   against that PR's real diff and posted back onto it as a review with one comment per dimension beside it:
@@ -292,7 +293,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   `skills/procedures/host-tools.md`, a hook of either kind only *checking* formatting rather than fixing it,
   or, where neither does, by the implementer running `scopedCheck` itself before each commit.
 - **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
-  scoped check and the one targeted test file, and in in-line mode the one `gate` run as well. The ban above
+  scoped check and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check backgrounded with the turn ended on
   it. **It states the two waits as two rules, each naming its own subject** — a command the slice started,
   whose exit re-invokes nothing, and a sub-agent it spawned, whose report does — since one sentence carrying
@@ -620,7 +621,7 @@ the tick's other riders below reach it: the integration-branch sync, the stash s
 On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
 the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
 queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree — `gate` by
-default, and `fullGate` on a `full` ticket where the project declares it —
+default, and `fullGate` on a `full` ticket — the close-out's or an on-demand run's — where the project declares it —
 **behind the slim machine-wide slot — one gate at a time** — then comments the verdict on the PR, a pass on
 green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick
 re-invokes it.

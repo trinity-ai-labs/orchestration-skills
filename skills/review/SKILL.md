@@ -374,7 +374,7 @@ cause or revert that edit — never suppress the check.
 
 ⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one run per PR — a runner's where
 the project declares `enqueue`/`drain`, the caller's own single in-line run where it declares neither, and the
-integration points' `fullGate` where it declares one — and running it here saturates the machine that run
+epic close-out's `fullGate` where it declares one — and running it here saturates the machine that run
 needs. Backgrounding a banned run does not make it allowed. **No reviewer runs one either**, which is why no
 brief you write names a test command.
 

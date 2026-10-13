@@ -217,10 +217,11 @@ reviewer's own findings and what the pass did with every one of them — applied
 out of scope — and the review links them, so one click from the summary reaches a dimension's full report.
 They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record naming the
 merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
-ran or was skipped and why, links back to the PR's reviews, dimension comments and gate comment, and the
-arc's other PRs that landed beside it — so a closed issue says what happened to it without anyone opening the
-PR. The dispatcher writes that run-or-skip decision into its own review on the PR as well, so a PR with no panel
-review on it reads as a recorded skip or as a write that went missing, never as a blank that could be either.
+ran, was skipped and why, or was left to a review checkpoint, linked, links back to the PR's reviews,
+dimension comments and gate comment, and the arc's other PRs that landed beside it — so a closed issue says
+what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip decision into its
+own review on the PR as well, so a PR with no panel review on it reads as a recorded skip or as a write that
+went missing, never as a blank that could be either.
 
 A posted review is a different artifact from the
 gate's plain comment, which is what keeps the two readable side by side. `merge-pr.sh` is the only thing that
@@ -239,16 +240,18 @@ branch, which the orchestrator authors and then merges. It is a draft like every
 *first* and the integrated close-out check runs against it — enqueued, its verdict commented there, where the
 project declares a queue, and run by the dispatcher in the epic's own worktree where it declares none — green
 before the **merge**, which is the step that actually puts the change set on the shared branch, rather than
-before the open, which puts nothing anywhere. What stands in for the hand-back there is the epic's panels: **the close-out PR carries a full
-`/pipeline:review` panel of its own**, the last checkpoint, run between its open (where no checkpoint opened
-it) and its gate over the epic's change since the last checkpoint's reviewed head — every dimension the
-project offers, asked of how the slices compose, which no slice's own diff shows. **Checkpoint review is how the epic is read before then.** On an epic branch the dispatcher runs one
-`/pipeline:review` panel over the epic tip after whichever merges or wave it chooses, rather than a panel per
-slice, and its dispatch report states that plan. A checkpoint reads the diff since the last checkpoint's
-reviewed head (the fork point the first time), posts onto the epic's own PR into the integration branch,
-which opens as a draft at the first checkpoint and stays one until the close-out merge, and sends accepted
-findings to one fix agent in the epic worktree before the next slice forks. A slice still gets its own panel
-for seams, security, auth, data or irreversible changes, or substantial work with no epic branch. So the
+before the open, which puts nothing anywhere. What stands in for the hand-back there is the epic's panels:
+**the close-out PR carries a full `/pipeline:review` panel of its own**, run between its open (where no review
+checkpoint opened it) and its gate over the PR's whole diff — every dimension review offers on it, asked of
+how the slices compose, which no slice's own diff shows. **Review checkpoints are how the epic is read before
+then.** On an epic branch the dispatcher runs a `/pipeline:review` panel over the epic tip after a contract
+seam lands or about every three to four merged slices — none mid-epic on an arc of four slices or fewer —
+rather than a panel per slice, and its dispatch report states that plan. A review checkpoint reads the
+change since the previous one's reviewed head (the fork point the first time), posts onto the epic's own PR
+into the integration branch, which opens as a draft at the first one and stays one until the close-out
+merge, and sends accepted findings to one fix agent in the epic worktree, which gates its delta in-line and
+pushes before the next slice forks. A slice still gets its own panel for seams, security, auth, data or
+irreversible changes, or substantial work with no epic branch. So the
 close-out PR ends up carrying the same two artifacts a slice's PR does, the panel's review
 first and the orchestrator's own read after it, and neither of them the approval — the `draft → ready` flip is
 still that. **What does not carry across is the sentence above about who wrote the panel.** A slice's panel is

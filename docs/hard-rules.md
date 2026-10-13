@@ -24,7 +24,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   permission, and may **lower** it only with a written reason in the brief, since the cheaper reading is
   always the defensible one and a silent downgrade leaves no artifact at all — the hand-back names no tier and
   the diff carries none. The same pass's brief also **recommends** how a slice is reviewed, on
-  the same reading: on an epic branch, checkpoint reviews over the epic tip by default, and a per-slice panel
+  the same reading: on an epic branch, review checkpoints over the epic tip by default, and a per-slice panel
   for seams, security, auth, data or irreversible changes, or substantial work with no epic branch; the
   dispatcher may override it with a reason of its own; whichever way it decides, the
   decision and its reason are written into the review it posts on that slice's PR and into the issue's closing
@@ -49,8 +49,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   a computed invariant replaces a case per combination, and a unit test is kept for real logic. **A permanent
   test is a guard, never a probe**: a bug earns one only when it is easy to reintroduce, would slip by
   unnoticed and is costly if shipped, an existing test is extended before a new one is added, one
-  representative unit, theme or size is the default with sweeps at an epic's close-out only, and a test that
-  costs more than its bug is deleted (`skills/procedures/code-shape.md`, *Placing new code and a new test*;
+  representative unit, theme or size is the default — a sweep needs a written reason, and runs only under
+  `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or costs more
+  than its bug is deleted (`skills/procedures/code-shape.md`, *Test policy*;
   review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). Every test is
   tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
@@ -209,7 +210,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   raw `gh api` call, and the call's contract, that list included, is
   [`skills/procedures/github-writes.md`](../skills/procedures/github-writes.md).
 - **The run's tests are single files, and a change to a module's exports widens which files, never to a
-  suite.** An implementer runs one targeted test run — the project's `targetedTest` where it declares one, else one test file — while it builds; where its change adds, removes or
+  suite.** An implementer runs one targeted test run — the project's `targetedTest` where declared, else
+  single test files, each run singly, never a suite — while it builds; where its change adds, removes or
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
@@ -278,11 +280,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   matches or several is a stop; never an argument-less `git stash pop`, `apply` or `drop`; `git stash clear`
   is banned outright.
 - **A reversal is RUN rather than read off the diff, and a reader never runs one.** A verify bar that proves
-  the test carrying the fix, extended or new, fails against the pre-change code has some seat move a tree to do it, so the bar states how
-  rather than leaving the means to whatever is quickest. The shape is decided by the reversal needing the
-  new test standing while the code under it is pre-change: commit the work, make the breaking edit, run the
+  the fix's test fails against the pre-change code has some seat move a tree to do it, so the bar states how
+  rather than leaving the means to whatever is quickest. The shape is decided by the reversal needing that
+  test standing while the code under it is pre-change: commit the work, make the breaking edit, run the
   one targeted test, then restore it — or stash the production file alone under the agent's own marker,
-  where that push is itself the break and its pop restores; never the whole tree, which carries the new test
+  where that push is itself the break and its pop restores; never the whole tree, which carries that test
   away with the change. Or the reversal runs against the slice's fork point, where the pre-change code is
   already a commit and no tree moves at all. **A review pass's readers sit outside that entirely** — they
   read one tree concurrently while the agent that wrote it still holds it, so a reader asks that agent for
@@ -382,16 +384,17 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   hand-run close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR
   settled yourself, one `gh-post` close each, which posts a comment on each that is its **outcome record**
   before closing it: the merge commit and the branch it landed on, the goal verdict, whether the review pass
-  ran or was skipped and why, the findings it rejected and flagged, links to the PR's dimension comments, its
-  reviews and its gate comment, and the arc's other PRs beside it — taken off the slice PR's own body, which
-  the implementer writes listing the arc's other open PRs, so that PR's reviewer sees what lands beside it
-  too. It goes on every issue that PR settled, whether or not GitHub already closed it, so a closed issue says
-  what happened to it without anyone opening the PR. GitHub's closing keywords are interpreted only when the
-  PR's base is the repo's **default** branch, so a PR into an epic branch or into an integration branch that
-  isn't the default closes nothing, and the hand-close is the whole mechanism.
-  Where the integration branch simply **is** `main`, a PR based on it targets the default branch and they do
-  fire: the hand-close's state change is then a harmless no-op and its comment still goes on, but a stray
-  `Closes #<n>` closes that issue the moment that PR merges — too early, if the arc still has cycles to run.
+  ran, was skipped and why, or was left to a review checkpoint, linked, the findings it rejected and flagged,
+  links to the PR's dimension comments, its reviews and its gate comment, and the arc's other PRs beside it —
+  taken off the slice PR's own body, which the implementer writes listing the arc's other open PRs, so that
+  PR's reviewer sees what lands beside it too. It goes on every issue that PR settled, whether or not GitHub
+  already closed it, so a closed issue says what happened to it without anyone opening the PR. GitHub's
+  closing keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an
+  epic branch or into an integration branch that isn't the default closes nothing, and the hand-close is the
+  whole mechanism. Where the integration branch simply **is** `main`, a PR based on it targets the default
+  branch and they do fire: the hand-close's state change is then a harmless no-op and its comment still goes
+  on, but a stray `Closes #<n>` closes that issue the moment that PR merges — too early, if the arc still has
+  cycles to run.
 - **No AI attribution on anything the flow writes to GitHub in your name** — a commit message, a PR body, a
   review it posts on a PR and that review's inline comments, a comment it posts on a PR, an issue or a comment
   on one. The configured git user is the only author any of them names: no trailer, line, footer or URL naming

@@ -5,26 +5,25 @@ writes `.agents/worktree.json`, and scaffolds a durable gate queue *into that re
 the plugin carries the knowledge, the project owns the code, so each queue can evolve independently.
 
 **What it cannot ground, it asks you** — and everything it asks belongs to one class: the values no file in
-your repo could contain, so expect to be asked and read no list of them as closed.
-**What your checks touch that lives outside the worktree** — a database, a Redis instance, a cache directory,
-a fixed port — and what gives each worktree its own: that becomes `sharedResources`, and "nothing" is an
-answer worth recording rather than a key to leave out. **Where that answer was not "nothing", the follow-on:
-what drops what the isolation creates, once the worktree is gone?** The plugin never knows what the tree
-made — so where you already have a sweep, its two commands become `reclaim`, and `remove-worktree` runs its
-`drop` after every removal; where you do not, setup hands the gap back rather than writing one for you.
-**If resources have already piled up, run your `drop` by hand once before adopting this** — the first removal
-otherwise pays the whole backlog in the foreground, during a merge.
-**Whether your gate is partial** — whether it runs only what a change can affect rather than the whole suite.
-Only a yes declares `fullGate`, your full-suite command, which the flow then runs at an epic's close-out
-and on demand while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as
-before. Setup never guesses this from a script's name.
-**Setup also derives your test runner's targeted form** — `targetedTest`, a template taking test files or
-names — and confirms it with you; where no runner takes either it is left out.
-**And one that is not a fact about your repo at all — consent:** may a run that finds a defect in *the
-pipeline itself* write it into this plugin's own public repository — opening an issue about it, or commenting
-on one already describing that failure? That is `upstreamFindings`
-([Filing findings upstream](filing-findings-upstream.md#filing-findings-upstream-off-by-default)), it is put
-flat with no case made for it, and only an explicit yes writes anything.
+your repo could contain, so expect to be asked and read no list of them as closed. **What your checks touch
+that lives outside the worktree** — a database, a Redis instance, a cache directory, a fixed port — and what
+gives each worktree its own: that becomes `sharedResources`, and "nothing" is an answer worth recording rather
+than a key to leave out. **Where that answer was not "nothing", the follow-on: what drops what the isolation
+creates, once the worktree is gone?** The plugin never knows what the tree made — so where you already have a
+sweep, its two commands become `reclaim`, and `remove-worktree` runs its `drop` after every removal; where you
+do not, setup hands the gap back rather than writing one for you. **If resources have already piled up, run
+your `drop` by hand once before adopting this** — the first removal otherwise pays the whole backlog in the
+foreground, during a merge. **Whether your gate is partial** — whether it runs only what a change can affect
+rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, which the flow then runs
+at an epic's close-out and on demand while `gate` stays the per-change gate; a no, or no answer, leaves `gate`
+the full gate everywhere, exactly as before. Setup never guesses this from a script's name. **Setup also
+derives your test runner's targeted form** — `targetedTest`, a template taking one of test files or names —
+and confirms it with you; where no runner takes either it is left out. **And one that is not a fact about your
+repo at all — consent:** may a run that finds a defect in *the pipeline itself* write it into this plugin's
+own public repository — opening an issue about it, or commenting on one already describing that failure? That
+is `upstreamFindings` ([Filing findings
+upstream](filing-findings-upstream.md#filing-findings-upstream-off-by-default)), it is put flat with no case
+made for it, and only an explicit yes writes anything.
 
 **It also checks the shape of your agent guidance, and says so first when it is a mess.** The layout it looks
 for: at each directory that carries guidance an `AGENTS.md` that is a *router* — what the directory is, the
@@ -39,22 +38,22 @@ rather than moved so you can object to each. `/pipeline:orchestrate` runs the sa
 puts a monolith at the top of its report, pointing back here; it never stops over one and never edits your
 guidance itself. No config key controls any of this.
 
-**Then it runs `/pipeline:health`, and tells you second what costs every change.** That command looks for a map
-from your files to the domains they belong to, for tests tagged with the domain they are about, and at how long
-one full run of your suite takes and how much of it a domain filter could select — each figure with its unit.
-Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt* setup
-reports from it, right after any monolith: measured, with a first recommendation to **prune or merge tests**, from health's `Prune candidates` (the
-slowest tests, the loops with the most sweep multiplicity, same-shaped files that merge into one table-driven
-test, probes committed as cases, tests that cannot fail; health lists them and never deletes one), and
-**split the gate** as the alternative — bootstrap the
-map, tag the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map,
-then declare `fullGate` — as your own change, taken through `/pipeline:co-think` and `/pipeline:write-issue`
-with setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its
-cost: the map alone, the tags alone, or a gate queue so full runs at least stop contending. Setup never
-restructures your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling
-`Setup debt` issue in your tracker, appending what it measures and ticking off what is gone, so run again — by
-setup on a reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it
-reports each item beside its last value.
+**Then it runs `/pipeline:health`, and tells you second what costs every change.** That command looks for a
+map from your files to the domains they belong to, for tests tagged with the domain they are about, and at how
+long one full run of your suite takes and how much of it a domain filter could select — each figure with its
+unit. Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt*
+setup reports from it, right after any monolith: measured, with a first recommendation to **prune or merge
+tests**, from health's `Prune candidates` (the slowest tests, the loops with the most sweep multiplicity,
+same-shaped files that merge into one table-driven test, probes committed as cases, tests that cannot fail;
+health lists them and never deletes one), and **split the gate** as the alternative — bootstrap the map, tag
+the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map, then
+declare `fullGate` — as your own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
+setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its cost:
+the map alone, the tags alone, or a gate queue so full runs at least stop contending. Setup never restructures
+your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
+issue in your tracker, appending what it measures and ticking off what is gone, so run again — by setup on a
+reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each
+item beside its last value.
 
 It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where you
 named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two

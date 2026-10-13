@@ -152,20 +152,22 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
   - **The arc's goal and the phase's deliverable came with the issue; this is that altitude one step down.**
     Carrying it here is what makes the chain end to end rather than stopping at the phase boundary — arc goal,
     phase deliverable, slice goal, and a reader at each of the two ends of the slice.
-- **Verify** — what "done" looks like: the behavior, the tests to add or touch, the acceptance check.
-  - **For a slice that adds a check or fixes a bug, the bar includes proving the new test fails against the
-    PRE-change code — and names the specific reversal that proves it**: restore the old matcher and confirm
-    the new fixture goes red, point the test's mock back at the old symbol, reverse the rename and confirm the
-    formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an implementer
+- **Verify** — what "done" looks like: the behavior, the tests added or extended with the case count, each
+  new guard's reason (`skills/procedures/code-shape.md`, *Placing new code and a new test*), and the
+  acceptance check.
+  - **For a slice that adds a check or fixes a bug, the bar includes proving that the test carrying the fix,
+    extended or new, fails against the PRE-change code — and names the specific reversal that proves it**:
+    restore the old matcher and confirm the new fixture goes red, point the test's mock back at the old
+    symbol, reverse the rename and confirm the formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an implementer
     can report with nothing behind it.
   - **A reversal MOVES the implementer's tree, so a bar that names one names the mechanic beside it, or the
     seat performing it reaches for whatever is quickest** — a blind pop off a stack every worktree of the
-    repo shares, a copy of the file parked outside git where one `rm` ends it. **A reversal needs the new
+    repo shares, a copy of the file parked outside git where one `rm` ends it. **A reversal needs that
     test STANDING while the code under it is pre-change, and that is what decides which mechanic the bar can
     ask for** (`skills/ground-rules/SKILL.md`, rules 6 and 7): the commit shape — commit, break, run the one
     targeted test, restore with `git checkout -- <file>` or from that commit — or a marked stash of the
     production file alone, whose push is itself the break and whose pop restores it. A bar that instead asks
-    for the whole tree stashed has asked for the new test to be carried away with the change.
+    for the whole tree stashed has asked for that test's case to be carried away with the change.
     **Or write the bar so the reversal runs against the FORK POINT**, where the pre-change code is already a
     commit and no tree has to move at all — the cheapest of the three whenever the slice's own base still
     carries the behaviour being broken.

@@ -9,9 +9,9 @@ description: >-
   says to run a review pass for the slice, and whenever you are asked to review, tighten, simplify
   or clean up a change that is already up as a PR. Dispatches one briefed reviewer per dimension
   over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
-  efficiency, altitude and a project's stated rules and conventions — then weighs what they report, applies
-  what it judges right, posts its findings onto the PR as a review with one comment beside it per dimension
-  it dispatched, and reports what it rejected.
+  efficiency, altitude, redundant or over-swept tests and a project's stated rules and conventions — then
+  weighs what they report, applies what it judges right, posts its findings onto the PR as a review with
+  one comment beside it per dimension it dispatched, and reports what it rejected.
 ---
 
 # Review — the pass over your own open PR
@@ -105,11 +105,11 @@ its own, or a finding reaches you from a reader that never established it. The h
 this file carries what a brief may and may not contain, and it is the load-bearing half of this
 step — read it before you write the first brief.
 
-**How many fire is your call, decided per slice the way the model tier already is.** Seven possible
-reviewers makes selection the cost control: a mechanical rename or a one-line fix does not earn seven
-readers, and a slice with no stated rules or conventions to check against earns six at most. Say in your
-report
-which dimensions you ran and which you judged the slice did not need.
+**How many fire is your call, decided per slice the way the model tier already is.** Eight possible
+reviewers makes selection the cost control: a mechanical rename or a one-line fix does not earn eight
+readers, Rules & Conventions fires only where the project states rules or conventions to check against, and
+Redundant or over-swept tests only where the diff adds or changes tests. Say in your report which dimensions
+you ran and which you judged the slice did not need.
 
 **Their TIER is the other half of that same selection, so name it in each spawn rather than leave it to
 default** — a host handed no model gives a reviewer the model YOU are running, which fans your own tier
@@ -141,6 +141,7 @@ be deleted, and agreement between separate readers is the evidence this pass exi
 | Efficiency | the diff's loops, lookups and I/O | the only lens with a quantity behind its verdict rather than a judgement |
 | Altitude | the diff against the layer each piece belongs in | reads placement and naming, not behaviour — a correct line in the wrong layer passes every other lens |
 | Rules & Conventions *(where a project states rules worth a pass)* | the diff against the project's stated conventions and its gate | reads a rulebook rather than code |
+| Redundant or over-swept tests *(where the diff adds or changes tests)* | the tests the diff adds or changes, against the suite already there and the project's test policy | the only lens asking whether a test should exist at all, and the one that proposes deletions |
 
 **Reuse, simplification, efficiency and altitude look mergeable and are not, and merging them spends
 the one thing N readers buy.** When three of them land on the same site by three different routes, that
@@ -184,9 +185,9 @@ asks a reviewer to change anything.
   assertion checked against the value that configured its own mock, a constant asserted against itself, a
   check the implementation could never violate — is not coverage: it passes on a broken change exactly as it
   passes on a correct one. Report it as a defect in the test, not as ground the diff has covered.
-- **A reversal is never yours to PERFORM and never yours to delegate.** Confirming that a new test fails
-  against the pre-change code means mutating a tree your caller holds and your sibling readers are reading
-  at this same moment, which is why your brief leaves you no command that moves or clears one — a bar set by
+- **A reversal is never yours to PERFORM and never yours to delegate.** Confirming that the test carrying the
+  fix, extended or new, fails against the pre-change code means mutating a tree your caller holds and your
+  sibling readers are reading at this same moment, which is why your brief leaves you no command that moves or clears one — a bar set by
   this pass's own concurrency, and stricter than what a seat working alone in its own worktree is held to,
   where the same marked stash is sanctioned. You are also the last agent in your chain, so there is nobody
   to hand it to either (`skills/ground-rules/SKILL.md`, rule 2). **Ask the caller for the reversal the
@@ -269,6 +270,20 @@ reads. Nor
 - **A rule stated in two places that disagree is a finding**, and the report says which copies you read
   and which one you took as authoritative.
 
+#### Redundant or over-swept tests
+
+Judged against the test policy in `skills/procedures/code-shape.md`'s *Placing new code and a new test*,
+which defines a guard and a probe. Report each of these with the deletion or merge you propose:
+
+- **A test the diff adds that duplicates one already in the suite** — name the existing test that carries
+  the case, or would with one more case.
+- **A sweep across every unit, theme or size with no written reason beside it** — name the one
+  representative it should run instead.
+- **A probe committed as a guard** — a check that proved this one fix and guards nothing.
+- **A guard whose bug fails the three-part bar** — say which of the three it fails.
+
+**Not a test that cannot fail** — that is the Correctness reviewer's finding.
+
 ### The ceiling on every dimension
 
 **Every finding a reviewer reports carries what `skills/ground-rules/SKILL.md` rule 13 asks of anything
@@ -346,8 +361,8 @@ report alone; the hard rule at the end of this file carries what you do about it
 the ones `git status` cannot see.
 
 **Read the goal reviewer's report first.** Every other dimension asks whether the code is good and none
-of them asks whether it achieved anything, so a diff aimed at the wrong thing comes back with six clean
-reports and gets steadily tidier. Then work down: a correctness fix can introduce something to
+of them asks whether it achieved anything, so a diff aimed at the wrong thing comes back with every other
+report clean and gets steadily tidier. Then work down: a correctness fix can introduce something to
 simplify, and a simplification can expose a correctness problem, so applying a simplification before
 you have applied the correctness fix spends the edit twice.
 

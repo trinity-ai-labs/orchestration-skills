@@ -33,7 +33,7 @@ GitHub and the `gh` CLI behave, true whether or not this pipeline exists — is 
 | `skills/procedures/config-keys.md` | Every key in `<repo>/.agents/worktree.json`, and the two a workspace declares in `.agents/workspace.json` — what each one means, and what its absence means |
 | `skills/procedures/host-tools.md` | The host tool behind each capability this flow needs, the tier-to-model table, and the two questions to answer before calling a helper |
 | `skills/procedures/agent-guidance-layout.md` | Reading a project's agent guidance for one piece of work, checking its shape for a monolith, the four-question test that places a line, and the steps of a split |
-| `skills/procedures/code-shape.md` | Reading a project's code shape, the signals and how to take each with its unit, placing new code and a new test, recognising a missing tool, and the properties a split gate needs to be safe |
+| `skills/procedures/code-shape.md` | Reading a project's code shape, the signals and how to take each with its unit, the test policy (guard or probe) and placing new code and a new test, recognising a missing tool, and the properties a split gate needs to be safe |
 
 ## The admission test, and what it keeps out
 

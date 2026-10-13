@@ -37,10 +37,25 @@ of import lines answer different questions.
 | Wrong-way imports | imports crossing domains other than through shared code, or against the project's declared layering | map each import line's source and target to domains | import lines, listed | a change in either domain reaches the other |
 | Full-gate cost | what one full run of the suite costs | time one run, or read the last few from the project's own build history | minutes per run, and test count | spent by every change where nothing narrows the gate |
 | Selectable share | tests a domain filter can pick | tagged tests whose tag is checked | test files, and their share of all test files | the rest runs on every change |
+| Tests per domain | how many tests assert about each domain | count the tests per domain tag, or per domain folder where tests carry no tag | tests, per domain | each runs on every change its domain's gate selects |
+| Minutes per domain | what each domain's tests cost per run | sum the per-test or per-file timings the project's own gate prints, grouped by domain | minutes per run, per domain | paid by every change that selects that domain |
+| Sweep multiplicity | how many times a loop runs each case written once — unit × theme × size and the like | for each parameterised loop, the cases it runs divided by the cases written in it | cases run per case written, per loop, with its file | every written case in the loop costs that many runs on every gate |
 
 ## Placing new code and a new test — in order
 
-Stop at the first answer that places it.
+**First, whether a permanent test should exist at all:**
+
+- **A guard is a permanent test, committed and run by every gate; a probe is a check run once to learn
+  something or to prove a fix, and is never committed as a permanent case.**
+- **Extend an existing test that fails on the bug before adding a new one** — a new test only where no
+  existing test can carry the case.
+- **A bug earns a guard only when all three hold: it is easy to reintroduce, it would slip by unnoticed, and it
+  is costly if shipped** — otherwise the fix plus a probe is the proof.
+- **One representative unit, theme or size by default** — a sweep across every combination needs a written
+  reason beside it, and runs at the epic's close-out only.
+- **A test that costs more to run than its bug would cost to ship is deleted.**
+
+Then place the code — stop at the first answer that places it.
 
 1. **Does the project's own guidance place it?** Yes → there.
 2. **Which one domain's behaviour does it change?** → that domain's folder, beside the code there it most
@@ -58,7 +73,7 @@ Stop at the first answer that places it.
 **Then its test:**
 
 1. **Find the seam** — the narrowest boundary a caller or a user crosses that exercises the behaviour: a
-   route, a command, a module's public interface. Test there.
+   route, a command, a module's public interface. Test there, at the cheapest level that exercises it.
 2. **A unit test only for logic with real branches inside one module.**
 3. **Tag it with its domain in the project's form**, and where tags are checked from evidence, confirm what
    the test imports or calls points at that domain.

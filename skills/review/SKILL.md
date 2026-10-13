@@ -42,7 +42,8 @@ same diff and forms the verdict its ready flip rests on, and the gate runs the f
 over it — a runner's, drained, where the project declares `enqueue`/`drain`, and the caller's own
 single in-line run where it declares neither. So this is neither a second gate nor the dispatcher's
 review, and it is never pointed at someone else's PR — it reads the one the caller has just opened,
-and it is the first thing written on it.
+and it is the first thing written on it, the one exception being the dispatcher's checkpoint and close-out
+panels on an epic's own PR.
 
 **It runs once per dispatch and it never re-triggers itself.** A fix round the caller makes on your
 findings is not a reason for this pass to fire again: the panel has already read the diff those fixes
@@ -386,7 +387,8 @@ pile of them.** The test is *same site, different reasons*:
 
 **Then verify, on a fixed budget.** The project's **scoped check** (`scopedCheck` in
 `<repo>/.agents/worktree.json`; `skills/procedures/config-keys.md` carries what that key means) plus,
-at most, a **single targeted test file** run directly, where one covers what you changed — and where an
+at most, one **targeted test run** — the project's `targetedTest` where it declares one, else a single test
+file run directly — where one covers what you changed — and where an
 edit you applied changes a module's export surface, each test file that mocks or imports that module, found
 by grepping its specifier, run singly. Read the
 project's config for the actual command rather than assuming one. If an edit breaks a check, fix the

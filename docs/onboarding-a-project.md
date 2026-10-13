@@ -15,9 +15,11 @@ made — so where you already have a sweep, its two commands become `reclaim`, a
 **If resources have already piled up, run your `drop` by hand once before adopting this** — the first removal
 otherwise pays the whole backlog in the foreground, during a merge.
 **Whether your gate is partial** — whether it runs only what a change can affect rather than the whole suite.
-Only a yes declares `fullGate`, your full-suite command, which the flow then runs at each integration point
-while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as
+Only a yes declares `fullGate`, your full-suite command, which the flow then runs at an epic's close-out
+and on demand while `gate` stays the per-change gate; a no, or no answer, leaves `gate` the full gate everywhere, exactly as
 before. Setup never guesses this from a script's name.
+**Setup also derives your test runner's targeted form** — `targetedTest`, a template taking test files or
+names — and confirms it with you; where no runner takes either it is left out.
 **And one that is not a fact about your repo at all — consent:** may a run that finds a defect in *the
 pipeline itself* write it into this plugin's own public repository — opening an issue about it, or commenting
 on one already describing that failure? That is `upstreamFindings`
@@ -41,7 +43,10 @@ guidance itself. No config key controls any of this.
 from your files to the domains they belong to, for tests tagged with the domain they are about, and at how long
 one full run of your suite takes and how much of it a domain filter could select — each figure with its unit.
 Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt* setup
-reports from it, right after any monolith: measured, with a recommendation to **split the gate** — bootstrap the
+reports from it, right after any monolith: measured, with a first recommendation to **prune or merge tests**, from health's `Prune candidates` (the
+slowest tests, the loops with the most sweep multiplicity, same-shaped files that merge into one table-driven
+test, probes committed as cases, tests that cannot fail; health lists them and never deletes one), and
+**split the gate** as the alternative — bootstrap the
 map, tag the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map,
 then declare `fullGate` — as your own change, taken through `/pipeline:co-think` and `/pipeline:write-issue`
 with setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its

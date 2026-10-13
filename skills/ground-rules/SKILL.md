@@ -165,10 +165,14 @@ the seats here, and a seat that learns to spawn something is one of them the day
   by being placed, never by an edit to a central list every domain shares.
 - **Dependencies point one way**: nothing reaches into a sibling domain or against the project's declared
   layering, and what two domains share is shared code, never one importing the other.
-- **Prefer deep modules — much behaviour behind a small interface — and test at the seam a caller or a user
-  crosses, since the interface is the test surface**: callers and tests cross the same interface, so a test
-  that has to reach past it says the module is the wrong shape. Integration and end-to-end tests carry the
-  weight, and a unit test is for real logic inside one module, never for wiring.
+- **Prefer deep modules — much behaviour behind a small interface — and test at the seam a caller crosses, at
+  the cheapest level that exercises it, since the interface is the test surface**: callers and tests cross the
+  same interface, so a test that has to reach past it says the module is the wrong shape. A browser or
+  end-to-end test is only for what a user actually crosses, a computed invariant over the data (contrast,
+  sizes, radii, a table of units) replaces a browser case per combination, and a unit test is for real logic
+  inside one module, never for wiring.
+- **A permanent test is added only where the test policy admits it** — `skills/procedures/code-shape.md`,
+  *Placing new code and a new test*.
 - **Every test names the domain it asserts about, in the project's own tag form, and a tag nothing checks is
   a guess** — derive it from what the test imports or calls, or have it checked.
 - **A project's own layout and testing rules win**; these are the default only where its agent guidance is

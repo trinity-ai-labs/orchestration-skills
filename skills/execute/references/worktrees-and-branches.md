@@ -293,11 +293,11 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **That panel step is `/pipeline:review` invoked against THIS PR by number, exactly as any other caller
   invokes it, naming the last checkpoint's reviewed head as its base where one ran** — the pass reads a named PR's real diff and posts its findings back onto it as a review, with
   one comment per dimension beside it, and it runs here unaltered right through that post; **what differs is
-  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers on this
-  project — seven where the project states
-  conventions worth a pass, six where it states none — and never a selection narrowed to what this diff looks
-  like**, since how the slices COMPOSE — the state they share, the interactions that exist only once they sit
-  together — is visible on no slice's own diff.
+  only who acts on the findings**, which is the next rule. **Ask it for every dimension it offers here —
+  Rules & Conventions where the project states conventions worth a pass, Redundant or over-swept tests where
+  the diff adds or changes tests — and never a selection narrowed to what this diff looks like**, since how
+  the slices COMPOSE — the state they share, the interactions that exist only once they sit together — is
+  visible on no slice's own diff.
 
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own

@@ -288,6 +288,9 @@ merge you propose:
 - **A test the diff adds that duplicates one already in the suite** — name the existing test that carries
   the case, or would with one more case.
 
+**A deletion you propose names the domain-map entries and test tags the same change updates**, so the map's
+own check stays green.
+
 **Not a test that cannot fail** — that is the Correctness reviewer's finding.
 
 ### The ceiling on every dimension
@@ -394,8 +397,8 @@ Read the project's config for the actual command rather than assuming one. If an
 cause or revert that edit — never suppress the check.
 
 ⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one run per PR — a runner's where
-the project declares `enqueue`/`drain`, the caller's own single in-line run where it declares neither, and the
-epic close-out's `fullGate` where it declares one — and running it here saturates the machine that run
+the project declares `enqueue`/`drain`, the caller's own single in-line run where it declares neither, and a
+declared `fullGate` where a dispatcher runs one — and running it here saturates the machine that run
 needs. Backgrounding a banned run does not make it allowed. **No reviewer runs one either**, which is why no
 brief you write names a test command.
 

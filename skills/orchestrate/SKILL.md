@@ -168,8 +168,9 @@ memory of it**, the comment the hold wrote onto the tracked issue being where it
 who merged it on GitHub ran none of the steps this flow's own merge runs**, so its worktree still stands,
 its branch is still there and the local integration branch is still behind the tip every later cut is taken
 from, which makes finishing that close-out this cycle's first act rather than a tidy-up — and that
-close-out includes *Gate the integrated whole*'s `^2` check on that merge, running `gate` where it is
-non-empty, since a merge made outside this flow ran no integration gate.
+close-out includes, where that merge landed on the integration branch, *Gate the integrated whole*'s `^2`
+check on it, running `gate` where it is non-empty, since a merge made outside this flow ran no integration
+gate.
 **Still open and held** and nothing has landed: report which PR is still held exactly as the exit that left
 it there has you report it, leave that leaf where it is, and run the cycle on whatever else is ready.
 
@@ -227,7 +228,7 @@ the message before the stop — are that pass's own, and you are in it.
 
 **On an epic branch, decide first whether this cycle's merges end a review checkpoint**, by the plan your
 dispatch report stated: where they do, run the dispatcher's *Review checkpoints* — one `/pipeline:review`
-panel over the epic tip since its base SHA, its fix agent's gated push landing — before this checklist reads
+panel over the epic tip since its base SHA, its fix agent's push landing — before this checklist reads
 the tree.
 
 Run the checklist there — all of it, every cycle, in order — **after the increment has MERGED and against the
@@ -265,10 +266,10 @@ file*), and state what its summary says the `Setup debt` issue gained — a reco
 questions handed over. **A held arc runs it at the cycle that lands the held merge.**
 
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
-integration gate plus the epic → integration PR **where an epic branch was cut; where none was, the
+close-out gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **Where the project declares `fullGate`, the close-out gate runs it where
-an epic branch was cut, and where none was it never runs.** **Where one WAS cut, green takes a third thing and
+on the integration branch at step 2. **That close-out gate is `gate` over the epic's combined diff, plus a
+declared `fullGate` only where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).** **Where one WAS cut, green takes a third thing and
 only there: that close-out PR's own full `/pipeline:review` panel over the PR's whole diff, run before its
 gate and posting its review and one comment per dimension onto that PR** — a close-out that gated and skipped
 the panel is not yet green, since a gate says the suite passed over the combined tree and cannot say whether

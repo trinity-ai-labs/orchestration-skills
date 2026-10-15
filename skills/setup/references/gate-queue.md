@@ -41,9 +41,9 @@ the filename.
 selects the gate — `default` runs `gate`, the full suite wherever the project declares no `fullGate`, or a
 lighter one (e.g. `docs`) for a prose-only slice.
 
-**`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode the
-dispatcher's close-out ticket and an on-demand run carry there, since that project's `gate` may be
-partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
+**`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode a
+dispatcher's on-demand, release and boundary-moving close-out tickets carry there, since that project's `gate`
+may be partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
 never fall back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate
 produced, on exactly the tickets whose purpose was the full gate.
 
@@ -189,7 +189,7 @@ is what makes `done/` a ledger and delivery a retryable step.
 
 **The failure SET is the field a later reader compares against, and the failing tail cannot stand in for it.**
 Name every failure by the pair the reading seats already match on — the test file and the test name — across
-**every** package, so a red verdict is a usable baseline for the next tree gated at that commit. A tail is the
+**every** package, so a red verdict names exactly the tests to re-run by name at the slice's fork point. A tail is the
 last N lines of output and its membership is whatever fitted, so a reader handed one alone either re-gates or
 compares a set it reconstructed, and both of those are silent. Keep the tail too: it carries the diagnosis the
 set does not.

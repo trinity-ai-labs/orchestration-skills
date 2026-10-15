@@ -2,6 +2,28 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.21.0
+
+- **Test runs take a minority of an arc's time.** A slice pays its scoped check, its own tests by name and one
+  `gate` run on its PR. The suite baseline before dispatch is gone, the PR-less baseline ticket with it: a red
+  is checked by re-running only the failing tests, by name, at the slice's fork point, and is the slice's only
+  where they pass there. A merge into an epic branch takes no integration gate; the epic pays one `gate` over
+  its combined diff at close-out, a split gate's union of every domain it touched ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+- **`fullGate` runs when the boundary moves, not on a schedule.** Where a project declares it, it runs on
+  demand, before a release or install, and at a close-out whose epic moved the boundary — the domain map or its
+  checks, a shared-spine file, the toolchain or a lockfile, a term the glossary now defines. A split gate's loud
+  fallback to the whole suite now also fires on an edit to the map or the toolchain, and `cut-release`'s report
+  names `fullGate` as the check the release owes before it ships. No new config key ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+- **A review checkpoint's fix agent runs the scoped check and the tests by name for what it touched**, never
+  `gate`; the close-out gate reads its delta with the rest of the epic ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+- **Pruning keeps the map green, and the engine is a sweep axis.** A test deletion updates the domain map and
+  the test tags in the same change, and review's *Redundant or over-swept tests* dimension names both when it
+  proposes one; the browser or engine a case runs in is a sweep axis like unit, theme and size, one by default
+  ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+- **`health` measures `Gate share`**: minutes in gate and test runs over an arc's wall-clock, read from the gate
+  ledger, CI timestamps or gate logs and never by running anything, an item above 50% whose recommendation is
+  the prune candidates first, then the cadence above ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+
 ## 5.20.0
 
 - **The full gate runs at an epic's close-out only.** Where a project declares `fullGate`, it runs at the epic's

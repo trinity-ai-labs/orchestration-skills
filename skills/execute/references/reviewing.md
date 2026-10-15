@@ -33,20 +33,21 @@ status.**
   task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types) — or, where the project
   declares `fullGate`, across every package its diff can affect.
   A `Failed: <pkg>#test` line plus a non-zero exit is **RED**, even when the *first* package's summary you
-  happen to see looks like only the known baseline. Concluding "green-modulo-baseline" (see the transient-red
-  window below) from one package's `Test Files N failed` line — without confirming the failing SET across
-  *every* package is exactly the baseline — is precisely how a real regression in a *second* package rides
-  through to merge and surfaces only at the epic's integration gate. When you assert green-modulo-baseline,
-  enumerate the failing files across all packages and match them to the baseline set by name; a `cache miss,
-  executing …` line for a package whose *result* you never saw is a signal to go read that result, not to
-  assume it passed.
-  **Both sides of that match are fields on the ticket — the failure SET by identifier, and a per-step
-  executed-or-replayed record — so read set against set rather than reconstructing either from a failing
-  tail**, which carries the last N lines and not the membership this assertion turns on. **And read a step
-  marked replayed as establishing only that its inputs hash to a result already recorded green**: nothing ran
-  here, so a package whose every step replayed was not exercised by this gate at all and cannot clear a
-  regression that lives in the environment rather than in the diff — which is the bullet below, reached from
-  the other side.
+  happen to see looks like only failures that predate the slice. Concluding "green-modulo-fork-point" (see the
+  transient-red window below) from one package's `Test Files N failed` line — without checking the failing
+  SET across *every* package — is precisely how a real regression in a *second* package rides through to
+  merge and surfaces only at the epic's close-out gate; a `cache miss, executing …` line for a package whose
+  *result* you never saw is a signal to go read that result, not to assume it passed.
+  **A red is checked at the fork point, never against a suite baseline.**
+  Take the failure SET by identifier off the ticket, never off a failing tail, which carries the last N lines
+  and not the membership; re-run only those tests, by name through the targeted run, at the slice's fork
+  point (`git merge-base <head> origin/<base>`), in its worktree once the slice has handed back and its
+  ticket has settled, checking its branch back out after. **A failure that passes there is the slice's; one
+  that fails there too predates it.** In in-line mode the implementer's verdict already carries that split.
+  **And read a step marked replayed as establishing only that its inputs hash to a result already recorded
+  green**: nothing ran here, so a package whose every step replayed was not exercised by this gate at all
+  and cannot clear a regression that lives in the environment rather than in the diff — which is the bullet
+  below, reached from the other side.
 
 - **Several worktrees red at the same moment, with infrastructure-shaped errors, is ONE shared resource before
   it is N code defects — and it is the same instrument as the bullet above, pointed one level out.** That one
@@ -116,17 +117,17 @@ naming the ref you pushed) and that the project's own detector agrees the window
 epic.
 
 In that window a slice's gate — a drained ticket's where the project declares `enqueue`/`drain`, the
-implementer's own in in-line mode — will exit non-zero on the pre-existing baseline failures until every
+implementer's own in in-line mode — will exit non-zero on the pre-existing failures until every
 consumer migrates, and its comment on the PR will carry that failure. That's expected, **not** a real block.
 Read the gate's output as: the compile half (typecheck + lint) is GREEN, the task's OWN new/affected tests
-are GREEN, and there are NO failures beyond the baseline SET that pre-dated this task on its fork point (file +
-test names, not a count — fixing one stale test and breaking a new one keeps the count identical but is still
-a regression; the absolute count drifts between tasks forked at different tips and as consumers migrate). If
+are GREEN, and every remaining failure fails at its fork point too, each re-run there by name (*Reading a gate
+result* — file + test names, not a count: fixing one stale test and breaking a new one keeps the count
+identical but is still a regression). If
 it clears that bar, merge it with `merge-pr.sh` on that bar rather than a green exit — the merge is where you
 record having read it, and a red comment you have *judged* is not a blocker, only a verdict you have to read
 carefully. **This window changes what a satisfied pipeline LOOKS like and never who may merge, so the
 checkpoint's `autoMerge*` key is read here exactly as it is on any other merge** (*Merge & cleanup*): a
-judged-green baseline failure is a satisfied pipeline, and where that key holds the merge you post the
+judged red whose failures all predate the slice is a satisfied pipeline, and where that key holds the merge you post the
 holding comment, naming the key and the value it resolved to, on that same bar instead of invoking
 `merge-pr.sh`.
 
@@ -189,19 +190,19 @@ no queue, or a slice put in override mode — there is no ticket at any point** 
 already on the PR when the hand-back arrives (`skills/execute/references/per-project-config.md`). Then verify
 that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
-**Re-gate a fix round in proportion when the previous head gated green on the full gate**: where the project
-declares `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full
-gate, loudly, where the delta touches the shared spine or an unmapped file (`skills/procedures/code-shape.md`,
+**Re-gate a fix round in proportion when the previous head gated green**: where the project declares
+`fullGate`, run its partial `gate` over the delta since that green head, falling back to the full suite,
+loudly, where the delta moves the boundary or touches an unmapped file (`skills/procedures/code-shape.md`,
 *The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
 stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
 is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
 
 That named SHA is the one the verdict leads with — the implementer labels every other SHA the comment carries
-precisely so the unlabeled, leading one is unambiguous, and a labeled baseline is never it.
+precisely so the unlabeled, leading one is unambiguous, and a labeled fork point is never it.
 
 **Where the comment names no gated revision at all — no SHA singled out as the one `gate` ran against — do not
 fall back to the first SHA-shaped token in the text.** A verdict has every reason to carry other SHAs, the
-baseline it measured against most of all, and the first token in the comment is routinely that one: a commit
+fork point it checked a red against most of all, and the first token in the comment is routinely that one: a commit
 on the integration branch the PR's head will never equal, which fails this comparison in the direction that
 manufactures work rather than the one that catches a stale verdict. **Compare timestamp against commit time
 instead**: the comment's last-edit time (`updated_at`, since a re-gate edits its verdict in place) against HEAD's, taken as one commit rather than the whole log (`git log
@@ -436,7 +437,7 @@ registry, an exhaustive switch — anything the breakdown flagged as a *shared h
 recurring failure shape: a structure has sibling branches that must stay **twins** (e.g. two "parked → freeze
 every kill-clock" branches), each slice added its new clock's freeze-line only to the branches that existed
 *when it forked*, and the merge silently leaves the newer branch missing it — textually clean, behaviorally a
-reaper that kills a healthy job. **The integration gate won't catch it** unless a test exercises that exact
+reaper that kills a healthy job. **No gate will catch it** unless a test exercises that exact
 cross-slice interaction, which is precisely the case nobody wrote.
 
 So whenever a merge — auto-clean OR conflicted — touches a structure 2+ slices edited:
@@ -446,10 +447,10 @@ the reducer vs the renderer) must have received the **same** treatment from each
 **shared invariant** the breakdown handed you, if any. Fix drift forward as a small, clearly-messaged
 merge-reconcile commit — in the epic worktree where one holds the merges, and as a fix of its own where the
 merges landed on the integration branch, since the gate's own tree there is a throwaway carrying no commit and
-the main checkout is nobody's to code in (*Gate the integrated whole*) — then re-verify the interaction —
-enqueue an integration gate, PR-less if the merged tree has no PR (*Gate the integrated whole*), and run one
-directly only where there is no queue to put it in **or a runner that refuses the PR-less ticket** — two
-conditions, because a project with a working queue can still be the second (*Gate the integrated whole*).
+the main checkout is nobody's to code in (*Gate the integrated whole*) — then re-verify the interaction: on
+an epic branch its close-out gate does, and on the integration branch enqueue an integration gate, PR-less
+(*Gate the integrated whole*), run directly only where there is no queue **or a runner that refuses the
+PR-less ticket**.
 Resolve actual conflicts by **merging the branch's own PR base into it, in its worktree**
 (`git fetch && git merge origin/<the PR's base>`, keep BOTH concerns) — never rebase. Merge the base the PR
 actually targets, not the integration branch by reflex: for a slice based on an epic branch those are
@@ -484,8 +485,8 @@ release-branch PRs typically get no CI, so that gate run is what stands in for C
 the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
 which for a merged tree with no PR is a PR-less ticket (*Gate the integrated whole*), and by hand only where
 there is no queue or the runner refuses that ticket — only for a genuine reason: the runner never got to a
-ticket, or a **merge integrates branches that weren't tested together** (one integration gate on the merged
-result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
+ticket, or a **merge onto the integration branch integrates branches that weren't tested together** (one
+integration gate on the merged result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
 non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
 whole* below). Even then prefer the minimum — the affected/changed tests over the whole suite where possible.
 Your always-on job is reading the **diff**; heavy re-gating is conditional.

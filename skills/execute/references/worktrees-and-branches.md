@@ -267,14 +267,16 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts
   afterwards is provisioned the old way and you hand-apply. *Worktree creation* is the authoritative copy.
-- **Close-out is at most one gate plus one ordinary PR, and the ledger has to be empty before its panel runs**
-  (*Docs land at the end*). Once the last slice merges, merge the integration branch into the epic one final
-  time **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT where no review
-  checkpoint has opened it, run one full `/pipeline:review` panel against its whole diff, land any fix round
-  it earns, and only THEN enqueue the gate against it — in that order**, naming the epic worktree as the
-  ticket's worktree, and in the `full` mode where the project declares `fullGate`
-  (`skills/procedures/config-keys.md`), its `gate` being partial there. **Under `"epicMerge": "squash"` that
-  PR's title and body become the arc's one surviving commit message** (*Mechanics*), so write them as that.
+- **Close-out is one gate — a second only where the epic moved the boundary — plus one ordinary PR, and the
+  ledger has to be empty before its panel runs** (*Docs land at the end*). Once the last slice merges, merge
+  the integration branch into the epic one final time **in the epic's own worktree**, then **open the epic →
+  integration PR as a DRAFT where no review checkpoint has opened it, run one full `/pipeline:review` panel
+  against its whole diff, land any fix round it earns, and only THEN enqueue the gate against it — in that
+  order**, naming the epic worktree as the ticket's worktree. **The close-out gate is `gate` over the epic's
+  combined diff, its base the integration branch named explicitly** — a split gate's union of every domain the
+  epic touched — **plus `fullGate`, as a `full` ticket, only where that diff moves the boundary**
+  (`skills/glossary/vocabulary/code-shape.md`). **Under `"epicMerge": "squash"` that PR's title and body
+  become the arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,
@@ -309,8 +311,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   **Gate AFTER the fix round, never before it** — in proportion, by `skills/execute/references/reviewing.md`'s
   re-gate rule — since a ticket raised first both burns a serialized gate on
   code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
-  able to take a ticket back. Where the project declares **no queue**, gate the epic
-  branch in its own worktree yourself — `fullGate` where the project declares it — and read its exit status.
+  able to take a ticket back. Where the project declares **no queue**, run that close-out gate in the epic's
+  own worktree yourself and read its exit status.
 
   **Then one check stands between that green gate and the merge — `autoMergeEpicCloseOut`
   (`skills/procedures/config-keys.md`), read here, after the gate and before the helper.**
@@ -407,7 +409,6 @@ and your dispatch report states the plan for them.
   dimension comment's head SHA is the next checkpoint's base. The epic PR opens as a draft at the first
   checkpoint and stays one until the close-out merge.
 - **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
-  (*Mechanics*), **and its delta is gated before the next slice forks**, since every later slice forks from
-  that push: a PR-less ticket you enqueue where the project declares `enqueue`/`drain`, and the fix agent's
-  own one in-line `gate` run where it declares neither.
+  (*Mechanics*): **the scoped check plus the tests by name for what it touched, never `gate`**, the close-out
+  gate reading its delta with the rest of the epic.
 - **The close-out panel is not one of them**: it always runs, over the PR's whole diff, with no base SHA.

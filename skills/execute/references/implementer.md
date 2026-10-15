@@ -51,9 +51,9 @@ specifier: still single files, never a suite.
 `FP=$(git merge-base HEAD origin/<base>)` and report your delta against it without measuring it again — where
 the SHA differs it describes another tree, so ask, and one handed down with no SHA is not a baseline, so take
 your own and report both. **Anything else your verify bar compares against you take now, in the untouched
-tree**, within what your gate mode lets you run; **a suite result is never yours to take** — your dispatcher
-hands it down, where no dispatcher sent you you ask whoever invoked you, and either way you run the gate at
-most once. **Check both numbers share a UNIT before calling a difference a delta.**
+tree**, within what your gate mode lets you run; **a suite result is never a baseline and nobody takes one**
+— a red is checked at the fork point instead (*In-line mode* below). **Check both numbers share a UNIT before
+calling a difference a delta.**
 **Found you needed one after you started?** Read what git can show at the fork point there
 (`git grep <pattern> $FP`, `git show $FP:<path>`), ASK for what only a run produces, and only where no answer
 can reach you check the fork point out to run it, once git holds your work (`skills/ground-rules/SKILL.md`,
@@ -146,7 +146,7 @@ before each commit, where neither does.
 
 **Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
 self-granted, never inferred — **and a declared `fullGate` is never yours in either mode**, its runs being
-your dispatcher's at the close-out and on demand:
+your dispatcher's:
 
 - **Queue mode — the project declares `enqueue` and `drain`: you do NOT run `gate`, and the ban is on
   the WORK, not the command name.** Never run the full suite or any whole-package test run
@@ -160,15 +160,18 @@ your dispatcher's at the close-out and on demand:
   that cannot wake you* below) — and comment the result on it. That one run is the only gate run you make, and
   every other run the queue-mode ban names stays banned. **Capture that gate's own exit status, never a
   pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
-  flow's only evidence a gate ran.
+  flow's only evidence a gate ran. **A red is checked at your fork point before you comment it**: with your
+  work committed and pushed, check `$FP` out, re-run only the failing tests by name through the targeted run,
+  check your branch back out, and split the verdict's failures into those that pass there — yours — and those
+  that fail there too.
 
 **In both you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
 signature that it read your diff), **and never merge it**.
 
 **Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label
-every other SHA it carries, a baseline included, rather than leaving a reader to guess which one you mean.**
+every other SHA it carries, the fork point included, rather than leaving a reader to guess which one you mean.**
 *Review BEFORE you drain, never after* compares the SHA the comment names against the PR's head; an unlabeled
-baseline in that slot is a commit the head will never match, and reads exactly like a verdict that predates
+fork point in that slot is a commit the head will never match, and reads exactly like a verdict that predates
 the last push when nothing did. A `Gated-At: <sha>` trailer says the same thing in a form a machine could
 parse — worth adopting, never required, and nothing in this flow reads one back.
 

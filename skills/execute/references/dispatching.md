@@ -99,7 +99,7 @@ value does to a brief, and every pasted block below whose right form depends on 
 | `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
 | | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
 | `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
-| | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours at the close-out and on demand. |
+| | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours. |
 | `targetedTest` | declared | The ban's `<targeted run>` is that template, its one of `{files}` or `{names}` filled with the slice's tests. |
 | | absent | The ban's `<targeted run>` is single test files, each run singly (`vitest run path/to/x.test.ts`). |
 | commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
@@ -180,23 +180,10 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   it, taken on the commit this wave was cut from (`skills/execute/references/worktrees-and-branches.md`,
   invariant 2), hand it down named by that SHA and by what it counts, **as the baseline and never as a number
   to re-take** — a slice re-measuring what you hold spends a run for nothing, and one that reads the
-  instruction after its first edit has to move its tree off its own work to reach the fork point. **A suite
-  result a slice needs is always yours**, as its failure SET by name and taken on that commit before you
-  dispatch, since an implementer runs the suite at most once — in in-line mode, as its one `gate` run — and in
-  queue mode never: a recorded verdict for an identical tree (`git rev-parse <sha>^{tree}`) is that result
-  outright where it is green and the project declares no `fullGate`, so no baseline ticket is gated, and where
-  it is red only where its failure-set field names every failure by identifier, a failing tail alone never
-  being one. **Where the project declares `fullGate`, `gate` is partial, so the baseline is `gate` run at the
-  fork point with the slice's domains named to it explicitly — the map's domains for its `Owns`; where that
-  `gate` cannot take named domains, no suite baseline is taken, and a red in the slice's own gate is checked
-  by re-running only that failing test at the fork point.** Where no recorded verdict serves, you gate that
-  commit on the worktree you are about to dispatch into, as a PR-less ticket where the project declares
-  `enqueue`/`drain` and by running `gate` there yourself where it declares neither, dispatching once it
-  settles. **Read the ticket's per-step executed-or-replayed record before you hand a green down**: a replayed
-  step says the task's inputs hash to a result already recorded green and says nothing about running here, so
-  a green whose steps all replayed establishes the tree unchanged for that task rather than a suite that
-  covered it, and it is blind to exactly the environmental and shared-resource reds a fresh execution
-  surfaces. **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
+  instruction after its first edit has to move its tree off its own work to reach the fork point. **No suite
+  result is a baseline, and no gate runs before dispatch**: a red in the slice's own gate is checked by
+  re-running only its failing tests, by name, at its fork point (`skills/execute/references/reviewing.md`).
+  **A number taken on another commit is not a baseline**: re-take it on this commit before dispatch,
   or leave it out and have the brief say to take it before the first edit, which is where anything else the
   slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`

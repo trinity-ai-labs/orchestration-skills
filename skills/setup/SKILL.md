@@ -289,10 +289,11 @@ from a stale one; and **read the code, never a version stamp**, which says "curr
 The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so
 every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
 identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
-and an absent failure set leaves a red ticket naming no tests to re-run by name at a slice's fork point. Report each like any other, with
-what the runner would have to add, and leave the adopting to the project. **Where the project declares
-`fullGate`, a runner without the `full` mode — or one that gates an unknown mode as `default` — is a delta of
-the same kind**, and the one whose absence passes a partial gate off as the full one.
+and an absent failure set leaves a red ticket naming no tests to re-run by name at a slice's fork point.
+Report each like any other, with what the runner would have to add, and leave the adopting to the project.
+**Where the project declares `fullGate`, a runner without the `full` mode — or one that gates an unknown mode
+as `default` — is a delta of the same kind**, and the one whose absence passes a partial gate off as the full
+one.
 
 ## Step 4 — Verify it, don't assert it
 

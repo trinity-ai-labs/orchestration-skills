@@ -11,7 +11,8 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   its combined diff at close-out, a split gate's union of every domain it touched ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
 - **`fullGate` runs when the boundary moves, not on a schedule.** Where a project declares it, it runs on
   demand, before a release or install, and at a close-out whose epic moved the boundary — the domain map or its
-  checks, a shared-spine file, the toolchain or a lockfile, a term the glossary now defines. A split gate's loud
+  checks, a shared-spine file, the toolchain or a lockfile — "moves the boundary", a term the glossary now
+  defines. A split gate's loud
   fallback to the whole suite now also fires on an edit to the map or the toolchain, and `cut-release`'s report
   names `fullGate` as the check the release owes before it ships. No new config key ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
 - **A review checkpoint's fix agent runs the scoped check and the tests by name for what it touched**, never

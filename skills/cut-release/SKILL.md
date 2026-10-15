@@ -43,8 +43,8 @@ against a branch the project has just moved past, and every signal it produces r
 ## 1. Say where you are and what you are about to do — then wait
 
 **Observe rather than configure.** The branch the main checkout is standing on is what a release is cut
-*from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog`
-and `integrationBranch` — `skills/procedures/config-keys.md` carries what each means and what its absence
+*from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog`,
+`integrationBranch` and `fullGate` — `skills/procedures/config-keys.md` carries what each means and what its absence
 means — and the current version out of the first `bumpFiles` entry.
 
 - **No `bumpFiles` declared** means nothing here hand-edits a version — tooling owns it, or the project does

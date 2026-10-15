@@ -269,7 +269,8 @@ questions handed over. **A held arc runs it at the cycle that lands the held mer
 close-out gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
 on the integration branch at step 2. **That close-out gate is `gate` over the epic's combined diff, plus a
-declared `fullGate` only where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).** **Where one WAS cut, green takes a third thing and
+declared `fullGate` only where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).**
+**Where one WAS cut, green takes a third thing and
 only there: that close-out PR's own full `/pipeline:review` panel over the PR's whole diff, run before its
 gate and posting its review and one comment per dimension onto that PR** — a close-out that gated and skipped
 the panel is not yet green, since a gate says the suite passed over the combined tree and cannot say whether
@@ -425,11 +426,12 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   has been, and that cycle's filed, its closes against the plan, its closes of what the arc generated itself,
   and the net of the first two; a multiplication is a flow, so it shows up in the rate while a level rising by
   one a cycle reads as noise.
-  **One narrow exception, not a loosening**: a re-gate after a fix round on a head already green on the full
-  gate, where its scope is genuinely unclear — a project rule demanding a full run against a small delta, or a
-  delta whose shared-spine contact or map coverage cannot be established — is ASKED, carrying rule 13's options
-  (full, cached, scoped to the delta) with each one's time and what it would miss, since a full run costs far
-  more than a question; where the answer is clear, act — off the spine scoped, on it full.
+  **One narrow exception, not a loosening**: a re-gate after a fix round on a head already gated green, where
+  its scope is genuinely unclear — a project rule demanding a full run against a small delta, or a delta whose
+  boundary contact (`skills/glossary/vocabulary/code-shape.md`) or map coverage cannot be established — is
+  ASKED, carrying rule 13's options (full, cached, scoped to the delta) with each one's time and what it would
+  miss, since a full run costs far more than a question; where the answer is clear, act — scoped off the
+  boundary, full on it.
 - ⛔ **The bare-string verify rider. Any slice that renames an identifier crossing a string boundary — a table,
   a route, a cache key, a config key, an env var, a feature flag — or changes a user-visible string or display
   format carries a bare-string sweep in its verify bar**, grepping the *old literal* or the old rendered form

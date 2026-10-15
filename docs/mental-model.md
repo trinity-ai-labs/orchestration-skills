@@ -138,9 +138,8 @@ single gate ever ran, land only when the slices actually run concurrently. Which
 **epic branch** is cut from the integration branch **into a worktree of its own** —
 `setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and
 one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a
-whole in that worktree once they have all landed — when the merges actually produced a tree the slice gates
-did not already cover, which is a one-command check rather than a habit, and always where a project's
-per-change gate is partial — and it reaches the integration
+whole in that worktree once they have all landed — one `gate` over its combined diff, no gate running on the
+merges before it — and it reaches the integration
 branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash
 instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule,
 [Per-project config](per-project-config.md#per-project-config) the key). Neither rule is "the integration

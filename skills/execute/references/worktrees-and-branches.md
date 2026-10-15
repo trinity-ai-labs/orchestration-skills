@@ -92,8 +92,8 @@ condition you would not ship?* If yes, cut one, at any width from two slices up.
 
 **Answer Rule 1 on every multi-slice arc anyway, because it decides which kind of branch you hold.** "Yes"
 makes the epic **knowingly red** until its last consumer migrates, which opens the `transient-red/<epic-slug>`
-window (*Mechanics*). "No" leaves a branch that is isolation and nothing else, strictly gated throughout, with
-no window and no marker ref.
+window (*Mechanics*). "No" leaves a branch that is isolation and nothing else, every slice gate read strictly,
+with no window and no marker ref.
 
 **Rule 2 — the multi-slice default. An arc of more than one slice cuts an epic branch by default**, whether or
 not every intermediate state would ship — unrelated fixes grouped into one release included, since grouping
@@ -273,8 +273,9 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   integration PR as a DRAFT where no review checkpoint has opened it, run one full `/pipeline:review` panel
   against its whole diff, land any fix round it earns, and only THEN enqueue the gate against it — in that
   order**, naming the epic worktree as the ticket's worktree. **The close-out gate is `gate` over the epic's
-  combined diff, its base the integration branch named explicitly** — a split gate's union of every domain the
-  epic touched — **plus `fullGate`, as a `full` ticket, only where that diff moves the boundary**
+  combined diff against the integration branch** — a split gate's union of every domain the epic touched, its
+  changed files diffed by that gate (`skills/procedures/code-shape.md`, *The shape of a split gate*) — **plus
+  `fullGate`, as a `full` ticket, only where that diff moves the boundary**
   (`skills/glossary/vocabulary/code-shape.md`). **Under `"epicMerge": "squash"` that PR's title and body
   become the arc's one surviving commit message** (*Mechanics*), so write them as that.
 

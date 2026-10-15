@@ -38,16 +38,16 @@ status.**
   SET across *every* package — is precisely how a real regression in a *second* package rides through to
   merge and surfaces only at the epic's close-out gate; a `cache miss, executing …` line for a package whose
   *result* you never saw is a signal to go read that result, not to assume it passed.
-  **A red is checked at the fork point, never against a suite baseline.**
-  Take the failure SET by identifier off the ticket, never off a failing tail, which carries the last N lines
-  and not the membership; re-run only those tests, by name through the targeted run, at the slice's fork
-  point (`git merge-base <head> origin/<base>`), in its worktree once the slice has handed back and its
-  ticket has settled, checking its branch back out after. **A failure that passes there is the slice's; one
-  that fails there too predates it.** In in-line mode the implementer's verdict already carries that split.
-  **And read a step marked replayed as establishing only that its inputs hash to a result already recorded
-  green**: nothing ran here, so a package whose every step replayed was not exercised by this gate at all
-  and cannot clear a regression that lives in the environment rather than in the diff — which is the bullet
-  below, reached from the other side.
+  **A red is checked at the fork point.** Take the failure SET by identifier off the ticket, never off a
+  failing tail, which carries the last N lines and not the membership; re-run only those tests, by name
+  through the targeted run, at the slice's fork point (`git merge-base <head> origin/<base>`), in its worktree
+  once the slice has handed back and its ticket has settled, checking its branch back out after — for a
+  close-out, in a throwaway tree cut from the integration tip. **A failure that passes there, or whose test is
+  absent there, is the slice's; one that fails there too predates it.** In in-line mode the implementer's
+  verdict already carries that split. **And read a step marked replayed as establishing only that its inputs
+  hash to a result already recorded green**: nothing ran here, so a package whose every step replayed was not
+  exercised by this gate at all and cannot clear a regression that lives in the environment rather than in the
+  diff — which is the bullet below, reached from the other side.
 
 - **Several worktrees red at the same moment, with infrastructure-shaped errors, is ONE shared resource before
   it is N code defects — and it is the same instrument as the bullet above, pointed one level out.** That one
@@ -126,9 +126,9 @@ identical but is still a regression). If
 it clears that bar, merge it with `merge-pr.sh` on that bar rather than a green exit — the merge is where you
 record having read it, and a red comment you have *judged* is not a blocker, only a verdict you have to read
 carefully. **This window changes what a satisfied pipeline LOOKS like and never who may merge, so the
-checkpoint's `autoMerge*` key is read here exactly as it is on any other merge** (*Merge & cleanup*): a
-judged red whose failures all predate the slice is a satisfied pipeline, and where that key holds the merge you post the
-holding comment, naming the key and the value it resolved to, on that same bar instead of invoking
+checkpoint's `autoMerge*` key is read here exactly as it is on any other merge** (*Merge & cleanup*): a judged
+red whose failures all predate the slice is a satisfied pipeline, and where that key holds the merge you post
+the holding comment, naming the key and the value it resolved to, on that same bar instead of invoking
 `merge-pr.sh`.
 
 ---
@@ -486,9 +486,10 @@ the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-
 which for a merged tree with no PR is a PR-less ticket (*Gate the integrated whole*), and by hand only where
 there is no queue or the runner refuses that ticket — only for a genuine reason: the runner never got to a
 ticket, or a **merge onto the integration branch integrates branches that weren't tested together** (one
-integration gate on the merged result). That second one is not a judgment call — it is `git diff --name-only <merge>^2 <merge>` coming back
-non-empty, and an empty answer means the merged result is the tree the gate already ran (*Gate the integrated
-whole* below). Even then prefer the minimum — the affected/changed tests over the whole suite where possible.
+integration gate on the merged result). That second one is not a judgment call — it is `git diff --name-only
+<merge>^2 <merge>` coming back non-empty, and an empty answer means the merged result is the tree the gate
+already ran (*Gate the integrated whole* below). Even then prefer the minimum — the affected/changed tests
+over the whole suite where possible.
 Your always-on job is reading the **diff**; heavy re-gating is conditional.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed

@@ -205,7 +205,7 @@ reference.
    test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
    export surface, each test file that mocks or imports it, run singly; the one gate run you ever make is
    in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
-   puts you there.
+   puts you there, with a red's failing tests re-run by name at your fork point.
 4. **Update the docs your change made stale.**
 5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →
    `skills/execute/references/implementer.md`, *FIX IT — DO NOT FILE IT*.

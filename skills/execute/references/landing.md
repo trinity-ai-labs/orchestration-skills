@@ -252,7 +252,8 @@ instruction handled like any other — `merge-pr.sh <pr-number>` runs completely
 this file applies unchanged from there. ⚠️ **A hold is unbounded, so treat the base as having MOVED when you
 come back to it**: `merge-pr.sh` preflights mergeability and stops cleanly on a conflict, but a gate verdict
 older than the base it is now merging into is a verdict about a tree nobody holds, so re-gate before you
-merge where the base has moved since that comment was last written.
+merge where the integration branch has moved since that comment was last written — into an epic branch the
+close-out gate reads it instead.
 
 The steps below have exactly one correct order, and syncing the local integration branch is the one with
 **no forcing feedback** — every visible signal after the merge (`✓ Merged`, branch deleted, PR closed) says

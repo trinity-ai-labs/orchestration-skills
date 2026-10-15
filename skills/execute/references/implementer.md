@@ -162,8 +162,8 @@ your dispatcher's:
   pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
   flow's only evidence a gate ran. **A red is checked at your fork point before you comment it**: with your
   work committed and pushed, check `$FP` out, re-run only the failing tests by name through the targeted run,
-  check your branch back out, and split the verdict's failures into those that pass there — yours — and those
-  that fail there too.
+  check your branch back out, and split the verdict's failures into those that pass there or are absent there
+  — yours — and those that fail there too.
 
 **In both you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
 signature that it read your diff), **and never merge it**.

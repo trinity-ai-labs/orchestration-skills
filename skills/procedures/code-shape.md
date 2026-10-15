@@ -135,6 +135,7 @@ tool.
 5. **Optionally, a green cache** keyed on a hash of a domain's inputs — its files, the shared spine and the
    toolchain — skipping a domain whose key last passed.
 6. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
-   caught by the full gate before a release, every other change resting on the split gate alone.
+   caught by the full gate on demand, before a release and at a boundary-moving close-out, every other change
+   resting on the split gate alone.
 7. **A re-gate after a fix round on a head that gated green runs the split gate over the delta since that
    head**, with the same loud fallback, and its verdict names both heads.

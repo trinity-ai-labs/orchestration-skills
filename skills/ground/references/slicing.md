@@ -184,7 +184,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar names
     the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you write it
     that way (*gate in the default mode, not `--mode docs`*) rather than as a command line. **Never the `full`
-    mode**: where the project declares `fullGate` that mode is the close-out's and an on-demand run's, and the
+    mode**: where the project declares `fullGate` that mode is the dispatcher's alone, and the
     slice's own `gate` may be partial, so say so where the bar leans on a suite-wide property. **The only
     check an implementer may be told to run directly is one targeted test run — the project's `targetedTest`
     where declared, else single test files, each run singly — never a suite**, and where the slice changes a
@@ -273,7 +273,8 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
 - The *scoped* per-commit check implementers run is NOT the sizing cost; the **per-PR gate** is — drained
   where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
-  `fullGate`, `gate` may be partial and `fullGate` runs once, at the epic's close-out, whatever the width.
+  `fullGate`, `gate` may be partial and `fullGate` runs at most once, at a close-out whose epic moved the
+  boundary (`skills/glossary/vocabulary/code-shape.md`), whatever the width.
 
 ## The closing check — read a slice's fields against each other, and against what the project will accept
 

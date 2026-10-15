@@ -1,14 +1,14 @@
 # Gate the integrated whole — conditional on what the merge actually produced
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it after any merge that combined work from more
-than one slice** — each branch was gated against its own fork point, so the whole was never gated by its
-parts.
-Each branch was gated against *its own fork point*, blind to the other slices, so the branch that now carries
-all of them together **may** be carrying a tree no gate has ever run. May — and the merge itself tells you
-which. Every merge this check reads makes a real merge commit, so every one of them has a second parent — with
-the single exception the closing-merge paragraph below takes up, an epic → integration merge in a project that
-declared `"epicMerge": "squash"` (*The epic branch* → *Mechanics*), where there is no `^2` to read and a
-different instrument answers instead. After each of the rest:
+Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it after any merge onto the integration branch
+that combined work from more than one slice** — each branch was gated against its own fork point, blind to the
+other slices, so the branch that now carries all of them **may** be carrying a tree no gate has ever run.
+**A merge into an epic branch takes no gate** — a slice's, or the tick's merge of the integration branch —
+since the epic's close-out gates its combined diff once (*The epic branch* → *Mechanics*).
+Every merge this check reads makes a real merge commit, so every one has a second parent — with the single
+exception the closing-merge paragraph below takes up, an epic → integration merge in a project that declared
+`"epicMerge": "squash"`, where there is no `^2` to read and a different instrument answers instead. After each
+of the rest:
 
 ```
 git diff --name-only <merge-commit>^2 <merge-commit>
@@ -26,31 +26,30 @@ executes the same tree for the same answer. A run that cuts every worktree from 
 sequentially without conflicts comes back empty on every merge and needs no dedicated integration gate at all.
 
 **The skip is a check rather than a rule, because it runs both ways.** An unconditional
-close-out gate re-executes a tree that was already gated — on a monorepo with a ten-minute gate that is real
-cost for zero information. And "the last slice was green, so the epic is green" costs nothing and is wrong the
+gate re-executes a tree that was already gated — on a monorepo with a ten-minute gate that is real
+cost for zero information. And "the last slice was green, so the branch is green" costs nothing and is wrong the
 moment two slices ran in parallel, which is this flow's default dispatch shape.
 
 Two things the empty answer does **not** buy you:
 
-- **It proves the tree was *run*, not that the run was *green*.** In the transient-red window above, slices
-  merge on a green-modulo-baseline judgment rather than a green exit — so an epic tip can be byte-identical to
-  a tree that was never observed fully green. Skipping needs both halves: the merge added nothing **and** the
-  gate it inherits was an actual green. When the last slice merged on judgment, the close-out gate is the
-  first real green signal there has ever been, and it runs.
+- **It proves the tree was *run*, not that the run was *green*.** A slice can merge on a judged red whose
+  failures all predate it (*Reading a gate result*), so a tip can be byte-identical to a tree never observed
+  fully green. Skipping needs both halves: the merge added nothing **and** the gate it inherits was an actual
+  green.
 - **It governs re-running the suite, nothing else.** It says nothing about the merged *code*: a shared hotspot
   still gets its merged region read by hand (*Merging a shared hotspot* above), because the semantic drift
   that section describes is invisible to a green gate and equally invisible to an empty diff.
 
-**Re-derive the merged tip's derived artifacts before you gate it — and do that whether the `^2` diff came
-back empty or not.** An artifact whose correct contents are a function of the whole tree rather than of any
-one branch — a ratchet ledger, a backlog a checker regenerates, a generated type, an unimported-exports
-manifest — is the thing per-slice gates structurally could not have covered: each slice was correct about its
-own files, and the artifact derives from all of them. Run the project's own regenerator against the merged tip
-**in the tree the next paragraph has you gate in** — cut one for this even where the `^2` diff came back empty
-and no gate follows — and never in the main checkout; commit what it writes where that tree is the epic
-worktree, and from a throwaway gate tree send the delta back as a fix instead, since nothing merges that
-branch. The breakdown names these per slice in its `Derives` field, so the list arrives with it rather than
-being reconstructed here.
+**Re-derive the merged tip's derived artifacts after every merge that combined slices — into an epic branch
+too, where no gate follows, and whether the `^2` diff came back empty or not.** An artifact whose correct
+contents are a function of the whole tree rather than of any one branch — a ratchet ledger, a backlog a
+checker regenerates, a generated type, an unimported-exports manifest — is the thing per-slice gates
+structurally could not have covered: each slice was correct about its own files, and the artifact derives from
+all of them. Run the project's own regenerator against the merged tip **in the tree the next paragraph names**
+— cut one for this even where no gate follows — and never in the main checkout; commit what it writes where
+that tree is the epic worktree, and from a throwaway gate tree send the delta back as a fix instead, since
+nothing merges that branch. The breakdown names these per slice in its `Derives` field, so the list arrives
+with it rather than being reconstructed here.
 
 **Gate the integrated whole in a tree only you write to, and that is never the main checkout** — in either
 gate mode, whether you run the gate or a runner does, since the main checkout is the one piece of shared
@@ -58,8 +57,8 @@ mutable state in the flow (`skills/procedures/worktree-helper.md`): every sessio
 it, so nobody can hold it frozen for a gate, and whatever a project keys on the checkout path — a per-tree
 test database, a cache, a generated artifact — is shared by every agent gating there at once, so two gates
 that overlap there corrupt each other's runs in both directions with neither failure output naming the cause.
-Where an epic branch holds the merges, that tree is the epic's own worktree, the arc's gate target (*The epic
-branch* → *Mechanics*) — and one you hold still yourself while its ticket is outstanding, landing no slice
+Where an epic branch holds the merges, that tree is the epic's own worktree, its close-out's gate target (*The
+epic branch* → *Mechanics*) — and one you hold still yourself while its ticket is outstanding, landing no slice
 close-out and no tick merge in it, since `merge-pr.sh` fast-forwards that tree too and the frozen-worktree
 rule covers it like any other (*Draining the gate queue*). Where the merges landed on the integration branch
 itself, cut a throwaway tree from its tip with
@@ -79,7 +78,7 @@ installed by its cut and written to by nobody after it, needs no second one — 
 declares none, this repo included. **The conditional version is the trap:** you cannot tell from the merge's
 own diff whether a dependency arrived, because that fast-forward means every range you might compare against
 is unreliable in both directions. The diagnostic order is *The epic branch* → *Mechanics*' rule applied to
-that tree: **on an integration gate in the epic worktree a module-resolution failure is a stale install until
+that tree: **on the close-out gate in the epic worktree a module-resolution failure is a stale install until
 proven otherwise** — install and re-run before reading a line of the diff, where a throwaway tree's `READY:`
 line has already proven its own install current and the same failure there is a defect to read.
 
@@ -176,15 +175,13 @@ directions.
 **On an epic branch, apply the check to the closing merge too — it is the one merge that is usually
 non-empty.** A gate on the epic tip is not a gate on what lands: the integration branch moved while the epic
 ran, so `epic → integration` combines two histories nothing has tested together. The fix is ordering, not
-another gate — before the close-out gate, which runs `fullGate` where the project declares it, merge the
+another gate — before the close-out gate, merge the
 integration branch INTO the epic one last time (the same merge the tick already runs, *The cost* above; that
 cadence buys this, not just bounded conflicts). Then the epic already contains everything the integration
 branch has, the gate covers the exact tree the closing merge will produce, and that merge's `^2` diff comes
 back empty. Skip the cadence and it won't, and the gate moves to *after* the closing merge, on the shared
 branch — in a throwaway tree cut from its tip, the close-out having torn the epic worktree down — where a
-cross-slice break is found only once every slice has already landed on it. **A close-out that runs a
-changed-files gate rather than a full one names the integration branch as that gate's base rather than taking
-a default.**
+cross-slice break is found only once every slice has already landed on it.
 
 **And when that closing merge is a squash, the same reasoning has a consequence: the cadence stops being
 advisory.** A squash commit has no second parent, so there is no `^2` to read at all — the tree comparison
@@ -255,7 +252,8 @@ instruction handled like any other — `merge-pr.sh <pr-number>` runs completely
 this file applies unchanged from there. ⚠️ **A hold is unbounded, so treat the base as having MOVED when you
 come back to it**: `merge-pr.sh` preflights mergeability and stops cleanly on a conflict, but a gate verdict
 older than the base it is now merging into is a verdict about a tree nobody holds, so re-gate before you
-merge where the base has moved since that comment was last written.
+merge where the integration branch has moved since that comment was last written — into an epic branch the
+close-out gate reads it instead.
 
 The steps below have exactly one correct order, and syncing the local integration branch is the one with
 **no forcing feedback** — every visible signal after the merge (`✓ Merged`, branch deleted, PR closed) says

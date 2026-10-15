@@ -39,7 +39,8 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
    it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
    at all is the `Map coverage` item, its value `no map`. **Full-gate cost is an item past the threshold its
-   row names**, whether or not the project declares `fullGate`.
+   row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
+   threshold its row names**.
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
@@ -97,6 +98,10 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   gate*, for a full-suite gate with no domain map or no checked tags — its cost the map, the tags and the
   checks on both; the map alone, the tags alone, or a gate queue's machine-wide slot so full runs stop
   contending are the cheaper alternatives after it.
+- **The recommendation for `Gate share` is the `Prune candidates` first, then what the project itself adds
+  to the cadence `skills/procedures/config-keys.md` sets for `gate` and `fullGate`** — a rule or CI job
+  running the full suite per change, no `targetedTest`; its alternatives are splitting the gate (the map, the
+  tags and their checks), or leaving it (most of every arc spent waiting on runs).
 - **The recommendation for `Catch-all-only files` is a map line per area plus a map check that fails on a
   product file matched only by a catch-all**; its alternatives are narrowing one area at a time (each area
   left runs the whole suite until its turn), or leaving it (every change there keeps running the whole suite).

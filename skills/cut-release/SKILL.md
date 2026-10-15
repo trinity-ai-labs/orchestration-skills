@@ -43,8 +43,8 @@ against a branch the project has just moved past, and every signal it produces r
 ## 1. Say where you are and what you are about to do — then wait
 
 **Observe rather than configure.** The branch the main checkout is standing on is what a release is cut
-*from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog`
-and `integrationBranch` — `skills/procedures/config-keys.md` carries what each means and what its absence
+*from*; `git rev-parse --abbrev-ref HEAD` answers it. Read the project's config for `bumpFiles`, `changelog`,
+`integrationBranch` and `fullGate` — `skills/procedures/config-keys.md` carries what each means and what its absence
 means — and the current version out of the first `bumpFiles` entry.
 
 - **No `bumpFiles` declared** means nothing here hand-edits a version — tooling owns it, or the project does
@@ -146,10 +146,11 @@ every later worktree is provisioned from the main checkout.
 
 **Say in the hand-back what nothing downstream can see**: the branch it was cut from, the version before and
 after, every file the bump touched, whether the base branch's version moved and on what evidence, and — on
-route A — the branch the main checkout is now on and the commit it sits at.
+route A — the branch the main checkout is now on and the commit it sits at. **Where the project declares
+`fullGate`, name it as the check this release owes before it ships** — this pass runs nothing itself.
 
-> **Done.** `<new-branch>` is cut and the bump is merged into it: `<the bumpFiles>` at `<new>`, a `## <new>` section in `<changelog>`, and `integrationBranch` pointing at `<new-branch>`. The main checkout is on `<new-branch>` at `<sha>`.
+> **Done.** `<new-branch>` is cut and the bump is merged into it: `<the bumpFiles>` at `<new>`, a `## <new>` section in `<changelog>`, and `integrationBranch` pointing at `<new-branch>`. The main checkout is on `<new-branch>` at `<sha>`. Owed before it ships: `<fullGate>` — where the project declares one.
 
 Route B cut no branch and moved no checkout, so its report carries neither:
 
-> **Done.** `<the bumpFiles>` are at `<new>` and `<changelog>` has its `## <new>` section, merged into `<branch>`.
+> **Done.** `<the bumpFiles>` are at `<new>` and `<changelog>` has its `## <new>` section, merged into `<branch>`. Owed before it ships: `<fullGate>` — where the project declares one.

@@ -109,14 +109,13 @@ each commit where neither does — pushes, and opens its **draft PR**.
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
 its own draft PR, whose shape is draft, panel review with its dimension comments, any fix round, enqueue, gate
 comment, posted review, merge — draft-before-gate all along, the panel and the fix round it can earn arriving
-with the close-out review (`skills/execute/references/worktrees-and-branches.md`); the **mid-arc integration
-gate** as a **PR-less ticket** whose verdict settles onto the ticket (*Gate the integrated whole*); and a
-slice's **suite baseline** as a PR-less ticket on its worktree before anything is dispatched into it, unless a
-green `gate` verdict already covers that same tree and the project declares no `fullGate` (where it does,
-`skills/execute/references/dispatching.md` has the baseline); only the close-out
-ticket and an on-demand run (`skills/procedures/config-keys.md`) carry the `full` mode that runs a declared
-`fullGate`. A runner scaffolded before that ticket type refuses it, as one
-not verified to take that mode may, and only there is a hand-run gate sanctioned. **In a project declaring no
+with the close-out review (`skills/execute/references/worktrees-and-branches.md`); and the **integration
+gate** after a merge onto the integration branch, as a **PR-less ticket** whose verdict settles onto the
+ticket (*Gate the integrated whole*). **No gate runs before dispatch and none on a merge into an epic
+branch.** Only a `full` ticket runs a declared `fullGate` — on demand, before a release, and at a close-out
+whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the PR-less
+ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
+sanctioned. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
 
@@ -174,8 +173,9 @@ says a gate finished, not that anyone read the change.
 
 ### 4. Land it → `skills/execute/references/landing.md`
 
-Gate the integrated whole with `gate` when a merge combined work from more than one slice — a declared
-`fullGate` runs only at the epic's close-out and on demand — then merge, clean up and sync as one step, and
+Gate the integrated whole with `gate` when a merge onto the integration branch combined work from more than
+one slice — a merge into an epic branch takes none, its close-out gating the combined diff — then merge,
+clean up and sync as one step, and
 close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue,
 keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
@@ -205,7 +205,7 @@ reference.
    test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
    export surface, each test file that mocks or imports it, run singly; the one gate run you ever make is
    in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
-   puts you there.
+   puts you there, with a red's failing tests re-run by name at your fork point.
 4. **Update the docs your change made stale.**
 5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →
    `skills/execute/references/implementer.md`, *FIX IT — DO NOT FILE IT*.

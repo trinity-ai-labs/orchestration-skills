@@ -138,9 +138,8 @@ single gate ever ran, land only when the slices actually run concurrently. Which
 **epic branch** is cut from the integration branch **into a worktree of its own** —
 `setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and
 one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a
-whole in that worktree once they have all landed — when the merges actually produced a tree the slice gates
-did not already cover, which is a one-command check rather than a habit, and always where a project's
-per-change gate is partial — and it reaches the integration
+whole in that worktree once they have all landed — one `gate` over its combined diff, no gate running on the
+merges before it — and it reaches the integration
 branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash
 instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule,
 [Per-project config](per-project-config.md#per-project-config) the key). Neither rule is "the integration
@@ -248,8 +247,8 @@ to four merged slices — none mid-epic on an arc of four slices or fewer — ra
 its dispatch report states that plan. A review checkpoint reads the change since the previous one's reviewed
 head (the fork point the first time), posts onto the epic's own PR into the integration branch, which opens as
 a draft at the first one and stays one until the close-out merge, and sends accepted findings to one fix agent
-in the epic worktree, whose pushed delta is gated — a PR-less ticket where the project has a queue, the
-agent's own in-line run where it has none — before the next slice forks. A slice still gets its own panel for
+in the epic worktree, which runs the scoped check and the tests by name for what it touched, the close-out
+gate reading its delta with the rest of the epic. A slice still gets its own panel for
 seams, security, auth, data or irreversible changes, or substantial work with no epic branch. So the close-out
 PR ends up carrying the same two artifacts a slice's PR does, the panel's review first and the orchestrator's
 own read after it, and neither of them the approval — the `draft → ready` flip is still that. **What does not
@@ -344,10 +343,13 @@ outstanding.
   dispatcher enqueues once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
   draft PR are pushed before the hand-back either way.
-- **A partial per-change gate, where a project declares `fullGate`** → every slice and merged-tree gate can
-  run only what its change affects, because the full suite runs once, at the epic's close-out, and on demand;
-  a standalone issue or an arc with no epic branch never runs it. A project that declares nothing keeps one
-  full gate everywhere.
+- **Tests a minority of an arc's time** → a slice pays its scoped check, its own tests by name and one `gate`
+  on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no gate, the epic paying
+  one `gate` over its combined diff at close-out.
+- **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
+  only what its change affects, because the full suite runs on demand, before a release, and in place of the
+  close-out `gate` where an epic moved the domain map, a shared-spine file or the toolchain. A project that declares nothing keeps one full
+  gate everywhere.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
   place that trade is worth re-opening, because that branch is scaffolding rather than history —

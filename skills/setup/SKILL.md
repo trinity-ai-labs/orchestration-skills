@@ -215,9 +215,10 @@ different question and this pass's own.
 4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
    suite? **Only a yes declares `fullGate`**, its value the project's full-suite command, grounded like `gate`
    and confirmed; a no, a maybe or nobody to ask omits it, which keeps `gate` the full gate at every seat.
-   Declared, it runs only at an epic's close-out and on demand.
+   Declared, it runs only on demand, before a release, and at a close-out whose epic moved the boundary
+   (`skills/glossary/vocabulary/code-shape.md`).
    ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
-   exactly like a full one's, and while a wrong yes only spends a full run at each close-out, a wrong no lets
+   exactly like a full one's, and while a wrong yes only spends a redundant full run before a release, a wrong no lets
    a cross-domain break past it.
 
 ### Then write the keys
@@ -288,10 +289,11 @@ from a stale one; and **read the code, never a version stamp**, which says "curr
 The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so
 every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
 identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
-and an absent failure set is what leaves a red ticket unusable as a baseline. Report each like any other, with
-what the runner would have to add, and leave the adopting to the project. **Where the project declares
-`fullGate`, a runner without the `full` mode — or one that gates an unknown mode as `default` — is a delta of
-the same kind**, and the one whose absence passes a partial gate off as the full one.
+and an absent failure set leaves a red ticket naming no tests to re-run by name at a slice's fork point.
+Report each like any other, with what the runner would have to add, and leave the adopting to the project.
+**Where the project declares `fullGate`, a runner without the `full` mode — or one that gates an unknown mode
+as `default` — is a delta of the same kind**, and the one whose absence passes a partial gate off as the full
+one.
 
 ## Step 4 — Verify it, don't assert it
 

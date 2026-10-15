@@ -37,7 +37,8 @@ hand-back, never marked ready by the implementer, never its own merge.
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
 `gate`. **A project declaring `fullGate` adds a `full` mode that runs it**, and that mode is never a slice's:
-it gates the epic's close-out and an on-demand run alone.
+it gates an on-demand run, a release run and a close-out whose epic moved the boundary
+(`skills/glossary/vocabulary/code-shape.md`) alone.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &

@@ -1,4 +1,4 @@
-# code shape — domain, domain map, domain tag, shared spine, seam test, guard, probe, setup debt
+# code shape — domain, domain map, domain tag, shared spine, split gate, moves the boundary, seam test, guard, probe, setup debt
 
 **Code shape** is how a project's files divide by what they are about, and how cheaply that division lets a
 change be scoped, gated and reviewed.
@@ -23,6 +23,9 @@ whole suite whenever one is touched.
 A **split gate** is a partial per-change gate narrowed by domain — it runs the tests of the domains a change
 touches, falling back to the whole suite on anything it cannot map — with the full gate kept rather than
 dropped.
+
+A change **moves the boundary** when it touches what a split gate's selection rests on — the domain map or its
+checks, a shared-spine file, the toolchain or a lockfile — so no selection by domain can vouch for it.
 
 A **seam test** is a test written at a boundary a caller or a user crosses — a route, a command, a module's
 public interface — rather than against a module's internals. It survives a refactor behind that boundary

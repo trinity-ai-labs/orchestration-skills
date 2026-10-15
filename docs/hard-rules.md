@@ -49,9 +49,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   a computed invariant replaces a case per combination, and a unit test is kept for real logic. **A permanent
   test is a guard, never a probe**: a bug earns one only when it is easy to reintroduce, would slip by
   unnoticed and is costly if shipped, an existing test is extended before a new one is added, one
-  representative unit, theme or size is the default — a sweep needs a written reason, and runs only under
-  `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or costs more
-  than its bug is deleted (`skills/procedures/code-shape.md`, *Test policy*;
+  representative unit, theme, size or browser engine is the default — a sweep needs a written reason, and runs
+  only under `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or
+  costs more than its bug is deleted, the domain map and test tags updated in the same change (`skills/procedures/code-shape.md`, *Test policy*;
   review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). Every test is
   tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
@@ -123,23 +123,27 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   fast-forwards the main checkout, so nobody can hold it frozen for a gate, and whatever a project keys on the
   checkout path — a per-tree test database, a cache, a generated artifact — is shared by every agent gating
   there at once, so two gates that overlap there corrupt each other's runs in both directions and neither
-  failure output names the cause. Where an epic branch holds the merges, that tree is the epic's own worktree,
-  installed immediately before that gate or its enqueue because `merge-pr.sh` fast-forwards it on every slice
-  close-out without installing, and held still while its ticket is outstanding. Where the merges landed on the
-  integration branch itself, the dispatcher cuts a throwaway tree from its tip with `setup-worktree.sh`, gates
-  there — by hand, or as the PR-less ticket's worktree — and once the verdict is in, which for a ticket means
-  once it has settled, removes the tree with `remove-worktree.sh` and deletes its branch, which was never
-  pushed and carries no commit: a derived artifact regenerated there goes back as a fix instead.
-- **Where a project declares `fullGate`, the full suite runs at an epic's close-out and on demand, and
-  nowhere else** ([Per-project config](per-project-config.md#per-project-config)). That project's `gate` may
-  run only what a change can affect, so every slice and merged-tree gate stays `gate`, no gate runs after a
-  wave, and a standalone issue or an arc with no epic branch never runs `fullGate`. A project that declares
-  no `fullGate` keeps `gate` as the full gate everywhere. **A re-gate after
-  a fix round is proportionate**: where a head already passed the full gate, the next run is the partial gate
-  over what changed since, falling back to the full suite loudly when that touches shared or unmapped files,
-  and its verdict names both heads. Your own stricter rule wins, said with its cost so you can relax it, and
-  where the right scope is genuinely unclear you are asked — full, cached or scoped, each with its time and
-  what it would miss — since a full run costs far more than a question.
+  failure output names the cause. Where an epic branch holds the merges, no gate runs on them and the
+  close-out gate runs in the epic's own worktree, installed immediately before that gate or its enqueue
+  because `merge-pr.sh` fast-forwards it on every slice close-out without installing, and held still while its
+  ticket is outstanding. Where the merges landed on the integration branch itself, the dispatcher cuts a
+  throwaway tree from its tip with `setup-worktree.sh`, gates there — by hand, or as the PR-less ticket's
+  worktree — and once the verdict is in, which for a ticket means once it has settled, removes the tree with
+  `remove-worktree.sh` and deletes its branch, which was never pushed and carries no commit: a derived
+  artifact regenerated there goes back as a fix instead.
+- **Test runs are a minority of an arc's time.** A slice pays its scoped check, its own tests by name and one
+  `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
+  the failing tests at the slice's fork point. A merge into an epic branch takes no gate: the epic pays one
+  `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
+  demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — the domain map or its checks,
+  a shared-spine file, the toolchain or a lockfile — **and nowhere else** ([Per-project
+  config](per-project-config.md#per-project-config)); a slice that moves the boundary gets the whole suite
+  through its split gate's own fallback. A project that declares no `fullGate` keeps `gate` as the full gate
+  everywhere. **A re-gate after a fix round is proportionate**: where a head already gated green, the next run
+  is the partial gate over what changed since, falling back to the full suite loudly when that moves the
+  boundary or touches unmapped files, and its verdict names both heads. Your own stricter rule wins, said with
+  its cost so you can relax it, and where the right scope is genuinely unclear you are asked — full, cached or
+  scoped, each with its time and what it would miss — since a full run costs far more than a question.
 - **Always verify HEAD before dispatching an agent into a worktree, and fetch first — the fetch is part of the
   check, not preparation for it.** The helper prints what it made — `READY: <path>`, then `HEAD: <sha>` — and,
   when it is forking a new branch, withholds both unless the tree it is about to hand back *contains* the

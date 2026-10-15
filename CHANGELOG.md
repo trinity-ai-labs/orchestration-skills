@@ -7,14 +7,15 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 - **Test runs take a minority of an arc's time.** A slice pays its scoped check, its own tests by name and one
   `gate` run on its PR. The suite baseline before dispatch is gone, the PR-less baseline ticket with it: a red
   is checked by re-running only the failing tests, by name, at the slice's fork point, and is the slice's only
-  where they pass there. A merge into an epic branch takes no integration gate; the epic pays one `gate` over
-  its combined diff at close-out, a split gate's union of every domain it touched ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+  where they pass there. A merge into an epic branch takes no integration gate; the epic pays one gate at
+  close-out, `gate` over its combined diff, a split gate's union of every domain it touched
+  ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
 - **`fullGate` runs when the boundary moves, not on a schedule.** Where a project declares it, it runs on
-  demand, before a release or install, and at a close-out whose epic moved the boundary — the domain map or its
-  checks, a shared-spine file, the toolchain or a lockfile — "moves the boundary", a term the glossary now
-  defines. A split gate's loud
-  fallback to the whole suite now also fires on an edit to the map or the toolchain, and `cut-release`'s report
-  names `fullGate` as the check the release owes before it ships. No new config key ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
+  demand, before a release or install, and in place of `gate` at a close-out whose epic moved the boundary —
+  the domain map or its checks, a shared-spine file, the toolchain or a lockfile — "moves the boundary", a
+  term the glossary now defines. A split gate's loud fallback to the whole suite now also fires on an edit to
+  the map or the toolchain, and `cut-release`'s report names `fullGate` as the check the release owes before
+  it ships. No new config key ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
 - **A review checkpoint's fix agent runs the scoped check and the tests by name for what it touched**, never
   `gate`; the close-out gate reads its delta with the rest of the epic ([#584](https://github.com/trinity-ai-labs/orchestration-skills/issues/584)).
 - **Pruning keeps the map green, and the engine is a sweep axis.** A test deletion updates the domain map and

@@ -268,8 +268,8 @@ questions handed over. **A held arc runs it at the cycle that lands the held mer
 **Termination has two halves and needs both: the remaining plan is empty AND the close-out is green** — the
 close-out gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
-on the integration branch at step 2. **That close-out gate is `gate` over the epic's combined diff, plus a
-declared `fullGate` only where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).**
+on the integration branch at step 2. **That close-out gate is `gate` over the epic's combined diff, or a declared
+`fullGate` in its place where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).**
 **Where one WAS cut, green takes a third thing and
 only there: that close-out PR's own full `/pipeline:review` panel over the PR's whole diff, run before its
 gate and posting its review and one comment per dimension onto that PR** — a close-out that gated and skipped

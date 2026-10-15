@@ -135,7 +135,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no gate: the epic pays one
   `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
-  demand, before a release, and at a close-out whose epic moved the boundary** — the domain map or its checks,
+  demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — the domain map or its checks,
   a shared-spine file, the toolchain or a lockfile — **and nowhere else** ([Per-project
   config](per-project-config.md#per-project-config)); a slice that moves the boundary gets the whole suite
   through its split gate's own fallback. A project that declares no `fullGate` keeps `gate` as the full gate

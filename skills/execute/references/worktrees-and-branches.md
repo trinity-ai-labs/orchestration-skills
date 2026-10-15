@@ -267,17 +267,17 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts
   afterwards is provisioned the old way and you hand-apply. *Worktree creation* is the authoritative copy.
-- **Close-out is one gate — a second only where the epic moved the boundary — plus one ordinary PR, and the
-  ledger has to be empty before its panel runs** (*Docs land at the end*). Once the last slice merges, merge
-  the integration branch into the epic one final time **in the epic's own worktree**, then **open the epic →
-  integration PR as a DRAFT where no review checkpoint has opened it, run one full `/pipeline:review` panel
-  against its whole diff, land any fix round it earns, and only THEN enqueue the gate against it — in that
-  order**, naming the epic worktree as the ticket's worktree. **The close-out gate is `gate` over the epic's
-  combined diff against the integration branch** — a split gate's union of every domain the epic touched, its
-  changed files diffed by that gate (`skills/procedures/code-shape.md`, *The shape of a split gate*) — **plus
-  `fullGate`, as a `full` ticket, only where that diff moves the boundary**
-  (`skills/glossary/vocabulary/code-shape.md`). **Under `"epicMerge": "squash"` that PR's title and body
-  become the arc's one surviving commit message** (*Mechanics*), so write them as that.
+- **Close-out is one gate plus one ordinary PR, and the ledger has to be empty before its panel runs** (*Docs
+  land at the end*). Once the last slice merges, merge the integration branch into the epic one final time
+  **in the epic's own worktree**, then **open the epic → integration PR as a DRAFT where no review checkpoint
+  has opened it, run one full `/pipeline:review` panel against its whole diff, land any fix round it earns,
+  and only THEN enqueue the gate against it — in that order**, naming the epic worktree as the ticket's
+  worktree. **The close-out gate is `gate` over the epic's combined diff against the integration branch** — a
+  split gate's union of every domain the epic touched, its changed files diffed by that gate
+  (`skills/procedures/code-shape.md`, *The shape of a split gate*) — **or, where that diff moves the boundary
+  (`skills/glossary/vocabulary/code-shape.md`), one `fullGate` run in its place, as a `full` ticket**, since
+  it covers everything `gate` would run. **Under `"epicMerge": "squash"` that PR's title and body become the
+  arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
   integrated whole* states its precondition over the **merge**: a draft PR puts nothing on the shared branch,

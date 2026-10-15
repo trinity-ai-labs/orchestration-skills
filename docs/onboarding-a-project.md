@@ -15,8 +15,8 @@ do not, setup hands the gap back rather than writing one for you. **If resources
 your `drop` by hand once before adopting this** — the first removal otherwise pays the whole backlog in the
 foreground, during a merge. **Whether your gate is partial** — whether it runs only what a change can affect
 rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, which the flow then runs
-on demand, before a release, and where an epic moved your domain map, shared spine or toolchain, while `gate`
-stays the per-change gate; a no, or no answer, leaves `gate`
+on demand, before a release, and in place of the close-out gate where an epic moved your domain map, shared
+spine or toolchain, while `gate` stays the per-change gate; a no, or no answer, leaves `gate`
 the full gate everywhere, exactly as before. Setup never guesses this from a script's name. **Setup also
 derives your test runner's targeted form** — `targetedTest`, a template taking one of test files or names —
 and confirms it with you; where no runner takes either it is left out. **And one that is not a fact about your

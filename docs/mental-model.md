@@ -347,8 +347,8 @@ outstanding.
   on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no gate, the epic paying
   one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
-  only what its change affects, because the full suite runs on demand, before a release, and where an epic
-  moved the domain map, a shared-spine file or the toolchain. A project that declares nothing keeps one full
+  only what its change affects, because the full suite runs on demand, before a release, and in place of the
+  close-out `gate` where an epic moved the domain map, a shared-spine file or the toolchain. A project that declares nothing keeps one full
   gate everywhere.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one

@@ -2,6 +2,13 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.22.0
+
+- **Fixes outside an epic share one gate.** A run of independent fixes landing straight on a release or
+  integration branch merges its reviewed PRs onto one wave branch and gates that once, instead of a full gate
+  per fix; the dispatcher keeps the live implementer set to what the host takes beside the runner and queues
+  the rest.
+
 ## 5.21.0
 
 - **Test runs take a minority of an arc's time.** A slice pays its scoped check, its own tests by name and one

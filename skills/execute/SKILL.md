@@ -119,6 +119,19 @@ sanctioned. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
 
+⛔ **Fixes that land straight on a long-lived branch share one gate, never one gate each.** Outside an epic —
+a bug bash, a test pass, a run of independent fixes into a release or integration branch — each fix still
+gets its own worktree, branch and PR for review, but **the gate is per wave, not per PR**: you merge the
+reviewed fixes of a wave onto one wave branch cut from the target, open one PR for it, and enqueue that one
+ticket; its green merges every fix at once. A full gate costs tens of minutes and runs one at a time, so
+gating each ten-minute fix serially makes the queue the bottleneck of the whole run and leaves the machine
+saturated by a gate that proves less than the batched one does, since it never tests the fixes together.
+**The same arithmetic caps how many implementers you run beside the gate**: size the live set to what the
+host takes alongside the runner and whatever else it serves, keep the rest QUEUED, and start the next one as
+a slot frees — never dispatch everything you have found the moment you find it. A red wave is bisected by
+its failing files to the fix that owns them, which is fixed on its own branch and re-merged; the wave is
+re-gated once, never split into per-PR gates.
+
 ---
 
 ## Dispatcher — four phases, in order

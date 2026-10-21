@@ -30,8 +30,8 @@ section's scope — what changes is what you read: **the verdict on its ticket i
 status.**
 
 - **A gate spans every workspace — read every package's result, never one package's summary.** `gate` runs the
-  task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types) — or, where the project
-  declares `fullGate`, across every package its diff can affect.
+  task-runner across ALL packages (say an app, its marketing site, a worker and a shared types package) — or,
+  where the project declares `fullGate`, across every package its diff can affect.
   A `Failed: <pkg>#test` line plus a non-zero exit is **RED**, even when the *first* package's summary you
   happen to see looks like only failures that predate the slice. Concluding "green-modulo-fork-point" (see the
   transient-red window below) from one package's `Test Files N failed` line — without checking the failing
@@ -473,7 +473,7 @@ job.
 
 ## On the gate — one run per PR; you read the diff
 **One `gate` run per PR IS the gate, and the project's `enqueue`/`drain` say whose it is**: the RUNNER's,
-drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs` for Trinity) so concurrent
+drained one at a time behind the slim machine-wide slot (the scaffolded `gate-slot.mjs`) so concurrent
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's

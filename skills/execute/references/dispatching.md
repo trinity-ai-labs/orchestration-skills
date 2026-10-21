@@ -604,7 +604,7 @@ declares `enqueue`/`drain`; one declaring neither has no queue to drain and no t
 the tick's other riders below reach it: the integration-branch sync, the stash sweep and the epic merge.
 
 ## Draining the gate queue
-On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
+On each tick (the *same* timer you already run for divergence), run `drain` (a script such as `pnpm gate:drain`) from
 the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
 queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree — `gate` by
 default, and `fullGate` on a `full` ticket where the project declares it — **behind the slim machine-wide slot

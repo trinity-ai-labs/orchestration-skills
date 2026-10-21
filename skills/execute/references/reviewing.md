@@ -192,7 +192,8 @@ that correspondence explicitly before merging: compare the SHA the gate comment 
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
 **Re-gate a fix round in proportion when the previous head gated green**: where the project declares
 `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full suite,
-loudly, where the delta moves the boundary or touches an unmapped file (`skills/procedures/code-shape.md`,
+loudly, where the delta moves the boundary or touches a file neither the structure nor the map places
+(`skills/procedures/code-shape.md`,
 *The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
 stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
 is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.

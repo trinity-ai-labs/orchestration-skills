@@ -41,10 +41,13 @@ a question rather than a default.
 - **`gate`** — the heavy per-PR gate (build + test), run against a queued PR's worktree. **It is the full
   gate wherever `fullGate` is absent**, and may be partial only where that key is declared.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
-  decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
+  decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
+  **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
+  and no key switches a cache off. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
   than a gap. **Present, it runs on demand, before a release or install, and in place of `gate` at an
-  epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and
+  epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md` — for a
+  structure-selected gate only its selection machinery moves it, never shared code alone), and
   nowhere else**: every slice and integration gate and every other close-out gate stays `gate`, a slice that moves the boundary reaching
   the whole suite through its split gate's own fallback, and a queued project gates `fullGate` runs in a
   `full` ticket mode. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less

@@ -36,9 +36,10 @@ hand-back, never marked ready by the implementer, never its own merge.
 **Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (Trinity: `--mode docs`
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
-`gate`. **A project declaring `fullGate` adds a `full` mode that runs it**, and that mode is never a slice's:
-it gates an on-demand run, a release run and a close-out whose epic moved the boundary
-(`skills/glossary/vocabulary/code-shape.md`) alone.
+`gate`. **A project declaring `fullGate` adds a `full` mode that runs it, cold, reading no cache**, and that
+mode is never a slice's: it gates an on-demand run, a release run and a close-out whose epic moved the
+boundary (`skills/glossary/vocabulary/code-shape.md`) alone — for a structure-selected gate a change to its
+selection machinery, never shared code alone, whose reach that gate already prints.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &

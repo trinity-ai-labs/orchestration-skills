@@ -2,6 +2,15 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.23.1
+
+- **`/pipeline:health` reads the repo's shape before its signals.** It opens with one line on the project's
+  shape — its release units, its test suite beyond the gate's checks and its full-gate minutes — and lists every
+  signal whose precondition is absent on a single "does not apply here" line instead of row by row, so a small
+  single-product repo gets a short, honest report. `Hotspots` leaves out the declared `bumpFiles` and
+  `changelog`, which every release touches by design, and a hotspot is an item only above half of the last 50
+  merged PRs. No new config key.
+
 ## 5.23.0
 
 - **The folder is the unit, and a split gate selects from structure.** Code sits in three layers — the core,

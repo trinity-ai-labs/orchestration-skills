@@ -35,6 +35,13 @@ a search over import lines — and **state the unit beside every figure**, since
 of import lines answer different questions. **Nothing here runs the suite**: a timing comes from the latest
 gate or CI output only, and a figure with no such output is *not taken*.
 
+**A row is taken only where its precondition holds**, and a row whose precondition is absent is neither a value
+nor an item: *Shared-spine share*, *Catch-all-only files*, *Folder disagreement* and *Map size* need a domain
+map; *Cross-domain tests*, *Untested domains*, *Untagged tests*, *Misplaced tests*, *Selectable share*, *Tag
+count*, *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* need a test suite beyond the gate's own
+checks; *Release-unit imports* needs two or more release units; *Upward imports* needs a declared or shown
+layering; *Whole-suite fallbacks* needs a split gate.
+
 | Signal | What it measures | How to take it | Unit | What it costs |
 |---|---|---|---|---|
 | Map coverage | tracked files any domain glob matches, and the unmapped rest | match every tracked file against the map; list the files no glob matches | files, and their share of tracked files; the unmapped listed | every unmapped file a change touches forces a full run |
@@ -48,7 +55,7 @@ gate or CI output only, and a figure with no such output is *not taken*.
 | Release-unit imports | imports from one release unit into another | map each import line's source and target to the release unit whose manifest's folder holds it | import lines, listed | a change to either unit reaches the other's gate and its release |
 | Upward imports | imports pointing up a layer — the core into a component or a release unit, a component into a release unit — or against the project's declared layering | map each import line's source and target to its layer | import lines, listed | a change to the higher layer reaches everything built on the lower, and the core stops being thin |
 | Misplaced tests | tests whose subject lives in another folder | map each test file's import or call targets to their folder — its subject's folder being the one most of them sit in — and list the tests outside it | test files, and their share of all test files; listed | a change to the subject selects the test only through a map entry or a tag, never by its folder |
-| Hotspots | files touched by a large share of recent merged PRs | count, per file, the merged PRs touching it among the last 50 merged into the integration branch, from git's history | PRs out of the last 50, per file; files at 10 or more listed | every slice touching one conflicts with its siblings at merge, and one there is often a central list or a core file changing too often |
+| Hotspots | files touched by a large share of recent merged PRs | count, per file, the merged PRs touching it among the last 50 merged into the integration branch, from git's history, leaving out the project's declared `bumpFiles` and `changelog`, which every release touches by design | PRs out of the last 50, per file, with that share; files at 10 or more listed | every slice touching one conflicts with its siblings at merge, and one there is often a central list or a core file changing too often |
 | Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output, a completed tip audit's minutes, from its ticket's `startedAt` and `settledAt`, included | minutes per run, and test count | spent by every change where nothing narrows the gate, and where `fullGate` narrows it by each release, on-demand run and boundary move; past 10 minutes a run it is debt either way |
 | Gate-minute slope | how fast the full-gate cost is growing | fit the full-gate minutes of the dated runs *Full-gate cost* reads, over at least four weeks of them, reading CI or gate-log history where the ledger is shorter; not taken with less | minutes per run per week, and days left before the 10-minute threshold at that rate — none on a flat or falling slope, which projects no breach | how soon every change, or every `fullGate` run, pays a run past the threshold |
 | Whole-suite fallbacks | scoped plans a split gate widened to the whole suite | count the runs whose printed plan names a fallback, over the gate runs in CI output or gate logs | runs, and their share of split-gate runs | each paid a whole-suite run for a change a scoped run would have covered, and a rising share says selection is losing ground |

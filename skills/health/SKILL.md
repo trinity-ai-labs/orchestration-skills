@@ -33,7 +33,9 @@ Measure what the main checkout holds — the integration branch — and never a 
 mid-change. Read the project's config where it has one for `gate` and `fullGate`
 (`skills/procedures/config-keys.md`); with none, the gate is what CI runs before merge.
 
-1. **Read the code shape** by `skills/procedures/code-shape.md`'s *Reading a project's code shape*.
+1. **Read the code shape** by `skills/procedures/code-shape.md`'s *Reading a project's code shape*, and **state
+   the project's shape in one line** — its release units, its test suite beyond the gate's own checks, and its
+   full-gate minutes — since that line decides which rows apply.
 2. **Take every signal in its table** with the project's own tooling, **each figure with its unit beside it**.
    One the tooling cannot take is reported as not taken, with what it would take, never estimated, and **no
    signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
@@ -42,7 +44,10 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    `Map coverage` item, its value `no map`; a structure-selected gate needs none, and an untagged test in its
    subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
    threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
-   under 90**, and **each file the `Hotspots` row lists is its own item**, `Hotspot: <path>`.
+   under 90**, and **a file the `Hotspots` row lists is its own item, `Hotspot: <path>`, only where more than
+   half of those 50 PRs touched it** — below that it is the row's value. **Every row whose precondition is absent
+   (`skills/procedures/code-shape.md`, *The signals*) goes on ONE line**, `does not apply here: <rows> —
+   <the precondition each lacks>`, never taken row by row.
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
@@ -139,7 +144,7 @@ enumeration of either is satisfied by every member it omits, so leave out anythi
 
 ## 4. Report and route
 
-**Report in chat, most expensive first**: each item with its value and unit, its trend, its cost, the
+**Report in chat, the shape line first, then the does-not-apply line, then the items most expensive first**: each item with its value and unit, its trend, its cost, the
 recommendation and its alternatives, and its route. Then the issue's URL, and what this run added, updated
 and ticked off.
 
@@ -153,4 +158,4 @@ and ticked off.
 **A calling pass gets that same report as its summary** and quotes it; it never re-measures. **Never a stop**:
 the flow runs correctly on a full gate and a monolith, only dearer.
 
-> **Setup health.** `<n>` items on `<issue URL>` — `<added>` added, `<updated>` updated, `<ticked>` ticked off. Most expensive: `<name>` at `<value> <unit>` (`<trend>`) — recommend `<move>`, route `<command>`.
+> **Setup health.** `<shape line>`; does not apply here: `<rows>`. `<n>` items on `<issue URL>` — `<added>` added, `<updated>` updated, `<ticked>` ticked off. Most expensive: `<name>` at `<value> <unit>` (`<trend>`) — recommend `<move>`, route `<command>`.

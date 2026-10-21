@@ -38,9 +38,11 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    One the tooling cannot take is reported as not taken, with what it would take, never estimated, and **no
    signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
    it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
-   at all is the `Map coverage` item, its value `no map`. **Full-gate cost is an item past the threshold its
-   row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
-   threshold its row names**.
+   at all, where no gate is structure-selected (`skills/glossary/vocabulary/code-shape.md`) either, is the
+   `Map coverage` item, its value `no map`; a structure-selected gate needs none, and an untagged test in its
+   subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
+   threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
+   under 90**, and **each file the `Hotspots` row lists is its own item**, `Hotspot: <path>`.
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
@@ -49,8 +51,9 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
      an item naming the signal.
-   - **A central list** — a file every domain edits to register a unit, a route or a test, where the folder
-     could pick it up instead; an item naming its path.
+   - **A central list** — a file every domain, component or release unit edits to register a module, a route, a
+     test or a product by name, where a declaration in its own folder could be discovered instead; an item
+     naming its path.
    - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
      lint, guidance), so each may shrink but never grow; the item `Baseline: <path>`, its value the count of
      entries with each one's size in the unit the baseline records, ticked off only when the baseline is empty.
@@ -77,7 +80,7 @@ be read.
 
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
-`Baseline: <path>` or `Prune candidates`, whose tests sit beneath its line as indented
+`Hotspot: <path>`, `Baseline: <path>` or `Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -94,17 +97,29 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   and one that comes back is unticked with its trend, never appended a second time.
 - **The first recommendation for a slow gate is to prune or merge tests**, from the `Prune candidates`
   item — one arc of deletions and merges, paid once. **Splitting the gate is the alternative**, by
-  `skills/procedures/code-shape.md`'s *The shape of a split
-  gate*, for a full-suite gate with no domain map or no checked tags — its cost the map, the tags and the
-  checks on both; the map alone, the tags alone, or a gate queue's machine-wide slot so full runs stop
-  contending are the cheaper alternatives after it.
+  `skills/procedures/code-shape.md`'s *The shape of a split gate*, **structure-selected first** —
+  colocating each test with its subject and adding a manifest per release unit and component, its cost those
+  moves — and a domain map with checked tags only for what the folders cannot carry, its cost the map, the
+  tags and the checks on both; a gate queue's machine-wide slot so full runs stop contending is the cheaper
+  alternative after it.
 - **The recommendation for `Gate share` is the `Prune candidates` first, then what the project itself adds
   to the cadence `skills/procedures/config-keys.md` sets for `gate` and `fullGate`** — a rule or CI job
-  running the full suite per change, no `targetedTest`; its alternatives are splitting the gate (the map, the
-  tags and their checks), or leaving it (most of every arc spent waiting on runs).
+  running the full suite per change, no `targetedTest`; its alternatives are splitting the gate (structure-selected
+  first, then the map, the tags and their checks), or leaving it (most of every arc spent waiting on runs).
 - **The recommendation for `Catch-all-only files` is a map line per area plus a map check that fails on a
   product file matched only by a catch-all**; its alternatives are narrowing one area at a time (each area
   left runs the whole suite until its turn), or leaving it (every change there keeps running the whole suite).
+- **The recommendation for `Misplaced tests` is a move of each into its subject's folder**, updating the map
+  or exception list and the tags in the same change; its alternatives are tagging them where they stand (each
+  tag one more claim to check), or leaving them (each selected only through the map).
+- **The recommendation for a `Hotspot: <path>` item is the seam that stops every slice editing it** — a
+  folder-discovered declaration where it is a central list, a split along its own seams otherwise; its
+  alternatives are a Wave 0 seam hoisted per arc (paid again each arc), or leaving it (a merge conflict on
+  every wave that touches it).
+- **The recommendation for `Release-unit imports` and `Upward imports` is moving what is shared down a layer**
+  — into a component, the core on a second consumer — or a descriptor the other unit publishes; its
+  alternatives are declaring the dependency in the layering (each change to one unit then reaches the other),
+  or leaving it.
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).
@@ -132,7 +147,7 @@ and ticked off.
 |---|---|
 | Cheap — a tag, a map entry, a glob, a small script | `/pipeline:orchestrate` with the item as the plan in chat; the loop never reads this issue on its own |
 | `Prune candidates` | `/pipeline:orchestrate` with the listed candidates as the plan in chat |
-| A restructure — splitting the gate, bootstrapping the map, tagging the suite | `/pipeline:co-think` → `/pipeline:write-issue` as the project's own change, then `/pipeline:setup` so its `fullGate` ask declares the full gate once the partial one has landed |
+| A restructure — splitting the gate, colocating tests, adding manifests, bootstrapping the map, tagging the suite | `/pipeline:co-think` → `/pipeline:write-issue` as the project's own change, then `/pipeline:setup` so its `fullGate` ask declares the full gate once the partial one has landed |
 | A monolith | `/pipeline:setup`, which splits it in its own PR |
 
 **A calling pass gets that same report as its summary** and quotes it; it never re-measures. **Never a stop**:

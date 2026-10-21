@@ -245,8 +245,11 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 - Comments restating the code, which go; comments explaining a non-obvious *why* or *how*, which stay.
 - Where the diff departs from the conventions of the files it is already in.
 - **Placement, tags and test level, against `skills/ground-rules/SKILL.md` rule 12 and the project's own
-  layout rules** — a new file outside its domain's folder, a registration in a central list, an import
-  pointing the wrong way, a test at the wrong seam, a test with no domain tag or one nothing checks — except
+  layout rules** — a new file outside its layer's or its domain's folder, a test outside its subject's
+  folder, a registration in a central list (a release unit or component registered by name included), an
+  import between release units or pointing up a layer or otherwise the wrong way, shared code placed in the
+  core before a second consumer needs it, a test at the wrong seam, a test with no domain tag where its
+  folder cannot say its domain or a tag nothing checks — except
   where the project offers no tag form or no folder-discovered form, which is setup debt `/pipeline:health`
   records once rather than a finding on each diff (`skills/procedures/code-shape.md` names the signals; the terms are
   `skills/glossary/vocabulary/code-shape.md`'s).

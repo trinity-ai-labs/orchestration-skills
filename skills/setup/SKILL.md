@@ -87,6 +87,15 @@ Every value must trace to a file you read.
   shape*; router, chapter, pointer and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s) and keep
   the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
   Step 2 — see *A monolith is fixed now* below.
+- **The release units, only where the repo shows more than one** — several package, app or plugin manifests,
+  a version per product, several app or plugin targets, or tags per product. **Where you see one of those
+  signs, ask which parts ship on their own**, putting the candidates with the sign each came from, and record
+  the answer as the project's declared layering — its release units, components and core
+  (`skills/glossary/vocabulary/code-shape.md`) — **in its agent guidance, placed by
+  `skills/procedures/agent-guidance-layout.md`'s *Placing a line*, and never in `.agents/worktree.json`**, no
+  key holding it. It lands in a reviewable PR beside the config, never in a commit straight to the
+  integration branch. **A single-product repo gets no question**, and guidance already declaring the layering
+  is re-grounded against the manifests rather than asked again.
 - **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health`, handing it the
   guidance verdict above, and keep its summary; this pass takes no code-shape signal itself (*Setup debt is
   told second — measured by `/pipeline:health`, never restructured here*).
@@ -213,10 +222,11 @@ different question and this pass's own.
    **Write `true` only on an explicit yes** — a no, a maybe, silence or nobody to ask all mean OMIT the key,
    and the `false` in `examples/worktree.json` is a key shown, not a decision made.
 4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
-   suite? **Only a yes declares `fullGate`**, its value the project's full-suite command, grounded like `gate`
-   and confirmed; a no, a maybe or nobody to ask omits it, which keeps `gate` the full gate at every seat.
-   Declared, it runs only on demand, before a release, and at a close-out whose epic moved the boundary
-   (`skills/glossary/vocabulary/code-shape.md`).
+   suite? **Only a yes declares `fullGate`**, its value the project's full-suite command **in a cold form that
+   reads no cache and no stored green**, grounded like `gate` and confirmed; a no, a maybe or nobody to ask
+   omits it, which keeps `gate` the full gate at every seat. Declared, it runs only on demand, before a release,
+   at a close-out whose epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as a queued
+   project's tip audit (`skills/glossary/vocabulary/tip-audit.md`).
    ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
    exactly like a full one's, and while a wrong yes only spends a redundant full run before a release, a wrong no lets
    a cross-domain break past it.
@@ -270,9 +280,15 @@ it means.
 Only where Step 0 picked the queue tier. The queue is what lets implementers never run the heavy gate — they
 push, open a draft PR and hand back, while the dispatcher drops the durable ticket once it has read that diff
 and drains one gate at a time. Scaffold the three scripts with their `package.json` entries — the runner
-learning the `full` mode only where the project declares `fullGate` — and **read the reference first**: the
-whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) whose failure mode is a
-green gate against code no gate ever saw.
+learning the `full` mode only where the project declares `fullGate`, and the `audit` mode always — and **read
+the reference first**: the whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant
+slot) whose failure mode is a green gate against code no gate ever saw.
+
+**Write the audit's cold command into the runner as you scaffold it**: `fullGate` where declared; otherwise
+`gate` with the cache switch of the task runner you find `gate` invoking, or `gate` itself where it invokes
+no cache-keeping runner; and where you can name neither, ask the maintainer for the cold form of their full
+suite rather than guessing one — a guessed switch gets every audit refused. With no answer, scaffold the
+runner to reject `audit` at enqueue naming "no cold command".
 
 ### Already has a queue? Reconcile it — report the delta, never rewrite
 
@@ -286,9 +302,12 @@ deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
-The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so
-every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
-identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
+The `audit` mode (invariant 11), with its cold command, is currently that one; the refusal to gate a
+worktree carrying uncommitted tracked changes (invariant 10) is the one before. A runner without the `audit` mode rejects the dispatcher's
+audit enqueue, so its project gets no cold run between close-outs until it adopts one — report what the
+runner would have to add, and the cold command you would write into it. **The two newest verdict FIELDS — the
+failure set by identifier and the per-step executed-or-replayed record — are absent the same way and reported
+the same way**,
 and an absent failure set leaves a red ticket naming no tests to re-run by name at a slice's fork point.
 Report each like any other, with what the runner would have to add, and leave the adopting to the project.
 **Where the project declares `fullGate`, a runner without the `full` mode — or one that gates an unknown mode
@@ -319,7 +338,12 @@ first one.
    missing fields — report a refusal as a delta, the dispatcher's mid-arc integration gate then getting
    hand-run. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
    `fullGate`, or is refused non-zero naming the mode — a delta the same way, never a ticket gated in
-   `default`. Report any check you could not produce as not produced.
+   `default`. **And an `--mode audit` enqueue at the base tip** is either refused naming the mode — a delta —
+   or claimed; once it runs, enqueue an ordinary ticket and confirm the audit yields: back in `queue/`, no
+   process of its group left, its tree gone, no verdict written — then delete that requeued ticket while the
+   ordinary one gates. A complete audit is a full cold run this step does not spend, so say its completion
+   was not produced here.
+   Report any check you could not produce as not produced.
 5. **Two worktrees, gated at once** — the only place the FULL gate earns a run here, and only where
    `sharedResources` declares an `isolatedBy`: collision is unobservable in one run. Cut a second off the same
    base and overlap the real `gate` in both — green in both is the answer, a red reads as infrastructure
@@ -373,8 +397,9 @@ workspace-level `AGENTS.md` has no repository to land in, so hand its split back
 
 **Right after the monolith verdict — or first, where there is none — quote the summary `/pipeline:health`
 returned in Step 1**: its items, most expensive first, each with its value, trend, recommendation and route.
-**For a slow gate its first route is the `Prune candidates` item, a split gate the alternative.** **A split
-gate it recommends is the project's own change**, and once its partial gate has landed this pass
+**For a slow gate its first route is the `Prune candidates` item, a split gate the alternative — selected from
+structure first, by colocating each test with its subject and adding a manifest per release unit and
+component, before any domain map is scaffolded.** **A split gate it recommends is the project's own change**, and once its partial gate has landed this pass
 runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then

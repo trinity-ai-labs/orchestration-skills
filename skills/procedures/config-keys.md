@@ -41,12 +41,15 @@ a question rather than a default.
 - **`gate`** — the heavy per-PR gate (build + test), run against a queued PR's worktree. **It is the full
   gate wherever `fullGate` is absent**, and may be partial only where that key is declared.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
-  decides what a diff can affect, and nothing in this flow maps paths to tests. **Absent means `gate` IS the
+  decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
+  **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
+  and no key switches a cache off. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
   than a gap. **Present, it runs on demand, before a release or install, and in place of `gate` at an
-  epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and
-  nowhere else**: every slice and integration gate and every other close-out gate stays `gate`, a slice that moves the boundary reaching
-  the whole suite through its split gate's own fallback, and a queued project gates `fullGate` runs in a
+  epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as the
+  cold command of a queued project's tip audit, and nowhere else**: every slice and integration gate and every
+  other close-out gate stays `gate`, a slice that moves the boundary reaching the whole suite through its split
+  gate's own fallback, and a queued project gates `fullGate` runs in a
   `full` ticket mode. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
   `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from the integration tip —
   never the main checkout.
@@ -59,7 +62,10 @@ a question rather than a default.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only
   format-*checking*.
 - **`enqueue` / `drain`** — how a PR is enqueued for gating, and how the queue is drained. **Both absent
-  means the project has no queue**, which is a supported shape rather than a gap.
+  means the project has no queue**, which is a supported shape rather than a gap. **Present, they also carry
+  the tip audit** as an `audit` ticket mode beside `default` and `full`, on wherever a queue exists, with no
+  key of its own, its cold command as `skills/glossary/vocabulary/tip-audit.md` names it — and where no
+  `fullGate` is declared, the one setup writes into the scaffolded queue script.
 - **`frameworkSkills`** — `{skill, when}` pairs naming the framework skill each area opens with, so a
   brief can name one without anyone guessing the stack.
 - **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates

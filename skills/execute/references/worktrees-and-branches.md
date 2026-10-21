@@ -276,7 +276,12 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   split gate's union of every domain the epic touched, its changed files diffed by that gate
   (`skills/procedures/code-shape.md`, *The shape of a split gate*) — **or, where that diff moves the boundary
   (`skills/glossary/vocabulary/code-shape.md`), one `fullGate` run in its place, as a `full` ticket**, since
-  it covers everything `gate` would run. **Under `"epicMerge": "squash"` that PR's title and body become the
+  it covers everything `gate` would run. **For a structure-selected gate only a change to its selection
+  machinery moves the boundary** — the gate itself, the manifests' discovery, the exception list and its
+  checks, the toolchain or a lockfile — and a change to shared code or the core alone runs `gate`, which
+  already selects every release unit that change reaches. **The close-out report names the tier that ran —
+  `gate` or `fullGate` — why, and the reach the project's gate printed**, the release units or domains it
+  selected; releasing any one unit stays the project's own mechanism. **Under `"epicMerge": "squash"` that PR's title and body become the
   arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the
@@ -411,5 +416,7 @@ and your dispatch report states the plan for them.
   checkpoint and stays one until the close-out merge.
 - **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
   (*Mechanics*): **the scoped check plus the tests by name for what it touched, never `gate`**, the close-out
-  gate reading its delta with the rest of the epic.
+  gate reading its delta with the rest of the epic. **What a by-name run cannot see — a test the fix never
+  imported — the next tip audit catches** (`skills/glossary/vocabulary/tip-audit.md`), since the fix landing
+  moves the epic tip, and in a project with no queue the close-out gate alone does.
 - **The close-out panel is not one of them**: it always runs, over the PR's whole diff, with no base SHA.

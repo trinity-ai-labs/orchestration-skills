@@ -604,13 +604,13 @@ declares `enqueue`/`drain`; one declaring neither has no queue to drain and no t
 the tick's other riders below reach it: the integration-branch sync, the stash sweep and the epic merge.
 
 ## Draining the gate queue
-On each tick (the *same* timer you already run for divergence), run `drain` (Trinity: `pnpm gate:drain`) from
-the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then claims
-queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree — `gate` by
-default, and `fullGate` on a `full` ticket where the project declares it — **behind the slim machine-wide slot
-— one gate at a time** — then comments the verdict on the PR, a pass on
-green and the failing tail on red, and **leaves it draft either way**. It is a one-shot pass, so the tick
-re-invokes it.
+On each tick (the *same* timer you already run for divergence), run `drain` (a script such as `pnpm gate:drain`)
+from the main checkout. One pass re-delivers any verdict a previous pass decided but failed to post, then
+claims queued tickets and, for each, runs the gate that ticket's mode selects in that ticket's worktree —
+`gate` by default, `fullGate` on a `full` ticket where the project declares it, and the cold command on an
+`audit` ticket, after every other ticket — **behind the slim machine-wide slot — one gate at a time** — then
+comments the verdict on the PR, a pass on green and the failing tail on red, and **leaves it draft either
+way**. It is a one-shot pass, so the tick re-invokes it.
 
 **A wide fan-out stays safe because the slot, not the fan-out, decides how many gates run**, and implementers
 never gate and never enqueue at all.
@@ -648,7 +648,8 @@ never gate and never enqueue at all.
   nothing is draining — established by **reading the queue directory**, never `--status`, itself a drain on
   that vintage.
 - **A worktree whose ticket has not SETTLED is FROZEN — don't mutate it, don't remove it. The test is the
-  ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running.** A
+  ticket's EXISTENCE, in `queue/` as much as `processing/`, never whether a gate is observably running** — an
+  `audit` ticket alone freezes nothing, gating a tree of the runner's own at a SHA rather than a worktree. A
   claim is an atomic rename landing between your check and your agent's first edit, and
   **queued-and-unclaimed is the NORMAL state**, where a slice sits from the moment you enqueue it until a
   runner claims it — so checking `processing/` is not checking anything. A tree changed mid-gate is judged
@@ -665,6 +666,15 @@ never gate and never enqueue at all.
   in the diff to fix and no fix agent to dispatch. Find what left the tree dirty, get that work committed and
   pushed, or stashed by its marker and dropped where it is not wanted (`skills/ground-rules/SKILL.md`, rules
   6–7), and re-enqueue; a still-dirty tree only earns a second refusal.
+- **A tip moved since the last tick? Enqueue the tip audit (`skills/glossary/vocabulary/tip-audit.md`) for
+  it on this tick, before the drain** — after a slice merge into an epic branch, a merge onto the integration
+  branch, or a review checkpoint's fix landing:
+  `enqueue --mode audit --branch <the branch that moved> --tip <its new head SHA>`. Enqueue without checking
+  for a pending one, since a pending audit of that branch is retargeted rather than doubled. Nothing to do in
+  a project with no queue, which has no audit. **An enqueue rejected naming the mode or "no cold command",
+  or an audit settled refused `replayed`, means the runner cannot audit yet**: skip audits for the rest of the
+  arc, say in your report that `/pipeline:setup` should reconcile the runner, and never retry in `default` or
+  `full`, which would gate a warm or partial run as one. The audit's verdict settles on its ticket in `done/` and never on a PR; a red one is read by *Reading a gate result*.
 - **A PR with NO gate comment has not been gated — never treat it as red.** A pass comment is green, a failure
   comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an
   inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before
@@ -718,9 +728,12 @@ the tickets live at arm time is stale the moment the wave moves. Key on the wave
 divergence tick already carries, and every re-enqueue is covered for free.
 
 **Scope on the fields the ticket is guaranteed to carry, and emit on SETTLED rather than on a verdict.** A
-ticket carries `{ branch, worktreePath, mode }`, plus `prNumber`/`prUrl` only where the gated tree has a PR;
-the verdict facts on it are spelled as each runner picks. Read `branch`, plus `prNumber` for the handle it
-prints, and nothing else: a watch that never fires is indistinguishable from a wave that has not settled.
+ticket carries `{ branch, worktreePath, mode }` — an `audit` ticket `{ branch, mode, tipSha }`, settling on
+the branch it audited, so a watch whose set holds that branch hears it and `mode` tells it apart — plus
+`prNumber`/`prUrl` only where the gated tree has a PR;
+the verdict facts on it are spelled as each runner picks. Read `branch`, plus `prNumber` and `mode` for the
+line it prints, and nothing else: a watch that never fires is indistinguishable from a wave that has not
+settled.
 
 **Watch the ledger, not the PR.** A correct runner records the verdict on the ticket *before* it attempts to
 post, so a failed post leaves a settled ticket whose comment never landed. A watch on the comment sleeps
@@ -741,7 +754,7 @@ while true; do
     echo "$t" >> "$SEEN"
     case "$b" in
       feat/slice-a|feat/slice-b)            # this wave's branches, as enqueued
-        echo "settled: $b  PR $(jq -r '.prNumber // "none"' "$t")" ;;
+        echo "settled: $b  $(jq -r '.mode' "$t")  PR $(jq -r '.prNumber // "none"' "$t")" ;;
     esac
   done
   sleep 5

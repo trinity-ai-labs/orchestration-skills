@@ -30,8 +30,8 @@ section's scope — what changes is what you read: **the verdict on its ticket i
 status.**
 
 - **A gate spans every workspace — read every package's result, never one package's summary.** `gate` runs the
-  task-runner across ALL packages (Trinity: trinity, trinityailabs.com, cf, api-types) — or, where the project
-  declares `fullGate`, across every package its diff can affect.
+  task-runner across ALL packages (say an app, its marketing site, a worker and a shared types package) — or,
+  where the project declares `fullGate`, across every package its diff can affect.
   A `Failed: <pkg>#test` line plus a non-zero exit is **RED**, even when the *first* package's summary you
   happen to see looks like only failures that predate the slice. Concluding "green-modulo-fork-point" (see the
   transient-red window below) from one package's `Test Files N failed` line — without checking the failing
@@ -62,6 +62,21 @@ status.**
   asked, which is not the same as no. Re-gate the branch **alone** to separate the two — a red that survives
   in isolation is a code defect, one that evaporates was the race — and where it was the race, the move is to
   narrow the wave, not to touch a diff.
+
+- **A red tip audit (`skills/glossary/vocabulary/tip-audit.md`) is narrowed to the merge that caused it,
+  never handed to a fix agent whole** — *A red is checked at the fork point*, repeated at each merge. Read its
+  failure set and `tipSha` off its ticket in `done/`, and as the lower bound the `tipSha` of that branch's
+  newest green audit; with none, an epic branch's fork point, an integration branch's red being reported
+  un-narrowed — as is one where `git merge-base --is-ancestor <lower> <tipSha>` fails. In a tree cut and
+  removed by `landing.md`'s throwaway-tree recipe (*Gate the integrated whole*), re-run only the failing tests
+  by name through the targeted run, **at the lower bound FIRST**, then at each merge of
+  `git rev-list --first-parent --reverse <lower>..<tipSha>`, re-running `install` after each checkout. **One
+  failing at the lower bound is charged to no merge**: environmental where that bound is a green audit,
+  reported with the resource it names by *Several worktrees red at the same moment*, and "predates the epic"
+  at a fork point. **Otherwise charge the first merge it fails at; one passing by name everywhere is reported
+  un-narrowed as order-dependent or flaky, charged nothing.** A charged red is forced work for the next
+  reconcile. An audit settled **refused** `replayed` reached a cache, through the runner's switch or a
+  `fullGate` that is not cold, so say `/pipeline:setup` should reconcile it.
 
 - **The gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
   a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
@@ -192,7 +207,8 @@ that correspondence explicitly before merging: compare the SHA the gate comment 
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
 **Re-gate a fix round in proportion when the previous head gated green**: where the project declares
 `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full suite,
-loudly, where the delta moves the boundary or touches an unmapped file (`skills/procedures/code-shape.md`,
+loudly, where the delta moves the boundary or touches a file neither the structure nor the map places
+(`skills/procedures/code-shape.md`,
 *The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
 stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
 is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
@@ -472,7 +488,7 @@ job.
 
 ## On the gate — one run per PR; you read the diff
 **One `gate` run per PR IS the gate, and the project's `enqueue`/`drain` say whose it is**: the RUNNER's,
-drained one at a time behind the slim machine-wide slot (`scripts/gate-slot.mjs` for Trinity) so concurrent
+drained one at a time behind the slim machine-wide slot (the scaffolded `gate-slot.mjs`) so concurrent
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
@@ -492,9 +508,15 @@ already ran (*Gate the integrated whole* below). Even then prefer the minimum �
 over the whole suite where possible.
 Your always-on job is reading the **diff**; heavy re-gating is conditional.
 
+**The cold net under all of it is the tip audit, in a project with a queue** — one cold run of the whole tip
+each time it moves, off the critical path (`skills/glossary/vocabulary/tip-audit.md`; *Draining the gate
+queue* has the enqueue). It catches what every per-PR gate above can miss. So never hand-run a full gate to buy that assurance mid-arc; read the audit's verdict
+instead. A project with no queue has no audit, and its close-out gate stays the backstop.
+
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket
-reclaimed and re-gated. There is no "strangling orphan" for you to clear by hand and no lock dir to `rm` — the
+reclaimed and re-gated. There is no "strangling orphan" for you to clear by hand — a dead runner's audit process group the next pass
+kills before claiming — and no lock dir to `rm` — the
 queue and slot handle their own dead work. (If you ever do need to forcibly stop a runner's gate, clear its
 worktree via `remove-worktree.sh <leaf>`, which signals the processes; never `rm` the slot dir out from under
 a possibly-live holder.)

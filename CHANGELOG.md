@@ -2,6 +2,26 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.23.0
+
+- **The folder is the unit, and a split gate selects from structure.** Code sits in three layers — the core,
+  components and release units — each declaring itself in a manifest in its own folder, with every test in its
+  subject's folder. A structure-selected gate runs what the folders a change touches and the release units built
+  from them reach, and only a change to its selection machinery moves the boundary; the domain map shrinks to an
+  exception list. `/pipeline:setup` asks which parts ship on their own where a repo shows more than one product,
+  and `/pipeline:health` reads new signals — release-unit and upward imports, misplaced tests, hotspots, the
+  full-gate minute slope and whole-suite fallbacks — reading the tag rows by folder where selection comes
+  from structure. Ground rule 12 is now "Code lands in its layer, then where its domain lives". No new
+  config key ([#592](https://github.com/trinity-ai-labs/orchestration-skills/issues/592)).
+- **A cold tip audit runs the whole tip off the critical path.** Every queued project gains an `audit` ticket
+  mode: each time an integration or epic branch tip moves, the dispatcher enqueues one cold run of the whole
+  suite in a throwaway tree of the runner's own, which gives way to every other ticket and records nothing when
+  it does. Its command is `fullGate` where declared, otherwise `gate` with its task runner's cache switch, fixed
+  at setup. A red audit is narrowed to the merge that caused it by re-running its failing tests by name from the
+  last green audit forward; one failing there too is environmental and one passing everywhere is flaky, and
+  neither is charged to a merge. The docs
+  describe the arc's end state ([#593](https://github.com/trinity-ai-labs/orchestration-skills/issues/593)).
+
 ## 5.22.0
 
 - **Fixes outside an epic share one gate.** A run of independent fixes landing straight on a release or

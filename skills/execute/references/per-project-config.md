@@ -33,12 +33,15 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
 **The implementer's half reads the same in both, and in neither does it enqueue**: still a draft at
 hand-back, never marked ready by the implementer, never its own merge.
 
-**Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (Trinity: `--mode docs`
+**Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (say `--mode docs`
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
-`gate`. **A project declaring `fullGate` adds a `full` mode that runs it**, and that mode is never a slice's:
-it gates an on-demand run, a release run and a close-out whose epic moved the boundary
-(`skills/glossary/vocabulary/code-shape.md`) alone.
+`gate`. **A project declaring `fullGate` adds a `full` mode that runs it, cold, reading no cache**, and that
+mode is never a slice's: it gates an on-demand run, a release run and a close-out whose epic moved the
+boundary (`skills/glossary/vocabulary/code-shape.md`) alone — for a structure-selected gate a change to its
+selection machinery, never shared code alone, whose reach that gate already prints. **Every queued project
+also has an `audit` mode**, never a slice's either: the tip audit (`skills/glossary/vocabulary/tip-audit.md`),
+a PR-less ticket you enqueue each time a tip moves.
 
 **A base merge invalidates the mode, so re-derive it before you re-enqueue.** Recovering from a `merge-pr`
 that stopped at `Base branch was modified` means re-attaching a tree and `git merge origin/<base>` (*Merge &
@@ -52,8 +55,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 
 - **No `enqueue`/`drain`** → **this project gates in-line, and that is the DEFAULT here rather than a grant**
   (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
-  at all** — the command doesn't exist, so a brief telling an implementer to enqueue, or a dispatcher reaching
-  for the ticket once it has read the diff, ends with committed work and no handoff.
+  at all**, a tip audit included — the command doesn't exist, so a brief telling an implementer to enqueue, or a
+  dispatcher reaching for the ticket once it has read the diff, ends with committed work and no handoff.
 - **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
 - **`fullGate` absent** → **`gate` is the full gate at every seat.** **`fullGate` declared** → that project's
@@ -96,8 +99,10 @@ A shared cache only helps commands that invoke the runner (turbo/nx/bazel): `sco
 `fullGate` where declared. The binary called **directly** — `vitest`, `tsc`, `eslint` — or a script shelling
 straight to it **bypasses the cache and always runs cold**, locally and in the drained gate. So route every
 whole-package or whole-suite run that is *supposed to happen* — the drained gate, an integration gate, an
-in-line slice's gate, a `fullGate` run — through the cached command (`turbo run <task> --filter=<pkg>`, or the
-project's `scopedCheck`), and say so in briefs and in the project's agent guidance. Routing, not permission:
+in-line slice's gate — through the cached command (`turbo run <task> --filter=<pkg>`, or the project's
+`scopedCheck`), and say so in briefs and in the project's agent guidance. **A `fullGate` run and the tip audit
+go through the runner too**, in its no-cache form (`turbo run <task> --force`), never around it to the raw
+binary. Routing, not permission:
 for a queue-mode implementer those runs are banned outright (`skills/execute/SKILL.md`'s Implementer section).
 Reserve a direct-binary run for one targeted test run — the project's `targetedTest` where declared, else
 single test files, each run singly; guidance documenting the raw form as a package default is a leak to fix.

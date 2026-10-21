@@ -40,7 +40,7 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    One the tooling cannot take is reported as not taken, with what it would take, never estimated, and **no
    signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
    it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
-   at all, where no gate is structure-selected (`skills/glossary/vocabulary/code-shape.md`) either, is the
+   at all, in a project with a test suite beyond the gate's own checks and where no gate is structure-selected (`skills/glossary/vocabulary/code-shape.md`) either, is the
    `Map coverage` item, its value `no map`; a structure-selected gate needs none, and an untagged test in its
    subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
    threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
@@ -100,6 +100,12 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   change it.
 - **Gone on re-measure: tick it off** (`- [x]`) with the value that cleared it. A ticked item is left in place,
   and one that comes back is unticked with its trend, never appended a second time.
+- **Settled: an item whose recommendation is to leave it, with its reason** — set by this pass or by the user's
+  edit — is marked `- [x] **<name>** — settled: <reason>` and keeps its value and trend. It holds the issue
+  open no more than a ticked item does, and it is unsettled — unticked, its recommendation re-made — only when
+  its value crosses the fact its *changes it* names or the user edits the recommendation away from leaving it.
+- **The issue is closed when no item is unticked** — every item ticked off or settled — and reopened only when
+  an unticked one appears.
 - **The first recommendation for a slow gate is to prune or merge tests**, from the `Prune candidates`
   item — one arc of deletions and merges, paid once. **Splitting the gate is the alternative**, by
   `skills/procedures/code-shape.md`'s *The shape of a split gate*, **structure-selected first** —
@@ -133,7 +139,8 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
 
 - Create: `gh api repos/{owner}/{repo}/issues -f "title=Setup debt" -F "body=@<file>" --jq '.number'`
 - Update: `gh api -X PATCH repos/{owner}/{repo}/issues/<n> -F "body=@<file>"`, adding `-f state=open` where the
-  issue was closed and the new body carries an unticked item.
+  issue was closed and the new body carries an unticked item, and `-f state=closed` where it was open and the new
+  body carries none.
 
 **Then refetch the body and confirm it is the markdown, not `@<file>`.**
 

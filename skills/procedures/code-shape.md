@@ -36,7 +36,8 @@ of import lines answer different questions. **Nothing here runs the suite**: a t
 gate or CI output only, and a figure with no such output is *not taken*.
 
 **A row is taken only where its precondition holds**, and a row whose precondition is absent is neither a value
-nor an item: *Shared-spine share*, *Catch-all-only files*, *Folder disagreement* and *Map size* need a domain
+nor an item: *Map coverage* needs a test suite beyond the gate's own checks, a map having nothing to select
+without one; *Shared-spine share*, *Catch-all-only files*, *Folder disagreement* and *Map size* need a domain
 map; *Cross-domain tests*, *Untested domains*, *Untagged tests*, *Misplaced tests*, *Selectable share*, *Tag
 count*, *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* need a test suite beyond the gate's own
 checks; *Release-unit imports* needs two or more release units; *Upward imports* needs a declared or shown

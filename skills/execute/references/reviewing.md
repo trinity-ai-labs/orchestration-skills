@@ -63,6 +63,20 @@ status.**
   in isolation is a code defect, one that evaporates was the race — and where it was the race, the move is to
   narrow the wave, not to touch a diff.
 
+- **A red tip audit (`skills/glossary/vocabulary/tip-audit.md`) is narrowed to the merge that caused it,
+  never handed to a fix agent whole.** Read its failure set and `tipSha` off its ticket in `done/`, and the
+  `tipSha` of that branch's newest green audit beside it as the lower bound; where that branch has none yet,
+  an epic branch's fork point is the lower bound, and an integration branch's red is reported un-narrowed. In a
+  throwaway tree cut from the red `tipSha`, check out each merge on that branch's first-parent line since the
+  lower bound, oldest first
+  (`git rev-list --first-parent --reverse <lower>..<tipSha>`), and re-run only the failing tests by name
+  through the targeted run — `targetedTest` where declared, else single files, each run singly. **Charge the
+  first merge at which they fail.** **A failure that also fails at the lower bound itself is environmental**:
+  report it with the resource it names, by the bullet above, and charge it to no merge. Remove the tree when
+  done. A charged red is forced work, dispositioned at the next reconcile — folded into the next slice
+  touching that area, or into a fix slice of its own; an audit settled **refused** `replayed` is a runner
+  whose cold command reached a cache, so say `/pipeline:setup` should reconcile it.
+
 - **The gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
   a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
   comment on its PR reporting a full green with zero failures — and on the close-out/integration slice,
@@ -492,6 +506,13 @@ integration gate on the merged result). That second one is not a judgment call �
 already ran (*Gate the integrated whole* below). Even then prefer the minimum — the affected/changed tests
 over the whole suite where possible.
 Your always-on job is reading the **diff**; heavy re-gating is conditional.
+
+**The cold net under all of it is the tip audit, in a project with a queue** — one cold run of the whole tip
+each time it moves, off the critical path (`skills/glossary/vocabulary/tip-audit.md`; *Draining the gate
+queue* has the enqueue). It catches what every per-PR gate above can miss: a partial or cached gate's green
+over a test the change never selected, and a review checkpoint's fix, held to its tests by name, breaking one
+it never imported. So never hand-run a full gate to buy that assurance mid-arc; read the audit's verdict
+instead. A project with no queue has no audit, and its close-out gate stays the backstop.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket

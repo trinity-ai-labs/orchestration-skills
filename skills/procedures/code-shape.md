@@ -49,10 +49,10 @@ gate or CI output only, and a figure with no such output is *not taken*.
 | Upward imports | imports pointing up a layer — the core into a component or a release unit, a component into a release unit — or against the project's declared layering | map each import line's source and target to its layer | import lines, listed | a change to the higher layer reaches everything built on the lower, and the core stops being thin |
 | Misplaced tests | tests whose subject lives in another folder | map each test file's import or call targets to their folder and list the tests outside it | test files, and their share of all test files; listed | a change to the subject selects the test only through a map entry or a tag, never by its folder |
 | Hotspots | files touched by a large share of recent merged PRs | count, per file, the merged PRs touching it among the last 50 merged into the integration branch, from git's history | PRs out of the last 50, per file; files at 10 or more listed | every slice touching one conflicts with its siblings at merge, and one there is often a central list or a core file changing too often |
-| Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output | minutes per run, and test count | spent by every change where nothing narrows the gate, and where `fullGate` narrows it by each release, on-demand run and boundary move; past 10 minutes a run it is debt either way |
+| Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output, a completed tip audit's ticket in the gate ledger included | minutes per run, and test count | spent by every change where nothing narrows the gate, and where `fullGate` narrows it by each release, on-demand run and boundary move; past 10 minutes a run it is debt either way |
 | Gate-minute slope | how fast the full-gate cost is growing | fit the full-gate minutes of the dated runs *Full-gate cost* reads, over at least four weeks of them | minutes per run per week, and days left before the 10-minute threshold at that rate | how soon every change, or every `fullGate` run, pays a run past the threshold |
 | Whole-suite fallbacks | scoped plans a split gate widened to the whole suite | count the runs whose printed plan names a fallback, over the gate runs in the gate ledger, CI output or gate logs | runs, and their share of split-gate runs | each paid a whole-suite run for a change a scoped run would have covered, and a rising share says selection is losing ground |
-| Gate share | the share of an arc's wall-clock spent in gate and test runs | the minutes in gate and test runs over the last arc divided by that arc's wall-clock, both read from the gate ledger, CI timestamps or gate logs | percent, beside both minute counts | every point of it is the arc waiting on a run; above 50% the tests are most of the arc |
+| Gate share | the share of an arc's wall-clock spent in gate and test runs | the minutes in gate and test runs over the last arc divided by that arc's wall-clock, both read from the gate ledger, CI timestamps or gate logs, tip audits left out since nothing waits on one | percent, beside both minute counts | every point of it is the arc waiting on a run; above 50% the tests are most of the arc |
 | Selectable share | tests a domain filter can pick | tagged tests whose tag is checked | test files, and their share of all test files | the rest runs on every change |
 | Map size | how much selection the folders cannot express | count the domain map's entries, or the exception list's once selection comes from structure | entries, with the trend since the last run | every entry is selection kept by hand, and one added per product is a central list |
 | Tag count | how many tests carry a domain tag | count the test files carrying one | test files, with the trend since the last run | every tag is a claim something must check; where tests sit in their subject's folder the count shrinks |
@@ -161,13 +161,15 @@ tool.
    its own base, and item 8's re-gate over a fix round's delta is the one exception — **and an empty plan on
    a branch with commits beyond that base fails loudly**, never a green over zero tests. **It runs one
    representative per sweep; a sweep runs only under `fullGate`.**
-5. **The full gate moved to on-demand runs, a release, and an epic's close-out where the epic moved the
-   boundary, never dropped** — the project's `fullGate` (`skills/procedures/config-keys.md`), with the partial
-   gate as its `gate`, and **run cold: it reads no cache and no green store**.
+5. **The full gate moved to on-demand runs, a release, an epic's close-out where the epic moved the
+   boundary, and a queued project's tip audit, never dropped** — the project's `fullGate`
+   (`skills/procedures/config-keys.md`), with the partial gate as its `gate`, and **run cold: it reads no cache
+   and no green store**.
 6. **Optionally, a green cache** keyed on a hash of a release unit's or a domain's inputs — its files, the core
    or the shared spine and the toolchain — skipping one whose key last passed.
 7. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
-   caught by the full gate on demand, before a release and at a boundary-moving close-out, every other change
-   resting on the split gate alone.
+   caught by the full gate on demand, before a release and at a boundary-moving close-out, and between those
+   by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a queue, every other
+   change resting on the split gate alone.
 8. **A re-gate after a fix round on a head that gated green runs the split gate over the delta since that
    head**, with the same loud fallback, and its verdict names both heads.

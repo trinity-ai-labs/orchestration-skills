@@ -47,9 +47,10 @@ a question rather than a default.
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
   than a gap. **Present, it runs on demand, before a release or install, and in place of `gate` at an
   epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md` — for a
-  structure-selected gate only its selection machinery moves it, never shared code alone), and
-  nowhere else**: every slice and integration gate and every other close-out gate stays `gate`, a slice that moves the boundary reaching
-  the whole suite through its split gate's own fallback, and a queued project gates `fullGate` runs in a
+  structure-selected gate only its selection machinery moves it, never shared code alone), and as the
+  cold command of a queued project's tip audit, and nowhere else**: every slice and integration gate and every
+  other close-out gate stays `gate`, a slice that moves the boundary reaching the whole suite through its split
+  gate's own fallback, and a queued project gates `fullGate` runs in a
   `full` ticket mode. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
   `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from the integration tip —
   never the main checkout.
@@ -62,7 +63,10 @@ a question rather than a default.
 - **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only
   format-*checking*.
 - **`enqueue` / `drain`** — how a PR is enqueued for gating, and how the queue is drained. **Both absent
-  means the project has no queue**, which is a supported shape rather than a gap.
+  means the project has no queue**, which is a supported shape rather than a gap. **Present, they also carry
+  the tip audit** (`skills/glossary/vocabulary/tip-audit.md`) as an `audit` ticket mode beside `default` and
+  `full`, on wherever a queue exists, with no key of its own: its cold command is `fullGate` where declared,
+  and otherwise `gate` with the cache switch setup writes into the scaffolded queue script.
 - **`frameworkSkills`** — `{skill, when}` pairs naming the framework skill each area opens with, so a
   brief can name one without anyone guessing the stack.
 - **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates

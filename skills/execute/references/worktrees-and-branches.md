@@ -416,5 +416,7 @@ and your dispatch report states the plan for them.
   checkpoint and stays one until the close-out merge.
 - **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
   (*Mechanics*): **the scoped check plus the tests by name for what it touched, never `gate`**, the close-out
-  gate reading its delta with the rest of the epic.
+  gate reading its delta with the rest of the epic. **What a by-name run cannot see — a test the fix never
+  imported — the next tip audit catches** (`skills/glossary/vocabulary/tip-audit.md`), since the fix landing
+  moves the epic tip, and in a project with no queue the close-out gate alone does.
 - **The close-out panel is not one of them**: it always runs, over the PR's whole diff, with no base SHA.

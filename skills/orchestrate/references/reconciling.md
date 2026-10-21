@@ -33,7 +33,10 @@ taking a type this arc deletes is forced work the compiler hands to whichever sl
 provisioning forced *silently*, every gate green while worktrees are still cut from the pre-change file. That
 window closes only when the change reaches the **main checkout's working tree**, which holds the integration
 branch — so on an epic it is the epic → integration close-out, not the slice merge inside it, and every
-worktree cut before then is hand-patched.
+worktree cut before then is hand-patched. **A red tip audit charged to a merge is revealed forced work too**
+(`skills/glossary/vocabulary/tip-audit.md`) — the merged tree breaks a test no remaining item owns — so it goes
+through *Fold vs. file* like any other: into the next slice touching that area, or a fix slice of its own. A
+red the dispatcher found environmental is charged to no merge and is not this item.
 
 **4. Falsified assumptions.** `/pipeline:ground` writes
 `Assumes X (existing pattern in <file>); flag if wrong` into briefs; re-check every one still live against the

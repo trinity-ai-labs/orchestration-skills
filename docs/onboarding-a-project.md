@@ -65,7 +65,7 @@ own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
 setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its cost:
 the structure alone, a map alone, or a gate queue so full runs at least stop contending. Setup never restructures
 your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
-issue in your tracker, appending what it measures and ticking off what is gone, so run again — by setup on a
+issue in your tracker, appending what it measures, ticking off what is gone and marking settled what you chose to leave, with its reason. The issue closes once nothing is left unticked and reopens only when something new needs a decision, so run again — by setup on a
 reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each
 item beside its last value.
 

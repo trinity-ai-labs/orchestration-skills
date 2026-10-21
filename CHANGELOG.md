@@ -2,6 +2,13 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.23.2
+
+- **Settled setup debt stops holding the `Setup debt` issue open.** `/pipeline:health` marks an item settled
+  when its recommendation is to leave it, with the reason, keeping its value and trend; the issue closes once
+  no item is unticked and reopens only when one appears. *Map coverage* is taken only where a test suite
+  beyond the gate's checks exists, since a map has nothing to select without one.
+
 ## 5.23.1
 
 - **`/pipeline:health` reads the repo's shape before its signals.** It opens with one line on the project's

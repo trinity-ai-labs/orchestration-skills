@@ -38,9 +38,9 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    One the tooling cannot take is reported as not taken, with what it would take, never estimated, and **no
    signal is taken by running the suite**. **A signal is an item only where some change pays the table's *What
    it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
-   at all, where no gate selects from structure either, is the `Map coverage` item, its value `no map`; a
-   gate selecting from structure needs none, and an untagged test in its subject's folder pays nothing. **Full-gate cost is an item past the threshold its
-   row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
+   at all, where no gate is structure-selected (`skills/glossary/vocabulary/code-shape.md`) either, is the
+   `Map coverage` item, its value `no map`; a structure-selected gate needs none, and an untagged test in its
+   subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
    threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
    under 90**, and **each file the `Hotspots` row lists is its own item**, `Hotspot: <path>`.
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
      an item naming the signal.
-   - **A central list** — a file every domain, component or release unit edits to register a unit, a route, a
+   - **A central list** — a file every domain, component or release unit edits to register a module, a route, a
      test or a product by name, where a declaration in its own folder could be discovered instead; an item
      naming its path.
    - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
@@ -97,15 +97,15 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   and one that comes back is unticked with its trend, never appended a second time.
 - **The first recommendation for a slow gate is to prune or merge tests**, from the `Prune candidates`
   item — one arc of deletions and merges, paid once. **Splitting the gate is the alternative**, by
-  `skills/procedures/code-shape.md`'s *The shape of a split gate*, **selection from structure first** —
+  `skills/procedures/code-shape.md`'s *The shape of a split gate*, **structure-selected first** —
   colocating each test with its subject and adding a manifest per release unit and component, its cost those
   moves — and a domain map with checked tags only for what the folders cannot carry, its cost the map, the
   tags and the checks on both; a gate queue's machine-wide slot so full runs stop contending is the cheaper
   alternative after it.
 - **The recommendation for `Gate share` is the `Prune candidates` first, then what the project itself adds
   to the cadence `skills/procedures/config-keys.md` sets for `gate` and `fullGate`** — a rule or CI job
-  running the full suite per change, no `targetedTest`; its alternatives are splitting the gate (selection from
-  structure first, then the map, the tags and their checks), or leaving it (most of every arc spent waiting on runs).
+  running the full suite per change, no `targetedTest`; its alternatives are splitting the gate (structure-selected
+  first, then the map, the tags and their checks), or leaving it (most of every arc spent waiting on runs).
 - **The recommendation for `Catch-all-only files` is a map line per area plus a map check that fails on a
   product file matched only by a catch-all**; its alternatives are narrowing one area at a time (each area
   left runs the whole suite until its turn), or leaving it (every change there keeps running the whole suite).

@@ -1,4 +1,4 @@
-# code shape — domain, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate, moves the boundary, seam test, guard, probe, setup debt
+# code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate, structure-selected, map-selected, selection machinery, moves the boundary, seam test, guard, probe, setup debt
 
 **Code shape** is how a project's files divide by what they are about, and how cheaply that division lets a
 change be scoped, gated and reviewed. **The folder is the unit**: what ships, what is shared and where a test
@@ -21,7 +21,7 @@ core:
 
 A release unit or a component **declares itself** in a manifest in its own folder, found by a glob. A
 **central list** is the opposite: one file every domain, component or release unit edits to register itself
-by name — a unit, a route, a test, a product — which folder-discovered declarations would make unnecessary.
+by name — a module, a route, a test, a product — which folder-discovered declarations would make unnecessary.
 
 A **domain map** is a file mapping path globs to domains, read top to bottom with the first matching glob
 winning. It **covers** a project when every tracked file matches some glob. A map built from evidence — what

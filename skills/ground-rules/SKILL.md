@@ -157,14 +157,14 @@ child inherits your conversation, and this governs a spawn PARAMETER because the
 model, so state it however read-only the child is and however small its job. The seats rule 1 names are
 the seats here, and a seat that learns to spawn something is one of them the day it does.
 
-## 12. Code lands where its domain lives
+## 12. Code lands in its layer, then where its domain lives
 
 **Place, write, plan and judge code so the next change stays cheap to scope, gate and review** —
 `skills/procedures/code-shape.md` has the steps that read a project's shape and place a file, and
 `skills/glossary/vocabulary/code-shape.md` the words.
 
-- **A new unit, route, test or handler goes in its layer — release unit, component or core — then where its
-  domain lives, and is found by its folder** — a release unit or component declaring itself in a manifest in
+- **A new module, route, test or handler goes in its layer — release unit, component or core — where the
+  project declares or shows a layering, then where its domain lives, and is found by its folder** — a release unit or component declaring itself in a manifest in
   its own folder, picked up by being placed, never by an edit to a central list every domain shares.
 - **Dependencies point one way, down the layers and the project's declared layering**: a release unit never
   imports another, a component never imports another, nothing reaches into a sibling domain, and what two

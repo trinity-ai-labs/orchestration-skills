@@ -58,7 +58,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | Adjacent | `skills/glossary/vocabulary/adjacent.md` |
 | agent guidance — router, rule chapter, pointer | `skills/glossary/vocabulary/agent-guidance.md` |
 | central list | `skills/glossary/vocabulary/code-shape.md` |
-| code shape — domain, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, seam test, split gate, moves the boundary, guard, probe | `skills/glossary/vocabulary/code-shape.md` |
+| code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, seam test, split gate, structure-selected, map-selected, selection machinery, moves the boundary, guard, probe | `skills/glossary/vocabulary/code-shape.md` |
 | component, core | `skills/glossary/vocabulary/code-shape.md` |
 | divergence | `skills/glossary/vocabulary/divergence.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |

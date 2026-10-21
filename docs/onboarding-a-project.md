@@ -93,8 +93,9 @@ tip moves the dispatcher queues one cold run of the whole tip, in a throwaway tr
 gives way to every real ticket and records nothing when stopped, so it never sits on anyone's critical path
 — it catches what a scoped or cached gate cannot, and a red one is narrowed to the merge that caused it. Its
 cold command is written into the runner at setup: your `fullGate` where you declared one; otherwise `gate`
-with your task runner's cache switched off, the switch read off the runner your gate invokes; and where setup
-cannot find one, it asks you for the cold form. Setup's verification enqueues an audit and then a real ticket,
+with your task runner's cache switched off, the switch read off the runner your gate invokes, or `gate` as it
+stands where it invokes no runner that keeps a cache; and where setup can name neither, it asks you for the
+cold form, a runner left without one rejecting the audit. Setup's verification enqueues an audit and then a real ticket,
 and confirms the audit stepped aside cleanly — no process left, its tree gone, no verdict written. A queue
 scaffolded before the audit rejects it, and a reconcile reports that as its newest delta.
 

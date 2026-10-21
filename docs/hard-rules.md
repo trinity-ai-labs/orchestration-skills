@@ -40,7 +40,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   being a property of the wave rather than of any slice in it. **All three are one principle and it is worth
   reading as one: the pass that reads the code RECOMMENDS, and the seat that holds the machine DECIDES** —
   what changes between them is only which facts each seat is the one holding.
-- **Code lands where its domain lives, so the next change stays cheap to scope, gate and review.** Every seat
+- **Code lands in its layer, then where its domain lives, so the next change stays cheap to scope, gate and review.** Every seat
   that writes, plans or reviews code holds it to one default: a new file goes in its domain's folder and is
   picked up by being placed there rather than by an edit to a shared list; dependencies point one way, never
   sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses — the
@@ -53,7 +53,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   only under `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or
   costs more than its bug is deleted, the domain map and test tags updated in the same change (`skills/procedures/code-shape.md`, *Test policy*;
   review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). **The folder
-  is the unit**: code sits in three layers — the core, components and release units, the parts that ship on
+  is the unit**: where your project declares or shows a layering, code sits in three layers — the core, components and release units, the parts that ship on
   their own — with dependencies pointing down, so a release unit never imports another, a component never
   imports another, and code moves into the core only when a second component needs it; a release unit or a
   component declares itself in a manifest in its own folder rather than in a central list. Every test lives
@@ -156,8 +156,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   tests it touched, by name. **What that misses, a project with a gate queue catches in a cold tip audit**: each
   time a branch's tip moves, the dispatcher queues one cold run of the whole tip — `fullGate`, or `gate` with
   its task runner's cache switched off — which yields to every real ticket, so it never sits on the critical
-  path, and a stopped one records nothing; a red is narrowed by name to the first merge that fails it, and a
-  failure that also failed at the last green audit is reported as environmental rather than charged. A
+  path, and a stopped one records nothing; a red is narrowed by name to the first merge that fails it, starting at
+  the last green audit, and a failure that also fails there is reported as environmental, one that passes
+  everywhere as flaky, neither charged to a merge. A
   project with no queue has no audit, and its close-out gate stays the backstop. Your own stricter rule wins,
   said with its cost so you can relax it, and where the right scope is genuinely unclear you are asked — full,
   cached or scoped, each with its time and what it would miss — since a full run costs far more than a question.

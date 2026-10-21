@@ -222,10 +222,11 @@ different question and this pass's own.
    **Write `true` only on an explicit yes** — a no, a maybe, silence or nobody to ask all mean OMIT the key,
    and the `false` in `examples/worktree.json` is a key shown, not a decision made.
 4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
-   suite? **Only a yes declares `fullGate`**, its value the project's full-suite command, grounded like `gate`
-   and confirmed; a no, a maybe or nobody to ask omits it, which keeps `gate` the full gate at every seat.
-   Declared, it runs only on demand, before a release, and at a close-out whose epic moved the boundary
-   (`skills/glossary/vocabulary/code-shape.md`).
+   suite? **Only a yes declares `fullGate`**, its value the project's full-suite command **in a cold form that
+   reads no cache and no stored green**, grounded like `gate` and confirmed; a no, a maybe or nobody to ask
+   omits it, which keeps `gate` the full gate at every seat. Declared, it runs only on demand, before a release,
+   at a close-out whose epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as a queued
+   project's tip audit (`skills/glossary/vocabulary/tip-audit.md`).
    ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
    exactly like a full one's, and while a wrong yes only spends a redundant full run before a release, a wrong no lets
    a cross-domain break past it.
@@ -283,10 +284,11 @@ learning the `full` mode only where the project declares `fullGate`, and the `au
 the reference first**: the whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant
 slot) whose failure mode is a green gate against code no gate ever saw.
 
-**Write the audit's cold command into the runner as you scaffold it, and into no config key**: `fullGate`
-where declared; otherwise `gate` with the cache switch of the task runner you find `gate` invoking; and where
-you find none you can name a switch for, ask the maintainer for the cold form of their full suite rather than
-guessing one — a guessed switch that still replays a step gets every audit refused `replayed`.
+**Write the audit's cold command into the runner as you scaffold it**: `fullGate` where declared; otherwise
+`gate` with the cache switch of the task runner you find `gate` invoking, or `gate` itself where it invokes
+no cache-keeping runner; and where you can name neither, ask the maintainer for the cold form of their full
+suite rather than guessing one — a guessed switch gets every audit refused. With no answer, scaffold the
+runner to reject `audit` at enqueue naming "no cold command".
 
 ### Already has a queue? Reconcile it — report the delta, never rewrite
 
@@ -300,9 +302,8 @@ deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
-The eleventh, an audit run cold in a tree of its own that gives way to every other ticket, is currently that
-one, and with it the `audit` mode and its cold command; the tenth, the refusal to gate a worktree carrying
-uncommitted tracked changes, is the one before. A runner without the `audit` mode rejects the dispatcher's
+The `audit` mode (invariant 11), with its cold command, is currently that one; the refusal to gate a
+worktree carrying uncommitted tracked changes (invariant 10) is the one before. A runner without the `audit` mode rejects the dispatcher's
 audit enqueue, so its project gets no cold run between close-outs until it adopts one — report what the
 runner would have to add, and the cold command you would write into it. **The two newest verdict FIELDS — the
 failure set by identifier and the per-step executed-or-replayed record — are absent the same way and reported

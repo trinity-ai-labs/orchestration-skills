@@ -25,7 +25,7 @@ Per-user, under the user's home, shared across the project's worktrees:
   queue/       <timestamp>-<pid>.json       awaiting a runner
   processing/  <name>.json.<runnerPid>      claimed, gate in flight
   done/        <name>.json.<runnerPid>      resolved (green or red)
-  audit-tree/  <runnerPid>/                 a running audit's throwaway tree (invariant 11)
+  audit-tree/  <runnerPid>/tree, /pgid      a running audit's throwaway tree and process group (invariant 11)
 ```
 
 **The root is durable storage, not scratch.** Until its comment lands (invariant 7) a resolved ticket holds a
@@ -53,16 +53,18 @@ produced, on exactly the tickets whose purpose was the full gate.
 integration or epic branch whose tip moved and `tipSha` the commit to audit, enqueued as
 `enqueue --mode audit --branch <branch> --tip <sha>`:
 
-- **PR-less, and undeliverable by construction**, recorded at enqueue like any other PR-less ticket. It
-  carries no `worktreePath`: the runner gates it in a throwaway tree of its own (invariant 11), never a
+- **PR-less, so recorded undeliverable at enqueue** like any other PR-less ticket. It carries no
+  `worktreePath`: the runner gates it in a throwaway tree of its own (invariant 11), never a
   slice's tree and never the main checkout.
-- **Named to sort after every ordinary ticket** — `queue/~audit-<branch>.json`, the branch's `/` written as
-  `-` — since invariant 1 claims the lexically lowest name and `~` sorts after every digit and letter.
+- **Named to sort after every ordinary ticket** — `queue/~audit-<branch>.json`, the branch percent-encoded
+  (`%` as `%25`, `/` as `%2F`) so no two branches share a name — since invariant 1 claims the lexically lowest
+  name and `~` sorts after every digit and letter.
 - **One fixed name per branch keeps at most one pending, and a newer tip retargets it**: enqueue writes the
   ticket to a temporary file under the queue root but outside `queue/`, where no claim can see it, and
   renames it over that name, so a second tip move while one is pending still leaves one, aimed at the newer
   SHA.
-- **Its cold command is fixed at setup** (*What varies per project*), never chosen per ticket.
+- **Its cold command is fixed at setup** (*What varies per project*), never chosen per ticket. **A runner
+  scaffolded with none rejects `audit` at enqueue**, exiting non-zero and naming "no cold command".
 
 **A runner scaffolded before the `audit` mode rejects it at enqueue**, exiting non-zero and naming the mode,
 by the rule above — never gating it as `default` or `full`, which would settle a warm or partial run as an
@@ -140,7 +142,7 @@ owed no report. Take that from the enqueue-time flag, never from the absence of 
 every mid-arc integration gate becomes a permanent ledger entry.
 
 **The newest green audit per branch is never pruned**, whatever its age, until a newer green audit of that
-branch settles: its `tipSha` is the lower bound a dispatcher narrows a red audit from, and a ledger that pruned
+branch settles or the branch is gone from the remote (`git ls-remote --heads`): its `tipSha` is the lower bound a dispatcher narrows a red audit from, and a ledger that pruned
 it leaves a red with nothing to narrow against.
 
 Put the prune on the reconcile walk, which already reads every ticket in `done/`, and take the clock as an
@@ -193,18 +195,23 @@ no SHA having been gated.
 only the runner holding the audit can let it through:
 
 - **Its own throwaway tree.** After the slot, cut a detached tree at `tipSha` from the repository the drain
-  runs in (`git fetch`, then `git worktree add --detach audit-tree/<runnerPid> <tipSha>` under the queue
+  runs in (`git fetch`, then `git worktree add --detach audit-tree/<runnerPid>/tree <tipSha>` under the queue
   root), run the project's `install` there where it declares one, and gate it with the audit's cold command.
-  Remove it (`git worktree remove --force`, then `git worktree prune`) when the audit settles or stops, and run
-  the project's `reclaim` `drop` after, where declared, as for any removed worktree.
-- **Its own process group.** Spawn the cold command as the leader of a new process group, so stopping the group
-  stops every browser, compiler and test server under it.
-- **Watch while holding it.** From the claim until the audit settles, poll `queue/` for any name that is not
-  an audit's and `processing/` for a ticket another runner claimed and is blocked on the slot behind this one.
+  **Where the fetch, the cut or the install fails, settle it refused, reason `tree`**, and remove what was cut.
+  Remove the tree (`git worktree remove --force`, then `git worktree prune`) when the audit settles or stops, and
+  run the project's `reclaim` `drop` after, where declared, as for any removed worktree.
+- **Its own process group.** Spawn the cold command as the leader of a new process group and write its id to
+  `audit-tree/<runnerPid>/pgid`, so stopping the group stops every browser, compiler and test server that
+  stays in it; a child that detaches into a session of its own escapes, so the cold command starts none.
+- **A ticket goes back without clobbering.** Wherever this invariant returns an audit to `queue/`, `link` it to
+  its name there, then `unlink` the `processing/` copy; on `EEXIST` a newer audit for that branch is pending
+  and supersedes it, so delete the returning ticket instead.
+- **Watch while holding it.** From the claim until the audit settles, poll every 5–10 s for a `queue/` name
+  that is not an audit's, and in `processing/` for a ticket that is not an audit, whose claimant PID is alive,
+  blocked on the slot behind this one.
 - **Yield on sight, in this order:** signal the audit's process group (`SIGTERM`, then `SIGKILL` after a grace
-  period), remove its tree, rename the ticket back to `queue/` — or delete it where a newer audit for that
-  branch is already pending there, which supersedes it — and release the slot. Then carry on the pass, whose
-  next claim takes the ordinary ticket first, since it sorts lower.
+  period), remove its tree, release the slot, put the ticket back, then run `drop`. Then carry on the pass,
+  whose next claim takes the ordinary ticket first, since it sorts lower.
 - **A stopped audit records nothing**: no verdict, no failure set, no entry in any cache or green store the
   gate keeps, and nothing in `done/`; only a `requeued` count on the ticket itself. A half-run audit must never
   turn the next gate red or vouch for anything.
@@ -212,9 +219,9 @@ only the runner holding the audit can let it through:
   replayed steps from the per-step record (*Reporting*): its cold command reached a cache, which is a scaffold
   defect for setup to fix rather than a verdict about the tip.
 
-**Invariant 2 covers a runner that died holding an audit**: the ticket goes back to `queue/` as any reclaimed
-ticket does, and the same pass removes any audit tree under the queue root whose claimant is dead, before
-claiming.
+**Invariant 2 covers a runner that died holding an audit**: the ticket goes back to `queue/` by the
+no-clobber put-back, and before claiming, the same pass kills the process group each dead claimant's `pgid`
+names (`SIGTERM`, then `SIGKILL`) and only then removes its audit tree.
 
 ## The worktree is frozen from enqueue until the ticket settles
 
@@ -239,7 +246,8 @@ had vanished, by an exception mid-pass, and — benignly — by a PR-less ticket
 undeliverable flag tells the last from the first; on GitHub they look identical.
 
 So the ticket carries the outcome, the exit code, the failing tail, **the failure SET by identifier**, **a
-per-step executed-or-replayed record**, the SHA that was gated, and whether the report was delivered — which
+per-step executed-or-replayed record**, the SHA that was gated — an audit's `tipSha` — when the gate started
+and settled (`startedAt`, `settledAt`), and whether the report was delivered — which
 is what makes `done/` a ledger and delivery a retryable step.
 
 **The failure SET is the field a later reader compares against, and the failing tail cannot stand in for it.**
@@ -255,10 +263,6 @@ recorded green and nothing more — nothing ran, so nothing environmental was ex
 steps all replayed establishes an unchanged tree rather than a suite that covered a change. Absent the field,
 the reader sizing what to gate next, or asking whether a suite actually reached a diff, has nothing to read on
 the ticket or on the comment.
-
-**An audit's verdict carries its `tipSha` and, on red, its failure set**, written onto the ticket in `done/`
-like any PR-less verdict and delivered the moment it settles; a dispatcher reads it there, and the `tipSha`
-of the newest green one is what it narrows a red against.
 
 **The failing tail belongs to a red verdict — compute it and store it only there.** Greens are the common case
 and the tail is the largest field, so tails on green spend invariant 8's retention budget on bytes no comment
@@ -286,8 +290,9 @@ Only these. Everything above is generic:
 - **the audit's cold command, written into the scaffolded runner at setup** and read from no config key:
   `fullGate` where declared, being cold by meaning; otherwise `gate` with the cache bypassed by the switch of
   the task runner setup detects in it (Turborepo's `--force`, Nx's `--skip-nx-cache`, Bazel's
-  `--noremote_accept_cached --nocache_test_results`, and the like); and where setup detects none, the command
-  the maintainer gives when asked
+  `--noremote_accept_cached --nocache_test_results`, and the like), or `gate` as it stands where it invokes no
+  cache-keeping task runner, being cold already; and where setup can name none, the command the maintainer
+  gives when asked
 - the package manager used to invoke them
 - how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
 - the queue directory's *name*, and the retention window the prune applies
@@ -296,4 +301,4 @@ The queue root's **placement** is not on that list: home-relative and durable ev
 *Queue layout*.
 
 Read the varying pieces from `.agents/worktree.json` rather than hardcoding them — all but the audit's
-task-runner switch, which no key holds, so setup writes it into the runner and a reconcile reads it there.
+task-runner switch, which setup writes into the runner.

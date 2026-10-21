@@ -52,8 +52,13 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   representative unit, theme, size or browser engine is the default — a sweep needs a written reason, and runs
   only under `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or
   costs more than its bug is deleted, the domain map and test tags updated in the same change (`skills/procedures/code-shape.md`, *Test policy*;
-  review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). Every test is
-  tagged with the domain it is about, and a tag nothing checks counts as a guess. **Your project's own layout
+  review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). **The folder
+  is the unit**: code sits in three layers — the core, components and release units, the parts that ship on
+  their own — with dependencies pointing down, so a release unit never imports another, a component never
+  imports another, and code moves into the core only when a second component needs it; a release unit or a
+  component declares itself in a manifest in its own folder rather than in a central list. Every test lives
+  in its subject's folder, which names its domain, so a domain tag carries only what the folder cannot say,
+  and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
   once is a missing tool — the fix it recommends is a script with its own check in your repository, never a
   longer brief.
@@ -135,15 +140,27 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no gate: the epic pays one
   `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
-  demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — the domain map or its checks,
-  a shared-spine file, the toolchain or a lockfile — **and nowhere else** ([Per-project
-  config](per-project-config.md#per-project-config)); a slice that moves the boundary gets the whole suite
-  through its split gate's own fallback. A project that declares no `fullGate` keeps `gate` as the full gate
-  everywhere. **A re-gate after a fix round is proportionate**: where a head already gated green, the next run
-  is the partial gate over what changed since, falling back to the full suite loudly when that moves the
-  boundary or touches unmapped files, and its verdict names both heads. Your own stricter rule wins, said with
-  its cost so you can relax it, and where the right scope is genuinely unclear you are asked — full, cached or
-  scoped, each with its time and what it would miss — since a full run costs far more than a question.
+  demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — for
+  a gate that selects from the project's structure, only a change to its selection machinery (the gate itself,
+  how manifests are discovered, the exception list and its checks, the toolchain or a lockfile), never shared
+  code alone, since that gate already selects every release unit a shared change reaches; for one that selects
+  from a domain map, the map or its checks, a shared-spine file, the toolchain or a lockfile — **and on the tip
+  audit below, and nowhere else** ([Per-project config](per-project-config.md#per-project-config)); a slice
+  that moves the boundary gets the whole suite through its split gate's own fallback. The close-out report
+  names the tier that ran, `gate` or `fullGate`, why, and the reach your gate printed — the release units or
+  domains it selected; releasing any one unit stays your own mechanism. A project that declares no `fullGate`
+  keeps `gate` as the full gate everywhere. **A re-gate after a fix round is proportionate**: where a head
+  already gated green, the next run is the partial gate over what changed since, falling back to the full
+  suite loudly when that moves the boundary or touches a file neither the structure nor the map places, and its
+  verdict names both heads. **A review checkpoint's fix agent never runs `gate`** — the scoped check and the
+  tests it touched, by name. **What that misses, a project with a gate queue catches in a cold tip audit**: each
+  time a branch's tip moves, the dispatcher queues one cold run of the whole tip — `fullGate`, or `gate` with
+  its task runner's cache switched off — which yields to every real ticket, so it never sits on the critical
+  path, and a stopped one records nothing; a red is narrowed by name to the first merge that fails it, and a
+  failure that also failed at the last green audit is reported as environmental rather than charged. A
+  project with no queue has no audit, and its close-out gate stays the backstop. Your own stricter rule wins,
+  said with its cost so you can relax it, and where the right scope is genuinely unclear you are asked — full,
+  cached or scoped, each with its time and what it would miss — since a full run costs far more than a question.
 - **Always verify HEAD before dispatching an agent into a worktree, and fetch first — the fetch is part of the
   check, not preparation for it.** The helper prints what it made — `READY: <path>`, then `HEAD: <sha>` — and,
   when it is forking a new branch, withholds both unless the tree it is about to hand back *contains* the

@@ -103,21 +103,21 @@ direction and the
 loop's own doing rather than yours to re-scope, so that one it fixes itself: whatever the goal is not true
 without comes back in.
 
-You **never code directly in the main checkout.** The main checkout holds the **integration branch** (for
-Trinity, `release/x.x.x`) and nothing else, ever — every other branch, slice *or* epic, lives in its own
-worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that sits inside a polyrepo workspace
-(`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`, so a task spanning several
-member repos lands as one directory laid out the way the workspace is. Every helper resolves both layouts — a
-teardown that knew only the first would look at a path that never exists for a workspace member, report the
-tree already gone, and exit 0. That is the one rule the whole layout follows: the main checkout is the only
-shared mutable state here, and a branch parked in it is a branch several sessions can move under each other.
-`WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to `%LOCALAPPDATA%\wt` — a
-worktree path there ends up carrying a whole dependency tree
+You **never code directly in the main checkout.** The main checkout holds the **integration branch** (in a
+project that releases from one, something like `release/x.x.x`) and nothing else, ever — every other branch,
+slice *or* epic, lives in its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that
+sits inside a polyrepo workspace (`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`,
+so a task spanning several member repos lands as one directory laid out the way the workspace is. Every helper
+resolves both layouts — a teardown that knew only the first would look at a path that never exists for a
+workspace member, report the tree already gone, and exit 0. That is the one rule the whole layout follows: the
+main checkout is the only shared mutable state here, and a branch parked in it is a branch several sessions can
+move under each other. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to
+`%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree
 (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows'
-260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on
-the length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push →
-PR back into the integration branch → review → **merge with a real merge commit** → sync the local integration
-branch → delete branch + worktree.
+260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the
+length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back
+into the integration branch → review → **merge with a real merge commit** → sync the local integration branch →
+delete branch + worktree.
 
 **One second level, cut by default for any arc of more than one slice: the epic branch.** **The verdict is
 written in the issue** — `/pipeline:write-issue` answers it on the two rules below while it is planning the
@@ -248,7 +248,8 @@ its dispatch report states that plan. A review checkpoint reads the change since
 head (the fork point the first time), posts onto the epic's own PR into the integration branch, which opens as
 a draft at the first one and stays one until the close-out merge, and sends accepted findings to one fix agent
 in the epic worktree, which runs the scoped check and the tests by name for what it touched, the close-out
-gate reading its delta with the rest of the epic. A slice still gets its own panel for
+gate reading its delta with the rest of the epic — and, in a project with a gate queue, the next tip audit
+catching a test that fix broke without importing it. A slice still gets its own panel for
 seams, security, auth, data or irreversible changes, or substantial work with no epic branch. So the close-out
 PR ends up carrying the same two artifacts a slice's PR does, the panel's review first and the orchestrator's
 own read after it, and neither of them the approval — the `draft → ready` flip is still that. **What does not
@@ -342,14 +343,19 @@ outstanding.
 - **A durable gate queue, where a project declares one** → implementers hand back rather than waiting and the
   dispatcher enqueues once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
-  draft PR are pushed before the hand-back either way.
+  draft PR are pushed before the hand-back either way. The same queue runs a **cold tip audit** each time a
+  branch's tip moves: one run of the whole tip with no cache, in a tree of its own, that gives way to every
+  real ticket and records nothing when stopped — so it catches what a scoped or cached gate cannot without
+  ever holding up a merge, and a red one is narrowed to the merge that caused it.
 - **Tests a minority of an arc's time** → a slice pays its scoped check, its own tests by name and one `gate`
   on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no gate, the epic paying
   one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
-  only what its change affects, because the full suite runs on demand, before a release, and in place of the
-  close-out `gate` where an epic moved the domain map, a shared-spine file or the toolchain. A project that declares nothing keeps one full
-  gate everywhere.
+  only what its change affects, because the full suite runs on demand, before a release, on the tip audit,
+  and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the
+  project's structure only a change to its selection machinery, since it already selects every release unit
+  a shared change reaches; for one selecting from a domain map, the map, a shared-spine file or the
+  toolchain. A project that declares nothing keeps one full gate everywhere.
 - **Merges preserve history** → nothing is replayed or flattened, so a parallel-branch conflict is resolved
   once, at merge time, with both sides still there to read. An epic branch's own collapse back is the one
   place that trade is worth re-opening, because that branch is scaffolding rather than history —

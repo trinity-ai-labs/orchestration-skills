@@ -279,9 +279,14 @@ it means.
 Only where Step 0 picked the queue tier. The queue is what lets implementers never run the heavy gate — they
 push, open a draft PR and hand back, while the dispatcher drops the durable ticket once it has read that diff
 and drains one gate at a time. Scaffold the three scripts with their `package.json` entries — the runner
-learning the `full` mode only where the project declares `fullGate` — and **read the reference first**: the
-whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant slot) whose failure mode is a
-green gate against code no gate ever saw.
+learning the `full` mode only where the project declares `fullGate`, and the `audit` mode always — and **read
+the reference first**: the whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant
+slot) whose failure mode is a green gate against code no gate ever saw.
+
+**Write the audit's cold command into the runner as you scaffold it, and into no config key**: `fullGate`
+where declared; otherwise `gate` with the cache switch of the task runner you find `gate` invoking; and where
+you find none you can name a switch for, ask the maintainer for the cold form of their full suite rather than
+guessing one — a guessed switch that still replays a step gets every audit refused `replayed`.
 
 ### Already has a queue? Reconcile it — report the delta, never rewrite
 
@@ -295,9 +300,13 @@ deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
-The tenth, the refusal to gate a worktree carrying uncommitted tracked changes, is currently that one, so
-every already-scaffolded queue reports one absence. **The two newest verdict FIELDS — the failure set by
-identifier and the per-step executed-or-replayed record — are absent the same way and reported the same way**,
+The eleventh, an audit run cold in a tree of its own that gives way to every other ticket, is currently that
+one, and with it the `audit` mode and its cold command; the tenth, the refusal to gate a worktree carrying
+uncommitted tracked changes, is the one before. A runner without the `audit` mode rejects the dispatcher's
+audit enqueue, so its project gets no cold run between close-outs until it adopts one — report what the
+runner would have to add, and the cold command you would write into it. **The two newest verdict FIELDS — the
+failure set by identifier and the per-step executed-or-replayed record — are absent the same way and reported
+the same way**,
 and an absent failure set leaves a red ticket naming no tests to re-run by name at a slice's fork point.
 Report each like any other, with what the runner would have to add, and leave the adopting to the project.
 **Where the project declares `fullGate`, a runner without the `full` mode — or one that gates an unknown mode
@@ -328,7 +337,12 @@ first one.
    missing fields — report a refusal as a delta, the dispatcher's mid-arc integration gate then getting
    hand-run. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
    `fullGate`, or is refused non-zero naming the mode — a delta the same way, never a ticket gated in
-   `default`. Report any check you could not produce as not produced.
+   `default`. **And an `--mode audit` enqueue at the base tip** is either refused naming the mode — a delta —
+   or claimed; once it runs, enqueue an ordinary ticket and confirm the audit yields: back in `queue/`, no
+   process of its group left, its tree gone, no verdict written — then delete that requeued ticket while the
+   ordinary one gates. A complete audit is a full cold run this step does not spend, so say its completion
+   was not produced here.
+   Report any check you could not produce as not produced.
 5. **Two worktrees, gated at once** — the only place the FULL gate earns a run here, and only where
    `sharedResources` declares an `isolatedBy`: collision is unobservable in one run. Cut a second off the same
    base and overlap the real `gate` in both — green in both is the answer, a red reads as infrastructure

@@ -10,7 +10,7 @@ concurrent runners are safe, a killed runner loses nothing, and a reboot leaves 
 
 | Script | Role |
 |---|---|
-| `enqueue-gate.mjs` | Drops a durable ticket for one gate — the dispatcher's, against a slice's draft PR once it has read that diff, or on a tree that has no PR |
+| `enqueue-gate.mjs` | Drops a durable ticket for one gate — the dispatcher's, against a slice's draft PR once it has read that diff, on a tree that has no PR, or a tip audit |
 | `gate-runner.mjs` | A one-shot drain pass: claim → check the tree → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
 | `gate-slot.mjs` | A machine-wide mutex so only one heavy gate runs at a time |
 
@@ -25,6 +25,7 @@ Per-user, under the user's home, shared across the project's worktrees:
   queue/       <timestamp>-<pid>.json       awaiting a runner
   processing/  <name>.json.<runnerPid>      claimed, gate in flight
   done/        <name>.json.<runnerPid>      resolved (green or red)
+  audit-tree/  <runnerPid>/                 a running audit's throwaway tree (invariant 11)
 ```
 
 **The root is durable storage, not scratch.** Until its comment lands (invariant 7) a resolved ticket holds a
@@ -46,6 +47,26 @@ dispatcher's on-demand, release and boundary-moving close-out tickets carry ther
 may be partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
 never fall back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate
 produced, on exactly the tickets whose purpose was the full gate.
+
+**`audit` runs the tip audit (`skills/glossary/vocabulary/tip-audit.md`), and every runner learns it, a
+`fullGate` declared or not.** Its ticket is `{ branch, mode: "audit", tipSha }`, `branch` being the
+integration or epic branch whose tip moved and `tipSha` the commit to audit, enqueued as
+`enqueue --mode audit --branch <branch> --tip <sha>`:
+
+- **PR-less, and undeliverable by construction**, recorded at enqueue like any other PR-less ticket. It
+  carries no `worktreePath`: the runner gates it in a throwaway tree of its own (invariant 11), never a
+  slice's tree and never the main checkout.
+- **Named to sort after every ordinary ticket** — `queue/~audit-<branch>.json`, the branch's `/` written as
+  `-` — since invariant 1 claims the lexically lowest name and `~` sorts after every digit and letter.
+- **One fixed name per branch keeps at most one pending, and a newer tip retargets it**: enqueue writes the
+  ticket to a temporary file under the queue root but outside `queue/`, where no claim can see it, and
+  renames it over that name, so a second tip move while one is pending still leaves one, aimed at the newer
+  SHA.
+- **Its cold command is fixed at setup** (*What varies per project*), never chosen per ticket.
+
+**A runner scaffolded before the `audit` mode rejects it at enqueue**, exiting non-zero and naming the mode,
+by the rule above — never gating it as `default` or `full`, which would settle a warm or partial run as an
+audit.
 
 **`mode` is a property of the ticket, set at enqueue — never inferred from the branch name**, or a rename
 silently changes how a PR is gated.
@@ -118,6 +139,10 @@ any other: `delivered` asks whether the verdict reached the reader it was owed t
 owed no report. Take that from the enqueue-time flag, never from the absence of a comment — read as flagged,
 every mid-arc integration gate becomes a permanent ledger entry.
 
+**The newest green audit per branch is never pruned**, whatever its age, until a newer green audit of that
+branch settles: its `tipSha` is the lower bound a dispatcher narrows a red audit from, and a ledger that pruned
+it leaves a red with nothing to narrow against.
+
 Put the prune on the reconcile walk, which already reads every ticket in `done/`, and take the clock as an
 injectable dependency — a wall-clock-only rule can be tested only by waiting.
 
@@ -132,7 +157,9 @@ changes which process works, not when work finishes.
 the slot — that claims nothing and gates nothing. Both read state already on disk: the PID is in the slot,
 `processing/`'s claim suffix maps it to that runner's ticket (invariant 2's extraction), and the slot's
 timestamp (invariant 4's grace period reads the same one) says since when. The mode is the load-bearing half:
-the announcement only ever reaches the waiting runner's own stderr.
+the announcement only ever reaches the waiting runner's own stderr. **An audit in flight gets its own line** —
+the branch, the `tipSha` it is auditing, since when, and its `requeued` count — and a pending one is named as
+pending, so nobody reads a cold run holding the slot as a stuck ordinary gate.
 
 **A runner that does not implement `--status` must reject the unrecognised flag and exit without claiming
 anything — never fall through to a drain**, or the mode's absence is silent in projects scaffolded before it.
@@ -160,6 +187,34 @@ it on the PR like any other and leave the PR draft. Settling it silently leaves 
 still dirty, one refusal per pass. On a PR-less ticket it is delivered the moment it settles, as any PR-less
 ticket is (invariant 8). The head SHA it recorded is also what *Reporting*'s moved-off-SHA rule reads for it,
 no SHA having been gated.
+
+**11. An audit runs cold in a tree of its own, and gives way to every other ticket.** A drain pass exits
+(invariant 6), so the next pass claims a real ticket and then blocks on the slot an audit holds (invariant 9);
+only the runner holding the audit can let it through:
+
+- **Its own throwaway tree.** After the slot, cut a detached tree at `tipSha` from the repository the drain
+  runs in (`git fetch`, then `git worktree add --detach audit-tree/<runnerPid> <tipSha>` under the queue
+  root), run the project's `install` there where it declares one, and gate it with the audit's cold command.
+  Remove it (`git worktree remove --force`, then `git worktree prune`) when the audit settles or stops, and run
+  the project's `reclaim` `drop` after, where declared, as for any removed worktree.
+- **Its own process group.** Spawn the cold command as the leader of a new process group, so stopping the group
+  stops every browser, compiler and test server under it.
+- **Watch while holding it.** From the claim until the audit settles, poll `queue/` for any name that is not
+  an audit's and `processing/` for a ticket another runner claimed and is blocked on the slot behind this one.
+- **Yield on sight, in this order:** signal the audit's process group (`SIGTERM`, then `SIGKILL` after a grace
+  period), remove its tree, rename the ticket back to `queue/` — or delete it where a newer audit for that
+  branch is already pending there, which supersedes it — and release the slot. Then carry on the pass, whose
+  next claim takes the ordinary ticket first, since it sorts lower.
+- **A stopped audit records nothing**: no verdict, no failure set, no entry in any cache or green store the
+  gate keeps, and nothing in `done/`; only a `requeued` count on the ticket itself. A half-run audit must never
+  turn the next gate red or vouch for anything.
+- **An audit that replayed any step is not green.** Settle it **refused**, reason `replayed`, naming the
+  replayed steps from the per-step record (*Reporting*): its cold command reached a cache, which is a scaffold
+  defect for setup to fix rather than a verdict about the tip.
+
+**Invariant 2 covers a runner that died holding an audit**: the ticket goes back to `queue/` as any reclaimed
+ticket does, and the same pass removes any audit tree under the queue root whose claimant is dead, before
+claiming.
 
 ## The worktree is frozen from enqueue until the ticket settles
 
@@ -201,6 +256,10 @@ steps all replayed establishes an unchanged tree rather than a suite that covere
 the reader sizing what to gate next, or asking whether a suite actually reached a diff, has nothing to read on
 the ticket or on the comment.
 
+**An audit's verdict carries its `tipSha` and, on red, its failure set**, written onto the ticket in `done/`
+like any PR-less verdict and delivered the moment it settles; a dispatcher reads it there, and the `tipSha`
+of the newest green one is what it narrows a red against.
+
 **The failing tail belongs to a red verdict — compute it and store it only there.** Greens are the common case
 and the tail is the largest field, so tails on green spend invariant 8's retention budget on bytes no comment
 quotes. **The failure set rides with it on red for the same reason, a green having no failures to name; the
@@ -224,6 +283,11 @@ settles: no post is owed.
 Only these. Everything above is generic:
 
 - the gate command, any lighter mode's command, and `fullGate` for the `full` mode where declared
+- **the audit's cold command, written into the scaffolded runner at setup** and read from no config key:
+  `fullGate` where declared, being cold by meaning; otherwise `gate` with the cache bypassed by the switch of
+  the task runner setup detects in it (Turborepo's `--force`, Nx's `--skip-nx-cache`, Bazel's
+  `--noremote_accept_cached --nocache_test_results`, and the like); and where setup detects none, the command
+  the maintainer gives when asked
 - the package manager used to invoke them
 - how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
 - the queue directory's *name*, and the retention window the prune applies
@@ -231,4 +295,5 @@ Only these. Everything above is generic:
 The queue root's **placement** is not on that list: home-relative and durable everywhere, for the reason under
 *Queue layout*.
 
-Read the varying pieces from `.agents/worktree.json` rather than hardcoding them.
+Read the varying pieces from `.agents/worktree.json` rather than hardcoding them — all but the audit's
+task-runner switch, which no key holds, so setup writes it into the runner and a reconcile reads it there.

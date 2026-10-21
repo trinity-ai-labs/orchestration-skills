@@ -14,10 +14,18 @@ sweep, its two commands become `reclaim`, and `remove-worktree` runs its `drop` 
 do not, setup hands the gap back rather than writing one for you. **If resources have already piled up, run
 your `drop` by hand once before adopting this** — the first removal otherwise pays the whole backlog in the
 foreground, during a merge. **Whether your gate is partial** — whether it runs only what a change can affect
-rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, which the flow then runs
-on demand, before a release, and in place of the close-out gate where an epic moved your domain map, shared
-spine or toolchain, while `gate` stays the per-change gate; a no, or no answer, leaves `gate`
-the full gate everywhere, exactly as before. Setup never guesses this from a script's name. **Setup also
+rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, written to run cold —
+reading no cache and no stored green — which the flow then runs on demand, before a release, and in place of
+the close-out gate where an epic moved the boundary: for a gate that selects from your folders and manifests,
+only a change to that selection machinery — the gate itself, manifest discovery, the exception list and its
+checks, the toolchain or a lockfile — and for one that selects from a domain map, the map or its checks, a
+shared-spine file, the toolchain or a lockfile; `gate` stays the per-change gate. A no, or no answer, leaves
+`gate` the full gate everywhere, exactly as before. Setup never guesses this from a script's name. **Where
+your repo shows more than one product** — several package, app or plugin manifests, a version or tag per
+product — **it asks which parts ship on their own**, naming each candidate and the sign it came from, and
+records your answer as the project's layering (its release units, components and core) in your agent
+guidance rather than in `.agents/worktree.json`, in the same reviewable PR; a single-product repo gets no
+such question. **Setup also
 derives your test runner's targeted form** — `targetedTest`, a template taking one of test files or names —
 and confirms it with you; where no runner takes either it is left out. **And one that is not a fact about your
 repo at all — consent:** may a run that finds a defect in *the pipeline itself* write it into this plugin's
@@ -39,18 +47,23 @@ rather than moved so you can object to each. `/pipeline:orchestrate` runs the sa
 puts a monolith at the top of its report, pointing back here; it never stops over one and never edits your
 guidance itself. No config key controls any of this.
 
-**Then it runs `/pipeline:health`, and tells you second what costs every change.** That command looks for a
-map from your files to the domains they belong to, for tests tagged with the domain they are about, and at how
-long one full run of your suite takes and how much of it a domain filter could select — each figure with its
-unit. Where the gate is your full suite with no map or no checked tags, that is the first item of *setup debt*
+**Then it runs `/pipeline:health`, and tells you second what costs every change.** That command looks at how
+your code is laid out — whether tests live in their subject's folder, whether one product imports another or
+code imports up a layer, which files most changes touch — for a map from your files to the domains they belong
+to where your folders cannot say, for tests tagged with what their folder cannot say, and at how long one full
+run of your suite takes, how fast that is growing and how much of it a gate could select — each figure with
+its unit. Where the gate is your full suite with nothing to narrow it by, that is the first item of *setup debt*
 setup reports from it, right after any monolith: measured, with a first recommendation to **prune or merge
 tests**, from health's `Prune candidates` (the slowest tests, the loops with the most sweep multiplicity,
 same-shaped files that merge into one table-driven test, probes committed as cases, tests that cannot fail;
-health lists them and never deletes one), and **split the gate** as the alternative — bootstrap the map, tag
-the tests, add a changed-files gate that falls back to the full suite loudly on anything it cannot map, then
-declare `fullGate` — as your own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
+health lists them and never deletes one), and **split the gate** as the alternative — starting from
+structure: move each test into its subject's folder and add a manifest per release unit and component, so a
+changed-files gate selects from the folders a change touches and the units built from them, then keep a
+domain map only as an exception list for what the folders cannot express, add the gate that falls back to
+the full suite loudly on anything neither the structure nor the map places, and declare `fullGate` — as your
+own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
 setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its cost:
-the map alone, the tags alone, or a gate queue so full runs at least stop contending. Setup never restructures
+the structure alone, a map alone, or a gate queue so full runs at least stop contending. Setup never restructures
 your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
 issue in your tracker, appending what it measures and ticking off what is gone, so run again — by setup on a
 reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each
@@ -74,6 +87,16 @@ is the one case every "where the project has no queue" fallback in the flow stru
 check reports which of the two it got rather than just that the queue held. Where you declared `fullGate`, it
 also enqueues a ticket in the `full` mode, which must either run `fullGate` or be refused outright — never
 quietly gated as the partial default.
+
+**A scaffolded queue also runs a cold tip audit, with nothing for you to configure.** Each time a branch's
+tip moves the dispatcher queues one cold run of the whole tip, in a throwaway tree of the runner's own, which
+gives way to every real ticket and records nothing when stopped, so it never sits on anyone's critical path
+— it catches what a scoped or cached gate cannot, and a red one is narrowed to the merge that caused it. Its
+cold command is written into the runner at setup: your `fullGate` where you declared one; otherwise `gate`
+with your task runner's cache switched off, the switch read off the runner your gate invokes; and where setup
+cannot find one, it asks you for the cold form. Setup's verification enqueues an audit and then a real ticket,
+and confirms the audit stepped aside cleanly — no process left, its tree gone, no verdict written. A queue
+scaffolded before the audit rejects it, and a reconcile reports that as its newest delta.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
 [Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's agent guidance,

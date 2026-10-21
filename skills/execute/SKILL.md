@@ -111,11 +111,13 @@ its own draft PR, whose shape is draft, panel review with its dimension comments
 comment, posted review, merge — draft-before-gate all along, the panel and the fix round it can earn arriving
 with the close-out review (`skills/execute/references/worktrees-and-branches.md`); and the **integration
 gate** after a merge onto the integration branch, as a **PR-less ticket** whose verdict settles onto the
-ticket (*Gate the integrated whole*). **No gate runs before dispatch and none on a merge into an epic
-branch.** Only a `full` ticket runs a declared `fullGate` — on demand, before a release, and at a close-out
-whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the PR-less
-ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
-sanctioned. **In a project declaring no
+ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
+run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
+dispatch and none in front of a merge into an epic branch** — the audit after one holds no merge. Only a
+`full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at a
+close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
+PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
+sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
 implementer's.
 

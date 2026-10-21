@@ -435,6 +435,10 @@ worktree is gone:
    helper cannot do, in full: GitHub will not do it for a PR based on anything but the default branch, and
    no keyword you wrote will do it later.
 
+**Every merge above moves a tip, and in a project with a queue that is what the tip audit is for**
+(`skills/glossary/vocabulary/tip-audit.md`): enqueue it on the next tick, by *Draining the gate queue*, never
+in place of the integration gate this file asks for, since an audit gives way and may not finish.
+
 **When this close-out ends the whole arc rather than one increment, one arc-level question is still owed and
 it is answered in writing: did the arc surface a defect or gap in the pipeline itself?** Exactly one of four
 answers, in that order of preference — **fixed**, closed in this release and naming where it landed;

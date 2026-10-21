@@ -278,8 +278,10 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
 - The *scoped* per-commit check implementers run is NOT the sizing cost; the **per-PR gate** is — drained
   where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
-  `fullGate`, `gate` may be partial and `fullGate` runs at most once, at a close-out whose epic moved the
-  boundary (`skills/glossary/vocabulary/code-shape.md`), whatever the width.
+  `fullGate`, `gate` may be partial and `fullGate` runs on the critical path at most once, at a close-out
+  whose epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), whatever the width — a queued
+  project's tip audit (`skills/glossary/vocabulary/tip-audit.md`) runs it too, off that path, so it is no
+  sizing cost.
 
 ## The closing check — read a slice's fields against each other, and against what the project will accept
 

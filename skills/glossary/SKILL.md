@@ -57,13 +57,17 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 |---|---|
 | Adjacent | `skills/glossary/vocabulary/adjacent.md` |
 | agent guidance — router, rule chapter, pointer | `skills/glossary/vocabulary/agent-guidance.md` |
-| code shape — domain, domain map, domain tag, shared spine, seam test, split gate, moves the boundary, guard, probe | `skills/glossary/vocabulary/code-shape.md` |
+| central list | `skills/glossary/vocabulary/code-shape.md` |
+| code shape — domain, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, seam test, split gate, moves the boundary, guard, probe | `skills/glossary/vocabulary/code-shape.md` |
+| component, core | `skills/glossary/vocabulary/code-shape.md` |
 | divergence | `skills/glossary/vocabulary/divergence.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
+| exception list | `skills/glossary/vocabulary/code-shape.md` |
 | grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |
 | horizon | `skills/glossary/vocabulary/grounding-depth.md` |
 | integration branch | `skills/glossary/vocabulary/integration-branch.md` |
 | monolith (agent guidance) | `skills/glossary/vocabulary/agent-guidance.md` |
+| release unit | `skills/glossary/vocabulary/code-shape.md` |
 | review checkpoint | `skills/glossary/vocabulary/review-checkpoint.md` |
 | setup debt | `skills/glossary/vocabulary/code-shape.md` |
 | umbrella | `skills/glossary/vocabulary/umbrella.md` |

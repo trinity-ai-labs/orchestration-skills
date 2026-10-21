@@ -269,7 +269,9 @@ questions handed over. **A held arc runs it at the cycle that lands the held mer
 close-out gate plus the epic → integration PR **where an epic branch was cut; where none was, the
 increment's own gate and merge are the whole of it**, since work that cuts no epic branch has already landed
 on the integration branch at step 2. **That close-out gate is `gate` over the epic's combined diff, or a declared
-`fullGate` in its place where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`).**
+`fullGate` in its place where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`) —
+for a structure-selected gate a change to its selection machinery, never shared code alone — and the
+close-out report names the tier that ran, why, and the reach the project's gate printed.**
 **Where one WAS cut, green takes a third thing and
 only there: that close-out PR's own full `/pipeline:review` panel over the PR's whole diff, run before its
 gate and posting its review and one comment per dimension onto that PR** — a close-out that gated and skipped
@@ -428,7 +430,7 @@ Three rules bind the loop at any moment rather than at one step, so they sit her
   one a cycle reads as noise.
   **One narrow exception, not a loosening**: a re-gate after a fix round on a head already gated green, where
   its scope is genuinely unclear — a project rule demanding a full run against a small delta, or a delta whose
-  boundary contact (`skills/glossary/vocabulary/code-shape.md`) or map coverage cannot be established — is
+  boundary contact (`skills/glossary/vocabulary/code-shape.md`) or whether the structure or the map places it cannot be established — is
   ASKED, carrying rule 13's options (full, cached, scoped to the delta) with each one's time and what it would
   miss, since a full run costs far more than a question; where the answer is clear, act — scoped off the
   boundary, full on it.

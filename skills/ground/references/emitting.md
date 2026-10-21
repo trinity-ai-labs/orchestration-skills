@@ -25,7 +25,7 @@ Horizon: Wave 1 — the ready sub-issues B, C, D, one slice each
 - Wave 3 (last — the closing docs slice; consumes the falsification ledger, and derives from what the epic added): leaf F
 - Transient-red: B–D run against the W0 schema change (gate read per execute's transient-red rules)
 - Epic branch: yes, per the issue — the W0 schema change leaves the branch half-migrated until B–D land; slices fork from and PR into it
-- Conflicts to merge-resolve: C & D both add a route to src/routes/registry.ts — neither owns it
+- Conflicts to merge-resolve: C & D both add a route to src/routes/registry.ts — neither owns it; a central list every slice registers in, so a structural cause as well as a merge order
 - Docs axis: epic, so the shared overview page is F's to write and B–D record ledger entries against it (off an epic this line names the one slice that owns it)
 - Critical path: A → D → E → F
 

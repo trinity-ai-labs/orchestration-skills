@@ -87,6 +87,15 @@ Every value must trace to a file you read.
   shape*; router, chapter, pointer and monolith are `skills/glossary/vocabulary/agent-guidance.md`'s) and keep
   the verdict with every mark it names. **A monolith is the first thing you tell the user**, before any ask in
   Step 2 — see *A monolith is fixed now* below.
+- **The release units, only where the repo shows more than one** — several package, app or plugin manifests,
+  a version per product, several app or plugin targets, or tags per product. **Where you see one of those
+  signs, ask which parts ship on their own**, putting the candidates with the sign each came from, and record
+  the answer as the project's declared layering — its release units, components and core
+  (`skills/glossary/vocabulary/code-shape.md`) — **in its agent guidance, placed by
+  `skills/procedures/agent-guidance-layout.md`'s *Placing a line*, and never in `.agents/worktree.json`**, no
+  key holding it. It lands in a reviewable PR beside the config, never in a commit straight to the
+  integration branch. **A single-product repo gets no question**, and guidance already declaring the layering
+  is re-grounded against the manifests rather than asked again.
 - **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health`, handing it the
   guidance verdict above, and keep its summary; this pass takes no code-shape signal itself (*Setup debt is
   told second — measured by `/pipeline:health`, never restructured here*).
@@ -373,8 +382,9 @@ workspace-level `AGENTS.md` has no repository to land in, so hand its split back
 
 **Right after the monolith verdict — or first, where there is none — quote the summary `/pipeline:health`
 returned in Step 1**: its items, most expensive first, each with its value, trend, recommendation and route.
-**For a slow gate its first route is the `Prune candidates` item, a split gate the alternative.** **A split
-gate it recommends is the project's own change**, and once its partial gate has landed this pass
+**For a slow gate its first route is the `Prune candidates` item, a split gate the alternative — selected from
+structure first, by colocating each test with its subject and adding a manifest per release unit and
+component, before any domain map is scaffolded.** **A split gate it recommends is the project's own change**, and once its partial gate has landed this pass
 runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then

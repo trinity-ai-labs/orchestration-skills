@@ -18,6 +18,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
 - **Owns (scope)** — the concrete files, globs and directories **this slice owns**, as real paths from your
   grounding. **Ownership is an ASSIGNMENT before it is a permission**: the list is a floor on what the change
   must reach, never a ceiling on what it may touch.
+  - **Name each entry's layer beside it — release unit, component or core — where the project declares a
+    layering** (`skills/glossary/vocabulary/code-shape.md`), **and treat an import the slice would add across
+    layers that the plan did not name — upward, between release units, between components — as a finding**,
+    raised on the issue as `skills/ground-rules/SKILL.md` rule 13 asks rather than briefed as the route.
   - **Two slices wanting the same file is NOT a reason to split a wave, delay one, or invent an ordering.** A
     shared path means a merge conflict, and a merge conflict is a routine thing resolved in under a minute by
     whoever merges second. Splitting the wave to avoid one costs a whole cycle; rewording a fence to avoid one
@@ -88,7 +92,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     single agent expresses by doing them in order.
 - **Skill to invoke first** — the framework skill the implementer opens with: the skill of each
   `frameworkSkills` entry whose `when` matches the slice's area, and none where no entry matches or the
-  project declares none. For Trinity, **app = `frameworks:solid`, sidecar = `frameworks:effect-v3`**; a
+  project declares none. For a project mapping an `app` area to `frameworks:solid` and a `sidecar` area to `frameworks:effect-v3`, a
   full-stack slice invokes both, a pure docs/config slice none.
 - **Model** — **standard tier** (well-scoped, mechanical, mirrors an existing pattern) or **top tier** (subtle
   algorithms, design-heavy, tricky concurrency, security-sensitive, large cross-cutting), with one line of
@@ -114,9 +118,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no* there
     is**: a recommendation that only ever says yes is a default yes, which spends on every slice exactly what
     pricing the fan-out was for.
-  - **Name where the slice's new code and tests land** — the domain and folder, and the seam each test sits at
-    (`skills/ground-rules/SKILL.md`, rule 12; `skills/procedures/code-shape.md`, *Placing new code and a new
-    test*) — and say so where the placement widens the shared spine
+  - **Name where the slice's new code and tests land** — the layer, the domain and folder, each test in its
+    subject's folder, and the seam each test sits at (`skills/ground-rules/SKILL.md`, rule 12;
+    `skills/procedures/code-shape.md`, *Placing new code and a new test*) — and say so where the placement
+    widens the shared spine or the core, or registers in a central list
     (`skills/glossary/vocabulary/code-shape.md`).
   - **Point at the source, never at your conclusion about it** — *read the route handler and use the schema it
     parses the body with*, not *use `FooRequest`*, since an implementer cannot tell a name you verified from
@@ -190,7 +195,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     where declared, else single test files, each run singly — never a suite**, and where the slice changes a
     module's export surface (adds, removes or renames an export, or moves code between modules), each test
     file that mocks or imports that module, found by grepping its specifier, which the bar names as files and
-    never as a suite; route anything wider through the project's cached runner (Trinity: `pnpm check`, or
+    never as a suite; route anything wider through the project's cached runner (such as `pnpm check`, or
     `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
   - **A bar that asserts a NEGATIVE names what it is measured against** — *X is unchanged*, *no new Y*, *that
     grep comes back empty* are claims about a difference, and the end an implementer reaches for is its own
@@ -358,7 +363,9 @@ plan for one arc, and nothing marks which of the two a later reader took.
     here answers a question already settled somewhere a human reviewed it.
 - **Conflict map.** Name any pair of slices that will touch the same file **neither of them owns** (both add a
   route to one registry, both add a case to one exhaustive switch); the dispatcher resolves these
-  **at merge time**, never by rebasing. **Two slices both OWNING a path is not a row here but a slicing
+  **at merge time**, never by rebasing. **Where that file is a central list
+  (`skills/glossary/vocabulary/code-shape.md`) every slice registers in, name it as the structural cause
+  beside the merge order**, since folder-discovered declarations would leave nothing to resolve. **Two slices both OWNING a path is not a row here but a slicing
   defect**, settled by the `Owns` constraint above before this map is written — a map row treats as a
   merge-time cost what that constraint treats as a plan defect to report.
   - **Give documentation its own AXIS on this map, and write down why the `Owns` lists cannot be relied on to

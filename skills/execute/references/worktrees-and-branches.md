@@ -276,7 +276,12 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   split gate's union of every domain the epic touched, its changed files diffed by that gate
   (`skills/procedures/code-shape.md`, *The shape of a split gate*) — **or, where that diff moves the boundary
   (`skills/glossary/vocabulary/code-shape.md`), one `fullGate` run in its place, as a `full` ticket**, since
-  it covers everything `gate` would run. **Under `"epicMerge": "squash"` that PR's title and body become the
+  it covers everything `gate` would run. **For a structure-selected gate only a change to its selection
+  machinery moves the boundary** — the gate itself, the manifests' discovery, the exception list and its
+  checks, the toolchain or a lockfile — and a change to shared code or the core alone runs `gate`, which
+  already selects every release unit that change reaches. **The close-out report names the tier that ran —
+  `gate` or `fullGate` — why, and the reach the project's gate printed**, the release units or domains it
+  selected; releasing any one unit stays the project's own mechanism. **Under `"epicMerge": "squash"` that PR's title and body become the
   arc's one surviving commit message** (*Mechanics*), so write them as that.
 
   **The PR opens BEFORE the gate, and the rule that looks like it forbids that does not.** *Gate the

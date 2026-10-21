@@ -163,10 +163,13 @@ the seats here, and a seat that learns to spawn something is one of them the day
 `skills/procedures/code-shape.md` has the steps that read a project's shape and place a file, and
 `skills/glossary/vocabulary/code-shape.md` the words.
 
-- **A new unit, route, test or handler goes where its domain lives and is found by its folder** — picked up
-  by being placed, never by an edit to a central list every domain shares.
-- **Dependencies point one way**: nothing reaches into a sibling domain or against the project's declared
-  layering, and what two domains share is shared code, never one importing the other.
+- **A new unit, route, test or handler goes in its layer — release unit, component or core — then where its
+  domain lives, and is found by its folder** — a release unit or component declaring itself in a manifest in
+  its own folder, picked up by being placed, never by an edit to a central list every domain shares.
+- **Dependencies point one way, down the layers and the project's declared layering**: a release unit never
+  imports another, a component never imports another, nothing reaches into a sibling domain, and what two
+  share moves down a layer — into a component first, the core only on a second consumer — never one importing
+  the other.
 - **Prefer deep modules — much behaviour behind a small interface — and test at the seam a caller crosses, at
   the cheapest level that exercises it, since the interface is the test surface**: callers and tests cross the
   same interface, so a test that has to reach past it says the module is the wrong shape. A browser or
@@ -176,8 +179,9 @@ the seats here, and a seat that learns to spawn something is one of them the day
 - **Extend a test before adding one; a new guard only for a bug easy to reintroduce, that would slip by
   unnoticed and is costly to ship; one representative by default** — `skills/procedures/code-shape.md`,
   *Test policy*.
-- **Every test names the domain it asserts about, in the project's own tag form, and a tag nothing checks is
-  a guess** — derive it from what the test imports or calls, or have it checked.
+- **Every test lives in its subject's folder and names any domain that folder cannot say in the project's own
+  tag form, and a tag nothing checks is a guess** — derive it from what the test imports or calls, or have it
+  checked.
 - **A project's own layout and testing rules win**; these are the default only where its agent guidance is
   silent, and where the project offers no tag form or no folder-discovered form, that absence is setup debt
   rather than a breach in each change.

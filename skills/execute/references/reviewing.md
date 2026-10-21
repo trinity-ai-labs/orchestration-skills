@@ -64,18 +64,19 @@ status.**
   narrow the wave, not to touch a diff.
 
 - **A red tip audit (`skills/glossary/vocabulary/tip-audit.md`) is narrowed to the merge that caused it,
-  never handed to a fix agent whole.** Read its failure set and `tipSha` off its ticket in `done/`, and the
-  `tipSha` of that branch's newest green audit beside it as the lower bound; where that branch has none yet,
-  an epic branch's fork point is the lower bound, and an integration branch's red is reported un-narrowed. In a
-  throwaway tree cut from the red `tipSha`, check out each merge on that branch's first-parent line since the
-  lower bound, oldest first
-  (`git rev-list --first-parent --reverse <lower>..<tipSha>`), and re-run only the failing tests by name
-  through the targeted run — `targetedTest` where declared, else single files, each run singly. **Charge the
-  first merge at which they fail.** **A failure that also fails at the lower bound itself is environmental**:
-  report it with the resource it names, by the bullet above, and charge it to no merge. Remove the tree when
-  done. A charged red is forced work, dispositioned at the next reconcile — folded into the next slice
-  touching that area, or into a fix slice of its own; an audit settled **refused** `replayed` is a runner
-  whose cold command reached a cache, so say `/pipeline:setup` should reconcile it.
+  never handed to a fix agent whole** — *A red is checked at the fork point*, repeated at each merge. Read its
+  failure set and `tipSha` off its ticket in `done/`, and as the lower bound the `tipSha` of that branch's
+  newest green audit; with none, an epic branch's fork point, an integration branch's red being reported
+  un-narrowed — as is one where `git merge-base --is-ancestor <lower> <tipSha>` fails. In a tree cut and
+  removed by `landing.md`'s throwaway-tree recipe (*Gate the integrated whole*), re-run only the failing tests
+  by name through the targeted run, **at the lower bound FIRST**, then at each merge of
+  `git rev-list --first-parent --reverse <lower>..<tipSha>`, re-running `install` after each checkout. **One
+  failing at the lower bound is charged to no merge**: environmental where that bound is a green audit,
+  reported with the resource it names by *Several worktrees red at the same moment*, and "predates the epic"
+  at a fork point. **Otherwise charge the first merge it fails at; one passing by name everywhere is reported
+  un-narrowed as order-dependent or flaky, charged nothing.** A charged red is forced work for the next
+  reconcile. An audit settled **refused** `replayed` reached a cache, through the runner's switch or a
+  `fullGate` that is not cold, so say `/pipeline:setup` should reconcile it.
 
 - **The gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
   a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
@@ -509,14 +510,13 @@ Your always-on job is reading the **diff**; heavy re-gating is conditional.
 
 **The cold net under all of it is the tip audit, in a project with a queue** — one cold run of the whole tip
 each time it moves, off the critical path (`skills/glossary/vocabulary/tip-audit.md`; *Draining the gate
-queue* has the enqueue). It catches what every per-PR gate above can miss: a partial or cached gate's green
-over a test the change never selected, and a review checkpoint's fix, held to its tests by name, breaking one
-it never imported. So never hand-run a full gate to buy that assurance mid-arc; read the audit's verdict
+queue* has the enqueue). It catches what every per-PR gate above can miss. So never hand-run a full gate to buy that assurance mid-arc; read the audit's verdict
 instead. A project with no queue has no audit, and its close-out gate stays the backstop.
 
 **A stale slot self-heals; you rarely touch it.** The slot's holder-PID is liveness-checked, so a crashed
 gate's slot is stolen by the next drain within a poll, and a runner that dies mid-gate has its ticket
-reclaimed and re-gated. There is no "strangling orphan" for you to clear by hand and no lock dir to `rm` — the
+reclaimed and re-gated. There is no "strangling orphan" for you to clear by hand — a dead runner's audit process group the next pass
+kills before claiming — and no lock dir to `rm` — the
 queue and slot handle their own dead work. (If you ever do need to forcibly stop a runner's gate, clear its
 worktree via `remove-worktree.sh <leaf>`, which signals the processes; never `rm` the slot dir out from under
 a possibly-live holder.)

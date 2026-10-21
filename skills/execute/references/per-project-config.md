@@ -33,7 +33,7 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
 **The implementer's half reads the same in both, and in neither does it enqueue**: still a draft at
 hand-back, never marked ready by the implementer, never its own merge.
 
-**Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (Trinity: `--mode docs`
+**Which gate runs.** A queued project may offer a lighter gate for a prose-only slice (say `--mode docs`
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
 `gate`. **A project declaring `fullGate` adds a `full` mode that runs it, cold, reading no cache**, and that

@@ -92,7 +92,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     single agent expresses by doing them in order.
 - **Skill to invoke first** — the framework skill the implementer opens with: the skill of each
   `frameworkSkills` entry whose `when` matches the slice's area, and none where no entry matches or the
-  project declares none. For Trinity, **app = `frameworks:solid`, sidecar = `frameworks:effect-v3`**; a
+  project declares none. For a project mapping an `app` area to `frameworks:solid` and a `sidecar` area to `frameworks:effect-v3`, a
   full-stack slice invokes both, a pure docs/config slice none.
 - **Model** — **standard tier** (well-scoped, mechanical, mirrors an existing pattern) or **top tier** (subtle
   algorithms, design-heavy, tricky concurrency, security-sensitive, large cross-cutting), with one line of
@@ -195,7 +195,7 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     where declared, else single test files, each run singly — never a suite**, and where the slice changes a
     module's export surface (adds, removes or renames an export, or moves code between modules), each test
     file that mocks or imports that module, found by grepping its specifier, which the bar names as files and
-    never as a suite; route anything wider through the project's cached runner (Trinity: `pnpm check`, or
+    never as a suite; route anything wider through the project's cached runner (such as `pnpm check`, or
     `turbo run <task> --filter=<pkg>`), never raw `vitest`/`tsc`/`eslint`.
   - **A bar that asserts a NEGATIVE names what it is measured against** — *X is unchanged*, *no new Y*, *that
     grep comes back empty* are claims about a difference, and the end an implementer reaches for is its own

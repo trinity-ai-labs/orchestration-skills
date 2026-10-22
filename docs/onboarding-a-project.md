@@ -50,8 +50,8 @@ guidance itself. No config key controls any of this.
 **Then it runs `/pipeline:health`, and tells you second what costs every change.** That command looks at how
 your code is laid out — whether tests live in their subject's folder, whether one product imports another or
 code imports up a layer, which files most changes touch — for a map from your files to the domains they belong
-to where your folders cannot say, for tests tagged with what their folder cannot say, and at how long one full
-run of your suite takes, how fast that is growing and how much of it a gate could select — each figure with
+to where your folders cannot say, for tests tagged with what their folder cannot say, at what one preflight
+run costs on a one-file edit, and at how long one full run of your suite takes, how fast that is growing and how much of it a gate could select — each figure with
 its unit. Where the gate is your full suite with nothing to narrow it by, that is the first item of *setup debt*
 setup reports from it, right after any monolith: measured, with a first recommendation to **prune or merge
 tests**, from health's `Prune candidates` (the slowest tests, the loops with the most sweep multiplicity,
@@ -69,7 +69,13 @@ issue in your tracker, appending what it measures, ticking off what is gone and 
 reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each
 item beside its last value.
 
-It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. Where you
+It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. **It runs
+your preflight for real and holds it to what a preflight is** — every check of your gate that needs no product
+compile and no tests, which the gate runs first: it times it on an unchanged tree and after a one-file edit,
+lists every no-compile step of your gate, one buried inside a build target included, and flags each the
+preflight leaves out with no reason stated, and flags a preflight that compiles or runs tests, proposing one.
+Each flag goes to `/pipeline:health` as an item, where a preflight past 60 seconds on a one-file edit is debt
+too — unless your preflight is your gate and that gate runs in seconds, which is a correct answer. Where you
 named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two
 runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision
 reproduces — an entry that instead names why the resource does not contend has no mechanism to reverse, so
@@ -112,8 +118,9 @@ hands back a **per-key delta**: *agrees*; *drifted*, saying what the repo now sa
 differs; or *declared but unverified*, for the values no file can confirm — the ones you were asked for, which
 stay yours. **The delta runs the other way too: a key the config declares that this plugin no longer reads is
 named as such**, since a value set there governs nothing while looking set, and where the plugin renamed that
-key the report names its replacement — no old name is honoured as an alias, so the rename is yours to make,
-and until you make it a retired merge-automation key holds the merge its replacement governs.
+key the report names its replacement, so the rename is yours to make. Until you make it, a retired
+merge-automation key holds the merge its replacement governs, and a retired `scopedCheck` is read as your
+`preflight`, since running a check is the safe direction.
 `/pipeline:orchestrate` names the same keys in its dispatch report before an arc, and edits nothing. A gate
 queue scaffolded against an older spec gets the same treatment one level over, as a
 per-invariant delta against the reference, and the agent guidance gets its shape checked again, a monolith

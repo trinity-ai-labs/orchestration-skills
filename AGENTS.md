@@ -62,7 +62,7 @@ under `skills/` or `bin/`, which ship.
 
 ## Commands
 
-- `sh scripts/check.sh` — `gate` and `scopedCheck` are the same command and there is no queue.
+- `sh scripts/check.sh` — `gate` and `preflight` are the same command and there is no queue.
 
 ## Rules by topic
 

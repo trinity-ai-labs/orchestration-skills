@@ -339,8 +339,9 @@ first one.
      hidden inside, and **flag each the preflight omits** unless the config or the guidance states why.
    - **Flag a preflight that compiles the product or runs tests**, proposing one built from the gate's
      no-compile steps.
-   - **Hand each flag, and a one-file-edit time past 60 seconds, to `/pipeline:health` as an item**,
-     re-running it with them where its Step 1 run came first.
+   - **Hand each flag to `/pipeline:health` as an item, and the one-file-edit time as its `Preflight cost`
+     value** (`skills/procedures/code-shape.md` names the threshold), re-running it with them where its Step 1
+     run came first.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
    the PR carries the verdict comment. Then three more, each invisible to the one before it:
    **`drain --status` reports and claims nothing** — an unrecognised flag falling through to a full drain

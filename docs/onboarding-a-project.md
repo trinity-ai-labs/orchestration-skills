@@ -51,8 +51,8 @@ guidance itself. No config key controls any of this.
 your code is laid out — whether tests live in their subject's folder, whether one product imports another or
 code imports up a layer, which files most changes touch — for a map from your files to the domains they belong
 to where your folders cannot say, for tests tagged with what their folder cannot say, at what one preflight
-run costs on a one-file edit, and at how long one full run of your suite takes, how fast that is growing and how much of it a gate could select — each figure with
-its unit. Where the gate is your full suite with nothing to narrow it by, that is the first item of *setup debt*
+run costs on a one-file edit, and at how long one full run of your suite takes, how fast that is growing and
+how much of it a gate could select — each figure with its unit. Where the gate is your full suite with nothing to narrow it by, that is the first item of *setup debt*
 setup reports from it, right after any monolith: measured, with a first recommendation to **prune or merge
 tests**, from health's `Prune candidates` (the slowest tests, the loops with the most sweep multiplicity,
 same-shaped files that merge into one table-driven test, probes committed as cases, tests that cannot fail;

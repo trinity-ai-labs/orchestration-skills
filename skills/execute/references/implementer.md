@@ -134,8 +134,8 @@ reviewer performed leaves nothing in your tree**, so it is read off the tracker 
 by name.
 
 **Where the project declares `format`, run it in write mode right before committing** — the preflight only
-format-*checks*; where it declares none there is no formatter step, and formatting is whatever the scoped
-check and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
+format-*checks*; where it declares none there is no formatter step, and formatting is whatever the
+preflight and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
 your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
 **Your commits are held to the cheap preflight (`skills/procedures/config-keys.md` defines it) whichever case the

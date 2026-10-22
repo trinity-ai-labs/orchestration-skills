@@ -275,7 +275,7 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *scoped* per-commit check implementers run is NOT the sizing cost; the **per-PR gate** is — drained
+- The *preflight* implementers run before each commit is NOT the sizing cost; the **per-PR gate** is — drained
   where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
   `fullGate`, `gate` may be partial and `fullGate` runs on the critical path at most once, at a close-out

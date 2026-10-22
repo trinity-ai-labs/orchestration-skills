@@ -134,7 +134,7 @@ epic.
 In that window a slice's gate — a drained ticket's where the project declares `enqueue`/`drain`, the
 implementer's own in in-line mode — will exit non-zero on the pre-existing failures until every
 consumer migrates, and its comment on the PR will carry that failure. That's expected, **not** a real block.
-Read the gate's output as: the preflight half (lint, typecheck) is GREEN, the task's OWN new/affected tests
+Read the gate's output as: the preflight half is GREEN, the task's OWN new/affected tests
 are GREEN, and every remaining failure fails at its fork point too, each re-run there by name (*Reading a gate
 result* — file + test names, not a count: fixing one stale test and breaking a new one keeps the count
 identical but is still a regression). If

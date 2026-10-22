@@ -13,7 +13,9 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   gate's no-compile steps (one hidden inside a build target included), and flags a step the preflight omits or
   a preflight that compiles or runs tests, handing each to `/pipeline:health`, which gains a `Preflight cost`
   signal read from gate output and counted as debt past 60 seconds on a one-file edit. `merge-pr`'s mergeability
-  step is now called a mergeability check; its behaviour is unchanged.
+  step is now called a mergeability check; its behaviour is unchanged. Rename the key only once every install
+  reading the config is on this release, since an older one reads no preflight from a config declaring only
+  `preflight`.
 
 ## 5.23.2
 

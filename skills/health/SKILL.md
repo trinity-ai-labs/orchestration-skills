@@ -64,8 +64,8 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
      entries with each one's size in the unit the baseline records, ticked off only when the baseline is empty.
    - **A preflight off its definition** (`skills/procedures/config-keys.md`) — one that compiles the product or
      runs tests, or that omits a no-compile step of the gate with no reason stated, read from the config and
-     the gate's script, never by running either; the item `Preflight: <what>`, where `preflight` is distinct
-     from `gate`, since a `preflight` equal to a seconds-long `gate` is the sanctioned answer.
+     the gate's script, never by running either; the item `Preflight: <what>`, except where `preflight`
+     equals a seconds-long `gate`, the sanctioned answer.
    - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
      item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
      beneath it. **Health lists them and never deletes one.**

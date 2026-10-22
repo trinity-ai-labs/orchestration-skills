@@ -331,7 +331,16 @@ first one.
    test. The full fetch-and-compare belongs at **dispatch**.
 3. **The gate command exists.** Run the preflight for real, and `targetedTest` where declared over one
    existing test; for the heavy ones — `gate`, and `fullGate`
-   where declared — `<pm> run <script> --help` is enough.
+   where declared — `<pm> run <script> --help` is enough. **Then hold the preflight to its definition**
+   (`skills/procedures/config-keys.md`), a `preflight` equal to a seconds-long `gate` being the sanctioned
+   answer and none of these a flag:
+   - **Time it twice** — on the unchanged tree, then after a one-file edit you restore — in seconds each.
+   - **List every no-compile step of the gate**, reading its script and every build target it calls for one
+     hidden inside, and **flag each the preflight omits** unless the config or the guidance states why.
+   - **Flag a preflight that compiles the product or runs tests**, proposing one built from the gate's
+     no-compile steps.
+   - **Hand each flag, and a one-file-edit time past 60 seconds, to `/pipeline:health` as an item**,
+     re-running it with them where its Step 1 run came first.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
    the PR carries the verdict comment. Then three more, each invisible to the one before it:
    **`drain --status` reports and claims nothing** — an unrecognised flag falling through to a full drain

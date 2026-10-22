@@ -94,16 +94,16 @@ value does to a brief, and every pasted block below whose right form depends on 
 
 | Setting | Value | What the brief says |
 |---|---|---|
-| `enqueue` + `drain` | both declared — **queue mode** | Scoped check only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
+| `enqueue` + `drain` | both declared — **queue mode** | Preflight only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
-| `gate`, `scopedCheck` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
-| | different | `scopedCheck` is the per-commit bar; `gate` appears only as the gate mode's one run. |
+| `gate`, `preflight` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
+| | different | `preflight` is the per-commit bar; `gate` appears only as the gate mode's one run. |
 | `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
 | | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours. |
 | `targetedTest` | declared | The ban's `<targeted run>` is that template, its one of `{files}` or `{names}` filled with the slice's tests. |
 | | absent | The ban's `<targeted run>` is single test files, each run singly (`vitest run path/to/x.test.ts`). |
-| commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `scopedCheck` | Commits are held to the scoped check by the hook. |
-| | neither does, or each runs something else | "No hook runs the scoped check here: run `scopedCheck` yourself before each commit." |
+| commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook row in `skills/procedures/host-tools.md` | either one runs `preflight` | Commits are held to the preflight by the hook. |
+| | neither does, or each runs something else | "No hook runs the preflight here: run `preflight` yourself before each commit." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
 | | absent | No formatter step, and the brief says the project has none. |
 | `docsPaths` | declared | The docs block names each path with its `when`. |
@@ -226,7 +226,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   second entry for what the change ADDED that no doc describes.
 - **Gate mode for this slice — the project's `enqueue`/`drain` decide it, and it decides who runs the gate
   and when, nothing else.** Name the setting in the brief beside its case:
-  - **Queue mode — the project declares `enqueue` and `drain`:** the implementer runs only the scoped check,
+  - **Queue mode — the project declares `enqueue` and `drain`:** the implementer runs only the preflight,
     pushes, opens a draft PR and hands back; **you enqueue its ticket once you have read the diff**
     (*Review BEFORE you drain, never after* in `skills/execute/references/reviewing.md` states that order,
     and the epic close-out has taken this shape all along — draft PR first, gate enqueued against it, per
@@ -271,14 +271,14 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   where the project declares one, and *"This project declares no `format`, so there is no formatter step."*
   where it declares none:
 
-  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — scoped check, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
+  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — preflight, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
-  **Commits are held to the scoped check either way, in whichever case the hook row names** — by whichever
-  hook runs `scopedCheck`, git's pre-commit hook or the host's commit-hook row in
+  **Commits are held to the preflight either way, in whichever case the hook row names** — by whichever
+  hook runs `preflight`, git's pre-commit hook or the host's commit-hook row in
   `skills/procedures/host-tools.md`, a hook of either kind only *checking* formatting rather than fixing it,
-  or, where neither does, by the implementer running `scopedCheck` itself before each commit.
+  or, where neither does, by the implementer running `preflight` itself before each commit.
 - **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
-  scoped check and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
+  preflight and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check whose exit cannot wake the slice,
   with the turn ended on it. **It states the two waits as two rules, each naming its own subject** — a command
   the slice started, whose exit re-invokes it on some hosts and on others not, and a sub-agent it spawned,

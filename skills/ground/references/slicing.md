@@ -268,7 +268,7 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   directory or fixed port. Read `sharedResources` in the project's `.agents/worktree.json`:
   `"isolatedBy": null` says the resource stays shared, and the key **missing entirely** says nobody has been
   asked — not an answer, and not a no. The drained gate does not cover it: the slot serializes *gates* and
-  never sees the implementers' `scopedCheck` and targeted test runs, and a project declaring no
+  never sees the implementers' `preflight` and targeted test runs, and a project declaring no
   `enqueue`/`drain` has no slot at all. Size the wave against the resource — one
   live slice touching it, the rest sequenced.
 - **Gate once on the merged tip and the binding constraint moves to the dispatcher's own capacity to read N

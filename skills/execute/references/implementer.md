@@ -34,11 +34,11 @@ worktree before acting on it, `diff` the two where one looks wrong, and say whic
 **The flow is: take any baseline your slice needs → write all the code → update the docs it changed → fix what
 you HIT outside your owned files, in this PR → commit → push → draft PR →
 (`/pipeline:review` if this slice warrants it, now against that pushed PR) → (if it finds something: apply
-what you accept, scoped check, one more commit, push again onto the same PR) →
+what you accept, preflight, one more commit, push again onto the same PR) →
 (in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
-in-line mode there is none. While you build, run only *cheap* checks: format, a scoped lint/typecheck
-(`scopedCheck` or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
+in-line mode there is none. While you build, run only *cheap* checks: format, the preflight
+(`preflight`, or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and
 **one targeted test run** — the project's `targetedTest` where declared, else single test files, each run
 singly, never a suite — the widest test execution you get.
 **A change to a module's export surface widens that budget** — adding, removing or renaming an export, or
@@ -96,7 +96,7 @@ repoint here, since a docs gate validating path citations reds before your own c
 it, commit in blocks as the work lands, push, and open your draft PR exactly as a slice running no pass
 would, and only THEN run the pass — against that PR, whose diff is what it and its readers read. Wait until
 every reviewer has reported before you change anything, apply what you accept — surfacing first, by name, any
-behaviour a fix would remove or degrade (rule 13) — run the scoped check over
+behaviour a fix would remove or degrade (rule 13) — run the preflight over
 what you applied, make **one more** commit, and push it onto the same PR, which is never closed and never
 reopened. **Where the panel finds nothing to apply there is nothing more to do**: its review and dimension
 comments are posted on your PR, your one commit round already stands, and you go straight to the hand-back.
@@ -133,15 +133,15 @@ reviewer performed leaves nothing in your tree**, so it is read off the tracker 
 `git status`, the finding comes back into the pass's own flagged list, and the number goes in your hand-back
 by name.
 
-**Where the project declares `format`, run it in write mode right before committing** — the scoped check only
+**Where the project declares `format`, run it in write mode right before committing** — the preflight only
 format-*checks*; where it declares none there is no formatter step, and formatting is whatever the scoped
 check and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
 your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
-**Your commits are held to the cheap scoped check (format-check + lint + typecheck) whichever case the
+**Your commits are held to the cheap preflight (`skills/procedures/config-keys.md` defines it) whichever case the
 commit hook is in** — by the hook, where either an executable `pre-commit` in
 `$(git rev-parse --git-path hooks)`, a path that follows `core.hooksPath`, or the host's commit-hook row in
-`skills/procedures/host-tools.md` runs `scopedCheck`; and by you, running `scopedCheck` in the foreground
+`skills/procedures/host-tools.md` runs `preflight`; and by you, running `preflight` in the foreground
 before each commit, where neither does.
 
 **Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
@@ -207,7 +207,7 @@ why it stays out** — scratch, ignored build output, something genuinely unrela
 result is the ordinary case, not a suspicious one**, and the obligation is to account for each entry, never
 to add every entry the command names.
 
-**This is the one gap none of your other signals can see.** Your scoped check **compiles the working
+**This is the one gap none of your other signals can see.** Your preflight **reads the working
 tree it finds on disk**; the diff, the PR and the merge **read what git holds**. A file present on disk and
 absent from the index is fully visible to the first and invisible to the second. **The gate does not close
 it either** — it runs inside this same worktree, compiles the same working tree, and reaches the same
@@ -252,10 +252,10 @@ in-line mode there is no ticket at all, your one `gate` run landing between the 
 3. **Run `/pipeline:review` where your brief says to — against THIS PR, by the number you just captured.**
    It reads that PR's diff and posts its findings onto it as a review, with one comment beside it per
    dimension it dispatched. Where it raises something you accept,
-   apply it, run the scoped check, make **one more** commit and push it onto the same PR — never a second PR
+   apply it, run the preflight, make **one more** commit and push it onto the same PR — never a second PR
    and never a reopen. Where it raises nothing you accept, or reports `Review: PARKED`, there is no second
    commit round and you go straight to the hand-back.
-4. **Hand back** — the PR URL and number, files changed, scoped-check result, tests touched, **the per-doc
+4. **Hand back** — the PR URL and number, files changed, preflight result, tests touched, **the per-doc
    verdict** (each doc updated or not-affected-because, never a bare "docs reviewed"),
    **the review pass's applied and rejected findings where the slice ran one** — which now reach your
    dispatcher by three routes, this narrative, the review the pass posted onto the PR and the dimension

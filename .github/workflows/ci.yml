@@ -9,7 +9,7 @@ jobs:
   # One runner, one checkout, one gate script, plus one assertion on its output.
   # Every portable check lives in scripts/check.sh — the same command a
   # contributor runs before pushing (.agents/worktree.json declares it as both
-  # gate and scopedCheck). CI runs the contributor's own check rather than a
+  # gate and preflight). CI runs the contributor's own check rather than a
   # second, drifting copy: two copies drift, and the one that stops firing looks
   # identical to the one that passed.
   #

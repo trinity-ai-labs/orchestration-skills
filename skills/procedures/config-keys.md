@@ -38,8 +38,9 @@ a question rather than a default.
   `~/.zshrc`.
   **Windows has no equivalent file**; set a real user environment variable (`setx VAR value`), `$PROFILE`
   being interactive-only and the same trap.
-- **`gate`** — the heavy per-PR gate (build + test), run against a queued PR's worktree. **It is the full
-  gate wherever `fullGate` is absent**, and may be partial only where that key is declared.
+- **`gate`** — the heavy per-PR gate (build + test, the `preflight` below first), run against a queued PR's
+  worktree. **It is the full gate wherever `fullGate` is absent**, and may be partial only where that key is
+  declared.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
@@ -57,9 +58,17 @@ a question rather than a default.
   names), values space-separated unless the template quotes them, running those tests in any language — e.g.
   `vitest run {files}`, `TEST_FILTER={names} ./run_tests`. **Absent means a targeted run is single test
   files, each run singly.**
-- **`scopedCheck`** — the cheap check a slice's commits are held to: format-check + lint + typecheck, no
-  build, no test.
-- **`format`** — the auto-formatter in *write* mode, run right before committing, the scoped check only
+- **`preflight`** — **every check of the gate that needs no product compile and no tests** —
+  format-check + lint + typecheck, and whatever else the gate runs without building, configuring and code
+  generation allowed — **run first by the gate, which holds no copy of it**, so a no-compile failure fails in
+  seconds, before any gate run. A slice's commits are held to it. **Equal to `gate` where the gate itself runs
+  in seconds**, a correct answer rather than a missing tier. **Absent, a declared retired `scopedCheck` is
+  read as the preflight** (the retired-name paragraph under the `autoMerge*` keys below).
+  **A preflight stays fast by construction**: an unchanged tree skips it; an expensive step caches its verdict
+  by content — the file, what it includes, the tool's version and its config — in a store every worktree
+  shares, and never caches a failure; the gate's no-cache switch runs a cold preflight inside a cold gate; and
+  a close-out, whose combined diff no slice's cache has seen, is its expensive case.
+- **`format`** — the auto-formatter in *write* mode, run right before committing, the preflight only
   format-*checking*.
 - **`enqueue` / `drain`** — how a PR is enqueued for gating, and how the queue is drained. **Both absent
   means the project has no queue**, which is a supported shape rather than a gap. **Present, they also carry
@@ -70,7 +79,7 @@ a question rather than a default.
   brief can name one without anyone guessing the stack.
 - **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates
   it, baked into every dispatched brief: whether concurrent gating is parallel-safe here,
-  how `gate` and `scopedCheck` relate, how branches are named, what a PR targets, the order a change
+  how `gate` and `preflight` relate, how branches are named, what a PR targets, the order a change
   crossing a contract lands in. **General coding conventions are excluded BY NAME** — naming, layering,
   library usage, comment style — since a second copy of them here is what gets read instead of the
   agent guidance a diff is actually judged against (`skills/glossary/vocabulary/agent-guidance.md`), and
@@ -172,6 +181,9 @@ a question rather than a default.
   This is no alias, since that value is never honoured in the merging direction, and it holds for the
   unreadable answer's reason, since a project that set the old name to hold would otherwise merge on its
   replacement's absent default.
+  **`scopedCheck` is the one retired name READ rather than held**: where `preflight` is absent, its value is
+  read as the preflight, and the posture names it *`scopedCheck` retired → `preflight` → read*, since for a
+  check running it is the safe direction, as holding is for a merge.
 
   ⚠️ **`autoMergeEpicCloseOut` is unrelated to `epicMerge` above, though both name the epic close-out**:
   `epicMerge` picks that one merge's MECHANICS — a squash or a real merge commit — and `merge-pr` reads it

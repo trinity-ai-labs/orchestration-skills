@@ -302,7 +302,7 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   ⛔ **The caller here is the ORCHESTRATOR, which never writes code, so it applies nothing the panel raises
   itself.** **Where the panel raises something worth taking, dispatch a FIX AGENT into the epic branch's own
   worktree** — that tree already exists and IS the merge point, so never cut a fresh one for this and never
-  open a second PR — and it applies what you accepted, runs the project's scoped check and the test budget a
+  open a second PR — and it applies what you accepted, runs the project's preflight and the test budget a
   fix agent's brief states (`skills/execute/references/reviewing.md`), commits, and pushes onto this SAME
   close-out PR. **Where the project declares `install`, run it in that tree before the fix agent's check** —
   that tree outlives every merge landing in it, and a stale install there presents as a module-resolution
@@ -415,7 +415,7 @@ and your dispatch report states the plan for them.
   dimension comment's head SHA is the next checkpoint's base. The epic PR opens as a draft at the first
   checkpoint and stays one until the close-out merge.
 - **Accepted findings go to ONE fix agent in the epic worktree**, briefed as the close-out panel's is
-  (*Mechanics*): **the scoped check plus the tests by name for what it touched, never `gate`**, the close-out
+  (*Mechanics*): **the preflight plus the tests by name for what it touched, never `gate`**, the close-out
   gate reading its delta with the rest of the epic. **What a by-name run cannot see — a test the fix never
   imported — the next tip audit catches** (`skills/glossary/vocabulary/tip-audit.md`), since the fix landing
   moves the epic tip, and in a project with no queue the close-out gate alone does.

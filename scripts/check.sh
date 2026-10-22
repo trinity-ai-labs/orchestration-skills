@@ -291,7 +291,10 @@ else
 import json, sys
 
 cfg = json.load(open(sys.argv[1]))
-missing = [k for k in ("envFiles", "install", "gate", "scopedCheck") if k not in cfg]
+missing = [k for k in ("envFiles", "install", "gate") if k not in cfg]
+# `scopedCheck` is preflight's retired name, read where preflight is absent.
+if "preflight" not in cfg and "scopedCheck" not in cfg:
+    missing.append("preflight")
 if missing:
     print(f"missing {missing}")
     sys.exit(1)

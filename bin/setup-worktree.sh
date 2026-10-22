@@ -63,7 +63,7 @@
 #
 # The config lives in the repo, so it travels with the clone and is reviewed
 # alongside the code it describes. This script reads only `envFiles`, `env`, and
-# `install`; the remaining keys (gate, scopedCheck, enqueue, drain,
+# `install`; the remaining keys (gate, preflight, enqueue, drain,
 # frameworkSkills, briefConventions) are read by the skills, not here. No config
 # → a bare worktree (no env symlinks, no install).
 set -euo pipefail

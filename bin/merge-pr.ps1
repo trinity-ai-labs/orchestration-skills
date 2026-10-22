@@ -22,7 +22,7 @@
 #
 #   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
 #      and decide which merge MODE this one boundary gets (see below).
-#   2. Preflight the PR's mergeability, BEFORE anything irreversible happens - the
+#   2. Check the PR's mergeability, BEFORE anything irreversible happens - the
 #      two steps that follow cannot be undone by a later failure, and the step
 #      that actually fails is the last one. A conflicting PR stops here with the
 #      worktree intact and the PR still a draft.
@@ -453,7 +453,7 @@ function Get-PrField {
 # separately also opens a window in which the PR could change between reads, leaving
 # this run acting on a state that never existed all at once. ConvertFrom-Json is
 # built in, so parsing the result costs nothing extra. `mergeable` rides along here
-# so the preflight's FIRST answer is free; only an answer that has not settled yet
+# so the mergeability check's FIRST answer is free; only an answer that has not settled yet
 # costs a further call.
 $prJson = Invoke-InMainCheckout {
     $raw = & gh pr view $Pr --json state,baseRefName,headRefName,headRefOid,mergeCommit,mergeable,title,body
@@ -747,7 +747,7 @@ if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge
     }
 }
 
-# --- 1. Mergeability preflight ---------------------------------------------------
+# --- 1. Mergeability check -------------------------------------------------------
 # Everything past this point is irreversible, and the step that can actually fail -
 # the merge - is the last one. A PR whose base moved under it fails there with
 # "Pull Request has merge conflicts", by which point the worktree teardown has

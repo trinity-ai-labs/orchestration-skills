@@ -2,6 +2,21 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.24.0
+
+- **`scopedCheck` is renamed `preflight`, and defined once.** The preflight is every check of the gate that
+  needs no product compile and no tests — configuring and code generation allowed — which the gate runs first
+  rather than holding a copy, so a no-compile failure fails in seconds, before any gate run. A config still
+  declaring `scopedCheck` keeps working: where `preflight` is absent it is read as the preflight and reported as
+  retired, the one retired name read rather than held, since running a check is the safe direction.
+  `/pipeline:setup`'s verify step times the preflight on an unchanged tree and after a one-file edit, lists the
+  gate's no-compile steps (one hidden inside a build target included), and flags a step the preflight omits or
+  a preflight that compiles or runs tests, handing each to `/pipeline:health`, which gains a `Preflight cost`
+  signal read from gate output and counted as debt past 60 seconds on a one-file edit. `merge-pr`'s mergeability
+  step is now called a mergeability check; its behaviour is unchanged. Rename the key only once every install
+  reading the config is on this release, since an older one reads no preflight from a config declaring only
+  `preflight`.
+
 ## 5.23.2
 
 - **Settled setup debt stops holding the `Setup debt` issue open.** `/pipeline:health` marks an item settled

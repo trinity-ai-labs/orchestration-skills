@@ -134,7 +134,7 @@ epic.
 In that window a slice's gate — a drained ticket's where the project declares `enqueue`/`drain`, the
 implementer's own in in-line mode — will exit non-zero on the pre-existing failures until every
 consumer migrates, and its comment on the PR will carry that failure. That's expected, **not** a real block.
-Read the gate's output as: the compile half (typecheck + lint) is GREEN, the task's OWN new/affected tests
+Read the gate's output as: the preflight half is GREEN, the task's OWN new/affected tests
 are GREEN, and every remaining failure fails at its fork point too, each re-run there by name (*Reading a gate
 result* — file + test names, not a count: fixing one stale test and breaking a new one keeps the count
 identical but is still a regression). If
@@ -478,7 +478,7 @@ onto it, so the entry on top when you come back is the least likely to be yours 
 Stash with your marker and restore by it, never a blind pop (`skills/ground-rules/SKILL.md`, rule 7). Two more
 conflict-resolution hazards: (1) **lockfile conflicts between sibling PRs are never hand-merged** — take the
 base's side (`git checkout --theirs pnpm-lock.yaml`), regenerate with the package manager
-(`pnpm install --no-frozen-lockfile`) so it reconciles ALL merged packages, verify the scoped check, and
+(`pnpm install --no-frozen-lockfile`) so it reconciles ALL merged packages, verify the preflight, and
 commit that; (2) **git happily commits leftover conflict markers once the file is staged** — `git add` marks a
 path resolved whether or not it is, so after ANY conflict edit (especially a scripted one) run
 `git diff --check` or grep for `<<<<<<<` BEFORE committing; a botched scripted resolution ships markers into a
@@ -492,7 +492,7 @@ drained one at a time behind the slim machine-wide slot (the scaffolded `gate-sl
 gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
-diff can affect. Beyond that one run an implementer's commits are held only to the cheap scoped check — by a
+diff can affect. Beyond that one run an implementer's commits are held only to the cheap preflight — by a
 hook where one runs it, git's pre-commit hook or the host's commit-hook row in
 `skills/procedures/host-tools.md`, by the implementer before each commit where neither does — and
 release-branch PRs typically get no CI, so that gate run is what stands in for CI.

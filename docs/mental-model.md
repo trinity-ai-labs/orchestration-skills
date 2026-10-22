@@ -247,7 +247,7 @@ to four merged slices — none mid-epic on an arc of four slices or fewer — ra
 its dispatch report states that plan. A review checkpoint reads the change since the previous one's reviewed
 head (the fork point the first time), posts onto the epic's own PR into the integration branch, which opens as
 a draft at the first one and stays one until the close-out merge, and sends accepted findings to one fix agent
-in the epic worktree, which runs the scoped check and the tests by name for what it touched, the close-out
+in the epic worktree, which runs the preflight and the tests by name for what it touched, the close-out
 gate reading its delta with the rest of the epic — and, in a project with a gate queue, the next tip audit
 catching a test that fix broke without importing it. A slice still gets its own panel for
 seams, security, auth, data or irreversible changes, or substantial work with no epic branch. So the close-out
@@ -347,7 +347,7 @@ outstanding.
   branch's tip moves: one run of the whole tip with no cache, in a tree of its own, that gives way to every
   real ticket and records nothing when stopped — so it catches what a scoped or cached gate cannot without
   ever holding up a merge, and a red one is narrowed to the merge that caused it.
-- **Tests a minority of an arc's time** → a slice pays its scoped check, its own tests by name and one `gate`
+- **Tests a minority of an arc's time** → a slice pays its preflight, its own tests by name and one `gate`
   on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no gate, the epic paying
   one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run

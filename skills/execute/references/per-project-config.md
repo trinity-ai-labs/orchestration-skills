@@ -20,7 +20,7 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
 
 **Who runs the gate — the project's `enqueue`/`drain` decide it:**
 
-- **Queue mode — both declared:** the implementer runs `scopedCheck`, pushes, opens a **draft** PR and hands
+- **Queue mode — both declared:** the implementer runs `preflight`, pushes, opens a **draft** PR and hands
   back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it
   and comments the verdict.
 - **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
@@ -57,7 +57,7 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
   (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
   at all**, a tip audit included — the command doesn't exist, so a brief telling an implementer to enqueue, or a
   dispatcher reaching for the ticket once it has read the diff, ends with committed work and no handoff.
-- **`gate` == `scopedCheck`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
+- **`gate` == `preflight`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,
   so don't build a queue around it or split briefs into "cheap" and "full" bars that are the same command.
 - **`fullGate` absent** → **`gate` is the full gate at every seat.** **`fullGate` declared** → that project's
   `gate` may be partial, and you run `fullGate` where `skills/procedures/config-keys.md` places it, as a
@@ -67,7 +67,7 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's
-  `scopedCheck` and targeted test file is uncovered and concurrent — and with **no queue** there is no slot at
+  `preflight` and targeted test file is uncovered and concurrent — and with **no queue** there is no slot at
   all, so the exposure is the whole fan-out. Narrow the wave to one live slice against that resource, or
   sequence those slices across waves. The contention surfaces as a red in whichever slice lost the race
   (*Reading a gate result*). **A non-null `isolatedBy` leaves the default fan-out in place, and does so for
@@ -95,12 +95,12 @@ The check itself runs at *Merge & cleanup*, after the gate and before the merge.
 
 ## Go through the task-runner, never around it
 
-A shared cache only helps commands that invoke the runner (turbo/nx/bazel): `scopedCheck` and `gate` do, and
+A shared cache only helps commands that invoke the runner (turbo/nx/bazel): `preflight` and `gate` do, and
 `fullGate` where declared. The binary called **directly** — `vitest`, `tsc`, `eslint` — or a script shelling
 straight to it **bypasses the cache and always runs cold**, locally and in the drained gate. So route every
 whole-package or whole-suite run that is *supposed to happen* — the drained gate, an integration gate, an
 in-line slice's gate — through the cached command (`turbo run <task> --filter=<pkg>`, or the project's
-`scopedCheck`), and say so in briefs and in the project's agent guidance. **A `fullGate` run and the tip audit
+`preflight`), and say so in briefs and in the project's agent guidance. **A `fullGate` run and the tip audit
 go through the runner too**, in its no-cache form (`turbo run <task> --force`), never around it to the raw
 binary. Routing, not permission:
 for a queue-mode implementer those runs are banned outright (`skills/execute/SKILL.md`'s Implementer section).

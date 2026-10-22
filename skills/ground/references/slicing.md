@@ -268,14 +268,14 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   directory or fixed port. Read `sharedResources` in the project's `.agents/worktree.json`:
   `"isolatedBy": null` says the resource stays shared, and the key **missing entirely** says nobody has been
   asked — not an answer, and not a no. The drained gate does not cover it: the slot serializes *gates* and
-  never sees the implementers' `scopedCheck` and targeted test runs, and a project declaring no
+  never sees the implementers' `preflight` and targeted test runs, and a project declaring no
   `enqueue`/`drain` has no slot at all. Size the wave against the resource — one
   live slice touching it, the rest sequenced.
 - **Gate once on the merged tip and the binding constraint moves to the dispatcher's own capacity to read N
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *scoped* per-commit check implementers run is NOT the sizing cost; the **per-PR gate** is — drained
+- The *preflight* implementers run before each commit is NOT the sizing cost; the **per-PR gate** is — drained
   where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
   `fullGate`, `gate` may be partial and `fullGate` runs on the critical path at most once, at a close-out

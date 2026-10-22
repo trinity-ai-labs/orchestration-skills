@@ -256,7 +256,7 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 
 **Not formatting or import order, though** — where the project declares `format` the formatter owns
 those and the caller runs it in write mode immediately before committing, and where it declares none they
-are the scoped check's and the project's stated conventions', which the Rules & Conventions dimension
+are the preflight's and the project's stated conventions', which the Rules & Conventions dimension
 reads. Nor
 **subjective style** that reduces neither reuse, complexity, nor cost.
 
@@ -391,7 +391,7 @@ pile of them.** The test is *same site, different reasons*:
   it stays where the report put it, as the unelaborated *outside my dimension* note, and you weigh it
   as one voice.
 
-**Then verify, on a fixed budget.** The project's **scoped check** (`scopedCheck` in
+**Then verify, on a fixed budget.** The project's **preflight** (`preflight` in
 `<repo>/.agents/worktree.json`; `skills/procedures/config-keys.md` carries what that key means) plus, at most,
 one **targeted test run** — the project's `targetedTest` where declared, else single test files, each run
 singly, never a suite — where one covers what you changed, and where an edit you applied changes a module's
@@ -534,7 +534,7 @@ the one thing that tells a parked slice from a stalled one, whose trees look the
   anything surfaced, and what is left is the **caller's** to surface to its dispatcher before it hands
   back, **filed only by the seat that returns that verdict**; this pass files nothing, exactly as it
   commits and pushes nothing, and neither does the caller nor any reviewer it dispatched.
-- **Verification** — which scoped check you ran and its result, and which targeted test run if any, **plus
+- **Verification** — which preflight you ran and its result, and which targeted test run if any, **plus
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget
   already spent — read the finding it came with, and report that the run happened, since the seat that
@@ -565,12 +565,12 @@ never an option that hands a sub-agent a worktree of its own.
 SHA where your brief named one — the diff, its one dimension, and WHAT YOU HAVE ALREADY RUN with what it
 returned — and none of the handoff imperatives**, since inheriting those imperatives is the whole of what made
 a fork dangerous and a fresh agent handed them by hand is a fork with extra steps. **That sixth item is what
-leaves a reader no reason to reach for a command of its own** — name the scoped check and its result, the one
+leaves a reader no reason to reach for a command of its own** — name the preflight and its result, the one
 targeted test run — the project's `targetedTest` where declared, else single test files, each run singly — by
 what it ran and its result, and **whether the verify bar's reversal ran, by which mechanic, and what it
 showed** — since a reviewer handed no verification state has a live reason to go and establish some, and one
-handed it has none. **The results are the CHEAP ones you ran while building**: format, the scoped lint and
-typecheck, that one targeted test run. You write these briefs BEFORE this pass's own verify step, which runs
+handed it has none. **The results are the CHEAP ones you ran while building**: format, the preflight,
+that one targeted test run. You write these briefs BEFORE this pass's own verify step, which runs
 after you have applied findings, so there is no post-findings verification yet to hand down and none to
 promise. **Where no test file covers this change, and where no reversal was run, the brief says so in those
 words** — that is verification state too, and a line left out reads as an oversight rather than as an absence.

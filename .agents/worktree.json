@@ -50,7 +50,7 @@
   "envFiles": [],
   "sharedResources": [],
   "gate": "sh scripts/check.sh",
-  "scopedCheck": "sh scripts/check.sh",
+  "preflight": "sh scripts/check.sh",
   "epicMerge": "squash",
   "briefConventions": "See AGENTS.md at the repo root and the .agents/rules/ chapters it routes to; the frozen helper contract and the bin/ parity rule are in .agents/rules/helpers.md."
 }

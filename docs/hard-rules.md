@@ -136,7 +136,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   worktree — and once the verdict is in, which for a ticket means once it has settled, removes the tree with
   `remove-worktree.sh` and deletes its branch, which was never pushed and carries no commit: a derived
   artifact regenerated there goes back as a fix instead.
-- **Test runs are a minority of an arc's time.** A slice pays its scoped check, its own tests by name and one
+- **Test runs are a minority of an arc's time.** A slice pays its preflight, its own tests by name and one
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no gate: the epic pays one
   `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
@@ -152,7 +152,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   keeps `gate` as the full gate everywhere. **A re-gate after a fix round is proportionate**: where a head
   already gated green, the next run is the partial gate over what changed since, falling back to the full
   suite loudly when that moves the boundary or touches a file neither the structure nor the map places, and its
-  verdict names both heads. **A review checkpoint's fix agent never runs `gate`** — the scoped check and the
+  verdict names both heads. **A review checkpoint's fix agent never runs `gate`** — the preflight and the
   tests it touched, by name. **What that misses, a project with a gate queue catches in a cold tip audit**: each
   time a branch's tip moves, the dispatcher queues one cold run of the whole tip — `fullGate`, or `gate` with
   its task runner's cache switched off — which yields to every real ticket, so it never sits on the critical
@@ -237,10 +237,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
-- **Every commit is held to the project's scoped check, and whether a hook does that is observed rather than
+- **Every commit is held to the project's preflight, and whether a hook does that is observed rather than
   declared** — git's pre-commit hook, or the host's commit-hook row in `skills/procedures/host-tools.md` —
-  where either one runs the scoped check it holds commits to it, and where neither does the implementer runs
-  the scoped check itself before each commit. There is no config key for it, since a hook's presence is
+  where either one runs the preflight it holds commits to it, and where neither does the implementer runs
+  the preflight itself before each commit. There is no config key for it, since a hook's presence is
   something any pass can observe.
 - **An agent reads the project's guidance by its routers and writes to it by the same layout.** It loads the
   `AGENTS.md` router of every directory its work touches, up to the root, and only the `.agents/rules/`
@@ -397,7 +397,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   empty. A human merges it on GitHub or says to go ahead, and the command below then runs unmodified, **after a
   re-gate where the base has moved under the hold**, which is unbounded in length.
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
-  preflight that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
+  check that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no
   forcing feedback, and the one a hand-run close-out drops. At the one boundary the rule above names it
   squashes instead, with the close-out PR's title and body as the commit's message rather than whatever the

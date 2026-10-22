@@ -90,9 +90,9 @@ Three things then change for the dispatcher:
 The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
 `fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it**
 (`skills/execute/references/per-project-config.md`). Either way an implementer holds itself to the cheap
-**scoped check** (format-check + lint + typecheck) — enforced by a hook where one runs it, git's pre-commit
+**preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook where one runs it, git's pre-commit
 hook or the host's commit-hook row in `skills/procedures/host-tools.md`, and run by the implementer before
-each commit where neither does — pushes, and opens its **draft PR**.
+each commit where neither does — then pushes, and opens its **draft PR**.
 
 - **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
   neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since
@@ -141,7 +141,7 @@ re-gated once, never split into per-PR gates.
 Each phase names the reference that tells you **how**; open it before you act, not when you reach it. The ⛔
 lines are the rules whose action needs no reference, so they live here and nowhere else.
 
-**Read the project's config first** — gate mode, the gate and scoped-check commands, `sharedResources`,
+**Read the project's config first** — gate mode, the gate and preflight commands, `sharedResources`,
 `epicMerge`, the three `autoMerge*` keys deciding whether each merge is yours to make, brief
 conventions. Everything below is provisioned from it. →
 `skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, the merge
@@ -249,7 +249,7 @@ reference.
    under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
    answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
    to a reader but the dispatcher's read of your diff.
-   ⛔ **What you accept becomes ONE more commit onto the SAME PR** — scoped check, commit, push, never a
+   ⛔ **What you accept becomes ONE more commit onto the SAME PR** — preflight, commit, push, never a
    second PR and never a reopen — and a pass that raises nothing you accept leaves the slice where it
    stands, on the one commit round you already have. **The pass does not re-trigger itself on that fix
    round**; a dispatcher explicitly asking for another is not that loop and you run it like any instruction

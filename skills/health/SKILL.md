@@ -30,7 +30,7 @@ here and a fix somewhere else.
 ## 1. Measure
 
 Measure what the main checkout holds — the integration branch — and never a slice's worktree, whose tree is
-mid-change. Read the project's config where it has one for `gate` and `fullGate`
+mid-change. Read the project's config where it has one for `gate`, `fullGate` and `preflight`
 (`skills/procedures/config-keys.md`); with none, the gate is what CI runs before merge.
 
 1. **Read the code shape** by `skills/procedures/code-shape.md`'s *Reading a project's code shape*, and **state
@@ -42,8 +42,8 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    it costs*** — an unmapped file, an untagged test; one with nothing to pay is a value, not an item. No map
    at all, in a project with a test suite beyond the gate's own checks and where no gate is structure-selected (`skills/glossary/vocabulary/code-shape.md`) either, is the
    `Map coverage` item, its value `no map`; a structure-selected gate needs none, and an untagged test in its
-   subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and `Gate share` is an item past the
-   threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
+   subject's folder pays nothing. **Full-gate cost is an item past the threshold its row names**, whether or not the project declares `fullGate`, **and so are
+   `Preflight cost` and `Gate share`, each past the threshold its row names**. **`Gate-minute slope` is an item where its days left before that threshold fall
    under 90**, and **a file the `Hotspots` row lists is its own item, `Hotspot: <path>`, only where more than
    half of those 50 PRs touched it** — below that it is the row's value. **Every row whose precondition is absent
    (`skills/procedures/code-shape.md`, *The signals*) goes on ONE line**, `does not apply here: <rows> —
@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the items no single table row carries** — three no row measures, and `Prune candidates`, drawn from
+4. **Name the items no single table row carries** — four no row measures, and `Prune candidates`, drawn from
    the *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* rows:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
@@ -62,6 +62,10 @@ mid-change. Read the project's config where it has one for `gate` and `fullGate`
    - **A baseline** — a file that grandfathers existing violations of a ratchet or an allowlist (file size,
      lint, guidance), so each may shrink but never grow; the item `Baseline: <path>`, its value the count of
      entries with each one's size in the unit the baseline records, ticked off only when the baseline is empty.
+   - **A preflight off its definition** (`skills/procedures/config-keys.md`) — one that compiles the product or
+     runs tests, or that omits a no-compile step of the gate with no reason stated, read from the config and
+     the gate's script, never by running either; the item `Preflight: <what>`, except where `preflight`
+     equals a seconds-long `gate`, the sanctioned answer.
    - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
      item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
      beneath it. **Health lists them and never deletes one.**
@@ -85,7 +89,7 @@ be read.
 
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
-`Hotspot: <path>`, `Baseline: <path>` or `Prune candidates`, whose tests sit beneath its line as indented
+`Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>` or `Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -131,6 +135,10 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   — into a component, the core on a second consumer — or a descriptor the other unit publishes; its
   alternatives are declaring the dependency in the layering (each change to one unit then reaches the other),
   or leaving it.
+- **The recommendation for a `Preflight: <what>` item, and for `Preflight cost`, is a preflight built from the
+  gate's no-compile steps alone, cached by content as `skills/procedures/config-keys.md` describes**; its
+  alternatives are a reason stated beside the step it leaves out (one more claim to keep true), or leaving it
+  (every no-compile failure waiting on a build, or every commit paying one).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).

@@ -9,7 +9,7 @@
 #
 #   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
 #      and decide which merge MODE this one boundary gets (see below).
-#   2. Preflight the PR's mergeability, BEFORE anything irreversible happens — the
+#   2. Check the PR's mergeability, BEFORE anything irreversible happens — the
 #      two steps that follow cannot be undone by a later failure, and the step
 #      that actually fails is the last one. A conflicting PR stops here with the
 #      worktree intact and the PR still a draft.
@@ -445,7 +445,7 @@ fi
 # transcript whose last lines are a teardown reporting success, because the orphaned
 # child goes on printing after the process that would have merged is already dead.
 #
-# So refuse here, before the preflight and before anything has been touched.
+# So refuse here, before the mergeability check and before anything has been touched.
 # Refusing rather than re-execing a copy from somewhere safe: WHICH copy that would
 # be is a guess — the installed one may be a different version, or absent entirely
 # on the machine of someone whose checkout IS this repo — and silently running code
@@ -596,7 +596,7 @@ if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerg
   fi
 fi
 
-# --- 1. Mergeability preflight ---------------------------------------------------
+# --- 1. Mergeability check -------------------------------------------------------
 # Everything past this point is irreversible, and the step that can actually fail —
 # the merge — is the last one. A PR whose base moved under it fails there with
 # "Pull Request has merge conflicts", by which point the worktree teardown has

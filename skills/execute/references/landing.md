@@ -250,7 +250,7 @@ A held PR is simply **not landed**, so whatever waits on it waits exactly as it 
 PR. When the approval arrives — a human merging it on GitHub, or telling this flow to go ahead, an ordinary
 instruction handled like any other — `merge-pr.sh <pr-number>` runs completely unmodified, and the rest of
 this file applies unchanged from there. ⚠️ **A hold is unbounded, so treat the base as having MOVED when you
-come back to it**: `merge-pr.sh` preflights mergeability and stops cleanly on a conflict, but a gate verdict
+come back to it**: `merge-pr.sh` checks mergeability and stops cleanly on a conflict, but a gate verdict
 older than the base it is now merging into is a verdict about a tree nobody holds, so re-gate before you
 merge where the integration branch has moved since that comment was last written — into an epic branch the
 close-out gate reads it instead.
@@ -259,7 +259,7 @@ The steps below have exactly one correct order, and syncing the local integratio
 **no forcing feedback** — every visible signal after the merge (`✓ Merged`, branch deleted, PR closed) says
 "done", so it's silently skipped, and the miss only surfaces later when the *next* worktree is cut from a
 stale HEAD. So **default to the helper, which does all of them but the last, atomically:
-`merge-pr.sh <pr-number>`** — plus the mergeability preflight the list below has you run by hand before its
+`merge-pr.sh <pr-number>`** — plus the mergeability check the list below has you run by hand before its
 first step. It resolves the main checkout + the PR's base/head branches, confirms GitHub can actually merge
 the PR before anything irreversible happens, tears down the worktree, marks the PR ready and immediately
 `gh pr merge --merge --delete-branch`es it, and — anchored to the main checkout regardless of your cwd —
@@ -359,7 +359,7 @@ branch lives in a linked worktree, and **git refuses to delete a branch that's c
 (`cannot delete branch 'X' used by worktree …`), so `gh pr merge --delete-branch` would error on the
 local-branch step if the worktree still existed — the order below is load-bearing and stays. What that order
 costs is that the two irreversible steps run *before* the one that can fail: a PR whose base moved under it
-fails at the merge with `GraphQL: Pull Request has merge conflicts`, and without a preflight that leaves no
+fails at the merge with `GraphQL: Pull Request has merge conflicts`, and without a mergeability check that leaves no
 worktree to resolve the conflict in and a PR marked ready with no review behind it. So `merge-pr.sh` asks
 GitHub whether the PR is mergeable **first**, and a `CONFLICTING` answer stops it cleanly — worktree intact,
 PR still draft — naming the fix. Two consequences for you: a conflict now costs you a resolve rather than a

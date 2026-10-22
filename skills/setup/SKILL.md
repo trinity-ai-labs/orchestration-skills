@@ -39,10 +39,10 @@ Machinery a project doesn't need is a cost. Pick the tier, and say which one and
 | Tier | Looks like | Config |
 |---|---|---|
 | **No flow** | Nothing to isolate, no check to run | None. Say so and stop |
-| **Worktrees + a check** | The check runs in seconds — this plugin's repo | `gate` == `scopedCheck`, no queue, often no `install`/`envFiles` |
+| **Worktrees + a check** | The check runs in seconds — this plugin's repo | `gate` == `preflight`, no queue, often no `install`/`envFiles` |
 | **Worktrees + gate + queue** | The gate takes minutes and saturates the box | The full set |
 
-- **`gate` and `scopedCheck` being one command is a correct answer** — one authoritative check, no heavy tier;
+- **`gate` and `preflight` being one command is a correct answer** — one authoritative check, no heavy tier;
   a fabricated heavier one tests nothing.
 - **No queue is normal too**: omit `enqueue`/`drain` and the implementer gates in-line on its own draft PR,
   still handing back a draft.
@@ -77,8 +77,8 @@ Every value must trace to a file you read.
 - **Scripts** — `package.json`'s `scripts`, or the `Makefile`/`justfile`/`Taskfile`.
 - **The real gate** — whatever CI runs before merge (`.github/workflows/*.yml`); with no CI, the broadest
   local command that builds and tests.
-- **The scoped check** — the cheap subset with no build and no test suite (format-check + lint + typecheck),
-  composed yourself where no script already does.
+- **The preflight** — every no-compile step of the gate, as `skills/procedures/config-keys.md` defines it,
+  one hidden inside a build target included, composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm
   they exist in the main checkout. **Record paths only**, since the config is committed.
 - **Conventions** — the agent guidance and `CONTRIBUTING.md`, and only what lives nowhere else; what is
@@ -185,14 +185,17 @@ Report what is undeclared and what declaring it would change; the decision is th
 
 **Run the difference the other way too: a key the config declares that `examples/worktree.json` does not
 carry is read by nothing**, so a value set there governs nothing while looking set. Name each one, and where
-it is a key this plugin renamed, name its replacement — **no old name is honoured as an alias, and a retired
-merge key declared there HOLDS the merge its replacement governs until it is renamed**, so say that too:
+it is a key this plugin renamed, name its replacement and what the old name does until it is renamed — **a
+retired merge key HOLDS the merge its replacement governs, and `scopedCheck`, the one name read rather than
+held, is read as the preflight where `preflight` is absent**, since for a check running it is the safe
+direction, as holding is for a merge:
 
-| Declared as | Now read as |
-|---|---|
-| `autoMergeTrivial` | `autoMergeOntoIntegration` |
-| `autoMergeLeaves` | `autoMergeOntoEpic` |
-| `autoMergeEpic` | `autoMergeEpicCloseOut` |
+| Declared as | Now read as | Until renamed |
+|---|---|---|
+| `autoMergeTrivial` | `autoMergeOntoIntegration` | holds that merge |
+| `autoMergeLeaves` | `autoMergeOntoEpic` | holds that merge |
+| `autoMergeEpic` | `autoMergeEpicCloseOut` | holds that merge |
+| `scopedCheck` | `preflight` | read as the preflight where `preflight` is absent |
 
 ## Step 2 — Write `.agents/worktree.json`
 
@@ -239,7 +242,7 @@ different question and this pass's own.
 | `install` | The lockfile's package manager, frozen/CI form |
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
-| `scopedCheck` | The no-build, no-test subset |
+| `preflight` | The gate's no-compile steps, as `skills/procedures/config-keys.md` defines them |
 | `targetedTest` | The project's test runner, as a template using one of `{files}` (test paths) or `{names}` (test names), values space-separated unless the template quotes them (`vitest run {files}`). **Omit** where no runner takes either |
 | `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |
 | `sharedResources` | **The maintainer's answer, not a file's** — the first ask; `[]` when nothing |
@@ -247,7 +250,7 @@ different question and this pass's own.
 | `enqueue` / `drain` | Step 3 — **omit both** with no queue |
 | `format` | The formatter in *write* mode |
 | `frameworkSkills` | `{skill, when}` per area, from the deps imported |
-| `briefConventions` | Pipeline-dispatch facts only — parallel-safety for concurrent gating, how `gate` and `scopedCheck` relate, branch naming, what a PR targets, the order a contract-crossing change lands in. Coding conventions stay the agent guidance's: point at it and state only the gotchas that would cost a run. **Never re-teach how to read the routers and chapters** — every pass reads them itself |
+| `briefConventions` | Pipeline-dispatch facts only — parallel-safety for concurrent gating, how `gate` and `preflight` relate, branch naming, what a PR targets, the order a contract-crossing change lands in. Coding conventions stay the agent guidance's: point at it and state only the gotchas that would cost a run. **Never re-teach how to read the routers and chapters** — every pass reads them itself |
 | `upstreamFindings` | **Consent, not a fact** — the third ask. `true` on an explicit yes, **omit** otherwise |
 | `integrationBranch` | The branch this project's work lands on — a literal name the maintainer confirms, never a pattern and never read off the default branch. **Omit** where they will not confirm one: absence keeps the older behaviour, and a guessed branch is the value here whose error is silent and durable, since every worktree of every later arc forks from it |
 | `bumpFiles` | Every file whose version string moves when a change ships — grounded from the repo, then confirmed as **complete**. **Omit** where nothing hand-edits a version: tag- or commit-derived versioning has tooling that owns it |
@@ -326,9 +329,19 @@ first one.
 2. **HEAD is right.** `git -C <wt> rev-parse HEAD` equals the base tip resolved **locally**
    (`git -C <repo> rev-parse <base>`) — no fetch, no freshness count: the config's reader is what is under
    test. The full fetch-and-compare belongs at **dispatch**.
-3. **The gate command exists.** Run the *scoped* check for real, and `targetedTest` where declared over one
+3. **The gate command exists.** Run the preflight for real, and `targetedTest` where declared over one
    existing test; for the heavy ones — `gate`, and `fullGate`
-   where declared — `<pm> run <script> --help` is enough.
+   where declared — `<pm> run <script> --help` is enough. **Then hold the preflight to its definition**
+   (`skills/procedures/config-keys.md`), a `preflight` equal to a seconds-long `gate` being the sanctioned
+   answer and none of these a flag:
+   - **Time it twice** — on the unchanged tree, then after a one-file edit you restore — in seconds each.
+   - **List every no-compile step of the gate**, reading its script and every build target it calls for one
+     hidden inside, and **flag each the preflight omits** unless the config or the guidance states why.
+   - **Flag a preflight that compiles the product or runs tests**, proposing one built from the gate's
+     no-compile steps.
+   - **Hand each flag to `/pipeline:health` as an item, and the one-file-edit time as its `Preflight cost`
+     value** (`skills/procedures/code-shape.md` names the threshold), re-running it with them where its Step 1
+     run came first.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
    the PR carries the verdict comment. Then three more, each invisible to the one before it:
    **`drain --status` reports and claims nothing** — an unrecognised flag falling through to a full drain

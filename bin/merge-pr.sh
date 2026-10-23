@@ -804,7 +804,6 @@ EOF
 }
 
 HEAD_OID=""
-PRE_FLIP_LINKS=""
 if [ "$STATE" != "MERGED" ]; then
   HEAD_OID=$(pr_field headRefOid 2>/dev/null) \
     || die "could not read the CI checks on PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once gh can reach GitHub."
@@ -824,11 +823,7 @@ if [ "$STATE" != "MERGED" ]; then
   if [ -n "$CI_BAD" ]; then
     die "PR #$PR has CI checks that are not green at $HEAD_OID — nothing has been touched: the worktree is intact and the PR is still a draft.$CI_BAD\n  A pending check: re-run merge-pr.sh $PR once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
   fi
-  while IFS="$TAB" read -r _ _ _ _ link; do
-    [ -z "$link" ] || PRE_FLIP_LINKS="$PRE_FLIP_LINKS$link$NL"
-  done <<EOF
-$CHECK_ROWS
-EOF
+  PRE_FLIP_ROWS=$CHECK_ROWS
 fi
 
 # --- 1c. CI the ready flip starts -------------------------------------------------
@@ -840,11 +835,14 @@ fi
 # merge had already landed. So where marking THIS draft ready starts CI, the flip
 # moves here, ahead of the teardown, and the merge waits on what it started.
 #
-# Whether it does is read from the tree, never guessed from a skipped check: a
-# workflow under .github/workflows/ at the PR's head whose PR trigger names
-# `ready_for_review`. A PR that is already ready flips nothing and starts nothing, so
-# it is not asked. Where nothing names it, nothing below runs and the order is
-# exactly what it was: a skipped check on such a project is GitHub's own pass.
+# The checks it waits for are the ones the draft already SKIPPED whose workflow, read
+# from .github/workflows/ at the PR's head, names `ready_for_review` in its PR
+# trigger's types — never guessed from a skipped check alone, and never a workflow
+# alone either: one filtered by `paths:` that this change does not touch runs on
+# neither the draft nor the flip, so it left no check to expect. A PR that is already
+# ready flips nothing and starts nothing, so it is not asked. Where no such check
+# exists, nothing below runs and the order is exactly what it was: a skipped check
+# whose workflow does not name the trigger is GitHub's own pass.
 #
 # GitHub registers a run a few seconds after the event, and until a new run's checks
 # appear `gh pr checks` still shows the draft's skipped ones under the same names,
@@ -856,8 +854,8 @@ fi
 # or a bound that expired with none of them appeared puts the PR back to draft and
 # refuses here, before the teardown, so the worktree is still there to fix it in.
 #
-# A check counts as the flip's when it belongs to a workflow that named the trigger
-# and its link (one job's run) was not on the PR before the flip.
+# A check has re-run once its row — the same name, workflow and event — carries
+# another link (one job's run) than the skipped one, or is no longer skipping.
 WAS_DRAFT=""
 FLIPPED=""
 DRAFT_NOTE=""
@@ -900,47 +898,79 @@ $listing
 EOF
 }
 
-# For each workflow in READY_WORKFLOWS, against CHECK_ROWS: APPEARED lists those with
-# a check the flip started, SETTLED is empty unless every one of them shows only such
-# checks — a pre-flip link still showing is a job whose new run gh has not surfaced.
-APPEARED=""
-SETTLED=""
-flip_checks_state() {
-  local wf bucket name workflow event link fresh stale
-  APPEARED=""
-  SETTLED=1
-  while IFS= read -r wf; do
-    [ -n "$wf" ] || continue
-    fresh=""
-    stale=""
+# Is this check one the flip has to re-run? A check the draft skipped, in a workflow
+# that names ready_for_review: a skip in any other workflow is GitHub's own pass, and
+# a workflow with no check on the head left nothing to wait for. The PowerShell
+# sibling's Test-AwaitsFlip answers the same table, scripts/port-cases/flip-await.tsv.
+#   awaits_flip <bucket> <workflow> <ready-workflows, one a line>
+awaits_flip() {
+  local nl='
+'
+  [ "$1" = skipping ] && [ -n "$2" ] || return 1
+  case "$nl$3$nl" in
+  *"$nl$2$nl"*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+# The pre-flip rows the flip has to re-run, in AWAITED, as `name workflow event link`.
+AWAITED=""
+find_awaited() {
+  local bucket name workflow event link
+  AWAITED=""
+  while IFS="$TAB" read -r bucket name workflow event link; do
+    [ -n "$bucket$name" ] || continue
+    awaits_flip "$bucket" "$workflow" "$READY_WORKFLOWS" || continue
+    AWAITED="$AWAITED$name$TAB$workflow$TAB$event$TAB$link$NL"
+  done <<EOF
+$PRE_FLIP_ROWS
+EOF
+}
+
+# Against CHECK_ROWS: RERUN lists the awaited checks that have re-run since the flip,
+# PENDING_LIST the ones that have not, each as `'<name>' (<workflow>)`.
+RERUN=""
+PENDING_LIST=""
+flip_rerun_state() {
+  local a_name a_wf a_event a_link bucket name workflow event link renewed
+  RERUN=""
+  PENDING_LIST=""
+  while IFS="$TAB" read -r a_name a_wf a_event a_link; do
+    [ -n "$a_name" ] || continue
+    renewed=""
     while IFS="$TAB" read -r bucket name workflow event link; do
-      [ "$workflow" = "$wf" ] || continue
-      case "$NL$PRE_FLIP_LINKS" in
-      *"$NL$link$NL"*) stale=1 ;;
-      *) fresh=1 ;;
-      esac
+      [ "$name" = "$a_name" ] && [ "$workflow" = "$a_wf" ] && [ "$event" = "$a_event" ] || continue
+      [ "$link" = "$a_link" ] && [ "$bucket" = skipping ] || renewed=1
     done <<EOF
 $CHECK_ROWS
 EOF
-    [ -z "$fresh" ] || APPEARED="$APPEARED$wf$NL"
-    [ -n "$fresh" ] && [ -z "$stale" ] || SETTLED=""
+    if [ -n "$renewed" ]; then
+      RERUN="$RERUN'$a_name' ($a_wf)$NL"
+    else
+      PENDING_LIST="${PENDING_LIST:+$PENDING_LIST, }'$a_name' ($a_wf)"
+    fi
   done <<EOF
-$READY_WORKFLOWS
+$AWAITED
 EOF
 }
 
 if [ "$STATE" != "MERGED" ]; then
   WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
-  [ "$WAS_DRAFT" != "true" ] || find_ready_workflows "$HEAD_OID"
+  # The workflow files are read only where the draft skipped something, since only a
+  # skipped check can be one the flip re-runs.
+  if [ "$WAS_DRAFT" = "true" ] && printf '%s\n' "$PRE_FLIP_ROWS" | grep -q "^skipping$TAB"; then
+    find_ready_workflows "$HEAD_OID"
+    find_awaited
+  fi
 fi
-if [ -n "$READY_WORKFLOWS" ]; then
-  READY_LIST=""
-  while IFS= read -r wf; do
-    [ -z "$wf" ] || READY_LIST="${READY_LIST:+$READY_LIST, }'$wf'"
+if [ -n "$AWAITED" ]; then
+  AWAITED_LIST=""
+  while IFS="$TAB" read -r a_name a_wf _ _; do
+    [ -z "$a_name" ] || AWAITED_LIST="${AWAITED_LIST:+$AWAITED_LIST, }'$a_name' ($a_wf)"
   done <<EOF
-$READY_WORKFLOWS
+$AWAITED
 EOF
-  echo "merge-pr: marking PR #$PR ready (review approval) ahead of the teardown — workflow(s) $READY_LIST start CI on that flip, so the merge waits for it ..."
+  echo "merge-pr: marking PR #$PR ready (review approval) ahead of the teardown — the draft skipped $AWAITED_LIST, whose workflow starts on that flip, so the merge waits for it ..."
   # An interrupted wait must not leave a ready PR that is not being merged, so each
   # trap puts the flag back, then re-raises the signal with the default action
   # restored, the same way the merge call's traps do.
@@ -955,19 +985,19 @@ EOF
   attempt=1
   while :; do
     if read_checks; then
-      flip_checks_state
-      [ -z "$SETTLED" ] || break
+      flip_rerun_state
+      [ -n "$PENDING_LIST" ] || break
     fi
     [ "$attempt" -lt 24 ] || break
     attempt=$((attempt + 1))
     sleep 5
   done
-  if [ -z "$APPEARED" ]; then
-    FLIP_REFUSAL="PR #$PR was marked ready to start its CI — workflow(s) $READY_LIST name ready_for_review — but no check from it appeared within about two minutes, so nothing has been merged: the worktree is intact and"
+  if [ -z "$RERUN" ]; then
+    FLIP_REFUSAL="PR #$PR was marked ready to start its CI — the draft skipped $AWAITED_LIST, whose workflow names ready_for_review — but none of them re-ran within about two minutes, so nothing has been merged: the worktree is intact and"
     FLIP_HINT="Read gh pr checks $PR, and re-run merge-pr.sh $PR once that CI reports; starting it by hand is the user's call."
   else
-    if [ -z "$SETTLED" ]; then
-      echo "merge-pr: not every run the flip should start has surfaced within about two minutes — waiting on the checks that did ..."
+    if [ -n "$PENDING_LIST" ]; then
+      echo "merge-pr: $PENDING_LIST did not re-run within about two minutes — waiting on the checks that did ..."
     fi
     echo "merge-pr: waiting for PR #$PR's checks to finish (gh pr checks --watch --fail-fast) ..."
     # The watch's own exit is not the verdict, the read after it is; a check gh had

@@ -1250,7 +1250,8 @@ gh-post-match.tsv|gh-post.sh|marker_matches build_marker|gh-post.ps1|Test-Marker
 gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print
 ci-verdict.tsv|merge-pr.sh|ci_verdict|merge-pr.ps1|Get-CiVerdict|print
 ready-trigger.tsv|merge-pr.sh|ready_trigger|merge-pr.ps1|Test-ReadyTrigger|yes/no
-workflow-name.tsv|merge-pr.sh|workflow_name|merge-pr.ps1|Get-WorkflowName|print'
+workflow-name.tsv|merge-pr.sh|workflow_name|merge-pr.ps1|Get-WorkflowName|print
+flip-await.tsv|merge-pr.sh|awaits_flip|merge-pr.ps1|Test-AwaitsFlip|yes/no'
 
 pc_registered=''
 pc_unregistered=''

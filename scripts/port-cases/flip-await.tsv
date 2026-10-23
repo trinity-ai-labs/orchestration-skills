@@ -1,0 +1,21 @@
+# merge-pr: is this pre-flip check one marking the draft ready has to re-run, so
+# the merge waits for it? Read by BOTH ports (awaits_flip / Test-AwaitsFlip). The
+# checks waited for are the ones the draft SKIPPED whose workflow names
+# ready_for_review (ready-trigger.tsv answers that per file); a workflow with the
+# trigger but no check on the head - one whose `paths:` this change misses - is
+# never asked, so it is never expected. A false yes holds the merge for a run that
+# never comes and refuses it; a false no merges before the flip's CI has run.
+#
+# bucket	workflow	ready-workflows	expect
+# "\n" separates the ready workflows' names, "-" is an empty string.
+skipping	ci	ci	yes
+skipping	ci	lint\nci	yes
+skipping	lint	ci	no
+skipping	ci	-	no
+pass	ci	ci	no
+pending	ci	ci	no
+fail	ci	ci	no
+skipping	CI	ci	no
+skipping	ci-extra	ci	no
+skipping	-	ci	no
+skipping	-	-	no

@@ -990,7 +990,7 @@ function Get-CiNotGreen {
 }
 
 $HeadOid = ''
-$PreFlipLinks = @()
+$PreFlipRows = @()
 if ($State -ne 'MERGED') {
     $HeadOid = Get-PrField 'headRefOid'
     if (-not $HeadOid) {
@@ -1014,10 +1014,7 @@ if ($State -ne 'MERGED') {
     if ($script:CiBad) {
         Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$($script:CiBad)`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
     }
-    foreach ($check in $script:CheckRows) {
-        $link = [string](Get-JsonValue $check 'link')
-        if ($link) { $PreFlipLinks += $link }
-    }
+    $PreFlipRows = $script:CheckRows
 }
 
 # --- 1c. CI the ready flip starts -------------------------------------------------
@@ -1029,11 +1026,14 @@ if ($State -ne 'MERGED') {
 # merge had already landed. So where marking THIS draft ready starts CI, the flip
 # moves here, ahead of the teardown, and the merge waits on what it started.
 #
-# Whether it does is read from the tree, never guessed from a skipped check: a
-# workflow under .github/workflows/ at the PR's head whose PR trigger names
-# `ready_for_review`. A PR that is already ready flips nothing and starts nothing, so
-# it is not asked. Where nothing names it, nothing below runs and the order is
-# exactly what it was: a skipped check on such a project is GitHub's own pass.
+# The checks it waits for are the ones the draft already SKIPPED whose workflow, read
+# from .github/workflows/ at the PR's head, names `ready_for_review` in its PR
+# trigger's types - never guessed from a skipped check alone, and never a workflow
+# alone either: one filtered by `paths:` that this change does not touch runs on
+# neither the draft nor the flip, so it left no check to expect. A PR that is already
+# ready flips nothing and starts nothing, so it is not asked. Where no such check
+# exists, nothing below runs and the order is exactly what it was: a skipped check
+# whose workflow does not name the trigger is GitHub's own pass.
 #
 # GitHub registers a run a few seconds after the event, and until a new run's checks
 # appear `gh pr checks` still shows the draft's skipped ones under the same names,
@@ -1045,8 +1045,8 @@ if ($State -ne 'MERGED') {
 # or a bound that expired with none of them appeared puts the PR back to draft and
 # refuses here, before the teardown, so the worktree is still there to fix it in.
 #
-# A check counts as the flip's when it belongs to a workflow that named the trigger
-# and its link (one job's run) was not on the PR before the flip.
+# A check has re-run once its row - the same name, workflow and event - carries
+# another link (one job's run) than the skipped one, or is no longer skipping.
 $WasDraft = ''
 $Flipped = $false
 $script:DraftNote = ''
@@ -1096,35 +1096,67 @@ function Find-ReadyWorkflow {
     }
 }
 
-$script:Appeared = @()
-$script:Settled = $false
-function Get-FlipCheckState {
-    # For each workflow in $script:ReadyWorkflows, against $script:CheckRows:
-    # $script:Appeared lists those with a check the flip started, and
-    # $script:Settled is true only when every one of them shows only such checks - a
-    # pre-flip link still showing is a job whose new run gh has not surfaced.
-    $script:Appeared = @()
-    $script:Settled = $true
-    foreach ($wf in $script:ReadyWorkflows) {
-        $fresh = $false
-        $stale = $false
+function Test-AwaitsFlip {
+    # Is this check one the flip has to re-run? A check the draft skipped, in a
+    # workflow that names ready_for_review: a skip in any other workflow is GitHub's
+    # own pass, and a workflow with no check on the head left nothing to wait for.
+    # The bash sibling's awaits_flip answers the same table,
+    # scripts/port-cases/flip-await.tsv; the ready workflows arrive one a line.
+    param(
+        [AllowEmptyString()] [string] $Bucket,
+        [AllowEmptyString()] [string] $Workflow,
+        [AllowEmptyString()] [string] $ReadyWorkflows
+    )
+    if ($Bucket -cne 'skipping' -or -not $Workflow) { return $false }
+    return [bool](@($ReadyWorkflows -split "`n") -ccontains $Workflow)
+}
+
+$script:Rerun = @()
+$script:PendingList = ''
+function Get-FlipRerunState {
+    # Against $script:CheckRows: $script:Rerun lists the awaited checks that have
+    # re-run since the flip, $script:PendingList the ones that have not, each as
+    # '<name>' (<workflow>).
+    $script:Rerun = @()
+    $script:PendingList = ''
+    foreach ($a in $Awaited) {
+        $renewed = $false
         foreach ($check in $script:CheckRows) {
-            if ([string](Get-JsonValue $check 'workflow') -cne $wf) { continue }
-            $link = Get-FieldOrDash $check 'link'
-            if ($PreFlipLinks -ccontains $link) { $stale = $true } else { $fresh = $true }
+            if ((Get-FieldOrDash $check 'name') -cne $a.Name) { continue }
+            if ((Get-FieldOrDash $check 'workflow') -cne $a.Workflow) { continue }
+            if ((Get-FieldOrDash $check 'event') -cne $a.Event) { continue }
+            if (-not ((Get-FieldOrDash $check 'link') -ceq $a.Link -and (Get-FieldOrDash $check 'bucket') -ceq 'skipping')) { $renewed = $true }
         }
-        if ($fresh) { $script:Appeared += $wf }
-        if (-not $fresh -or $stale) { $script:Settled = $false }
+        if ($renewed) {
+            $script:Rerun += "'$($a.Name)' ($($a.Workflow))"
+        } else {
+            if ($script:PendingList) { $script:PendingList += ', ' }
+            $script:PendingList += "'$($a.Name)' ($($a.Workflow))"
+        }
     }
 }
 
+$Awaited = @()
 if ($State -ne 'MERGED') {
     $WasDraft = Get-PrField 'isDraft'
-    if ($WasDraft -eq 'true') { Find-ReadyWorkflow -Commit $HeadOid }
+    # The workflow files are read only where the draft skipped something, since only
+    # a skipped check can be one the flip re-runs.
+    $draftSkipped = @($PreFlipRows | Where-Object { [string](Get-JsonValue $_ 'bucket') -ceq 'skipping' })
+    if ($WasDraft -eq 'true' -and $draftSkipped.Count -gt 0) {
+        Find-ReadyWorkflow -Commit $HeadOid
+        $readyLines = $script:ReadyWorkflows -join "`n"
+        foreach ($check in $PreFlipRows) {
+            if (-not (Test-AwaitsFlip ([string](Get-JsonValue $check 'bucket')) ([string](Get-JsonValue $check 'workflow')) $readyLines)) { continue }
+            $Awaited += [pscustomobject]@{
+                Name = (Get-FieldOrDash $check 'name'); Workflow = (Get-FieldOrDash $check 'workflow')
+                Event = (Get-FieldOrDash $check 'event'); Link = (Get-FieldOrDash $check 'link')
+            }
+        }
+    }
 }
-if ($script:ReadyWorkflows.Count -gt 0) {
-    $readyList = ($script:ReadyWorkflows | ForEach-Object { "'$_'" }) -join ', '
-    Write-Output "merge-pr: marking PR #$Pr ready (review approval) ahead of the teardown - workflow(s) $readyList start CI on that flip, so the merge waits for it ..."
+if ($Awaited.Count -gt 0) {
+    $awaitedList = ($Awaited | ForEach-Object { "'$($_.Name)' ($($_.Workflow))" }) -join ', '
+    Write-Output "merge-pr: marking PR #$Pr ready (review approval) ahead of the teardown - the draft skipped $awaitedList, whose workflow starts on that flip, so the merge waits for it ..."
     # An interrupted wait must not leave a ready PR that is not being merged: a
     # Ctrl+C still runs the finally block, which puts the flag back unless the wait
     # reached a verdict first.
@@ -1146,17 +1178,17 @@ if ($script:ReadyWorkflows.Count -gt 0) {
         # 24 polls 5 seconds apart, about two minutes for a run to register and start.
         foreach ($attempt in 1..24) {
             if (Get-PrCheck) {
-                Get-FlipCheckState
-                if ($script:Settled) { break }
+                Get-FlipRerunState
+                if (-not $script:PendingList) { break }
             }
             if ($attempt -lt 24) { Start-Sleep -Seconds 5 }
         }
-        if ($script:Appeared.Count -eq 0) {
-            $flipRefusal = "PR #$Pr was marked ready to start its CI - workflow(s) $readyList name ready_for_review - but no check from it appeared within about two minutes, so nothing has been merged: the worktree is intact and"
+        if ($script:Rerun.Count -eq 0) {
+            $flipRefusal = "PR #$Pr was marked ready to start its CI - the draft skipped $awaitedList, whose workflow names ready_for_review - but none of them re-ran within about two minutes, so nothing has been merged: the worktree is intact and"
             $flipHint = "Read gh pr checks $Pr, and re-run merge-pr.ps1 $Pr once that CI reports; starting it by hand is the user's call."
         } else {
-            if (-not $script:Settled) {
-                Write-Output "merge-pr: not every run the flip should start has surfaced within about two minutes - waiting on the checks that did ..."
+            if ($script:PendingList) {
+                Write-Output "merge-pr: $($script:PendingList) did not re-run within about two minutes - waiting on the checks that did ..."
             }
             Write-Output "merge-pr: waiting for PR #$Pr's checks to finish (gh pr checks --watch --fail-fast) ..."
             # The watch's own exit is not the verdict, the read after it is; a check

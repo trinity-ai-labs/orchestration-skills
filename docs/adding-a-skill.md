@@ -172,8 +172,9 @@ repository's own.
 directory; an agent pays for the files it has actually opened by the step it has reached, a set smaller than
 one sub-skill or spanning several. `scripts/seat-load.txt` is that set written down: for each seat — the
 implementer, the dispatcher, a review pass's reader per dimension and the grounder — each mode and each step,
-the files the seat opens there, and a recorded bound per step. The check sums the same `wc -w` over every file
-open by each step, since a file stays open once read, and prints each seat and mode's peak with the load at
+the files the seat opens there, and a recorded bound per step. The check sums the words of every file open by each step
+— counted in Python as whitespace-separated tokens of the file read as UTF-8, never with `wc -w`, which reads
+differently on GNU and macOS and so cannot hold an exact bound — since a file stays open once read, and prints each seat and mode's peak with the load at
 every step and the files that step opened. It fails a load above or below its bound, a step with no bound or a
 bound with no step, a listed file that is missing, and a listed file that neither the seat's root nor a file it
 opened earlier names by its repo path, so the manifest can only route a seat where its prose already sends it.

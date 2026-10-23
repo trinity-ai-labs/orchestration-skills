@@ -38,8 +38,9 @@
 #  18. shipped prose names a capability, never a host's tool literal — the set
 #      derived from the mappings table, so a row added there arms the check.
 #  19. each seat's load — the files scripts/seat-load.txt says it has open at
-#      each step and mode — sums to exactly its recorded bound (a ratchet), and
-#      every file listed is one that seat's own prose routes it to.
+#      each step and mode, counted in words the same way on every platform —
+#      sums to exactly its recorded bound (a ratchet), and every file listed is
+#      one that seat's own prose routes it to.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one file and one
@@ -1933,9 +1934,14 @@ rm -f "$vendor_out"
 # Check 10 bounds what a FILE weighs and what a sub-skill's directory weighs;
 # neither is what an agent pays, which is the files its seat has open at the step
 # it has reached. scripts/seat-load.txt declares that, per seat, mode and step,
-# and this check sums check 10's measurement (`wc -w`, run as wc itself rather
-# than reimplemented) over it, so a change that grows a seat's load fails before
-# it ships rather than being noticed in a slow run.
+# and this check sums a word count over it, so a change that grows a seat's load
+# fails before it ships rather than being noticed in a slow run.
+#
+# THE COUNT IS PYTHON'S, NOT wc's. A word is a run of non-whitespace in the file
+# read as UTF-8 (`len(text.split())`). `wc -w` is not one instrument: GNU wc in
+# a UTF-8 locale and macOS wc disagree by several words a file on this prose, and
+# an exact bound recorded on one fails on the other. Check 10 keeps `wc -w`,
+# since a ceiling tolerates that drift and an exact bound does not.
 #
 # THE BOUND IS A RATCHET, AND IT RATCHETS BOTH WAYS. A load above its bound
 # fails; so does one below it, because slack left in a bound is room the next
@@ -1956,7 +1962,6 @@ load_manifest='scripts/seat-load.txt'
 load_out="$(mktemp)" || exit 2
 python3 - "$load_manifest" >"$load_out" 2>&1 <<'LOADPY'
 import pathlib
-import subprocess
 import sys
 
 manifest = sys.argv[1]
@@ -1970,14 +1975,11 @@ def problem(text):
 
 
 def words(path, cache={}):
-    """wc -w over one file, the measurement check 10 makes."""
+    """Whitespace-separated tokens of the file read as UTF-8, on every platform."""
     if path not in cache:
         try:
-            raw = subprocess.run(
-                ["wc", "-w"], stdin=open(path, "rb"), capture_output=True, check=True
-            ).stdout.decode().strip()
-            cache[path] = int(raw)
-        except (OSError, subprocess.CalledProcessError, ValueError):
+            cache[path] = len(pathlib.Path(path).read_text(encoding="utf-8").split())
+        except (OSError, UnicodeDecodeError):
             cache[path] = None
     return cache[path]
 
@@ -2033,7 +2035,6 @@ for n, line in enumerate(lines, 1):
         problem("%s: not a root, modes, open or bound line of the right length" % where)
 
 used = set()
-measured = 0
 for seat in seat_order:
     root = roots[seat]
     if not pathlib.Path(root).is_file():
@@ -2072,7 +2073,7 @@ for seat in seat_order:
                     broke = True
                 count = words(path)
                 if count is None:
-                    problem("%s/%s: %s could not be measured with wc -w" % (seat, mode, path))
+                    problem("%s/%s: %s could not be read as UTF-8 to count its words" % (seat, mode, path))
                     broke = True
                     continue
                 seen.append(path)
@@ -2086,31 +2087,30 @@ for seat in seat_order:
         if not steps:
             problem("%s/%s: no open line covers this mode, so it was not measured" % (seat, mode))
             continue
-        measured += 1
         for step, total, _, _ in steps:
             key = (seat, mode, step)
             used.add(key)
             bound = bounds.get(key)
             if bound is None:
                 problem(
-                    "%s/%s: %s loads %d words (wc -w) and has no bound - record "
+                    "%s/%s: %s loads %d words and has no bound - record "
                     "'bound %s %s %s %d' in %s" % (seat, mode, step, total, seat, mode, step, total, manifest)
                 )
             elif total > bound:
                 problem(
-                    "%s/%s: %s loads %d words (wc -w), over its bound of %d by %d - "
+                    "%s/%s: %s loads %d words, over its bound of %d by %d - "
                     "shrink what this seat opens at this step, or move it to the step "
                     "that uses it" % (seat, mode, step, total, bound, total - bound)
                 )
             elif total < bound:
                 problem(
-                    "%s/%s: %s loads %d words (wc -w), under its bound of %d - lower "
+                    "%s/%s: %s loads %d words, under its bound of %d - lower "
                     "the bound to %d in %s in this PR, so the room is not grown back "
                     "into" % (seat, mode, step, total, bound, total, manifest)
                 )
         peak_step, peak, _, peak_files = max(steps, key=lambda s: s[1])
         print(
-            "REPORT %s/%s: peak %d words (wc -w) at %s, over %d file(s)%s"
+            "REPORT %s/%s: peak %d words at %s, over %d file(s)%s"
             % (seat, mode, peak, peak_step, peak_files, " - route broken, see below" if broke else "")
         )
         for step, total, added, _ in steps:
@@ -2121,7 +2121,6 @@ for key in sorted(set(bounds) - used):
 if not seat_order:
     problem("%s: declares no seat - this check scanned nothing" % manifest)
 
-print("COUNT %d" % measured)
 for text in problems:
     print("PROBLEM " + text)
 LOADPY
@@ -2131,14 +2130,11 @@ if [ "$load_status" -ne 0 ]; then
 	sed 's/^/      /' "$load_out" >&2
 	fail "seat-load: the reader crashed — no seat's load was measured"
 else
-	load_count="$(sed -n 's/^COUNT //p' "$load_out")"
 	load_bad="$(sed -n 's/^PROBLEM //p' "$load_out")"
 	if [ -n "$load_bad" ]; then
 		sed -n 's/^REPORT /      /p; s/^DETAIL /        /p' "$load_out" >&2
 		printf '%s\n' "$load_bad" | sed 's/^/FAIL  seat-load: /' >&2
 		fail "seat-load: $load_manifest and the prose it routes disagree, or a load moved off its bound — fix the route or the load, and move a bound only to the value measured above"
-	elif [ "${load_count:-0}" -eq 0 ]; then
-		fail "seat-load: no seat and mode was measured — this check scanned nothing"
 	else
 		sed -n 's/^REPORT /ok    seat-load: /p; s/^DETAIL /        /p' "$load_out"
 	fi

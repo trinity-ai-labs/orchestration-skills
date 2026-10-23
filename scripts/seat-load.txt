@@ -1,6 +1,8 @@
 # The seat-load manifest: what each seat has open at each step, read by
-# scripts/check.sh check 19, which sums `wc -w` over it (check 10's measurement)
-# and holds every step's load to the bound recorded here.
+# scripts/check.sh check 19, which sums each listed file's words over it and
+# holds every step's load to the bound recorded here. A word is a run of
+# non-whitespace in the file read as UTF-8, counted in Python, so a bound reads
+# the same on every platform; `wc -w` does not, and is not this count.
 #
 # Four kinds of line, whitespace-separated, `#` to end of line a comment:
 #
@@ -51,19 +53,19 @@ open  implementer *      8-gate-hand-back      skills/procedures/github-writes.m
 open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief.md
 
 bound implementer in-line 1-2-before-first-edit 6483
-bound implementer in-line 3-build               10368
-bound implementer in-line 4-docs                15481
-bound implementer in-line 6-commit-push-pr      17873
-bound implementer in-line 7-review              18845
-bound implementer in-line 8-gate-hand-back      21050
-bound implementer in-line 9-brief-wrong         23038
+bound implementer in-line 3-build               10367
+bound implementer in-line 4-docs                15472
+bound implementer in-line 6-commit-push-pr      17858
+bound implementer in-line 7-review              18830
+bound implementer in-line 8-gate-hand-back      21035
+bound implementer in-line 9-brief-wrong         23018
 bound implementer queue   1-2-before-first-edit 6661
-bound implementer queue   3-build               10546
-bound implementer queue   4-docs                15659
-bound implementer queue   6-commit-push-pr      18051
-bound implementer queue   7-review              19023
-bound implementer queue   8-gate-hand-back      20539
-bound implementer queue   9-brief-wrong         22527
+bound implementer queue   3-build               10545
+bound implementer queue   4-docs                15650
+bound implementer queue   6-commit-push-pr      18036
+bound implementer queue   7-review              19008
+bound implementer queue   8-gate-hand-back      20524
+bound implementer queue   9-brief-wrong         22507
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #
@@ -78,11 +80,11 @@ open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
 open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
-bound dispatcher all 0-read-config 14856
-bound dispatcher all 1-set-up      20748
-bound dispatcher all 2-dispatch    33734
-bound dispatcher all 3-judge       42152
-bound dispatcher all 4-land        50295
+bound dispatcher all 0-read-config 14837
+bound dispatcher all 1-set-up      20723
+bound dispatcher all 2-dispatch    33701
+bound dispatcher all 3-judge       42119
+bound dispatcher all 4-land        50259
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #
@@ -102,7 +104,7 @@ bound review-reader reuse          read 2607
 bound review-reader simplification read 2607
 bound review-reader efficiency     read 2607
 bound review-reader altitude       read 5967
-bound review-reader rules          read 7181
+bound review-reader rules          read 7173
 bound review-reader tests          read 5967
 
 # --- grounder — skills/ground/SKILL.md's actions --------------------------------
@@ -115,6 +117,6 @@ open  grounder * 1-ground skills/ground/SKILL.md skills/ground-rules/SKILL.md sk
 open  grounder * 3-slice  skills/ground/references/slicing.md skills/procedures/code-shape.md
 open  grounder * 4-emit   skills/ground/references/emitting.md skills/procedures/github-writes.md
 
-bound grounder all 1-ground 13467
-bound grounder all 3-slice  23499
-bound grounder all 4-emit   26262
+bound grounder all 1-ground 13452
+bound grounder all 3-slice  23484
+bound grounder all 4-emit   26247

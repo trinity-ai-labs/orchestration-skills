@@ -237,8 +237,9 @@ gate's verdict is already on the PR, and what you do with all of it is post **on
 (`gh-post.sh comment pr <pr> --key merge-held/<pr> --body-file <file>`, which a later pass edits rather than
 repeats) saying the pipeline is satisfied — build, review and gate all green — and that this checkpoint's key is
 holding the merge, then stop there. **The PR stays exactly as it is, which is a DRAFT: never call `gh pr ready`
-on it and never call `merge-pr.sh`** — the ready flip lives one line above the merge precisely so a PR can never
-sit around wearing a review it has outgrown, and flipping it without merging is that state by hand. **None of
+on it and never call `merge-pr.sh`** — the ready flip happens only inside the run that merges, and is put back
+when that run does not merge, precisely so a PR can never sit around wearing a review it has outgrown, and
+flipping it without merging is that state by hand. **None of
 the POST-MERGE steps below runs either** — the worktree stays up, the branch and its PR stay, the local
 integration branch is not synced, and the issues this PR settles stay open, since each of those is a step after
 a merge that has not happened. ⚠️ **The two ARC-level items at the end of this file are not post-merge steps and
@@ -263,7 +264,8 @@ stale HEAD. So **default to the helper, which does all of them but the last, ato
 `merge-pr.sh <pr-number>`** — plus the mergeability check the list below has you run by hand before its
 first step. It resolves the main checkout + the PR's base/head branches, confirms GitHub can actually merge
 the PR, and that no CI check on its head is failing or pending, before anything irreversible happens, tears
-down the worktree, marks the PR ready and immediately `gh pr merge --merge --delete-branch`es it, and — anchored to the main checkout regardless of your cwd —
+down the worktree, marks the PR ready and immediately `gh pr merge --merge --delete-branch`es it — the flip
+coming before the teardown, with the merge waiting on its CI, where that flip starts any — and, anchored to the main checkout regardless of your cwd —
 brings that local base branch up to the merged tip. (The one PR it merges any other way is an epic →
 integration close-out in a project that declared `"epicMerge": "squash"`, which it decides from that project's
 config before anything irreversible happens and finishes with a tree check in place of the delete — *The epic
@@ -278,8 +280,9 @@ the checkout is still on the branch, and at the commit, it was on when the run s
 shared-main-checkout hazard above calls for. When the fast-forward inside a linked worktree cannot proceed,
 the helper stops and names **which** worktree and **why** — commits the local branch carries that the remote
 does not, or a working tree not clean enough to fast-forward — rather than forcing the ref or reporting a sync
-that did not happen. Running it *is* the approval: the ready flip lives one line above the merge precisely so
-a PR can never sit around wearing a review it has outgrown. **So the satisfied review goes onto the PR BEFORE
+that did not happen. Running it *is* the approval: the ready flip happens only inside the run that merges,
+and is put back when that run does not merge, precisely so a PR can never sit around wearing a review it has
+outgrown. **So the satisfied review goes onto the PR BEFORE
 you invoke it** (*The PR review loop*): the helper flips and merges as one atomic step, so a review posted
 after it lands on a merged PR with no draft left to review, and the reasoning has to arrive ahead of the
 signature it explains. It's idempotent (a re-run finishes a half-done close-out) and it's the reason a
@@ -375,18 +378,24 @@ epic's slice is the epic branch, not the integration branch) — never rebase �
 
 **It reads the PR's CI checks at the same point, and a failing or pending one stops it the same way** — worktree
 intact, PR still draft — naming each check and its run URL. Every check on the head counts, not only the
-required ones, a PR with no checks passes, and the merge is pinned to the head whose checks were read
-(`--match-head-commit`). **A pending check is not waited on**: read `gh pr checks <n>` and re-run `merge-pr.sh`
-once it settles. **A green gate comment over a red CI is not a green gate** — fix the check on the branch, push,
-re-gate, then re-run; a check cancelled, timed out or stale with nothing in the code to fix needs a CI re-run,
-which is the user's call. **Its read is only as good as what CI has reported on a draft**: a job the project
-skips on drafts reports `SKIPPED` and passes, and one triggered by the ready flip has not started when the
-helper reads, so where a project's CI skips drafts, mark the PR ready and let its checks settle before
-`merge-pr.sh`.
+required ones, each read as `gh pr checks` reports its latest run (so a passing re-run supersedes the failure
+before it), a skipped one and a PR with no checks pass, and the merge is pinned to the head whose checks were
+read (`--match-head-commit`). **A pending check is not waited on**: read `gh pr checks <n>` and re-run
+`merge-pr.sh` once it settles. **A green gate comment over a red CI is not a green gate** — fix the check on the
+branch, push, re-gate, then re-run; a check cancelled, timed out or stale with nothing in the code to fix needs a
+CI re-run, which is the user's call. **The one wait is on CI the ready flip itself starts**: where the draft
+SKIPPED a check whose workflow names `ready_for_review` in its PR trigger's types, the helper marks the PR ready
+before the teardown, waits a bounded two minutes for each such check to re-run and then on
+`gh pr checks --watch --fail-fast`, and merges only on green; a red, cancelled or still-pending check, or one that
+never re-ran, puts the PR back to draft and refuses with the worktree intact. A skipped check whose workflow
+names no such trigger stays a pass and nothing waits.
 
 If you ever run the close-out by hand (helper unavailable, or an edge it can't cover), do it in this exact
 sequence, every time — and check `gh pr view <n> --json mergeable` and `gh pr checks <n>` yourself before
-step 1, stopping on a failing or pending check as the helper does, since by step 2 the worktree is gone:
+step 1, stopping on a failing or pending check as the helper does, since by step 2 the worktree is gone. **Where
+the draft skipped a check whose workflow starts on `ready_for_review`, run step 2's flip FIRST**: `gh pr ready
+<n>`, wait for that check to re-run, then `gh pr checks <n> --watch --fail-fast`, and on anything but green
+`gh pr ready <n> --undo` and stop with the worktree still there; on green, step 1 and then step 2's merge:
 1. **Confirm the ticket is done before you tear down.** The runner gates in the ticket's worktree, so don't
    remove a worktree whose ticket is still `queue`/`processing` — wait until its gate has resolved (its
    verdict comment is on the PR). Removal is one half of the frozen-worktree rule; **editing** it mid-gate is

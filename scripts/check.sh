@@ -1248,7 +1248,10 @@ pc_registry='squash-boundary.tsv|merge-pr.sh|squash_boundary_ok|merge-pr.ps1|Tes
 gh-post-marker.tsv|gh-post.sh|build_marker|gh-post.ps1|Get-PipelineMarker|print
 gh-post-match.tsv|gh-post.sh|marker_matches build_marker|gh-post.ps1|Test-MarkerMatch Get-PipelineMarker|yes/no
 gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print
-ci-verdict.tsv|merge-pr.sh|ci_verdict|merge-pr.ps1|Get-CiVerdict|print'
+ci-verdict.tsv|merge-pr.sh|ci_verdict|merge-pr.ps1|Get-CiVerdict|print
+ready-trigger.tsv|merge-pr.sh|ready_trigger|merge-pr.ps1|Test-ReadyTrigger|yes/no
+workflow-name.tsv|merge-pr.sh|workflow_name|merge-pr.ps1|Get-WorkflowName|print
+flip-await.tsv|merge-pr.sh|awaits_flip|merge-pr.ps1|Test-AwaitsFlip|yes/no'
 
 pc_registered=''
 pc_unregistered=''

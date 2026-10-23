@@ -1,0 +1,29 @@
+# merge-pr: does this workflow file start a run when a draft PR is marked ready?
+# Read by BOTH ports (ready_trigger / Test-ReadyTrigger). A false no merges a PR
+# before the CI its ready flip starts has run; a false yes holds the merge until a
+# check that never comes and refuses it.
+#
+# workflow-text	expect
+# "\n" in the text is a newline, "-" an empty string.
+on:\n  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\njobs:\n  check:\n    if: github.event.pull_request.draft == false	yes
+on:\n  pull_request:\n    types:\n      - opened\n      - ready_for_review	yes
+on:\n  pull_request:\n    types:\n    - ready_for_review	yes
+on:\n  pull_request_target:\n    types: [ready_for_review]	yes
+on: { pull_request: { types: [ready_for_review] } }	yes
+"on":\n  "pull_request":\n    types: ["ready_for_review"]	yes
+on:\n  push:\n    branches: [main]\n  pull_request:\n    types: [opened,\n      ready_for_review]	yes
+name: ci\non:\n  pull_request:\n    branches: [main]\n    types: [ready_for_review] # the draft-skip job	yes
+on: [push, pull_request]	no
+on: pull_request	no
+on:\n  pull_request:\n  push:\n    branches: [main]	no
+on:\n  pull_request:\n    types: [opened, synchronize]\n  workflow_dispatch:	no
+on:\n  pull_request:\n    # types: [ready_for_review]\n    branches: [main]	no
+on:\n  pull_request:\n    types: [opened] # ready_for_review later	no
+on: push\n# on: { pull_request: { types: [ready_for_review] } }	no
+on:\n  pull_request_review:\n    types: [ready_for_review]	no
+on:\n  pull_request:\n  issues:\n    types: [ready_for_review]	no
+on:\n  pull_request:\n    types: [opened]\n    branches:\n      - ready_for_review	no
+on:\n  pull_request:\njobs:\n  x:\n    if: github.event.action == 'ready_for_review'	no
+-	no
+on:\n  pull_request:\n    types: [opened, synchronize, ready_for_review]\n    paths: ['packages/api/**']	yes
+'on':\n  'pull_request_target':\n    'types': [ready_for_review]	yes

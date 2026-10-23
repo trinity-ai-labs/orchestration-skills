@@ -1,0 +1,14 @@
+# merge-pr: the name a workflow's checks carry in `gh pr checks`, which is how the
+# checks a ready flip starts are told apart. Read by BOTH ports (workflow_name /
+# Get-WorkflowName). A wrong name waits for a workflow no check belongs to.
+#
+# path	workflow-text	expect
+# "\n" in the text is a newline.
+.github/workflows/ci.yml	name: ci\non: push	ci
+.github/workflows/ci.yml	name: "CI checks"\non: push	CI checks
+.github/workflows/ci.yml	name: 'Build # 1'\non: push	Build # 1
+.github/workflows/ci.yml	name: Lint   # the linter\non: push	Lint
+.github/workflows/ci.yml	on: push\njobs:\n  x:\n    name: job	.github/workflows/ci.yml
+.github/workflows/build.yaml	name:\non: push	.github/workflows/build.yaml
+.github/workflows/ci.yml	name: # none\non: push	.github/workflows/ci.yml
+.github/workflows/ci.yml	run-name: deploy\nname: real	real

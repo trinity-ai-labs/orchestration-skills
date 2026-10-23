@@ -158,8 +158,9 @@ does not do.
 Each implementer opens **its own draft PR** back to the branch its worktree was cut from — the integration
 branch, or the epic branch when the epic has one; the gate's verdict is commented on it — by the runner where
 the project declares `enqueue`/`drain`, by the implementer itself in in-line mode. That comment
-is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* merge it, because
-marking it ready is your signature that you read the diff.
+is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* run the merge, because
+marking it ready is your signature that you read the diff (`merge-pr` makes that flip inside the run, ahead of
+the CI it starts where the project's CI skips drafts, and puts it back if that run does not merge).
 
 **This exact loop is what the orchestrator runs over the epic's own close-out PR too, substituting itself
 for "the implementer" throughout** — there is no separate implementer behind that PR to open it and hand a

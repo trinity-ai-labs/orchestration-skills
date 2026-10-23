@@ -64,9 +64,14 @@ As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or 
 attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it
 already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
 `merge-pr` takes `<pr-number>`, and before anything irreversible it refuses, exiting `1` with the worktree
-intact and the PR still a draft, a PR whose head has any failing or pending CI check — every check in the
-rollup, not only required ones, each named with its URL — while a PR with no checks passes; it never waits on
-a pending check, and it merges with `--match-head-commit` at the head whose checks it read. `remove-worktree`
+intact and the PR still a draft, a PR whose head has any failing or pending CI check — every check
+`gh pr checks` reports, each at its latest run and not only required ones, each named with its URL — while a
+skipped check and a PR with no checks pass; it never waits on a pending check it found, and it merges with
+`--match-head-commit` at the head whose checks it read. The one wait is on CI its own ready flip starts: where
+the draft SKIPPED a check whose workflow at the head names `ready_for_review` in its PR trigger's types, it marks
+the PR ready before the teardown, waits a bounded two minutes for each such check to re-run, then on
+`gh pr checks --watch --fail-fast`, and on anything but green puts the draft flag back and exits `1` with the
+worktree intact. `remove-worktree`
 takes a branch leaf or an absolute path, and after the removal (or the prune, for a tree already absent) prints its own `reclaim:` lines while running the
 project's `reclaim.drop`, which can never change its exit status; `setup-workspace`
 takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints

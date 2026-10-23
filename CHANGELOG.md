@@ -2,6 +2,25 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.26.1
+
+- **`merge-pr` waits for the CI that marking a draft ready starts.** A project whose CI skips drafts reported
+  `SKIPPED` while the helper read the checks, and the real run started on the ready flip a second before the
+  merge, so it finished after the merge had landed. Now both ports look at the checks the draft SKIPPED, and
+  where one belongs to a workflow at the PR's head whose `pull_request` or `pull_request_target` types name
+  `ready_for_review`, the PR is marked ready before the teardown. The helper waits a bounded two minutes for
+  each such check to re-run, then on `gh pr checks --watch --fail-fast`, and merges only on green. A red,
+  cancelled or still-pending check, a head that moved, or a check that never re-ran puts the PR back to draft
+  and refuses with the worktree intact. A workflow that left no check on the head, such as one whose `paths:`
+  the change misses, is never waited on. Where nothing qualifies, the order is unchanged and a skipped check
+  stays a pass.
+- **A passing CI re-run supersedes the failure before it.** Checks are read through
+  `gh pr checks --json name,bucket,link,workflow,event` rather than the raw rollup, which can list one check
+  once per run. gh keeps the latest run of each check, and its `bucket` alone decides the verdict:
+  `pass` and `skipping` pass, and so does a PR with no checks. The head is also read on both sides of the
+  checks. `scripts/port-cases/ci-verdict.tsv` now maps bucket to verdict, and three new tables cover the
+  trigger read, the workflow's name and which skipped checks the flip re-runs.
+
 ## 5.26.0
 
 - **`merge-pr` refuses a PR with a failing or pending CI check.** Before anything irreversible, both ports read

@@ -1,14 +1,14 @@
 # Implementer — when the BRIEF is wrong
 
 Reference for `skills/execute/SKILL.md` → *Implementer*, any step. **Read it the moment your brief turns out
-wrong, you get stuck, an input is missing, or your dispatcher writes to you.** Its fenced-path rule, the Goal and
-the enumeration floor bind every edit, so they are on `skills/execute/references/implementer.md`.
+wrong, you get stuck, an input is missing, or your dispatcher writes to you.** Its missing-input stop, fenced-path rule,
+the Goal and the enumeration floor bind every edit, so they are on `skills/execute/references/implementer.md`.
 
 **If you get stuck, hand back a reviewable artifact — never spin or die silently.** A blocker, an ambiguity
 you cannot resolve, a check you cannot get green, or running low on room all mean one thing: STOP and give the
 dispatcher something actionable. Commit-push and open a **draft PR** with what you have; failing that, report
-your worktree state, the error, and the decision you need in the record itself, since no PR carries a comment,
-surfaced as rule 13 asks. **Never leave a dirty worktree with no PR and no
+your worktree state, the error, and the decision you need, surfaced as rule 13 asks, in the record itself,
+since no PR exists to carry a comment. **Never leave a dirty worktree with no PR and no
 report.**
 
 ⚠️ **This sanctions handing back when you are BLOCKED — never handing back work you simply did not do**, and

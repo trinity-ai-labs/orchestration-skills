@@ -1,7 +1,7 @@
 # Implementer — the docs your change made stale
 
 Reference for `skills/execute/SKILL.md` → *Implementer*, step 4. **Read it before you touch a doc.** On a slice
-of an epic, `skills/execute/references/implementer-epic.md` inverts the last step.
+of an epic, `skills/execute/references/implementer-epic.md` inverts the docs step's rewrite.
 
 **Docs are part of the change, not a follow-up.** Write down the user-visible behavior your change adds,
 removes or alters, then bring the docs describing *that behavior* in line.

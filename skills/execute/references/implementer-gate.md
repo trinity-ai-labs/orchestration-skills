@@ -21,7 +21,7 @@ your dispatcher's:
   your branch back out, and split the verdict's failures into those that pass there or are absent there — yours —
   and those that fail there too.
 
-**In either gate mode you never enqueue, never mark your own PR ready, on any result** (that flag is the dispatcher's
+**However your gate comes out you never enqueue, never mark your own PR ready** (that flag is the dispatcher's
 signature that it read your diff), **and never merge it**.
 
 **Lead that comment with the revision you gated — the SHA `gate` just ran against, named first — and label

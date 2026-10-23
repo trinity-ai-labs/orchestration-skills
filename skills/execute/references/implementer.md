@@ -113,8 +113,12 @@ entry left on the stack.
 
 ## When the BRIEF is wrong — raise it, never resolve it silently
 
-**The rest of this is `skills/execute/references/implementer-brief.md`**; three of its rules bind every
+**The rest of this is `skills/execute/references/implementer-brief.md`**; four of its rules bind every
 edit, so they are here.
+
+⛔ **A value your brief needs that names a real thing — an id, a key, an owner, a path, a version — and does
+not exist or cannot be reached is never invented**: surface it, carry on with what does not depend on it, and
+open the brief-wrong reference.
 
 ⛔ **A path your brief NAMED as fenced stays fenced until you are told otherwise, and the test is mechanical:
 did you ASK for this?** That is the one place the ask is load-bearing, because divergence is an *unauthorized*

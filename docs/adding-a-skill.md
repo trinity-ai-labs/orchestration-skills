@@ -169,17 +169,17 @@ because that is what ships, while `AGENTS.md`, `README.md` and these pages are o
 repository's own.
 
 **Check 19 weighs what a seat has open, which neither ceiling does.** Check 10 counts a file and a sub-skill's
-directory; an agent pays for the files it has actually opened by the step it has reached, a set smaller than
-one sub-skill or spanning several. `scripts/seat-load.txt` is that set written down: for each seat — the
-implementer, the dispatcher, a review pass's reader per dimension and the grounder — each mode and each step,
-the files the seat opens there, and a recorded bound per step. The check sums the words of every file open by each step
-— counted in Python as whitespace-separated tokens of the file read as UTF-8, never with `wc -w`, which reads
-differently on GNU and macOS and so cannot hold an exact bound — since a file stays open once read, and prints each seat and mode's peak with the load at
-every step and the files that step opened. It fails a load above or below its bound, a step with no bound or a
-bound with no step, a listed file that is missing, and a listed file that neither the seat's root nor a file it
-opened earlier names by its repo path, so the manifest can only route a seat where its prose already sends it.
-The manifest's own header defines its four line kinds; when a bound moves and what the PR says about it is
-[the skill-prose chapter](../.agents/rules/skill-prose.md)'s.
+directory; an agent pays for the files it has actually opened by the step it has reached, a set smaller than one
+sub-skill or spanning several. `scripts/seat-load.txt` is that set written down: for each seat — the implementer,
+the dispatcher, a review pass's reader per dimension, the grounder and the orchestrator — each mode and each step,
+the files the seat opens there, and a recorded bound per step. The check sums the words of every file open by each
+step — counted in Python as whitespace-separated tokens of the file read as UTF-8, never with `wc -w`, which reads
+differently on GNU and macOS and so cannot hold an exact bound — since a file stays open once read, and prints each
+seat and mode's peak with the load at every step and the files that step opened. It fails a load above or below its
+bound, a step with no bound or a bound with no step, a listed file that is missing, and a listed file that neither
+the seat's root nor a file it opened earlier names by its repo path, so the manifest can only route a seat where
+its prose already sends it. The manifest's own header defines its four line kinds; when a bound moves and what the
+PR says about it is [the skill-prose chapter](../.agents/rules/skill-prose.md)'s.
 
 **So a prose edit to a file a seat opens moves a number**, and the gate prints the new one: copy the value
 check 19 reports for each step that moved into that step's `bound` line. **Splitting a reference by step is how a

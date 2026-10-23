@@ -55,7 +55,7 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   costs nothing until the pointer is followed.
 - **What a seat pays is a third number, held by `scripts/check.sh` check 19 rather than by either ceiling**:
   `scripts/seat-load.txt` lists, per seat, mode and step, the files that seat has open, and the check sums
-  their words over them and fails a load off its recorded bound in either direction. **It counts in Python —
+  their words and fails a load off its recorded bound in either direction. **It counts in Python —
   whitespace-separated tokens of the file read as UTF-8 — never with `wc -w`**, since GNU and macOS `wc`
   disagree by several words a file and an exact bound needs one count on every platform. **So a change that
   grows a load raises that bound in the same PR and says why in its body, and one that shrinks a load lowers

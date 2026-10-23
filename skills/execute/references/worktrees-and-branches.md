@@ -1,7 +1,7 @@
-# Worktree creation (both roles depend on this being done right)
+# Worktree creation
 
-Reference for `skills/execute/SKILL.md`. **Read it before you create a worktree, and before you accept one you
-were handed** — both roles depend on this being done right, and every failure it names is silent.
+Reference for `skills/execute/references/dispatcher.md`. **Read it before you create a worktree, and before you
+accept one you were handed** — every failure it names is silent.
 
 **The helper's own contract is `skills/procedures/worktree-helper.md`** — its arguments, the `--existing`
 recovery form, what a run creates, the two lines it prints, what it refuses, and which copy of a project's

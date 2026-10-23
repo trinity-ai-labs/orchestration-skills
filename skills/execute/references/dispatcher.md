@@ -59,22 +59,11 @@ Three things then change for the dispatcher:
 ## The durable gate queue
 
 The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
-`fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it**
-(*Gate mode* below). Either way an implementer holds itself to the cheap
-**preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook where one runs it, git's pre-commit
-hook or the host's commit-hook row in `skills/procedures/host-tools.md`, and run by the implementer before
-each commit where neither does — then pushes, and opens its **draft PR**.
-
-- **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
-  neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since
-  nothing should gate a tree you are about to have rewritten — which is the order phase 3 already asks for,
-  *review BEFORE you drain*. **Nothing is at risk in the gap**: the branch is pushed and the PR open before
-  you are handed anything, so the work is durable in git and a ticket nobody queued costs a gate run's
-  latency rather than work. A runner (`drain`) then claims tickets **one at a time**, in each ticket's own
-  worktree behind a slim machine-wide slot, gating in the mode that ticket declared (*Gate mode*) and
-  commenting the verdict on the PR while leaving it draft.
-- **In-line mode — neither declared, or a slice explicitly put in override mode:** the implementer runs
-  `gate` once on its own draft PR, comments the verdict and hands back, and **no ticket exists at all**.
+`fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it** — queue mode or
+in-line mode, both defined under *Gate mode* below. Either way an implementer holds itself to the cheap
+**preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook
+where one runs it, git's pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`,
+and run by the implementer before each commit where neither does — then pushes, and opens its **draft PR**.
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
@@ -189,9 +178,15 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
 
 **Who runs the gate — the project's `enqueue`/`drain` decide it:**
 
-- **Queue mode — both declared:** the implementer runs `preflight`, pushes, opens a **draft** PR and hands
-  back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it
-  and comments the verdict.
+- **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
+  neither.** The implementer runs `preflight`, pushes, opens a **draft** PR and hands back; **you enqueue that
+  slice's ticket (`enqueue`) once you have read its diff**, since nothing should gate a tree you are about to
+  have rewritten — which is the order phase 3 already asks for, *review BEFORE you drain*. **Nothing is at
+  risk in the gap**: the branch is pushed and the PR open before you are handed anything, so the work is
+  durable in git and a ticket nobody queued costs a gate run's latency rather than work. A runner (`drain`)
+  then claims tickets **one at a time**, in each ticket's own worktree behind a slim machine-wide slot,
+  gating in the mode that ticket declared (*Which gate runs*, below) and commenting the verdict on the PR
+  while leaving it draft.
 - **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
   dispatcher's brief or the dispatching user EXPLICITLY puts there (override mode), never self-granted:** the
   implementer runs `gate` itself, once, in the foreground, comments the result on its own draft PR under the

@@ -38,8 +38,8 @@ finished reading this skill.**
 
 **Each step names the reference that carries it, opened when you reach that step** — the first is
 `skills/execute/references/implementer.md`, read whole before your first edit. This list is the order, and the
-rules whose action needs no reference. **The moment your brief turns out wrong, you get stuck, or your
-dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.**
+rules whose action needs no reference. **The moment your brief turns out wrong, an input it needs is missing,
+you get stuck, or your dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.**
 
 1. **`cd` into your assigned worktree and prove you are there** → `skills/execute/references/implementer.md`.
 2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is
@@ -50,7 +50,8 @@ dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.
    at a checked-out fork point only where no answer can reach you, once git holds your work.
 3. **Build the slice, running only cheap checks.** A reversal your bar names →
    `skills/execute/references/implementer-reversal.md`; a suppression you add →
-   `skills/execute/references/implementer-suppression.md`.
+   `skills/execute/references/implementer-suppression.md`; before your first commit, here or at any later
+   step → `skills/execute/references/implementer-commit.md`.
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
    foreground or background. One targeted test run — the project's `targetedTest` where declared, else single
    test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
@@ -65,7 +66,7 @@ dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
 6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs →
-   `skills/execute/references/implementer-commit.md`.
+   `skills/execute/references/implementer-commit.md`, already open since your first commit.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
    is a pushed branch and a draft PR, named in your hand-back record.
@@ -79,8 +80,7 @@ dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.
    rule out.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 7. **Run `/pipeline:review` if your brief says to — against that pushed PR — and commit once more if it
-   finds something.** → `skills/execute/references/implementer-review.md`; a parked pass →
-   `skills/execute/references/implementer-park.md`.
+   finds something.** → `skills/execute/references/implementer-review.md`.
    ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review, with one comment per
    dimension it dispatched beside it**, so the PR exists before the pass runs and what it leaves there is a
    durable artifact your dispatcher reads off the PR, your hand-back record naming its address.
@@ -112,7 +112,8 @@ dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.
    ⛔ **Never end your turn on a check or command whose exit cannot wake you** — where your host re-invokes
    you on a backgrounded command's exit, background a long gate and end your turn; elsewhere that ended turn
    is your hand-back with no verdict in it, so the gate runs in the foreground
-   (`skills/execute/references/implementer-gate.md` has how).
+   (`skills/execute/references/implementer-gate.md` has how in in-line mode, `skills/procedures/host-tools.md`
+   in queue mode).
    ⛔ **The attribution ban above covers the gate verdict and the hand-back comment you post here** exactly as
    it covers the commit message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.

@@ -39,8 +39,8 @@ and for naming a helper in shipped prose.
   load-bearing and the rule cuts both ways: do not delete it to comply with the rule, which turns CI red, and
   do not cite it as precedent for silencing an analyzer that found something real, which is how an unjustified
   suppression lands beside a justified one. The documented-exception carve-out it satisfies, and the four
-  conditions any new suppression must meet, are defined in
-  `skills/execute/references/implementer-suppression.md` — pointed at, not restated, because a three-condition copy here would be worse than none. The one thing to
+  conditions any new suppression must meet, are defined in `skills/execute/references/implementer-suppression.md`
+  — pointed at, not restated, because a four-condition copy here would be worse than none. The one thing to
   know locally: a repo-wide PSScriptAnalyzer settings-file exclusion is never the answer, since it switches
   the rule off everywhere and leaves nothing at the flagged code to show it was ever flagged.
 - Everything under `scripts/` is contributor-only — never loaded, never on a user's PATH — and

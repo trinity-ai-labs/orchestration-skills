@@ -5,10 +5,10 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
 ## 5.25.0
 
 - **What each seat has open at each step is now a number the gate holds.** `scripts/seat-load.txt` lists, per
-  seat, mode and step, the files that seat has open — the implementer, the dispatcher, each review-pass reader
-  and the grounder — and `scripts/check.sh` check 19 sums their words and fails a load above or below its
-  recorded bound, or a listed file the seat's prose never sends it to. A change that grows a load raises its
-  bound in the same PR and says why; one that shrinks a load lowers it.
+  seat, mode and step, the files that seat has open — the implementer, the dispatcher, each review-pass reader,
+  the grounder and the orchestrator — and `scripts/check.sh` check 19 sums their words and fails a load above or
+  below its recorded bound, or a listed file the seat's prose never sends it to. A change that grows a load raises
+  its bound in the same PR and says why; one that shrinks a load lowers it.
 - **Check 19 counts words the same on every platform.** It counts whitespace-separated tokens of each file read
   as UTF-8, in Python, rather than with `wc -w`, whose GNU and macOS builds disagree by several words a file —
   so a bound recorded on one machine no longer fails on another.
@@ -26,7 +26,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   the dispatcher's material moved to its own reference, and `skills/execute/references/implementer.md` is the
   implementer's card, read whole before its first edit, with one reference per step or mode opened on reaching
   it. Every hard stop still stands on the spine at the step it binds. The implementer's load before its first
-  edit falls from 15,306 to 6,483 words, as check 19 counts them, in in-line mode, and to 6,661 in queue mode.
+  edit falls from 15,306 to 6,559 words, as check 19 counts them, in in-line mode, and to 6,737 in queue mode.
 
 ## 5.24.0
 

@@ -37,9 +37,13 @@
 #      seat, every entry is indexed, and every entry is cited by a pass.
 #  18. shipped prose names a capability, never a host's tool literal — the set
 #      derived from the mappings table, so a row added there arms the check.
+#  19. each seat's load — the files scripts/seat-load.txt says it has open at
+#      each step and mode — sums to exactly its recorded bound (a ratchet), and
+#      every file listed is one that seat's own prose routes it to.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
-# actionable without opening anything else. 10 bounds what one agent loads;
+# actionable without opening anything else. 10 bounds what one file and one
+# sub-skill weigh, and 19 what one seat loads at each step;
 # these three stop that load growing the SHAPE that got it there — narrative,
 # then citations of narrative, then conventions for writing those citations.
 
@@ -1924,10 +1928,227 @@ else
 fi
 rm -f "$vendor_out"
 
+# --- 19. each seat's load stays within the bound recorded for it --------------
+
+# Check 10 bounds what a FILE weighs and what a sub-skill's directory weighs;
+# neither is what an agent pays, which is the files its seat has open at the step
+# it has reached. scripts/seat-load.txt declares that, per seat, mode and step,
+# and this check sums check 10's measurement (`wc -w`, run as wc itself rather
+# than reimplemented) over it, so a change that grows a seat's load fails before
+# it ships rather than being noticed in a slow run.
+#
+# THE BOUND IS A RATCHET, AND IT RATCHETS BOTH WAYS. A load above its bound
+# fails; so does one below it, because slack left in a bound is room the next
+# change grows into unseen. A change that shrinks a load lowers the bound in the
+# same PR, and the failure names the value to write.
+#
+# THE MANIFEST CANNOT INVENT A ROUTE. Every file it lists for a seat must be
+# named, by its repo path verbatim, by the seat's root or by a file the seat
+# opened earlier in the same mode; a file nothing names is an orphan and fails,
+# as does a file that does not exist. So deleting a spine's pointer to a
+# reference reds here until the manifest stops loading it, and the manifest and
+# the prose cannot drift apart while both stay green. A seat, mode or step with
+# no bound, a bound for one that is not declared, and a manifest that declares
+# nothing are failures too, never skips: a check comparing nothing goes on
+# printing ok.
+
+load_manifest='scripts/seat-load.txt'
+load_out="$(mktemp)" || exit 2
+python3 - "$load_manifest" >"$load_out" 2>&1 <<'LOADPY'
+import pathlib
+import subprocess
+import sys
+
+manifest = sys.argv[1]
+problems = []
+roots, modes, opens, bounds = {}, {}, {}, {}
+seat_order = []
+
+
+def problem(text):
+    problems.append(text)
+
+
+def words(path, cache={}):
+    """wc -w over one file, the measurement check 10 makes."""
+    if path not in cache:
+        try:
+            raw = subprocess.run(
+                ["wc", "-w"], stdin=open(path, "rb"), capture_output=True, check=True
+            ).stdout.decode().strip()
+            cache[path] = int(raw)
+        except (OSError, subprocess.CalledProcessError, ValueError):
+            cache[path] = None
+    return cache[path]
+
+
+try:
+    lines = pathlib.Path(manifest).read_text(encoding="utf-8").splitlines()
+except OSError as err:
+    print("PROBLEM %s: could not be read (%s) - no seat was measured" % (manifest, err))
+    sys.exit(0)
+
+for n, line in enumerate(lines, 1):
+    fields = line.split("#", 1)[0].split()
+    if not fields:
+        continue
+    kind, rest = fields[0], fields[1:]
+    where = "%s:%d" % (manifest, n)
+    if kind == "root" and len(rest) == 2:
+        if rest[0] in roots:
+            problem("%s: a second root for %s" % (where, rest[0]))
+            continue
+        seat_order.append(rest[0])
+        roots[rest[0]] = rest[1]
+    elif kind in ("modes", "open", "bound") and rest and rest[0] not in roots:
+        problem("%s: %s names the seat %s before its root line" % (where, kind, rest[0]))
+    elif kind == "modes" and len(rest) >= 2:
+        if rest[0] in modes:
+            problem("%s: a second modes line for %s" % (where, rest[0]))
+            continue
+        modes[rest[0]] = rest[1:]
+    elif kind == "open" and len(rest) >= 4:
+        seat, which, step, paths = rest[0], rest[1], rest[2], rest[3:]
+        declared = modes.get(seat)
+        if declared is None:
+            problem("%s: open names %s before its modes line" % (where, seat))
+            continue
+        chosen = declared if which == "*" else which.split(",")
+        unknown = [m for m in chosen if m not in declared]
+        if unknown:
+            problem("%s: mode(s) %s are not declared for %s" % (where, " ".join(unknown), seat))
+            continue
+        opens.setdefault(seat, []).append((step, set(chosen), paths))
+    elif kind == "bound" and len(rest) == 4:
+        seat, mode, step, value = rest
+        if not value.isdigit():
+            problem("%s: the bound %s is not a whole number of words" % (where, value))
+            continue
+        key = (seat, mode, step)
+        if key in bounds:
+            problem("%s: a second bound for %s/%s at %s" % (where, seat, mode, step))
+            continue
+        bounds[key] = int(value)
+    else:
+        problem("%s: not a root, modes, open or bound line of the right length" % where)
+
+used = set()
+measured = 0
+for seat in seat_order:
+    root = roots[seat]
+    if not pathlib.Path(root).is_file():
+        problem("%s: the root %s does not exist" % (seat, root))
+        continue
+    if seat not in modes:
+        problem("%s: no modes line, so no mode of it was measured" % seat)
+        continue
+    if not opens.get(seat):
+        problem("%s: no open line, so the seat loads nothing this check can see" % seat)
+        continue
+    for mode in modes[seat]:
+        steps, seen, namers, total = [], [], [root], 0
+        broke = False
+        for step, chosen, paths in opens[seat]:
+            if mode not in chosen:
+                continue
+            added = []
+            for path in paths:
+                if path in seen:
+                    problem("%s/%s: %s is opened twice, so it would be counted twice" % (seat, mode, path))
+                    broke = True
+                    continue
+                if not pathlib.Path(path).is_file():
+                    problem("%s/%s: %s at %s does not exist" % (seat, mode, path, step))
+                    broke = True
+                    continue
+                if path != root and not any(
+                    path in pathlib.Path(namer).read_text(encoding="utf-8", errors="replace")
+                    for namer in namers
+                ):
+                    problem(
+                        "%s/%s: %s at %s is an orphan - neither the root %s nor any file "
+                        "the seat opened before it names it" % (seat, mode, path, step, root)
+                    )
+                    broke = True
+                count = words(path)
+                if count is None:
+                    problem("%s/%s: %s could not be measured with wc -w" % (seat, mode, path))
+                    broke = True
+                    continue
+                seen.append(path)
+                namers.append(path)
+                added.append(path)
+                total += count
+            if steps and steps[-1][0] == step:
+                steps[-1] = (step, total, steps[-1][2] + added, len(seen))
+            else:
+                steps.append((step, total, added, len(seen)))
+        if not steps:
+            problem("%s/%s: no open line covers this mode, so it was not measured" % (seat, mode))
+            continue
+        measured += 1
+        for step, total, _, _ in steps:
+            key = (seat, mode, step)
+            used.add(key)
+            bound = bounds.get(key)
+            if bound is None:
+                problem(
+                    "%s/%s: %s loads %d words (wc -w) and has no bound - record "
+                    "'bound %s %s %s %d' in %s" % (seat, mode, step, total, seat, mode, step, total, manifest)
+                )
+            elif total > bound:
+                problem(
+                    "%s/%s: %s loads %d words (wc -w), over its bound of %d by %d - "
+                    "shrink what this seat opens at this step, or move it to the step "
+                    "that uses it" % (seat, mode, step, total, bound, total - bound)
+                )
+            elif total < bound:
+                problem(
+                    "%s/%s: %s loads %d words (wc -w), under its bound of %d - lower "
+                    "the bound to %d in %s in this PR, so the room is not grown back "
+                    "into" % (seat, mode, step, total, bound, total, manifest)
+                )
+        peak_step, peak, _, peak_files = max(steps, key=lambda s: s[1])
+        print(
+            "REPORT %s/%s: peak %d words (wc -w) at %s, over %d file(s)%s"
+            % (seat, mode, peak, peak_step, peak_files, " - route broken, see below" if broke else "")
+        )
+        for step, total, added, _ in steps:
+            print("DETAIL %s = %d words, opening: %s" % (step, total, " ".join(added) or "-"))
+
+for key in sorted(set(bounds) - used):
+    problem("%s: a bound for %s/%s at %s, which no open line declares" % (manifest, key[0], key[1], key[2]))
+if not seat_order:
+    problem("%s: declares no seat - this check scanned nothing" % manifest)
+
+print("COUNT %d" % measured)
+for text in problems:
+    print("PROBLEM " + text)
+LOADPY
+load_status=$?
+
+if [ "$load_status" -ne 0 ]; then
+	sed 's/^/      /' "$load_out" >&2
+	fail "seat-load: the reader crashed — no seat's load was measured"
+else
+	load_count="$(sed -n 's/^COUNT //p' "$load_out")"
+	load_bad="$(sed -n 's/^PROBLEM //p' "$load_out")"
+	if [ -n "$load_bad" ]; then
+		sed -n 's/^REPORT /      /p; s/^DETAIL /        /p' "$load_out" >&2
+		printf '%s\n' "$load_bad" | sed 's/^/FAIL  seat-load: /' >&2
+		fail "seat-load: $load_manifest and the prose it routes disagree, or a load moved off its bound — fix the route or the load, and move a bound only to the value measured above"
+	elif [ "${load_count:-0}" -eq 0 ]; then
+		fail "seat-load: no seat and mode was measured — this check scanned nothing"
+	else
+		sed -n 's/^REPORT /ok    seat-load: /p; s/^DETAIL /        /p' "$load_out"
+	fi
+fi
+rm -f "$load_out"
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, every slice-field enumeration names every field, and shipped prose names a capability rather than a host tool literal\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, every slice-field enumeration names every field, and shipped prose names a capability rather than a host tool literal, and the load each seat opens sits at its recorded bound\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

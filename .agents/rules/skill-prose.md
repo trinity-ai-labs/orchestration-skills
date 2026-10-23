@@ -53,6 +53,13 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   whole pass out, to make room. Extraction settles the per-file half alone; the sub-skill half counts the same
   words wherever they sit inside its directory. **There is no corpus-wide ceiling** — prose behind a pointer
   costs nothing until the pointer is followed.
+- **What a seat pays is a third number, held by `scripts/check.sh` check 19 rather than by either ceiling**:
+  `scripts/seat-load.txt` lists, per seat, mode and step, the files that seat has open, and the check sums
+  the same `wc -w` over them and fails a load off its recorded bound in either direction. **So a change that
+  grows a load raises that bound in the same PR and says why in its body, and one that shrinks a load lowers
+  it**, since slack left in a bound is room the next change grows into unseen. **A change that re-routes a
+  seat updates the manifest in the same PR** — the check fails a listed file that neither the seat's root nor
+  a file it opened earlier names by its repo path, so the manifest follows the prose rather than the reverse.
 - **A `SKILL.md` is an ordered list of ACTIONS.** Each action names the reference that says how and carries
   the rules that fire at that action. A rule goes in the reference where the reader cannot perform the action
   without opening it, and stays on the step where they can — nobody opens a file to write a commit message. A

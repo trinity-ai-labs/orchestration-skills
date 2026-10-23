@@ -68,6 +68,6 @@ under `skills/` or `bin/`, which ship.
 
 | Topic | Chapter |
 | --- | --- |
-| Writing or changing prose under `skills/`, or any prose here that states a rule — where a rule lives, one-line rules and no war stories, the ceilings, a `SKILL.md` as actions, the citation boundary, naming the unit, rules with more than one reader | [.agents/rules/skill-prose.md](.agents/rules/skill-prose.md) |
+| Writing or changing prose under `skills/`, or any prose here that states a rule — where a rule lives, one-line rules and no war stories, the ceilings and the seat-load bound, a `SKILL.md` as actions, the citation boundary, naming the unit, rules with more than one reader | [.agents/rules/skill-prose.md](.agents/rules/skill-prose.md) |
 | Changing anything under `bin/` or `scripts/`, or naming a helper, or a host's tool, model or path, in shipped prose — the frozen helper contract and the `bin/` parity rule | [.agents/rules/helpers.md](.agents/rules/helpers.md) |
 | Changing the front-door command chain or the hosts the plugin ships for | [.agents/rules/repo-description.md](.agents/rules/repo-description.md) |

@@ -211,7 +211,7 @@ each seat.
 empty commit to retrigger — that the user did not agree to in conversation**, since CI costs runner minutes or
 money not every project can afford. **CI a project already has is followed as it stands**: setup reads it as
 the gate, `merge-pr` refuses a merge while any of its checks fails or is pending and passes a PR with none, and
-the checks a push triggers are the project's own CI, not a run anyone started.
+the checks a push or `merge-pr`'s ready flip triggers are the project's own CI, not a run anyone started.
 
 ---
 

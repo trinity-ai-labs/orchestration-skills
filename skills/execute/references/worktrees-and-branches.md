@@ -334,7 +334,7 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   landed, any fix round in, gate green — and that `autoMergeEpicCloseOut`, with the value it resolved to
   (*absent → `false` → held*), is holding the merge, and stop there.
   ⛔ **That PR stays a DRAFT: never call `gh pr ready` on it and never call `merge-pr.sh`**, the ready flip
-  living one line above the merge precisely so a PR can never sit around wearing a review it has outgrown
+  happening only inside the run that merges precisely so a PR can never sit around wearing a review it has outgrown
   (*Merge & cleanup*). Nothing after the merge runs either — the epic worktree stays up, the epic branch
   stays, the local integration branch is not synced, and the arc's issues stay open. **Say in your own report
   which PR is held and what approving it takes**, the comment being on a draft nobody is watching. The arc is

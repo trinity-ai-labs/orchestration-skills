@@ -1,6 +1,6 @@
 # Dispatching a slice
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you write a brief or spawn an
+Reference for `skills/execute/references/dispatcher.md`. **Read it before you write a brief or spawn an
 implementer**: what a brief carries, and how you watch a wave.
 
 ## Dispatch
@@ -71,7 +71,8 @@ each departure carries yours, three seats writing three verbs for one decision b
 comes to ride a whole fan-out.
 
 **Open every brief with "Step 0: invoke the `pipeline:execute` skill and act as the IMPLEMENTER."** That is
-THIS skill, pointing the agent at `skills/execute/references/implementer.md`.
+THIS skill, pointing the agent at `skills/execute/references/implementer.md` before its first edit and at
+each step's reference beside it as it reaches that step.
 **Do NOT re-paste that playbook.** ⚠️ **Name a section together with the skill or file holding it** — a
 section named apart from its skill is a claim nothing can check, and a brief naming the wrong one fails
 silently.
@@ -218,7 +219,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   pointing outward at workspace-root conventions otherwise name a file nothing standing in one member's
   worktree can open. A repo with no workspace above it gets that set unchanged:
 
-  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
+  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back comment list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 
   **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
@@ -241,7 +242,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge
   or tear down.** That covers override mode and any project with no queue
-  (`skills/execute/references/per-project-config.md`). The sequence is: implementer gates → **hands back** →
+  (`skills/execute/references/dispatcher.md`, *Gate mode*). The sequence is: implementer gates → **hands back** →
   you review → you merge. The verdict arrives first and is the more visible artifact, yet it says only that a
   gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still
   be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
@@ -313,7 +314,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   `gh-post.sh comment pr <n> --key gate-verdict/<leaf> --body-file <file>`, leading with the SHA it ran
   against."*
 
-  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
+  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back as `skills/execute/references/implementer-hand-back.md` says: the detail in one comment on that PR, posted with `gh-post.sh comment pr <n> --key handback/<leaf> --body-file <file>`, and to your dispatcher only the short hand-back record (`skills/glossary/vocabulary/hand-back-record.md`), naming that PR's number and URL and that comment's address. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
 - **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
   banned strings is a claim about a set the harness extends without notice and an enumeration of banned
   artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer
@@ -478,7 +479,7 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
     the next tick's on-scope set**, since it is your own grant the divergence check is about to read and
     forgetting one fires a false divergence alarm on the very next tick. **The PR half instead goes silent**,
     handing the reviewer a diff that edits outside the brief's fence with nothing on the PR explaining why.
-    **The write stays yours rather than the implementer's**, whose hand-back line naming where each grant was
+    **The write stays yours rather than the implementer's**, whose hand-back comment's line naming where each grant was
     written down is the DETECTOR that one is missing — move the write there and the detector becomes the thing
     it was detecting. **Do not grant one path twice**: a second slice asking about ground already granted gets
     *the sibling owns it*, or two agents edit one file. **A grant you answer after that slice's review pass
@@ -598,7 +599,7 @@ absence as *not yet applied* and never as *applied then reverted*. **And carry e
 beside the `$FP` it was taken against**, since the stall check is a comparison against last tick's
 measurement: a prompt that ships without it ships a tick whose stall question cannot be asked.
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it once you have enqueued the tickets your
+Reference for `skills/execute/references/dispatcher.md`. **Read it once you have enqueued the tickets your
 slices' diffs earned** — how the drain runs, and how you wait on your own tickets — in a project that
 declares `enqueue`/`drain`; one declaring neither has no queue to drain and no ticket to wait on, and only
 the tick's other riders below reach it: the integration-branch sync, the stash sweep and the epic merge.
@@ -629,7 +630,7 @@ never gate and never enqueue at all.
   completion event of yours at all. The signal that IS yours is *Wait on your own tickets settling — one
   Monitor over the queue's ledger* below. ⚠️ **Detaching the drain is not in tension with the
   check-backgrounding ban** — *The foreground-handoff rule* above, and
-  `skills/execute/references/implementer.md` → *Never end your turn on a check that cannot wake you*.
+  `skills/execute/references/implementer-gate.md` → *Never end your turn on a check that cannot wake you*.
   **That ban binds the seat whose ended turn IS its hand-back** — a dispatched agent's; a dispatcher's turn
   ends on the tick, hands nothing back, and waits on no result at all.
 - **One drain per tick, never a second on top of a live one**, since a second buys nothing. Concurrent drains
@@ -785,8 +786,8 @@ never settles: **a runner that dies mid-gate has its ticket reclaimed back to `q
 not a settlement, so no event. It is a wake-up, not a liveness check: the divergence tick notices a wave that
 stopped moving, and the queue directory says where a ticket is.
 
-**⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens the Implementer
-section's *Never end your turn on a check that cannot wake you* by nothing. An implementer has a
+**⛔ This is a DISPATCHER instrument, and an implementer must never arm one**; it softens
+`skills/execute/references/implementer-gate.md`'s *Never end your turn on a check that cannot wake you* by nothing. An implementer has a
 **durable handoff**, push → draft PR → hand back, so the wait is unnecessary there and the ticket is by
 construction somebody else's — yours — to raise and to watch; a dispatcher has no handoff to end on and holds
 the merge decision the settlement feeds.

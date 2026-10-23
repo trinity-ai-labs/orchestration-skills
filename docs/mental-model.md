@@ -49,6 +49,12 @@ reads well, and the implementer opens a tree where the target is not there, find
 and builds against that. An item dispatched at shape depth has no owned-file list and no boundary, so the
 implementer invents its own scope and the first anyone hears of it is a PR in a sibling slice's core files.
 
+**Each cycle starts from the artifacts, never from the conversation** — the umbrella body, the outcome records
+on the issues the arc has already closed, the grounding comments on the leaves, and the open PRs with the
+hand-back records and comments they name — because the orchestrator lives the whole arc, and a context carrying
+every cycle's detail grows with it while those artifacts hold the same facts at an address the next cycle can
+re-read. What it recalls of an earlier cycle is not an input.
+
 After every increment merges, the loop re-checks the rest of the plan against the merged tree, down a fixed
 checklist — stated once in [`/pipeline:orchestrate`](../skills/orchestrate/SKILL.md) rather than re-derived
 each cycle — whose items include coordinates that no longer resolve, renames whose *senses* the plan still
@@ -187,7 +193,8 @@ carries the approval a second signature would only duplicate.
 
 **A PR can carry a review that predates all of those, and the same event explains it.** Where a slice ran
 `/pipeline:review`, that pass reads the PR's own diff once the implementer's draft PR is open and posts its
-findings there as a review — the goal verdict, what it applied, what it rejected — before the dispatcher's
+findings there as a review — the goal verdict, what it applied, what it rejected, what it flagged out of scope
+and how it verified — before the dispatcher's
 loop has read anything. Same event `COMMENT`, same reason: the PR is self-authored. So two kinds of review
 legitimately sit on one PR, and **a reader tells them apart by the hidden key each carries and by content rather
 than by author**, since one account writes both: the panel's comes first and is the slice's own report on
@@ -214,7 +221,9 @@ then does `merge-pr.sh` flip it, one line above `gh pr merge`, as it always did.
 **Beside the panel's review sit plain comments, one per dimension it dispatched**, each carrying that
 reviewer's own findings and what the pass did with every one of them — applied, rejected with why, or flagged
 out of scope — and the review links them, so one click from the summary reaches a dimension's full report.
-They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record naming the
+They stay on the PR. The issue gets the dispatcher's closing comment instead: an outcome record
+([`skills/glossary/vocabulary/outcome-record.md`](../skills/glossary/vocabulary/outcome-record.md) defines it)
+naming the
 merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
 ran, was skipped and why, or was left to a review checkpoint, linked, links back to the PR's reviews,
 dimension comments and gate comment, and the arc's other PRs that landed beside it — so a closed issue says
@@ -232,7 +241,7 @@ must not survive a merge that failed: a non-draft PR that is not being merged ri
 everywhere else in this flow, as a diff a dispatcher approved. A green gate says the suite passed; it cannot
 say the agent solved the right problem. And a grant that lands after a slice's review pass has closed produces
 an edit that pass never read, so the dispatcher's own read of the diff is the only reader it gets, and the
-slice's hand-back is what flags which edit that is. One PR in the flow has no implementer behind it and so no
+slice's hand-back comment flags which edit that is ([The hard rules](hard-rules.md) carry the grant rule). One PR in the flow has no implementer behind it and so no
 hand-back to promote: the epic branch's closing PR into the integration branch, which the orchestrator authors
 and then merges. It is a draft like every other, because it opens *first* and the integrated close-out check
 runs against it — enqueued, its verdict commented there, where the project declares a queue, and run by the
@@ -300,8 +309,13 @@ implementer either — so what it licenses is a question to the agent and nothin
   falsified for the docs slice that closes the epic, **plus what it added that no doc describes at all**,
   since a new surface falsifies nothing and would otherwise reach that slice from nobody, each entry naming
   the file, symbol or route it is about or marked `unanchored` — greens the scoped
-  check, opens a **draft** PR, and **hands back — it never enqueues the gate and it never merges its own PR**,
-  reporting a verdict per doc it checked. Where the project declares `enqueue`/`drain` the gate ticket is the
+  check, opens a **draft** PR, and **hands back — it never enqueues the gate and it never merges its own PR**.
+  What reaches the dispatcher is a short **hand-back record**, the same few fields from every slice
+  ([`skills/glossary/vocabulary/hand-back-record.md`](../skills/glossary/vocabulary/hand-back-record.md) lists
+  them), and the detail behind it — a verdict per doc it checked, every question it asked and what came back,
+  every grant it acted on, each repair outside its slice — sits in one comment on its own PR keyed
+  `handback/<leaf>`, which the record names by URL, so a dispatcher holding every slice's record across a long
+  arc holds little and reads the rest where it lives. Where the project declares `enqueue`/`drain` the gate ticket is the
   dispatcher's, raised after it has read the diff; where it declares neither there is no ticket at all, and
   the implementer runs the gate once itself, on its draft PR, before it hands back. Work it finds outside its
   owned files
@@ -315,6 +329,14 @@ implementer either — so what it licenses is a question to the agent and nothin
   fixes what it HIT while doing its slice rather than going looking for more, and raises what it cannot fix
   before it pushes, since push is the last moment at which an answer is still an edit in an open tree rather
   than a fix agent sent back into the worktree.
+  **What it has read is paced by the step it is at.** Before its first edit it has four files open: the
+  execute spine, the ground rules, its card
+  ([`skills/execute/references/implementer.md`](../skills/execute/references/implementer.md)) and the
+  implementer's half of the project config, queue mode adding one reference of its own. Every later step's
+  rules arrive at that step, from the reference the spine names there, while each hard stop a step needs
+  before it acts stays written on the spine, so it is already in front of the implementer when it gets there.
+  How many words that is at each step is a number the gate holds
+  ([Adding a skill](adding-a-skill.md#adding-a-skill), check 19).
 
 Dispatched work enters at **`/pipeline:orchestrate`** whatever its size, where working out where the horizon
 falls is the loop's first cycle rather than something you have to settle before entering it.

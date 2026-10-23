@@ -1,0 +1,141 @@
+# The seat-load manifest: what each seat has open at each step, read by
+# scripts/check.sh check 19, which sums each listed file's words over it and
+# holds every step's load to the bound recorded here. A word is a run of
+# non-whitespace in the file read as UTF-8, counted in Python, so a bound reads
+# the same on every platform; `wc -w` does not, and is not this count.
+#
+# Four kinds of line, whitespace-separated, `#` to end of line a comment:
+#
+#   root   <seat> <path>
+#       The file the seat's route starts from: its spine, or for a dispatched
+#       reader the pass whose brief it is handed. It needs no namer, and it is
+#       counted only where an `open` line lists it.
+#   modes  <seat> <mode> [<mode> ...]
+#       The modes the seat runs in; every one is measured separately.
+#   open   <seat> <mode>[,<mode>...]|* <step> <path> [<path> ...]
+#       The files the seat opens at that step, in that mode, in reading order.
+#       Steps run in the order they first appear for the seat. A file stays
+#       open once read, so a step's load is everything opened at it and at
+#       every earlier step of the same mode.
+#   bound  <seat> <mode> <step> <words>
+#       The recorded load for that step in that mode. It is a RATCHET: a load
+#       above its bound fails, and so does one below it, so a change that
+#       shrinks a load lowers its bound here in the same PR.
+#
+# Every opened file must be NAMED (its repo path, verbatim) by the root or by a
+# file the seat opened before it in that mode, so this file cannot route a seat
+# to a file its prose never sends it to. Read the routing from the spine, not
+# from this file.
+
+# --- implementer — skills/execute/SKILL.md's implementer list ------------------
+#
+# Steps carry the spine's step numbers, and each step opens the reference that
+# step of the spine names. Before the first edit the seat has the spine, the
+# ground rules, the card (skills/execute/references/implementer.md) and the
+# implementer's half of the per-project config open; queue mode adds its mode
+# reference there. The commit reference opens at step 3, before the first
+# commit, which a reversal or a repair can make there. A reference the spine
+# names on a condition — the reversal and the suppression at step 3, the epic
+# ledger at step 4, the brief-is-wrong reference at any step — is counted at
+# the step it is reached, so each bound is the load with every condition met.
+# Steps 5 (fix what you hit) and 6 (commit, push, PR) open no file of their own. Step 8 is the hand-back in both modes,
+# and in-line mode's gate before it.
+
+root  implementer skills/execute/SKILL.md
+modes implementer in-line queue
+open  implementer *      1-2-before-first-edit skills/execute/SKILL.md skills/ground-rules/SKILL.md skills/execute/references/implementer.md skills/execute/references/per-project-config.md
+open  implementer queue  1-2-before-first-edit skills/execute/references/implementer-queue.md
+open  implementer *      3-build               skills/procedures/code-shape.md skills/execute/references/implementer-reversal.md skills/execute/references/implementer-suppression.md skills/execute/references/implementer-commit.md skills/procedures/host-tools.md
+open  implementer *      4-docs                skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md skills/execute/references/implementer-docs.md skills/execute/references/implementer-epic.md
+open  implementer *      7-review              skills/execute/references/implementer-review.md
+open  implementer in-line 8-gate-hand-back     skills/execute/references/implementer-gate.md
+open  implementer *      8-gate-hand-back      skills/procedures/github-writes.md skills/glossary/vocabulary/hand-back-record.md skills/execute/references/implementer-hand-back.md
+open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief-wrong.md
+
+bound implementer in-line 1-2-before-first-edit 6559
+bound implementer in-line 3-build               12829
+bound implementer in-line 4-docs                17935
+bound implementer in-line 7-review              18482
+bound implementer in-line 8-gate-hand-back      20703
+bound implementer in-line 9-brief-wrong         22694
+bound implementer queue   1-2-before-first-edit 6737
+bound implementer queue   3-build               13007
+bound implementer queue   4-docs                18113
+bound implementer queue   7-review              18660
+bound implementer queue   8-gate-hand-back      20194
+bound implementer queue   9-brief-wrong         22185
+
+# --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
+#
+# The spine routes the dispatcher to its reference first; that reference carries
+# the phases and names each phase's reference.
+
+root  dispatcher skills/execute/SKILL.md
+modes dispatcher all
+open  dispatcher * 0-read-config skills/execute/SKILL.md skills/ground-rules/SKILL.md skills/execute/references/dispatcher.md skills/execute/references/per-project-config.md skills/procedures/config-keys.md skills/procedures/worktree-helper.md skills/procedures/host-tools.md
+open  dispatcher * 1-set-up      skills/execute/references/worktrees-and-branches.md
+open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
+open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
+open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
+
+bound dispatcher all 0-read-config 14807
+bound dispatcher all 1-set-up      20676
+bound dispatcher all 2-dispatch    33654
+bound dispatcher all 3-judge       42072
+bound dispatcher all 4-land        50212
+
+# --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
+#
+# A reader is handed a brief, not the pass, so the pass is its root and is not
+# counted. The modes are the dimensions; each opens what its own paragraph in
+# the pass cites as the bar it judges against.
+
+root  review-reader skills/review/SKILL.md
+modes review-reader goal correctness reuse simplification efficiency altitude rules tests
+open  review-reader * read skills/ground-rules/SKILL.md
+open  review-reader correctness,altitude,tests read skills/procedures/code-shape.md
+open  review-reader rules read skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md
+
+bound review-reader goal           read 2607
+bound review-reader correctness    read 5967
+bound review-reader reuse          read 2607
+bound review-reader simplification read 2607
+bound review-reader efficiency     read 2607
+bound review-reader altitude       read 5967
+bound review-reader rules          read 7173
+bound review-reader tests          read 5967
+
+# --- grounder — skills/ground/SKILL.md's actions --------------------------------
+#
+# Step 2 (validate the plan) opens no file of its own.
+
+root  grounder skills/ground/SKILL.md
+modes grounder all
+open  grounder * 1-ground skills/ground/SKILL.md skills/ground-rules/SKILL.md skills/ground/references/grounding.md skills/procedures/agent-guidance-layout.md skills/procedures/config-keys.md skills/procedures/host-tools.md
+open  grounder * 3-slice  skills/ground/references/slicing.md skills/procedures/code-shape.md
+open  grounder * 4-emit   skills/ground/references/emitting.md skills/procedures/github-writes.md
+
+bound grounder all 1-ground 13452
+bound grounder all 3-slice  23484
+bound grounder all 4-emit   26247
+
+# --- orchestrator — skills/orchestrate/SKILL.md's numbered sections ----------
+#
+# Steps carry the spine's section numbers, and each opens the files that
+# section names by path. The passes the loop enters by command — /pipeline:ground
+# at step 1 and /pipeline:execute at step 2 — are measured as the grounder and
+# the dispatcher above, so this seat's bound is what the loop adds on top of
+# them. Steps 2 and 4 open no file of their own here; step 4 is performed out
+# of the reference step 3 opened.
+
+root  orchestrate skills/orchestrate/SKILL.md
+modes orchestrate all
+open  orchestrate * 0-config    skills/orchestrate/SKILL.md skills/ground-rules/SKILL.md skills/procedures/config-keys.md skills/glossary/vocabulary/integration-branch.md skills/procedures/agent-guidance-layout.md skills/glossary/vocabulary/agent-guidance.md skills/glossary/vocabulary/code-shape.md skills/procedures/worktree-helper.md
+open  orchestrate * 1-ground    skills/glossary/vocabulary/umbrella.md skills/glossary/vocabulary/outcome-record.md skills/glossary/vocabulary/hand-back-record.md skills/glossary/vocabulary/adjacent.md
+open  orchestrate * 3-reconcile skills/orchestrate/references/reconciling.md
+open  orchestrate * 5-close-out skills/procedures/github-writes.md
+
+bound orchestrate all 0-config    17466
+bound orchestrate all 1-ground    18721
+bound orchestrate all 3-reconcile 24536
+bound orchestrate all 5-close-out 25169

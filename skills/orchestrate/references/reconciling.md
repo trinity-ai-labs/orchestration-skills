@@ -9,12 +9,18 @@ for a human — runs neither step, and that is this checklist's own precondition
 it**: the items below read the plan, the tree, the request and the seam map against what that increment
 MERGED, and a merge that has not happened leaves them nothing to interrogate, so they run at the cycle that
 lands those PRs, against the tree it produces. **Items 8 and 10 are the exception and are taken NOW rather
-than deferred** — 10 reads hand-backs, which die with the agents that wrote them where every other input
-here outlives the run, and 8 reads the tracker, which this cycle's dispatchers may have filed onto whether
+than deferred** — 10 reads hand-back records, which reach you once and are what this cycle's agents
+decided while their trees were open, and 8 reads the tracker, which this cycle's dispatchers may have filed onto whether
 or not anything merged. **An epic's close-out hold is not this case at all**: it fires after the cycle's
 increment has merged and this checklist has already run against it.
 
 ## The reconcile checklist
+
+**Its inputs are the ARTIFACTS — the umbrella body, the outcome records
+(`skills/glossary/vocabulary/outcome-record.md`), the grounding comments, the open and merged PRs and the
+merged tree — plus the hand-back records (`skills/glossary/vocabulary/hand-back-record.md`) this cycle's
+agents returned, never your memory of an earlier cycle**: each item below names what it reads, and every one
+of those is re-read rather than recalled.
 
 Run all of them, every cycle, in this order. **Stated mechanically on purpose, so it is not a fresh judgement
 each time**: a cycle that skips a re-derived step produces exactly the output of one that found nothing.
@@ -105,20 +111,20 @@ forced work*; or **opened** a new one. Then re-read the whole union with this cy
 the rows this increment touched. A seam row is *producer → consumer → the shape between them → what the
 consumer does with it*, and it is finished only once that last part is answered.
 
-**10. What the increment's own agents said — the only item that reads a REPORT rather than an artifact.**
-Every item above interrogates the plan, the tree, the request, the tracker or the seam map, all of which
-outlive the run. The hand-backs do not: **an implementer's context dies with the implementer**, and the
-hand-back is the whole of what survives it. Read each one for the ambiguities it flagged, the follow-ups it
-filed, its per-doc verdicts — and above all **the review pass's `Rejected` list, which is by construction a
-list of things somebody noticed and chose not to do.** That list is routed up to the dispatcher deliberately
-and is consumed nowhere; item 8 cannot catch it, because a rejected finding was never filed.
-**That list reaches you by THREE routes, and only one of them dies with the run**: the hand-back carries the
-narrative, the review the pass posted onto the slice's own PR carries the same findings as an artifact attached
-to the diff, and the dimension comments beside it carry each reviewer's own report with the pass's disposition
-of every finding in it — both of those still readable by anyone who opens that PR once every agent is gone. So
-a slice whose hand-back is thin on this is one whose PR you go and read; where the hand-back disagrees with the
-PR, take the PR, and where the review's summary disagrees with a dimension comment, the comment is the
-reviewer's report and the summary is the implementer's gloss on it.
+**10. What the increment's own agents said — read through each hand-back record and the addresses it
+names.** Every item above interrogates the plan, the tree, the request, the tracker or the seam map. **An
+implementer's context dies with the implementer, and what survives it is the hand-back record plus the
+artifacts that record names** — its decisions needed, and under *Carried elsewhere* the hand-back comment
+(keyed `handback/<leaf>` on the slice's PR, the detail behind the record) and the review pass's review and dimension comments. Read the record's
+decisions needed, then open each address it names — and above all **the review pass's `Rejected` list, which
+is by construction a list of things somebody noticed and chose not to do.** That list is routed up to the
+dispatcher deliberately and is consumed nowhere; item 8 cannot catch it, because a rejected finding was never
+filed. **It lives on the slice's own PR**: the review the pass posted carries it as an artifact attached to
+the diff, and the dimension comments beside it carry each reviewer's own report with the pass's disposition of
+every finding in it — readable by anyone who opens that PR once every agent is gone. **A record naming no
+review on a slice told to run the pass is a missing write, not a clean pass**; where anything the hand-back
+says disagrees with the PR, take the PR, and where the review's summary disagrees with a dimension comment,
+the comment is the reviewer's report and the summary is the implementer's gloss on it.
 **Read the merged diffs beside it**: a straggler that looked proportionate inside one slice is often only
 visible once the slices are stacked, which is this seat's advantage and no implementer's.
 

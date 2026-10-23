@@ -1,6 +1,6 @@
 # Gate the integrated whole — conditional on what the merge actually produced
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it after any merge onto the integration branch
+Reference for `skills/execute/references/dispatcher.md`. **Read it after any merge onto the integration branch
 that combined work from more than one slice** — each branch was gated against its own fork point, blind to the
 other slices, so the branch that now carries all of them **may** be carrying a tree no gate has ever run.
 **A merge into an epic branch takes no gate** — a slice's, or the tick's merge of the integration branch —
@@ -124,7 +124,7 @@ the queue **into** a project and the project owns it from there, so a project sc
 on a missing-required-field usage error naming both. **Every fallback clause in this file is keyed on a
 condition that case does not satisfy** — the project *has* a queue, and that queue works correctly for every
 ticket a PR is attached to — so a dispatcher reading them is pushed away from the hand-run gate by an
-instruction that is emphatic about it (*The durable gate queue*: in a project whose runner will take them, no
+instruction that is emphatic about it (`skills/execute/references/dispatcher.md`, *The durable gate queue*: in a project whose runner will take them, no
 gate is run by hand) and toward an enqueue that cannot accept the ticket. That is why the clauses now name
 **two** conditions rather than one. Run the gate yourself in the tree that ticket named, capture its own exit
 status (*Where you do run a gate yourself*), and say in the close-out that this verdict has no ticket behind
@@ -163,7 +163,8 @@ by itself, where the runner refuses the PR-less ticket (*A runner scaffolded bef
 it*), and, where the project declares `fullGate`, any `full`-mode gate on a runner not verified to take that
 mode — the one case in which this reading is needed by a dispatcher who has every reason to believe it does
 not apply to them. There an implementer's or a dispatcher's own reading of that status *becomes* the comment
-everything downstream trusts (*Implementer*). **`set -o pipefail` is not the fix to reach for** — it is
+everything downstream trusts (`skills/execute/references/implementer-gate.md`, *In-line mode*).
+**`set -o pipefail` is not the fix to reach for** — it is
 shell-specific, off by default in every shell these commands are typed into, and a rule that depends on an
 option being set somewhere else fails silently in exactly the case it was added for; a redirect and `$?` work
 everywhere and show their own working. **And `| grep`, the one that feels like diligence rather than a
@@ -211,7 +212,7 @@ least-witnessed gate in the flow.
 ## Merge & cleanup
 
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you merge a slice PR** — the steps
+Reference for `skills/execute/references/dispatcher.md`. **Read it before you merge a slice PR** — the steps
 have exactly one correct order, and syncing the local integration branch is the one nothing forces.
 
 **One check stands in front of everything below, and it is a NEW step rather than a change to any of them:
@@ -313,7 +314,8 @@ gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file
 (`skills/procedures/github-writes.md`), `<pr>` being the PR that settled it, so a later close of the same
 issue adds its own record rather than overwriting this one.
 
-**That comment is the issue's OUTCOME RECORD, not a pointer to one** — a reader landing on a closed issue
+**That comment is the issue's OUTCOME RECORD (`skills/glossary/vocabulary/outcome-record.md`), not a pointer
+to one** — a reader landing on a closed issue
 should find what merged, your verdict, what was turned down or left out of scope and whether review ran,
 without opening a PR or a transcript, and one click from each dimension's full findings on the PR:
 
@@ -332,7 +334,7 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
 Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
 merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off the
-implementer's hand-back, reading the PR where it names none, and the arc's other PRs off the slice PR's own body
+implementer's hand-back record, reading the PR where it names none, and the arc's other PRs off the slice PR's own body
 — every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration branch — so a
 reader of one slice's record can reach what landed beside it; **a skipped pass is written as skipped with its
 reason**, never left as a blank that reads the same as a lost write.

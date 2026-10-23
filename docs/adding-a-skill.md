@@ -168,6 +168,29 @@ catch — this bounds one host's tool names rather than the rule, which is wider
 because that is what ships, while `AGENTS.md`, `README.md` and these pages are only ever read as this
 repository's own.
 
+**Check 19 weighs what a seat has open, which neither ceiling does.** Check 10 counts a file and a sub-skill's
+directory; an agent pays for the files it has actually opened by the step it has reached, a set smaller than one
+sub-skill or spanning several. `scripts/seat-load.txt` is that set written down: for each seat — the implementer,
+the dispatcher, a review pass's reader per dimension, the grounder and the orchestrator — each mode and each step,
+the files the seat opens there, and a recorded bound per step. The check sums the words of every file open by each
+step — counted in Python as whitespace-separated tokens of the file read as UTF-8, never with `wc -w`, which reads
+differently on GNU and macOS and so cannot hold an exact bound — since a file stays open once read, and prints each
+seat and mode's peak with the load at every step and the files that step opened. It fails a load above or below its
+bound, a step with no bound or a bound with no step, a listed file that is missing, and a listed file that neither
+the seat's root nor a file it opened earlier names by its repo path, so the manifest can only route a seat where
+its prose already sends it. The manifest's own header defines its four line kinds; when a bound moves and what the
+PR says about it is [the skill-prose chapter](../.agents/rules/skill-prose.md)'s.
+
+**So a prose edit to a file a seat opens moves a number**, and the gate prints the new one: copy the value
+check 19 reports for each step that moved into that step's `bound` line. **Splitting a reference by step is how a
+load comes down, and it is one change across three files.** The rules a later step needs leave the reference for
+a new file beside it; the spine's step names that file, so the reader opens it on reaching that step, with the
+step's hard stops left on the spine where a reader meets them before acting (the chapter's *A `SKILL.md` is an
+ordered list of ACTIONS* says which rule goes where); and the manifest's `open` line for that step lists the new
+file, with the bound re-taken for that step and every later one in the same mode. A reference the spine sends a
+reader to only on a condition is listed at the step the condition arises, so each bound is the load with every
+condition met.
+
 **The war-story ban is the one prose rule stated as a PROPERTY, and its check says so.** The rule is
 [AGENTS.md](../AGENTS.md)'s: name the failure a rule prevents in a clause that shares its sentence with the
 action, never in a sentence or a paragraph of its own. Check 11 matches a handful of phrasings that perform

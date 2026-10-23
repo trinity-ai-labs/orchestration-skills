@@ -479,8 +479,9 @@ path.
 **A finding whose line is not in this PR's diff goes in the BODY** — the API rejects the entire review,
 creating nothing, when any inline comment names a line outside the diff, and the findings worth posting
 here (a seat the change missed, a doc the change falsified) are routinely outside it. Everything else
-goes inline, and the body carries the summary: the goal verdict, what was applied, what was
-rejected with the reason, and a link to each dimension's comment.
+goes inline, and the body carries the summary: the five things listed below — Goal, Applied, Rejected,
+Flagged and Verification — the dimensions you dispatched and those you judged this slice did not need, and a
+link to each dimension's comment.
 
 **Name the head SHA you read in that body.** The commit carrying your applied findings lands after this
 post — made by the caller itself where the caller writes code, and by a fix agent it dispatches where the
@@ -499,19 +500,23 @@ out.
 GitHub, all on the caller's own PR**, and each is posted once — this pass does not re-fire itself to post a
 second round, and nothing else about it reaches the PR or the issue.
 
-Then report to the caller in prose, covering five things, and name the dimensions you dispatched and
-the ones you judged this slice did not need. Keep it short enough to read at a glance.
-**A pass that PARKED (step 2) reports that first, in these words — `Review: PARKED` — followed by the
+**Then report to the caller as a hand-back record** (`skills/glossary/vocabulary/hand-back-record.md`) — the
+same short shape an implementer hands its dispatcher, so a caller holding many of them holds little: the goal
+verdict as its verdict, the head you read as its head, the preflight you ran as its gate result since this
+pass runs no gate, each **Flagged** item as a decision the caller has to surface, and under *Carried
+elsewhere* the review's URL and each dimension comment's. **The five things below are what the posted review's
+BODY carries**, so the record restates none of them and a caller reads them at the address it names.
+**A pass that PARKED (step 2) says so as the record's verdict, in these words — `Review: PARKED` — with the
 dimensions still to go and the reports already held, nothing under Applied and nothing posted onto the
 PR, the dimension comments included** — they go out with the review at the resumed pass's step 4, never
 as each report arrives — since its tree is frozen and its caller's next step is a resume; the marker is
 the one thing that tells a parked slice from a stalled one, whose trees look the same.
 
 - **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice
-  carried none, say that rather than supplying one. **That verdict goes in the posted review's body
-  as well as here**, the review reaching every later reader of the PR and this report reaching the
-  caller, who is told to anchor the right-problem judgement to it and otherwise has the brief and the
-  diff — two artifacts that agree with each other whether or not the work was aimed correctly.
+  carried none, say that rather than supplying one. **That verdict is also the record's verdict**, the
+  review reaching every later reader of the PR and the record reaching the caller, who is told to anchor
+  the right-problem judgement to it and otherwise has the brief and the diff — two artifacts that agree
+  with each other whether or not the work was aimed correctly.
 - **Applied** — each change you made, the one-line reason, and the reviewer that raised it. **Where
   several reviewers converged on it, name them all** — that agreement is the strongest evidence in the
   run and it exists nowhere else once this report is written.
@@ -522,9 +527,8 @@ the one thing that tells a parked slice from a stalled one, whose trees look the
   rejects it against all of them, and three entries for one site would read as three findings and
   overstate what was turned down. This is not filler — a finding you silently dropped is
   indistinguishable from one nobody ever saw, and the dispatcher reviewing your PR has no way to tell
-  the difference. **This list goes into the posted review's body too, and it is also the material the
-  dispatcher's own verdict carries onto the PR when it posts one**, so a rejection written thinly here
-  reaches the PR thinly or not at all.
+  the difference. **This list is also the material the dispatcher's own verdict carries onto the PR when
+  it posts one**, so a rejection written thinly here reaches the PR thinly or not at all.
 - **Flagged, out of scope** — pre-existing problems found and correctly left alone, and any
   cross-slice interaction no reviewer could verify from inside this worktree. **The admission test is
   narrow, and it is about the boundary rather than the effort:** an item belongs here only when
@@ -541,8 +545,9 @@ the one thing that tells a parked slice from a stalled one, whose trees look the
   runs the real gate is the one that can size around it: the dispatcher enqueuing its ticket where the
   project declares `enqueue`/`drain`, the caller itself where it declares neither.
 
-Then hand back to whatever called you, **naming the review's URL and each dimension comment's** — the
-dispatcher's closing comment on the issue links them, and should not have to re-derive them off the PR.
+The record's *Carried elsewhere* is where **the review's URL and each dimension comment's** reach whatever
+called you — the dispatcher's closing comment on the issue links them, and should not have to re-derive them
+off the PR.
 **What is yours on that PR is the review and the dimension comments you just posted**; the commit that
 lands your applied findings, the push that carries it, the gate ticket, the dispatcher's own verdict on
 the diff and whatever raising a flagged item becomes all belong to the flow that called you — in that
@@ -637,7 +642,7 @@ is stated**: what a reviewer finds goes in its report, whatever a fence, an abse
 seat makes filing look like the only route left. **And a filing that happened anyway is recovered the way a
 posted review is, because neither leaves anything in the tree** — read it off the tracker rather than off a
 clean `git status`, take the finding back into your own `Flagged` list where it belonged, and name the
-number in your hand-back, since the seat that holds the filing disposition is the only one that can close
+number under your record's decisions needed, since the seat that holds the filing disposition is the only one that can close
 what nobody authorized.
 
 **Read the tree before you read the reports, and revert anything a reviewer wrote before you weigh a

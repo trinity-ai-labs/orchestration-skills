@@ -284,8 +284,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   enumerated grant resolved to — joins the next tick's on-scope set, where forgetting one raises a false
   divergence alarm, while the PR comment simply goes missing at the reviewer.
   **A grant that lands after the slice's review pass has closed produces an edit whose only reader is the
-  dispatcher's read of the diff**, so the hand-back reports, for each grant on a slice that ran a pass,
-  whether it acted before that pass ran or after it reported. **And one the slice already worked under before
+  dispatcher's read of the diff**, so the slice's hand-back comment — the one comment keyed `handback/<leaf>`
+  on its PR — reports, for each grant on a slice that ran a pass, whether it acted before that pass ran or
+  after it reported. **And one the slice already worked under before
   that pass supersedes the brief's fence for the reviewers too** — those paths are in bounds for them and are
   stated in each reviewer's brief, since a reviewer left to infer it meets the granted edit inside the diff
   and outside its own stated bounds, and either flags it as drift or skips it as another slice's business.
@@ -405,11 +406,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   landed tree matches the epic tip that was gated — which is a further reason to prefer the helper over a
   hand-run close-out, since that comparison has to be set up *before* the merge. Then close the issues that PR
   settled yourself, one `gh-post` close each, which posts a comment on each that is its **outcome record**
-  before closing it: the merge commit and the branch it landed on, the goal verdict, whether the review pass
-  ran, was skipped and why, or was left to a review checkpoint, linked, the findings it rejected and flagged,
-  links to the PR's dimension comments, its reviews and its gate comment, and the arc's other PRs beside it —
-  taken off the slice PR's own body, which the implementer writes listing the arc's other open PRs, so that
-  PR's reviewer sees what lands beside it too. It goes on every issue that PR settled, whether or not GitHub
+  before closing it — what it carries is in [The mental model](mental-model.md#the-mental-model) — its line
+  on the arc's other PRs taken off the slice PR's own body, which the implementer writes listing the arc's
+  other open PRs, so that PR's reviewer sees what lands beside it too. It goes on every issue that PR settled, whether or not GitHub
   already closed it, so a closed issue says what happened to it without anyone opening the PR. GitHub's
   closing keywords are interpreted only when the PR's base is the repo's **default** branch, so a PR into an
   epic branch or into an integration branch that isn't the default closes nothing, and the hand-close is the

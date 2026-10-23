@@ -138,7 +138,16 @@ where the two disagree, and say in the close-out which copy you ran from.
 
 ## 1. Ground the horizon → `/pipeline:ground`
 
-On the first cycle read the source plan — `gh issue view <N> --comments`, or the conversation — and work out
+⛔ **Every cycle starts from the ARTIFACTS, never from the conversation** — on the first cycle and on the
+fortieth, read the **umbrella body** (`skills/glossary/vocabulary/umbrella.md`: the remaining plan and the
+seam map), the **outcome records** (`skills/glossary/vocabulary/outcome-record.md`) on the issues the arc has
+closed, the **grounding comments** on the leaves, and the arc's **open PRs** with the hand-back records
+(`skills/glossary/vocabulary/hand-back-record.md`) and hand-back comments they name —
+`gh issue view <N> --comments`, `gh pr list --base <base>` — and rebuild your working context from those.
+**What you recall of an earlier cycle is not an input**, since this seat lives the whole arc and a context
+carrying every cycle's detail grows with it, while the artifacts hold the same facts at an address the next
+cycle can re-read; in chat with no issue, the plan restated in full each cycle is that artifact.
+On the first cycle that read is the source plan — the issue, or the conversation — and you work out
 where the horizon falls **from the issue's phase map**: the ready children of the earliest phase whose
 dependencies have all landed. **A standalone issue has neither a phase map nor children, and the same sentence
 answers it: the horizon is that issue.** Read at N=1 that is the general rule rather than a case carved out of
@@ -285,11 +294,9 @@ setup-debt item carried for `/pipeline:health` owns is a remaining plan that is 
 that umbrella is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed
 — the tracker is part of termination, not a courtesy after it**; close them yourself rather than trusting a
 PR's closing keywords, which fire only where that PR's base is the repository's **default** branch and never
-fire later. **Each close carries a comment that is that issue's OUTCOME RECORD**, so a reader landing on it
-finds what happened without opening a PR: the PR that settled it and the merge commit and base it landed as,
-your goal verdict, the review pass's Rejected and Flagged lists, whether that pass ran, was skipped and why,
-or was left to a review checkpoint and which, and links to that PR's dimension comments, its reviews and its
-gate comment — the umbrella's naming the close-out PR and each leaf's PR. Post it with the close,
+fire later. **Each close carries a comment that is that issue's OUTCOME RECORD**
+(`skills/glossary/vocabulary/outcome-record.md` says what it carries), so a reader landing on it finds what
+happened without opening a PR — the umbrella's naming the close-out PR and each leaf's PR. Post it with the close,
 `gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file>`, `<pr>` the one that
 settled it (`skills/procedures/github-writes.md`), which a re-run edits rather than repeats, and name no AI in
 it — no trailer, line, footer or URL naming Claude, the assistant, the model, the harness or the session.

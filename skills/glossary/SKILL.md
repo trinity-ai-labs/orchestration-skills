@@ -64,9 +64,11 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
 | exception list | `skills/glossary/vocabulary/code-shape.md` |
 | grounding depth — horizon, shape / slice | `skills/glossary/vocabulary/grounding-depth.md` |
+| hand-back record — hand-back comment | `skills/glossary/vocabulary/hand-back-record.md` |
 | horizon | `skills/glossary/vocabulary/grounding-depth.md` |
 | integration branch | `skills/glossary/vocabulary/integration-branch.md` |
 | monolith (agent guidance) | `skills/glossary/vocabulary/agent-guidance.md` |
+| outcome record | `skills/glossary/vocabulary/outcome-record.md` |
 | release unit | `skills/glossary/vocabulary/code-shape.md` |
 | review checkpoint | `skills/glossary/vocabulary/review-checkpoint.md` |
 | setup debt | `skills/glossary/vocabulary/code-shape.md` |

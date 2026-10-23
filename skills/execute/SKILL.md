@@ -11,23 +11,6 @@ argument-hint: "[none — an implementer is handed its brief, and the dispatcher
 
 # Execute — integration-branch worktree workflow
 
-We work off an **integration branch** (`skills/glossary/vocabulary/integration-branch.md`) — the branch this
-project's work lands on, **declared** in its own config as `integrationBranch` and never derived, since a
-repository's default branch is a different fact that coincides in some projects and not in others. Undeclared,
-take it from the main checkout's current branch **and say in your report that you inferred it** — an inferred
-integration branch is a base every worktree of the arc forks from, so it is a fact worth stating rather than
-one to leave implicit. Never hardcode a version. One task → one worktree → commit, push, PR back into it →
-merge → **sync the local integration branch first**, then delete the branch and its worktree.
-**One level sits above it: the epic branch** (`skills/glossary/vocabulary/epic-branch.md` defines one;
-`skills/execute/references/worktrees-and-branches.md` carries its mechanics) — cut by default for any arc of
-more than one slice, merging each slice into the integration branch as it lands being the exception a user
-asks for, and never for single-slice work. Per-project values live in each repo's own config
-(`skills/execute/references/per-project-config.md`).
-
-**Parallelization is the default, and the project's `sharedResources` decides whether it holds**: where no
-entry's `isolatedBy` is `null`, independent tasks run concurrently in their own worktrees and nothing an
-implementer runs serializes on a lock; where one is, the slices touching that resource run one at a time.
-
 ## First: which role are you?
 
 **Which one you are is decided by how you got here, not by how the work looks** — the two behave very
@@ -35,27 +18,12 @@ differently, and both mistakes are silent.
 
 - **DISPATCHER** — entered from **`/pipeline:orchestrate`**, once per cycle, to dispatch the increment it has
   just grounded. The worktrees, briefs, sub-agents, reviews, gates and merges are yours; the file edits are
-  not — **do NOT write the implementation yourself.**
+  not — **do NOT write the implementation yourself.** Open `skills/execute/references/dispatcher.md` first.
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a
   user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand
   it back; **you run `gate` only in in-line mode — once, where the project declares no `enqueue`/`drain` or
   your brief puts you there — never a declared `fullGate`, and you never mark your own PR ready or merge it**:
   that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
-
-**One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than
-typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against
-the tree the increment produced, and repeats, so the dispatcher you are is that loop's own half rather than a
-second seat it hands work to. **What the SHAPE of the arc decides is how many cycles it runs, never which
-command a user typed**: dependency phases are what make an arc take many cycles — a set of leaves all ready at
-once is one wave and lands in one — and a standalone issue is one cycle over one leaf.
-**So what you finish here is the INCREMENT and never the arc** — whatever remains, empty or not, is reconciled
-by the same seat you are standing in rather than by this step.
-
-**A harness guard against spawning sub-agents unbidden is answered by the invocation of a pipeline skill
-itself**, and authorizes **exactly the sub-agents the pass you are in declares it uses, and no more**; where a
-pass declares none, it authorizes none. Read each pass's own answer in its own file — a roster here would be a
-second copy, and nothing would mark which one had gone stale. `skills/procedures/host-tools.md` names your
-host's spawn tool.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds every seat this
 file describes.** It carries the rules whose statement is the same for a dispatcher and an implementer alike;
@@ -66,171 +34,43 @@ finished reading this skill.**
 
 ---
 
-## Polyrepo workspaces
-
-In a **workspace** — sibling repos released together under one `.agents/workspace.json` at a root that is not
-itself a git repo — `setup-workspace.sh <branch> [repo ...]`, or `--exclude <repo,repo>`, cuts one worktree
-per member under the **same branch name in every one**. Name the repos a task touches; each is an install
-— **and naming a repo that owns a cross-repo contract also cuts every consumer of it**, so a slice that
-touches ONE member is cut with the worktree helper run inside that member, which lands in the same
-workspace layout and applies no closure.
-Three things then change for the dispatcher:
-
-- **Verify HEAD in every member — and fetch in every member too**: that comparison reads a remote-tracking
-  ref, and those are per-repository, so one fetch leaves every other member's cache stale.
-- **Order merges by contract** — a contract and its consumer are two PRs with a mandatory order, the owning
-  repo first. Nothing enforces it; you do.
-- **Each member gates itself.** As many queues as repos, so per-repo green says nothing about the pair:
-  integrated-green is what ships.
-
----
-
-## The durable gate queue
-
-The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
-`fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it**
-(`skills/execute/references/per-project-config.md`). Either way an implementer holds itself to the cheap
-**preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook where one runs it, git's pre-commit
-hook or the host's commit-hook row in `skills/procedures/host-tools.md`, and run by the implementer before
-each commit where neither does — then pushes, and opens its **draft PR**.
-
-- **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
-  neither.** It hands back; **you enqueue that slice's ticket (`enqueue`) once you have read its diff**, since
-  nothing should gate a tree you are about to have rewritten — which is the order phase 3 already asks for,
-  *review BEFORE you drain*. **Nothing is at risk in the gap**: the branch is pushed and the PR open before
-  you are handed anything, so the work is durable in git and a ticket nobody queued costs a gate run's
-  latency rather than work. A runner (`drain`) then claims tickets **one at a time**, in each ticket's own
-  worktree behind a slim machine-wide slot, gating in the mode that ticket declared (*Gate mode*) and
-  commenting the verdict on the PR while leaving it draft.
-- **In-line mode — neither declared, or a slice explicitly put in override mode:** the implementer runs
-  `gate` once on its own draft PR, comments the verdict and hands back, and **no ticket exists at all**.
-
-**In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
-hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
-its own draft PR, whose shape is draft, panel review with its dimension comments, any fix round, enqueue, gate
-comment, posted review, merge — draft-before-gate all along, the panel and the fix round it can earn arriving
-with the close-out review (`skills/execute/references/worktrees-and-branches.md`); and the **integration
-gate** after a merge onto the integration branch, as a **PR-less ticket** whose verdict settles onto the
-ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
-run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
-dispatch and none in front of a merge into an epic branch** — the audit after one holds no merge. Only a
-`full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at a
-close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
-PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
-sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
-`enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
-implementer's.
-
-⛔ **Fixes that land straight on a long-lived branch share one gate, never one gate each.** Outside an epic —
-a bug bash, a test pass, a run of independent fixes into a release or integration branch — each fix still
-gets its own worktree, branch and PR for review, but **the gate is per wave, not per PR**: you merge the
-reviewed fixes of a wave onto one wave branch cut from the target, open one PR for it, and enqueue that one
-ticket; its green merges every fix at once. A full gate costs tens of minutes and runs one at a time, so
-gating each ten-minute fix serially makes the queue the bottleneck of the whole run and leaves the machine
-saturated by a gate that proves less than the batched one does, since it never tests the fixes together.
-**The same arithmetic caps how many implementers you run beside the gate**: size the live set to what the
-host takes alongside the runner and whatever else it serves, keep the rest QUEUED, and start the next one as
-a slot frees — never dispatch everything you have found the moment you find it. A red wave is bisected by
-its failing files to the fix that owns them, which is fixed on its own branch and re-merged; the wave is
-re-gated once, never split into per-PR gates.
-
----
-
-## Dispatcher — four phases, in order
-
-Each phase names the reference that tells you **how**; open it before you act, not when you reach it. The ⛔
-lines are the rules whose action needs no reference, so they live here and nowhere else.
-
-**Read the project's config first** — gate mode, the gate and preflight commands, `sharedResources`,
-`epicMerge`, the three `autoMerge*` keys deciding whether each merge is yours to make, brief
-conventions. Everything below is provisioned from it. →
-`skills/execute/references/per-project-config.md` for what a dispatch DOES about each value, the merge
-decision your dispatch report states included, and
-`skills/procedures/config-keys.md` for what each key MEANS and what its absence means. The helper you
-provision with is `skills/procedures/worktree-helper.md`, and your host's tool for every capability named
-below is `skills/procedures/host-tools.md`.
-
-### 1. Set up → `skills/execute/references/worktrees-and-branches.md`
-
-Decide the branch level — an epic branch cut from the integration branch when the ARC is more than one slice,
-unless the user asked this arc to merge each slice as it lands, and the integration branch itself when the
-arc is one slice — then cut **one worktree per slice and verify all four invariants** before anything is
-dispatched into it.
-
-### 2. Dispatch and watch → `skills/execute/references/dispatching.md`
-
-Write each brief — every setting that changes it named in it, by the reference's table — dispatch, arm the
-tick, and, where the project declares `drain`, drain the gate queue on that same tick.
-
-⛔ **Every sub-agent you spawn is a FRESH agent, never a fork.** A fork inherits your whole conversation and
-reads your brief as its own instructions — *commit, push, open a PR, enqueue* — and executes it, producing
-artifacts nothing can tell from authorized work.
-
-⛔ **You have not dispatched until the divergence tick is armed** — your host's self-paced timer at ≈600s
-(`skills/procedures/host-tools.md`), as the **last** act of the turn, after the agents are launched. It is not
-how you learn an agent finished; that arrives free. It is for catching a wandering one mid-flight —
-**and what you do about what it catches is two levers rather than one**, since most of what a tick surfaces is
-a wrong fact you correct by messaging the live agent, not a scope change nobody granted that you stop it over.
-**The tick also carries the questions your slices have asked you** — answering one is neither lever and kills
-nothing. The reference carries the test.
-
-### 3. Judge what comes back → `skills/execute/references/reviewing.md`
-
-Read the diff and post the verdict you form onto the PR as a review each round, recording in it whether the
-slice ran the review pass or skipped it and why. **Where the project declares `enqueue`, enqueue that slice's
-gate only once the code is final**, then read the verdict the runner comments; **where it does not**, the
-implementer's own verdict is already on the PR, and its hand-back, not that comment, is what you wait on
-before you merge. **On an epic branch, plan and run review checkpoints over the epic tip**
-(`skills/execute/references/worktrees-and-branches.md`, *Review checkpoints*).
-
-⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
-says a gate finished, not that anyone read the change.
-
-### 4. Land it → `skills/execute/references/landing.md`
-
-Gate the integrated whole with `gate` when a merge onto the integration branch combined work from more than
-one slice — a merge into an epic branch takes none, its close-out gating the combined diff — then merge,
-clean up and sync as one step, and
-close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue,
-keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
-
-⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
-where the project declared `epicMerge` — its call, not yours at merge time.
-
-⛔ **The three `trinity-ai-labs` skills repos are PR-only** — `market-skills`, `orchestration-skills`,
-`framework-skills` — never a direct push to `main`, docs and CHANGELOG included.
-
----
-
 ## Implementer — the actions, in order
 
-**Your instructions are `skills/execute/references/implementer.md`, and you read all of it before you write a
-line.** It carries every step below in full; this list is the order, and the rules whose action needs no
-reference.
+**Each step names the reference that carries it, opened when you reach that step** — the first is
+`skills/execute/references/implementer.md`, read whole before your first edit. This list is the order, and the
+rules whose action needs no reference. **The moment your brief turns out wrong, an input it needs is missing,
+you get stuck, or your dispatcher writes to you, open
+`skills/execute/references/implementer-brief-wrong.md`.**
 
-1. **`cd` into your assigned worktree and prove you are there.**
+1. **`cd` into your assigned worktree and prove you are there** → `skills/execute/references/implementer.md`.
 2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is
-   declared there, never inferred; what each key MEANS is `skills/procedures/config-keys.md`.
+   declared there, never inferred; what each key MEANS is `skills/procedures/config-keys.md`. **Where it
+   declares `enqueue` and `drain`, you are in queue mode** → `skills/execute/references/implementer-queue.md`.
    ⛔ **A baseline your slice needs is taken FIRST, before your first edit** — one your brief hands down on
    your fork point is it and is never re-taken, and one you missed is read through git or asked for, and taken
    at a checked-out fork point only where no answer can reach you, once git holds your work.
-3. **Build the slice, running only cheap checks.**
+3. **Build the slice, running only cheap checks.** A reversal your bar names →
+   `skills/execute/references/implementer-reversal.md`; a suppression you add →
+   `skills/execute/references/implementer-suppression.md`; before your first commit, here or at any later
+   step → `skills/execute/references/implementer-commit.md`.
    ⛔ **Never run the full suite while you build** — no `gate`, no whole-package test, no raw sweep,
    foreground or background. One targeted test run — the project's `targetedTest` where declared, else single
    test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
    export surface, each test file that mocks or imports it, run singly; the one gate run you ever make is
    in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
    puts you there, with a red's failing tests re-run by name at your fork point.
-4. **Update the docs your change made stale.**
+4. **Update the docs your change made stale** → `skills/execute/references/implementer-docs.md`; on a slice
+   of an epic, `skills/execute/references/implementer-epic.md`.
 5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →
    `skills/execute/references/implementer.md`, *FIX IT — DO NOT FILE IT*.
    ⛔ **Anchored to push and never to `/pipeline:review`** — a slice that runs no pass still fixes what it hit
    and still raises what a fence stops it from fixing, and the earlier you ask the more room an answer has to
    land in.
-6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs.
+6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs →
+   `skills/execute/references/implementer-commit.md`, already open since your first commit.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
-   is a pushed branch and a draft PR.
+   is a pushed branch and a draft PR, named in your hand-back record.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or
@@ -241,13 +81,13 @@ reference.
    rule out.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 7. **Run `/pipeline:review` if your brief says to — against that pushed PR — and commit once more if it
-   finds something.**
+   finds something.** → `skills/execute/references/implementer-review.md`.
    ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review, with one comment per
    dimension it dispatched beside it**, so the PR exists before the pass runs and what it leaves there is a
-   durable artifact your dispatcher reads off the PR rather than only out of your hand-back.
+   durable artifact your dispatcher reads off the PR, your hand-back record naming its address.
    ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree
    under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
-   answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
+   answer being the ordinary case, is unreviewed and says so in the hand-back comment**, since nothing re-presents it
    to a reader but the dispatcher's read of your diff.
    ⛔ **What you accept becomes ONE more commit onto the SAME PR** — preflight, commit, push, never a
    second PR and never a reopen — and a pass that raises nothing you accept leaves the slice where it
@@ -266,13 +106,17 @@ reference.
    and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
 8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
-   then hand back.**
+   then hand back** — the gate → `skills/execute/references/implementer-gate.md`. **Hand back the detail in
+   one PR comment keyed `handback/<leaf>`, and to your dispatcher only the short hand-back record**
+   (`skills/glossary/vocabulary/hand-back-record.md`), which names that comment's address —
+   `skills/execute/references/implementer-hand-back.md` lists what goes where.
    ⛔ **Never end your turn on a check or command whose exit cannot wake you** — where your host re-invokes
    you on a backgrounded command's exit, background a long gate and end your turn; elsewhere that ended turn
    is your hand-back with no verdict in it, so the gate runs in the foreground
-   (`skills/execute/references/implementer.md` has how).
-   ⛔ **The attribution ban above covers the gate verdict you comment here** exactly as it covers the commit
-   message and the PR body.
+   (`skills/execute/references/implementer-gate.md` has how in in-line mode, `skills/procedures/host-tools.md`
+   in queue mode).
+   ⛔ **The attribution ban above covers the gate verdict and the hand-back comment you post here** exactly as
+   it covers the commit message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 
 ---
@@ -281,8 +125,8 @@ reference.
 
 The rules that read the same at every seat are `skills/ground-rules/SKILL.md`'s, and this file has already had
 you read them; the documented-suppression carve-out to their guardrail rule, and its four conditions, are in
-`skills/execute/references/implementer.md`. One rule binds both roles at any moment and reads differently for
-each, so it sits here rather than on a step.
+`skills/execute/references/implementer-suppression.md`. One rule binds both roles at any moment and reads
+differently for each, so it sits here rather than on a step.
 
 - ⛔ **FIX IT, DO NOT FILE IT** — `skills/ground-rules/SKILL.md` rule 13's fold, in the PR already open, since a
   filed item costs a read, a grounding pass, a worktree, an agent, a gate run and a merge to do what one edit
@@ -292,4 +136,5 @@ each, so it sits here rather than on a step.
   why every one of those briefs says so** — since a filing from either seat spends that whole unit of work on
   what one surfaced message settles while the tree is still open. ⛔ **A DISPATCHER holds the disposition
   neither of them has**: filing is a verdict you return and then perform yourself, so the finding leaves the
-  implementer's hands rather than landing back in them (*Judge what comes back*).
+  implementer's hands rather than landing back in them (`skills/execute/references/dispatcher.md`, *Judge what
+  comes back*).

@@ -1,7 +1,7 @@
-# Worktree creation (both roles depend on this being done right)
+# Worktree creation
 
-Reference for `skills/execute/SKILL.md`. **Read it before you create a worktree, and before you accept one you
-were handed** — both roles depend on this being done right, and every failure it names is silent.
+Reference for `skills/execute/references/dispatcher.md`. **Read it before you create a worktree, and before you
+accept one you were handed** — every failure it names is silent.
 
 **The helper's own contract is `skills/procedures/worktree-helper.md`** — its arguments, the `--existing`
 recovery form, what a run creates, the two lines it prints, what it refuses, and which copy of a project's
@@ -143,7 +143,7 @@ merge-holder is least equipped to resolve. Deferring wholesale fails too:
 - **The breakdown still names the docs each slice falsifies**, slice by slice, at grounding time, derived from
   the behaviour the slice changes and never from a grep.
 - **The slice's deliverable is an entry in the epic's falsification ledger, not the edit** — *"this change
-  makes paragraph Y of `<doc>` false"* — reported in the hand-back's per-doc verdict. That is the rule for
+  makes paragraph Y of `<doc>` false"* — reported in the per-doc verdict of the slice's hand-back comment. That is the rule for
   prose describing behaviour; a **structural coordinate** the slice moved is fixed by the slice, under the
   carve-out below.
 - **Two questions, not one — the second asks what the slice ADDED that no doc describes at all.** *What did
@@ -262,7 +262,8 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   (*Merge & cleanup* carries the mechanics). **So while an epic runs the board is not the arc's progress
   record — the umbrella body is.** Catch the board up to what has merged, never ahead of it: the loop counts
   the tracker in its termination check, so an issue closed early is a false "done" in the artifact it
-  terminates on. **Each close carries the outcome record *Merge & cleanup* describes**, so the issue says
+  terminates on. **Each close carries the outcome record (`skills/glossary/vocabulary/outcome-record.md`) *Merge & cleanup*
+  describes**, so the issue says
   what merged, the verdict, what was turned down or flagged and whether review ran.
 - **A change to `.agents/worktree.json` has its config-read window end at THIS branch's close-out, not at the
   slice merge inside it.** That merge is not where the helper's lookup lands, so every worktree the arc cuts

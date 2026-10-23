@@ -22,10 +22,11 @@
 #
 #   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
 #      and decide which merge MODE this one boundary gets (see below).
-#   2. Check the PR's mergeability, BEFORE anything irreversible happens - the
-#      two steps that follow cannot be undone by a later failure, and the step
-#      that actually fails is the last one. A conflicting PR stops here with the
-#      worktree intact and the PR still a draft.
+#   2. Check the PR's mergeability and its CI checks, BEFORE anything irreversible
+#      happens - the two steps that follow cannot be undone by a later failure, and
+#      the step that actually fails is the last one. A conflicting PR, or one with
+#      a failing or pending check, stops here with the worktree intact and the PR
+#      still a draft.
 #   3. Remove the head branch's worktree - git refuses to delete a branch that's
 #      still checked out in a worktree, so `gh pr merge --delete-branch` would
 #      error on the local-branch step if the worktree still existed. Done via
@@ -368,6 +369,37 @@ function Test-SquashBoundary {
     )
     if ($IntegrationBranch) { return ($Head -cne $IntegrationBranch) }
     return [bool]($DefaultBranch -and ($Base -cne $DefaultBranch))
+}
+
+function Get-CiVerdict {
+    # One CI check's verdict: pass, fail or pending. A check run carries a status
+    # and, once COMPLETED, a conclusion; a commit status carries no status and a
+    # state, so the caller hands that state in as $Result with $Status empty.
+    # Anything not named as passing or still running is a failure, so a conclusion
+    # GitHub adds later refuses the merge rather than waving it through. The bash
+    # sibling's ci_verdict answers the same table, scripts/port-cases/ci-verdict.tsv,
+    # and the case-SENSITIVE forms match its `case`.
+    param(
+        [AllowEmptyString()] [string] $Status,
+        [AllowEmptyString()] [string] $Result
+    )
+    if ($Status -and ($Status -cne 'COMPLETED')) { return 'pending' }
+    if (@('SUCCESS', 'NEUTRAL', 'SKIPPED') -ccontains $Result) { return 'pass' }
+    if ((-not $Result) -or (@('PENDING', 'EXPECTED') -ccontains $Result)) { return 'pending' }
+    return 'fail'
+}
+
+function Get-JsonValue {
+    # Reads a property that may be absent from a ConvertFrom-Json object - a check
+    # run has no `state` and a commit status no `status`. A plain $obj.missing is
+    # $null by default but THROWS under Set-StrictMode 2.0, which a user's
+    # PowerShell profile can switch on globally, so this script cannot assume it is
+    # off. The same wrapper as setup-worktree.ps1's.
+    param($Object, [Parameter(Mandatory = $true)] [string] $Name)
+    if ($null -eq $Object) { return $null }
+    $prop = $Object.PSObject.Properties[$Name]
+    if ($null -eq $prop) { return $null }
+    return $prop.Value
 }
 
 function Invoke-InMainCheckout {
@@ -802,6 +834,62 @@ PR #$Pr conflicts with '$BaseBranch' - nothing has been touched: the worktree is
     }
 }
 
+# --- 1b. CI check -----------------------------------------------------------------
+# A red CI blocks the merge just as a red gate verdict does, so every check on the
+# head is read here, while nothing has been touched: a failing one refuses, and so
+# does a pending one, since its answer is not in yet. A pending check is NOT waited
+# on - the caller re-runs once it settles - because a timed wait here would hold a
+# close-out for as long as the slowest job runs. Every check counts, not only the
+# required ones: a repository with no branch protection requires none, and that
+# test would pass it red. A PR with no checks at all passes, which is what a
+# project that runs no CI needs.
+#
+# The head SHA is read in the same call as the checks, and the merge below passes
+# it as --match-head-commit, so the commit whose checks were read is the commit
+# that merges: a push landing in between makes GitHub refuse the merge rather than
+# merge a head nobody read the checks of.
+$HeadOid = ''
+if ($State -ne 'MERGED') {
+    $ciJson = Invoke-InMainCheckout {
+        $raw = & gh pr view $Pr --json headRefOid,statusCheckRollup 2>$null
+        if ($LASTEXITCODE -ne 0) { return $null }
+        return (($raw | Out-String).Trim())
+    }
+    if (-not $ciJson) {
+        Exit-WithError "could not read the CI checks on PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+    }
+    try {
+        $ciView = $ciJson | ConvertFrom-Json
+    } catch {
+        Exit-WithError "could not read the CI checks on PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+    }
+    $HeadOid = [string](Get-JsonValue $ciView 'headRefOid')
+    if (-not $HeadOid) {
+        Exit-WithError "GitHub returned no head commit for PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft."
+    }
+    if ($MergeMode -eq 'squash' -and $HeadOid -cne $EpicTip) {
+        Exit-WithError "PR #$Pr's head moved from $EpicTip to $HeadOid during this run - nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.ps1 $Pr"
+    }
+    $ciBad = ''
+    $checks = @()
+    $rollup = Get-JsonValue $ciView 'statusCheckRollup'
+    if ($null -ne $rollup) { $checks = @($rollup) }
+    foreach ($check in $checks) {
+        $ciResult = [string](Get-JsonValue $check 'conclusion')
+        if (-not $ciResult) { $ciResult = [string](Get-JsonValue $check 'state') }
+        $ciName = [string](Get-JsonValue $check 'name')
+        if (-not $ciName) { $ciName = [string](Get-JsonValue $check 'context') }
+        $ciUrl = [string](Get-JsonValue $check 'detailsUrl')
+        if (-not $ciUrl) { $ciUrl = [string](Get-JsonValue $check 'targetUrl') }
+        if (-not $ciUrl) { $ciUrl = '-' }
+        $ciAnswer = Get-CiVerdict ([string](Get-JsonValue $check 'status')) $ciResult
+        if ($ciAnswer -ne 'pass') { $ciBad += "`n    ${ciAnswer}: $ciName - $ciUrl" }
+    }
+    if ($ciBad) {
+        Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$ciBad`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run."
+    }
+}
+
 # --- 2. Remove the head branch's worktree --------------------------------------
 # Before the merge, so `--delete-branch` can remove the local branch - the ordering
 # git forces, and the reason step 1 exists: it is only safe to tear the tree down
@@ -885,10 +973,10 @@ if ($State -eq 'MERGED') {
     if ($MergeMode -eq 'squash') {
         $bodyFile = [System.IO.Path]::GetTempFileName()
         [System.IO.File]::WriteAllText($bodyFile, $SquashBody, (New-Object System.Text.UTF8Encoding $false))
-        $MergeArgs = @('--squash', '--subject', "$SquashTitle (#$Pr)", '--body-file', $bodyFile)
+        $MergeArgs = @('--squash', '--match-head-commit', $HeadOid, '--subject', "$SquashTitle (#$Pr)", '--body-file', $bodyFile)
         Write-Output "merge-pr: merging PR #$Pr (squash - the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
     } else {
-        $MergeArgs = @('--merge', '--delete-branch')
+        $MergeArgs = @('--merge', '--match-head-commit', $HeadOid, '--delete-branch')
         Write-Output "merge-pr: merging PR #$Pr (real merge commit, deleting branch) ..."
     }
     # The call is BOUNDED, and its exit code is not what decides whether the merge

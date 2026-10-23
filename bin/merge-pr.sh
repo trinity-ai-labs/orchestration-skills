@@ -9,10 +9,11 @@
 #
 #   1. Resolve the MAIN checkout + the PR's base (integration) and head branch,
 #      and decide which merge MODE this one boundary gets (see below).
-#   2. Check the PR's mergeability, BEFORE anything irreversible happens — the
-#      two steps that follow cannot be undone by a later failure, and the step
-#      that actually fails is the last one. A conflicting PR stops here with the
-#      worktree intact and the PR still a draft.
+#   2. Check the PR's mergeability and its CI checks, BEFORE anything irreversible
+#      happens — the two steps that follow cannot be undone by a later failure, and
+#      the step that actually fails is the last one. A conflicting PR, or one with
+#      a failing or pending check, stops here with the worktree intact and the PR
+#      still a draft.
 #   3. Remove the head branch's worktree — git refuses to delete a branch that's
 #      still checked out in a worktree, so `gh pr merge --delete-branch` would
 #      error on the local-branch step if the worktree still existed. Done via
@@ -286,6 +287,27 @@ squash_boundary_ok() {
     return
   fi
   [ -n "$default" ] && [ "$base" != "$default" ]
+}
+
+# One CI check's verdict: pass, fail or pending. A check run carries a status and,
+# once COMPLETED, a conclusion; a commit status carries no status and a state, so
+# the caller hands that state in as the second argument with the first empty.
+# Anything not named as passing or still running is a failure, so a conclusion
+# GitHub adds later refuses the merge rather than waving it through. The
+# PowerShell sibling's Get-CiVerdict answers the same table,
+# scripts/port-cases/ci-verdict.tsv.
+#   ci_verdict <status> <conclusion-or-state>
+ci_verdict() {
+  local status="$1" result="$2"
+  if [ -n "$status" ] && [ "$status" != "COMPLETED" ]; then
+    echo pending
+    return
+  fi
+  case "$result" in
+  SUCCESS | NEUTRAL | SKIPPED) echo pass ;;
+  '' | PENDING | EXPECTED) echo pending ;;
+  *) echo fail ;;
+  esac
 }
 
 # printf '%b' rather than echo, so a message can carry the `\n` its recovery
@@ -645,6 +667,45 @@ if [ "$STATE" != "MERGED" ]; then
   fi
 fi
 
+# --- 1b. CI check -----------------------------------------------------------------
+# A red CI blocks the merge just as a red gate verdict does, so every check on the
+# head is read here, while nothing has been touched: a failing one refuses, and so
+# does a pending one, since its answer is not in yet. A pending check is NOT waited
+# on — the caller re-runs once it settles — because a timed wait here would hold a
+# close-out for as long as the slowest job runs. Every check counts, not only the
+# required ones: a repository with no branch protection requires none, and that
+# test would pass it red. A PR with no checks at all passes, which is what a
+# project that runs no CI needs.
+#
+# The head SHA is read in the same call as the checks, and the merge below passes
+# it as --match-head-commit, so the commit whose checks were read is the commit
+# that merges: a push landing in between makes GitHub refuse the merge rather than
+# merge a head nobody read the checks of.
+HEAD_OID=""
+if [ "$STATE" != "MERGED" ]; then
+  CI_ROWS=$( cd "$MAIN" && gh pr view "$PR" --json headRefOid,statusCheckRollup -q '.headRefOid, (.statusCheckRollup[]? | [(.status // ""), (if (.conclusion // "") != "" then .conclusion else (.state // "") end), (.name // .context // ""), (.detailsUrl // .targetUrl // "")] | map(if . == "" then "-" else . end) | @tsv)' 2>/dev/null ) \
+    || die "could not read the CI checks on PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once gh can reach GitHub."
+  HEAD_OID=$(printf '%s\n' "$CI_ROWS" | sed -n 1p)
+  [ -n "$HEAD_OID" ] || die "GitHub returned no head commit for PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft."
+  if [ "$MERGE_MODE" = "squash" ] && [ "$HEAD_OID" != "$EPIC_TIP" ]; then
+    die "PR #$PR's head moved from $EPIC_TIP to $HEAD_OID during this run — nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.sh $PR"
+  fi
+  CI_BAD=""
+  TAB=$(printf '\t')
+  while IFS="$TAB" read -r ci_status ci_result ci_name ci_url; do
+    [ -n "$ci_status$ci_result$ci_name" ] || continue
+    [ "$ci_status" != - ] || ci_status=""
+    [ "$ci_result" != - ] || ci_result=""
+    ci_answer=$(ci_verdict "$ci_status" "$ci_result")
+    [ "$ci_answer" = pass ] || CI_BAD="$CI_BAD\n    $ci_answer: $ci_name — $ci_url"
+  done <<EOF
+$(printf '%s\n' "$CI_ROWS" | sed 1d)
+EOF
+  if [ -n "$CI_BAD" ]; then
+    die "PR #$PR has CI checks that are not green at $HEAD_OID — nothing has been touched: the worktree is intact and the PR is still a draft.$CI_BAD\n  A pending check: re-run merge-pr.sh $PR once it settles. A failing one: fix it on the branch, push, re-gate, then re-run."
+  fi
+fi
+
 # --- 2. Remove the head branch's worktree --------------------------------------
 # Before the merge, so `--delete-branch` can remove the local branch — the ordering
 # git forces, and the reason step 1 exists: it is only safe to tear the tree down
@@ -710,10 +771,10 @@ else
   # rather than an argument, so its newlines and quotes need no escaping; on the
   # merge path nothing reads it.
   if [ "$MERGE_MODE" = "squash" ]; then
-    MERGE_ARGS=(--squash --subject "$SQUASH_TITLE (#$PR)" --body-file -)
+    MERGE_ARGS=(--squash --match-head-commit "$HEAD_OID" --subject "$SQUASH_TITLE (#$PR)" --body-file -)
     echo "merge-pr: merging PR #$PR (squash — the epic buffer collapses to one commit; the branch is deleted once the tree check below passes) ..."
   else
-    MERGE_ARGS=(--merge --delete-branch)
+    MERGE_ARGS=(--merge --match-head-commit "$HEAD_OID" --delete-branch)
     echo "merge-pr: merging PR #$PR (real merge commit, deleting branch) ..."
   fi
   # The call is BOUNDED, and its exit status is not what decides whether the merge

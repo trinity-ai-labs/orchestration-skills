@@ -105,6 +105,11 @@ cold form, a runner left without one rejecting the audit. Setup's verification e
 and confirms the audit stepped aside cleanly — no process left, its tree gone, no verdict written. A queue
 scaffolded before the audit rejects it, and a reconcile reports that as its newest delta.
 
+**Whether your project wants CI, only where it has none** — setup reads CI a project already runs as its gate
+and never proposes one. Where there is none it notes that and asks you once, priced in runner minutes or money
+against what the local gate already proves; *no* is a valid answer and records nothing, since the missing
+workflow is visible in the tree.
+
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
 [Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's agent guidance,
 its package scripts, and its CI to fill in the commands rather than guessing.

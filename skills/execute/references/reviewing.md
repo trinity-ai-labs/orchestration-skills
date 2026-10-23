@@ -83,7 +83,8 @@ status.**
   comment on its PR reporting a full green with zero failures — and on the close-out/integration slice,
   independently re-run the previously-red files yourself before you believe it. Nothing else attests to a
   gate, and an empty PR conversation means nothing has. Read the comment and its failure set; the draft flag
-  is about review, not about the suite.
+  is about review, not about the suite. **A green gate comment over a red CI is not a green gate**: a failing
+  or pending CI check on the PR's head holds the verdict exactly as a red gate does, and `merge-pr` refuses it.
 
 - **An implementer that opens its PR without `--draft` is a bug you act on, not a formatting slip.** The ready
   flag means "a dispatcher read this diff and is merging it", and `merge-pr.sh` is the only thing that should

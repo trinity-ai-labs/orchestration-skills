@@ -50,20 +50,20 @@ open  implementer in-line 8-gate-hand-back     skills/execute/references/impleme
 open  implementer *      8-gate-hand-back      skills/procedures/github-writes.md skills/glossary/vocabulary/hand-back-record.md skills/execute/references/implementer-hand-back.md
 open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief.md
 
-bound implementer in-line 1-2-before-first-edit 6485
-bound implementer in-line 3-build               10370
-bound implementer in-line 4-docs                15483
-bound implementer in-line 6-commit-push-pr      17875
-bound implementer in-line 7-review              18847
-bound implementer in-line 8-gate-hand-back      21052
-bound implementer in-line 9-brief-wrong         23040
-bound implementer queue   1-2-before-first-edit 6663
-bound implementer queue   3-build               10548
-bound implementer queue   4-docs                15661
-bound implementer queue   6-commit-push-pr      18053
-bound implementer queue   7-review              19025
-bound implementer queue   8-gate-hand-back      20541
-bound implementer queue   9-brief-wrong         22529
+bound implementer in-line 1-2-before-first-edit 6483
+bound implementer in-line 3-build               10368
+bound implementer in-line 4-docs                15481
+bound implementer in-line 6-commit-push-pr      17873
+bound implementer in-line 7-review              18845
+bound implementer in-line 8-gate-hand-back      21050
+bound implementer in-line 9-brief-wrong         23038
+bound implementer queue   1-2-before-first-edit 6661
+bound implementer queue   3-build               10546
+bound implementer queue   4-docs                15659
+bound implementer queue   6-commit-push-pr      18051
+bound implementer queue   7-review              19023
+bound implementer queue   8-gate-hand-back      20539
+bound implementer queue   9-brief-wrong         22527
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #

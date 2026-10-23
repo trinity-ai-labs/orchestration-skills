@@ -82,7 +82,7 @@ always finds it.
 **Each out-of-slice repair goes in its OWN commit**, so whoever reads the diff can keep it or drop it, and your
 hand-back comment names it in one line.
 
-## Craft, and the one sanctioned suppression
+## Craft, and the guardrail
 
 **Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
 `skills/procedures/code-shape.md`'s *Test policy* and *Placing new code and a new test*, under the project's

@@ -78,11 +78,11 @@ open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
 open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
-bound dispatcher all 0-read-config 14922
-bound dispatcher all 1-set-up      20791
-bound dispatcher all 2-dispatch    33769
-bound dispatcher all 3-judge       42223
-bound dispatcher all 4-land        50481
+bound dispatcher all 0-read-config 14943
+bound dispatcher all 1-set-up      20812
+bound dispatcher all 2-dispatch    33790
+bound dispatcher all 3-judge       42244
+bound dispatcher all 4-land        50599
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #
@@ -135,7 +135,7 @@ open  orchestrate * 1-ground    skills/glossary/vocabulary/umbrella.md skills/gl
 open  orchestrate * 3-reconcile skills/orchestrate/references/reconciling.md
 open  orchestrate * 5-close-out skills/procedures/github-writes.md
 
-bound orchestrate all 0-config    17581
-bound orchestrate all 1-ground    18836
-bound orchestrate all 3-reconcile 24651
-bound orchestrate all 5-close-out 25284
+bound orchestrate all 0-config    17602
+bound orchestrate all 1-ground    18857
+bound orchestrate all 3-reconcile 24672
+bound orchestrate all 5-close-out 25305

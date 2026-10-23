@@ -411,7 +411,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
   check that the PR can actually merge and that no CI check on its head is failing or pending — a red or
   pending check refuses with the worktree intact and the PR still a draft, naming each check and its run URL,
-  a pending one is re-run once it settles rather than waited on, and a PR with no checks passes, since a green
+  on a pending one `merge-pr.sh` is re-run once it settles rather than waiting on it, and a PR with no checks passes, since a green
   gate comment over a red CI is not a green gate — remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no
   forcing feedback, and the one a hand-run close-out drops. At the one boundary the rule above names it

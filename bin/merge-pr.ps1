@@ -842,7 +842,9 @@ PR #$Pr conflicts with '$BaseBranch' - nothing has been touched: the worktree is
 # close-out for as long as the slowest job runs. Every check counts, not only the
 # required ones: a repository with no branch protection requires none, and that
 # test would pass it red. A PR with no checks at all passes, which is what a
-# project that runs no CI needs.
+# project that runs no CI needs - and so does one read in the seconds after a push,
+# before GitHub registers its check suites; the gate that runs between that push
+# and this merge is what keeps the window shut.
 #
 # The head SHA is read in the same call as the checks, and the merge below passes
 # it as --match-head-commit, so the commit whose checks were read is the commit
@@ -886,7 +888,7 @@ if ($State -ne 'MERGED') {
         if ($ciAnswer -ne 'pass') { $ciBad += "`n    ${ciAnswer}: $ciName - $ciUrl" }
     }
     if ($ciBad) {
-        Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$ciBad`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run."
+        Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$ciBad`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
     }
 }
 

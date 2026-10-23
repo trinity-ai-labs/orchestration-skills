@@ -79,7 +79,8 @@ Every value must trace to a file you read.
   local command that builds and tests. **With no CI, setup does not propose CI**: it notes the absence and asks
   the user once whether the project wants CI, priced in runner minutes or money against what that local gate
   already proves, and records nothing when the answer is no, since the missing workflow is visible in the
-  tree. **No config key holds that answer.**
+  tree. **It asks on onboarding only, never on a reconcile**, where a tree with no CI is the answer already
+  given. **No config key holds that answer.**
 - **The preflight** — every no-compile step of the gate, as `skills/procedures/config-keys.md` defines it,
   one hidden inside a build target included, composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm

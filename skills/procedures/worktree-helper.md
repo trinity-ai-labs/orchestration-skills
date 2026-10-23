@@ -95,7 +95,8 @@ When working across multiple repos, `cd` into the target repo immediately before
 invocation, and treat an unexpected "behind by thousands of commits" line in helper output as a
 wrong-repo alarm: stop and verify before anything else runs.
 
-`merge-pr.sh` also self-guards: it refuses when the PR's head branch is unknown to the resolved repo;
+`merge-pr.sh` also self-guards: it refuses when any CI check on the PR's head is failing or pending, leaving
+the worktree intact and the PR a draft; when the PR's head branch is unknown to the resolved repo;
 when an already-merged PR has no worktree or local branch left to close out — `MERGE_PR_FORCE=1`
 overrides that one; and when the copy being run, or the directory it is being run from, is **inside the
 worktree the close-out has to tear down**, because that teardown kills every process rooted in the tree

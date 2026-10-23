@@ -1,8 +1,9 @@
 # Implementer — when the BRIEF is wrong
 
-Reference for `skills/execute/SKILL.md` → *Implementer*, any step. **Read it the moment your brief turns out
-wrong, you get stuck, an input is missing, or your dispatcher writes to you.** Its missing-input stop, fenced-path rule,
-the Goal and the enumeration floor bind every edit, so they are on `skills/execute/references/implementer.md`.
+Reference for `skills/execute/SKILL.md` → *Implementer*, any step — the brief-wrong reference. **Read it the
+moment your brief turns out wrong, you get stuck, an input is missing, or your dispatcher writes to you.** Its
+missing-input stop, fenced-path rule, the Goal and the enumeration floor bind every edit, so they are on
+`skills/execute/references/implementer.md`.
 
 **If you get stuck, hand back a reviewable artifact — never spin or die silently.** A blocker, an ambiguity
 you cannot resolve, a check you cannot get green, or running low on room all mean one thing: STOP and give the

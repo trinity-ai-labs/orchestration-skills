@@ -39,7 +39,8 @@ finished reading this skill.**
 **Each step names the reference that carries it, opened when you reach that step** — the first is
 `skills/execute/references/implementer.md`, read whole before your first edit. This list is the order, and the
 rules whose action needs no reference. **The moment your brief turns out wrong, an input it needs is missing,
-you get stuck, or your dispatcher writes to you, open `skills/execute/references/implementer-brief.md`.**
+you get stuck, or your dispatcher writes to you, open
+`skills/execute/references/implementer-brief-wrong.md`.**
 
 1. **`cd` into your assigned worktree and prove you are there** → `skills/execute/references/implementer.md`.
 2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is

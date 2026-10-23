@@ -50,20 +50,20 @@ open  implementer *      4-docs                skills/procedures/config-keys.md 
 open  implementer *      7-review              skills/execute/references/implementer-review.md
 open  implementer in-line 8-gate-hand-back     skills/execute/references/implementer-gate.md
 open  implementer *      8-gate-hand-back      skills/procedures/github-writes.md skills/glossary/vocabulary/hand-back-record.md skills/execute/references/implementer-hand-back.md
-open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief.md
+open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief-wrong.md
 
 bound implementer in-line 1-2-before-first-edit 6559
 bound implementer in-line 3-build               12829
 bound implementer in-line 4-docs                17935
 bound implementer in-line 7-review              18482
 bound implementer in-line 8-gate-hand-back      20703
-bound implementer in-line 9-brief-wrong         22690
+bound implementer in-line 9-brief-wrong         22694
 bound implementer queue   1-2-before-first-edit 6737
 bound implementer queue   3-build               13007
 bound implementer queue   4-docs                18113
 bound implementer queue   7-review              18660
 bound implementer queue   8-gate-hand-back      20194
-bound implementer queue   9-brief-wrong         22181
+bound implementer queue   9-brief-wrong         22185
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #

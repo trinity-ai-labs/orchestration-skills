@@ -267,18 +267,19 @@ doc out of the brief, you did it from the plan rather than from the diff, so re-
 actually changed. That is exactly how a stale README ships — not because the implementer skipped it, but
 because it was told not to look.
 
-**The review pass's rejected findings are addressed to YOU and reach you by THREE routes — read them, and
-read a hand-back that carries none against your own brief before you read it as a clean pass.**
+**The review pass's rejected findings are addressed to YOU and reach you on the PR — read them, and read a
+hand-back record that names no review against your own brief before you read it as a clean pass.**
 `/pipeline:review` runs inside the implementer and its reviewers report to it, so its `Rejected` list — each
 finding that implementer considered and deliberately did not act on, carrying the reviewer or reviewers that
-raised it — is written for the reviewer of this PR. The **hand-back** carries the narrative, the
-**review the pass posted onto this PR** carries the same findings as a live artifact attached to the diff, and
-the **dimension comments** beside it carry each reviewer's own report with the pass's disposition of every
-finding in it, so read whichever is in front of you and none is the only copy. **Where the hand-back
-disagrees with the PR, take the PR** — its writes are bound to the diff and name a head you can compare, and a
-hand-back that differs from them is prose nothing checked; **where the review's summary disagrees with a
-dimension comment, the comment is the reviewer's report and the summary is the implementer's gloss on it**.
-Either disagreement should not happen, and one that does is itself worth a round trip.
+raised it — is written for the reviewer of this PR. The **review the pass posted onto this PR** carries
+those findings as a live artifact attached to the diff, and the **dimension comments** beside it carry each
+reviewer's own report with the pass's disposition of every finding in it; the implementer's **hand-back
+record** (`skills/glossary/vocabulary/hand-back-record.md`) names both by URL and restates neither. **Where
+anything the hand-back says disagrees with the PR, take the PR** — its writes are bound to the diff and name a
+head you can compare, and a hand-back that differs from them is prose nothing checked; **where the review's
+summary disagrees with a dimension comment, the comment is the reviewer's report and the summary is the
+implementer's gloss on it**. Either disagreement should not happen, and one that does is itself worth a round
+trip.
 **Read a rejection naming SEVERAL reviewers harder than one naming a single reviewer**: several lenses landing
 on one site by different routes is the strongest evidence the run produces, so a rejection has to answer all
 of them, and one entry naming three reviewers is a converged finding turned down once rather than three
@@ -346,14 +347,14 @@ gh-post.sh comment pr <n> --key dispatcher-grant/<leaf> --body-file <file>
 **Attach the write to the review rather than to the PR opening**, an event nothing re-presents to you: an
 implementer that pushes, opens its draft PR and hands back as one closing sequence leaves no window between
 the two for a poll to land in, where a review cannot be skipped without skipping the merge. **Take the list
-off the slice's on-scope set and the hand-back's grant line, write every grant into that one body, and make
+off the slice's on-scope set and the grant lines of the hand-back comment, write every grant into that one body, and make
 the call every round** — it edits the grant comment in place and re-posts it where it has gone
 (`skills/procedures/github-writes.md`). **Where a hand-back reports the review pass's review and dimension
 comments posted and you find them missing, treat it as a missing write and ask**, rather than as a slice that
-skipped the pass. **Read the hand-back's grant line as the DETECTOR of a missing write, never as the write
-itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing and being caught
+skipped the pass. **Read the hand-back comment's grant lines as the DETECTOR of a missing write, never as the
+write itself**: an implementer reporting a grant recorded nowhere it can see is this rule failing and being caught
 by the one party it exists to protect, and a grant it can find only on the issue is that same report.
-**And a grant that line reports as answered AFTER the slice's review pass closed had no reader but you** —
+**And a grant those lines report as answered AFTER the slice's review pass closed had no reader but you** —
 read the file it names against the diff yourself rather than leaning on that pass's goal verdict, which was
 formed before the edit existed.
 
@@ -403,7 +404,7 @@ and threads its findings against the lines they concern. **A finding whose line 
 in the BODY** — the API rejects the entire review, creating nothing, when any inline comment names a line
 outside the diff, and the findings worth posting here (a seat the change missed, a doc it falsified) are
 routinely outside it. **Everything else goes inline and the summary goes in the body** — your verdict against
-the slice's `Goal`, the review decision you made for this slice, what the hand-back's `Rejected` list raised
+the slice's `Goal`, the review decision you made for this slice, what the review pass's `Rejected` list raised
 and what you made of it, and what the next round is being dispatched to fix.
 
 **One review per ROUND, never a single one at the end.** A **needs-changes** review is posted and the loop

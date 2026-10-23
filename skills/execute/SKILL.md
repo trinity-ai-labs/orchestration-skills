@@ -191,7 +191,8 @@ says a gate finished, not that anyone read the change.
 Gate the integrated whole with `gate` when a merge onto the integration branch combined work from more than
 one slice — a merge into an epic branch takes none, its close-out gating the combined diff — then merge,
 clean up and sync as one step, and
-close each issue the PR settled with a comment that is its outcome record — one `gh-post` close per issue,
+close each issue the PR settled with a comment that is its outcome record
+(`skills/glossary/vocabulary/outcome-record.md`) — one `gh-post` close per issue,
 keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
@@ -230,7 +231,7 @@ reference.
 6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
    ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
-   is a pushed branch and a draft PR.
+   is a pushed branch and a draft PR, named in your hand-back record.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or
@@ -244,10 +245,10 @@ reference.
    finds something.**
    ⛔ **The pass reads the PR's real diff and posts its findings onto it as a review, with one comment per
    dimension it dispatched beside it**, so the PR exists before the pass runs and what it leaves there is a
-   durable artifact your dispatcher reads off the PR rather than only out of your hand-back.
+   durable artifact your dispatcher reads off the PR, your hand-back record naming its address.
    ⛔ **Change nothing until every reviewer has reported** — an edit made on the first report moves the tree
    under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
-   answer being the ordinary case, is unreviewed and says so in the hand-back**, since nothing re-presents it
+   answer being the ordinary case, is unreviewed and says so in the hand-back comment**, since nothing re-presents it
    to a reader but the dispatcher's read of your diff.
    ⛔ **What you accept becomes ONE more commit onto the SAME PR** — preflight, commit, push, never a
    second PR and never a reopen — and a pass that raises nothing you accept leaves the slice where it
@@ -266,13 +267,15 @@ reference.
    and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
 8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
-   then hand back.**
+   then hand back: the detail in one PR comment keyed `handback/<leaf>`, and to your dispatcher only the short
+   hand-back record** (`skills/glossary/vocabulary/hand-back-record.md`), which names that comment's address —
+   `skills/execute/references/implementer.md`'s *Hand back* lists what goes where.
    ⛔ **Never end your turn on a check or command whose exit cannot wake you** — where your host re-invokes
    you on a backgrounded command's exit, background a long gate and end your turn; elsewhere that ended turn
    is your hand-back with no verdict in it, so the gate runs in the foreground
    (`skills/execute/references/implementer.md` has how).
-   ⛔ **The attribution ban above covers the gate verdict you comment here** exactly as it covers the commit
-   message and the PR body.
+   ⛔ **The attribution ban above covers the gate verdict and the hand-back comment you post here** exactly as
+   it covers the commit message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.
 
 ---

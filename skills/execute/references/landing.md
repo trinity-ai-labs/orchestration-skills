@@ -313,7 +313,8 @@ gh-post.sh close <n> --reason completed --key outcome/<n>/<pr> --body-file <file
 (`skills/procedures/github-writes.md`), `<pr>` being the PR that settled it, so a later close of the same
 issue adds its own record rather than overwriting this one.
 
-**That comment is the issue's OUTCOME RECORD, not a pointer to one** — a reader landing on a closed issue
+**That comment is the issue's OUTCOME RECORD (`skills/glossary/vocabulary/outcome-record.md`), not a pointer
+to one** — a reader landing on a closed issue
 should find what merged, your verdict, what was turned down or left out of scope and whether review ran,
 without opening a PR or a transcript, and one click from each dimension's full findings on the PR:
 
@@ -332,7 +333,7 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 closed it through a live keyword** — a keyword-closed issue otherwise carries nothing but the close event.
 Take the merge commit off the PR (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) once it has
 merged, the lists off the panel's posted review and your own last review, and the dimension-comment URLs off the
-implementer's hand-back, reading the PR where it names none, and the arc's other PRs off the slice PR's own body
+implementer's hand-back record, reading the PR where it names none, and the arc's other PRs off the slice PR's own body
 — every PR into the epic branch, or the umbrella's PRs where the arc merged onto the integration branch — so a
 reader of one slice's record can reach what landed beside it; **a skipped pass is written as skipped with its
 reason**, never left as a blank that reads the same as a lost write.

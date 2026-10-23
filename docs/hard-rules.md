@@ -61,7 +61,18 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
   once is a missing tool — the fix it recommends is a script with its own check in your repository, never a
-  longer brief.
+  longer brief. **A permanent test names the failure it exists to catch** — *this behaviour exists* is not a
+  reason — **and waits on a condition, never on elapsed time, by default**: the subject is driven to the state
+  through its own interface, time and randomness go through a fake clock or a fixed seed, and a timed wait
+  that is genuinely needed carries a written reason beside it. Passing serial re-runs prove nothing about a
+  flaky test, since a timing flake surfaces under load, so it is made stable by removing the wait.
+- **CI is your decision, priced, and no agent adds, widens or hand-starts it without your agreement.** CI comes
+  up only where the work touches it — a new project, or work that would add, widen or newly trigger a job —
+  and then as a conversation before the shape is approved, priced in runner minutes or money against what the
+  local gate already proves; *no CI* is a valid answer, and work that touches no CI asks nothing about it. No
+  seat creates or widens a workflow, or starts a run by hand (`gh workflow run`, a manual re-run, an empty
+  commit to retrigger), that you did not agree to. CI your project already has is followed as it stands: setup
+  reads it as the gate, and `merge-pr` refuses a merge while any of its checks fails or is pending.
 - **A finding is settled where that is cheap and within reach, and surfaced — with a recommendation — where it
   is not.** Nothing is dropped silently, and nothing reaches you, a dispatcher or a caller as a bare list or a
   bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
@@ -398,7 +409,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   empty. A human merges it on GitHub or says to go ahead, and the command below then runs unmodified, **after a
   re-gate where the base has moved under the hold**, which is unbounded in length.
 - **Close out with one command** — `merge-pr.sh <n>` runs the whole sequence in its one correct order:
-  check that the PR can actually merge, remove the worktree (git won't delete a branch checked out in
+  check that the PR can actually merge and that no CI check on its head is failing or pending — a red or
+  pending check refuses with the worktree intact and the PR still a draft, naming each check and its run URL,
+  on a pending one `merge-pr.sh` is re-run once it settles rather than waiting on it, and a PR with no checks passes, since a green
+  gate comment over a red CI is not a green gate — remove the worktree (git won't delete a branch checked out in
   one), real merge commit with `--delete-branch`, then fast-forward the local base branch — the step with no
   forcing feedback, and the one a hand-run close-out drops. At the one boundary the rule above names it
   squashes instead, with the close-out PR's title and body as the commit's message rather than whatever the

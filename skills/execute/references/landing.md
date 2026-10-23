@@ -262,8 +262,8 @@ The steps below have exactly one correct order, and syncing the local integratio
 stale HEAD. So **default to the helper, which does all of them but the last, atomically:
 `merge-pr.sh <pr-number>`** — plus the mergeability check the list below has you run by hand before its
 first step. It resolves the main checkout + the PR's base/head branches, confirms GitHub can actually merge
-the PR before anything irreversible happens, tears down the worktree, marks the PR ready and immediately
-`gh pr merge --merge --delete-branch`es it, and — anchored to the main checkout regardless of your cwd —
+the PR, and that no CI check on its head is failing or pending, before anything irreversible happens, tears
+down the worktree, marks the PR ready and immediately `gh pr merge --merge --delete-branch`es it, and — anchored to the main checkout regardless of your cwd —
 brings that local base branch up to the merged tip. (The one PR it merges any other way is an epic →
 integration close-out in a project that declared `"epicMerge": "squash"`, which it decides from that project's
 config before anything irreversible happens and finishes with a tree check in place of the delete — *The epic
@@ -373,9 +373,20 @@ Resolve a conflict by **merging the base in, in the branch's worktree**
 epic's slice is the epic branch, not the integration branch) — never rebase — then push, re-gate, and re-run
 `merge-pr.sh`.
 
+**It reads the PR's CI checks at the same point, and a failing or pending one stops it the same way** — worktree
+intact, PR still draft — naming each check and its run URL. Every check on the head counts, not only the
+required ones, a PR with no checks passes, and the merge is pinned to the head whose checks were read
+(`--match-head-commit`). **A pending check is not waited on**: read `gh pr checks <n>` and re-run `merge-pr.sh`
+once it settles. **A green gate comment over a red CI is not a green gate** — fix the check on the branch, push,
+re-gate, then re-run; a check cancelled, timed out or stale with nothing in the code to fix needs a CI re-run,
+which is the user's call. **Its read is only as good as what CI has reported on a draft**: a job the project
+skips on drafts reports `SKIPPED` and passes, and one triggered by the ready flip has not started when the
+helper reads, so where a project's CI skips drafts, mark the PR ready and let its checks settle before
+`merge-pr.sh`.
+
 If you ever run the close-out by hand (helper unavailable, or an edge it can't cover), do it in this exact
-sequence, every time — and check `gh pr view <n> --json mergeable` yourself before step 1, since by step 2 the
-worktree is gone:
+sequence, every time — and check `gh pr view <n> --json mergeable` and `gh pr checks <n>` yourself before
+step 1, stopping on a failing or pending check as the helper does, since by step 2 the worktree is gone:
 1. **Confirm the ticket is done before you tear down.** The runner gates in the ticket's worktree, so don't
    remove a worktree whose ticket is still `queue`/`processing` — wait until its gate has resolved (its
    verdict comment is on the PR). Removal is one half of the frozen-worktree rule; **editing** it mid-gate is

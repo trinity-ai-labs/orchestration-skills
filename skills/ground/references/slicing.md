@@ -254,7 +254,9 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   alone — a failure that is real, reproducible and nothing to do with the change under it.
   **The reversal is the tell, and a width argued without it sends someone chasing a ghost**: the same commit
   reds under concurrent implementers and passes on a quiet machine, so this is a cost of the width you
-  recommended rather than a flaky suite for anyone to fix.
+  recommended rather than a flaky suite for anyone to fix. **A test whose own timed wait is what reds under load
+  is the exception**: that wait is a defect by the *Test policy* (`skills/procedures/code-shape.md`), removed
+  rather than outrun by a narrower wave, and a clean run on a quiet machine does not clear it.
 - **A sub-PR fragment — a rename, a one-liner, a single test — still buys a worktree and a gate**, so it is a
   fact about wave width and a note back to the plan — **and where several such leaves are one mechanical
   change with no ordering between them, that note goes onto the issue exactly as an oversized one does,

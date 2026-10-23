@@ -75,6 +75,17 @@ from `gate`.
 Whether a permanent test should exist at all — a guard or a probe, both defined in
 `skills/glossary/vocabulary/code-shape.md`.
 
+- **A permanent test names the failure it exists to catch** — the bug, the broken contract, the regression a
+  user would see. *This behaviour exists* is not a reason: small behaviours are covered by the one seam test
+  that exercises them, never one test each.
+- **A test waits on a condition, not on elapsed time, by default**, since a fixed sleep, or nudging an input
+  and pausing to see what moved, makes the verdict depend on how fast the machine is, which is where most
+  flaky tests come from. Drive the subject to the state through its own interface, use a fake clock or a
+  fixed seed where time or randomness is involved, and await the event or predicate with a bound. A timed
+  wait that is genuinely needed, such as a real debounce or timeout under test with no fake clock available,
+  carries a written reason beside it, as a full sweep does. **Passing serial re-runs proves nothing either
+  way**: a timing flake surfaces under load, as when gates run side by side, so a test is made stable by
+  removing the wait, not by a clean streak.
 - **A test lives in its subject's folder** — a component's unit, integration and browser tests all in that
   component's folder — so the folders a change touches select it, and a tag carries only what the folder cannot
   say. **A sweep that samples across every unit is a sign the tests live away from their subject**, and the
@@ -121,6 +132,7 @@ Stop at the first answer that places it.
 3. **A unit test only for logic with real branches inside one module.**
 4. **Tag it with its domain in the project's form where its folder cannot say it**, and where tags are checked from evidence, confirm what
    the test imports or calls points at that domain.
+5. **Name what it catches and make it deterministic**, per the *Test policy*.
 
 ## Pruning
 

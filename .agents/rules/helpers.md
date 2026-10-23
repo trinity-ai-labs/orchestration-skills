@@ -63,8 +63,11 @@ sign off on, not a unilateral edit discovered later as a behavioral mismatch.
 As it stands: `setup-worktree` takes `<branch> <base>` to fork a new branch, or `--existing <branch>` to
 attach a worktree to a branch that is already there (no base — an existing branch's base is whatever it
 already forked from), and prints `READY: <path>` followed by `HEAD: <sha>`, the worktree's resulting commit.
-`merge-pr` takes `<pr-number>`; `remove-worktree` takes a branch leaf or an absolute path, and after the
-removal (or the prune, for a tree already absent) prints its own `reclaim:` lines while running the
+`merge-pr` takes `<pr-number>`, and before anything irreversible it refuses, exiting `1` with the worktree
+intact and the PR still a draft, a PR whose head has any failing or pending CI check — every check in the
+rollup, not only required ones, each named with its URL — while a PR with no checks passes; it never waits on
+a pending check, and it merges with `--match-head-commit` at the head whose checks it read. `remove-worktree`
+takes a branch leaf or an absolute path, and after the removal (or the prune, for a tree already absent) prints its own `reclaim:` lines while running the
 project's `reclaim.drop`, which can never change its exit status; `setup-workspace`
 takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
 `READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on

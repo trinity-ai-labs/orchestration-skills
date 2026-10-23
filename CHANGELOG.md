@@ -2,6 +2,30 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.26.0
+
+- **`merge-pr` refuses a PR with a failing or pending CI check.** Before anything irreversible, both ports read
+  the head commit and every check in its rollup, not only the required ones, and a check that has failed or not
+  yet finished stops the run with exit `1`, the worktree intact and the PR still a draft, naming each check and
+  its run URL. A pending check is not waited on: re-run once it settles. A PR with no checks passes, so a
+  project that runs no CI merges as before. The merge is pinned to the head whose checks were read
+  (`--match-head-commit`). The verdict per check is one predicate in each port, held together by the new
+  `scripts/port-cases/ci-verdict.tsv`. A green gate comment over a red CI is no longer a green gate, in the
+  dispatcher's verdict and its landing steps alike.
+- **CI is the user's decision, priced.** `/pipeline:co-think` raises CI only where the work touches it — a new
+  project, or work that would add, widen or newly trigger a job — and then as a conversation before the shape
+  is approved, priced in runner minutes or money against what the local gate already proves; *no CI* is a
+  valid answer, and CI a project already runs is followed as it stands. A new ground rule binds every seat: no
+  seat creates or widens a CI workflow, or starts a CI run by hand, without the user's agreement.
+  `/pipeline:write-issue` puts a CI change in the plan only with that decision and its price, grounding sends
+  a slice needing an undecided job back to the plan, and `/pipeline:setup` asks once where a project has no CI
+  rather than proposing one. No config key is added.
+- **A test names what it catches and does not wait on the clock.** The *Test policy* gains two clauses: a
+  permanent test names the failure it exists to catch, and a test waits on a condition rather than elapsed
+  time by default, a genuinely needed timed wait carrying a written reason beside it. Passing serial re-runs
+  prove nothing about a flaky test, since a timing flake surfaces under load. *Then its test* gains a last
+  step: name what it catches and make it deterministic.
+
 ## 5.25.0
 
 - **What each seat has open at each step is now a number the gate holds.** `scripts/seat-load.txt` lists, per

@@ -1247,7 +1247,8 @@ fi
 pc_registry='squash-boundary.tsv|merge-pr.sh|squash_boundary_ok|merge-pr.ps1|Test-SquashBoundary|squash/merge
 gh-post-marker.tsv|gh-post.sh|build_marker|gh-post.ps1|Get-PipelineMarker|print
 gh-post-match.tsv|gh-post.sh|marker_matches build_marker|gh-post.ps1|Test-MarkerMatch Get-PipelineMarker|yes/no
-gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print'
+gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print
+ci-verdict.tsv|merge-pr.sh|ci_verdict|merge-pr.ps1|Get-CiVerdict|print'
 
 pc_registered=''
 pc_unregistered=''

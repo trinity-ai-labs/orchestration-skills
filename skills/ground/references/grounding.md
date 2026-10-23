@@ -70,7 +70,9 @@ with nothing erroring, so the implementer builds against the nearest plausible t
   - **Then ask the same of everything else that asserts something about the code** — a guard-proof table row,
     a `package.json` script entry, a pre-commit chain entry, a test fixture, a CI job, a ledger entry — and
     **find every declaration, not the first**, since an enforcement chain is routinely declared in several
-    places.
+    places. **Grounding never adds a CI job**, per `skills/ground-rules/SKILL.md` rule 14: a slice that would
+    need a new or widened job, where the issue carries no user decision on it, goes back to the plan, the way
+    an oversized leaf does.
   - **And ask what PRODUCES the artifact, not only what reads it**: *asserts something about the code*
     describes a consumer, and a producer omitting a new field emits a valid artifact, so it never errors.
   - **And ask what the slice ADDS that no doc describes at all** — *what does this falsify?* asks about a

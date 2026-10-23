@@ -52,18 +52,18 @@ open  implementer in-line 8-gate-hand-back     skills/execute/references/impleme
 open  implementer *      8-gate-hand-back      skills/procedures/github-writes.md skills/glossary/vocabulary/hand-back-record.md skills/execute/references/implementer-hand-back.md
 open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief-wrong.md
 
-bound implementer in-line 1-2-before-first-edit 6559
-bound implementer in-line 3-build               12829
-bound implementer in-line 4-docs                17935
-bound implementer in-line 7-review              18482
-bound implementer in-line 8-gate-hand-back      20703
-bound implementer in-line 9-brief-wrong         22694
-bound implementer queue   1-2-before-first-edit 6737
-bound implementer queue   3-build               13007
-bound implementer queue   4-docs                18113
-bound implementer queue   7-review              18660
-bound implementer queue   8-gate-hand-back      20194
-bound implementer queue   9-brief-wrong         22185
+bound implementer in-line 1-2-before-first-edit 6674
+bound implementer in-line 3-build               13148
+bound implementer in-line 4-docs                18254
+bound implementer in-line 7-review              18801
+bound implementer in-line 8-gate-hand-back      21022
+bound implementer in-line 9-brief-wrong         23013
+bound implementer queue   1-2-before-first-edit 6852
+bound implementer queue   3-build               13326
+bound implementer queue   4-docs                18432
+bound implementer queue   7-review              18979
+bound implementer queue   8-gate-hand-back      20513
+bound implementer queue   9-brief-wrong         22504
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #
@@ -78,11 +78,11 @@ open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
 open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
-bound dispatcher all 0-read-config 14807
-bound dispatcher all 1-set-up      20676
-bound dispatcher all 2-dispatch    33654
-bound dispatcher all 3-judge       42072
-bound dispatcher all 4-land        50212
+bound dispatcher all 0-read-config 14943
+bound dispatcher all 1-set-up      20812
+bound dispatcher all 2-dispatch    33790
+bound dispatcher all 3-judge       42244
+bound dispatcher all 4-land        50599
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #
@@ -96,14 +96,14 @@ open  review-reader * read skills/ground-rules/SKILL.md
 open  review-reader correctness,altitude,tests read skills/procedures/code-shape.md
 open  review-reader rules read skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md
 
-bound review-reader goal           read 2607
-bound review-reader correctness    read 5967
-bound review-reader reuse          read 2607
-bound review-reader simplification read 2607
-bound review-reader efficiency     read 2607
-bound review-reader altitude       read 5967
-bound review-reader rules          read 7173
-bound review-reader tests          read 5967
+bound review-reader goal           read 2722
+bound review-reader correctness    read 6286
+bound review-reader reuse          read 2722
+bound review-reader simplification read 2722
+bound review-reader efficiency     read 2722
+bound review-reader altitude       read 6286
+bound review-reader rules          read 7288
+bound review-reader tests          read 6286
 
 # --- grounder — skills/ground/SKILL.md's actions --------------------------------
 #
@@ -115,9 +115,9 @@ open  grounder * 1-ground skills/ground/SKILL.md skills/ground-rules/SKILL.md sk
 open  grounder * 3-slice  skills/ground/references/slicing.md skills/procedures/code-shape.md
 open  grounder * 4-emit   skills/ground/references/emitting.md skills/procedures/github-writes.md
 
-bound grounder all 1-ground 13452
-bound grounder all 3-slice  23484
-bound grounder all 4-emit   26247
+bound grounder all 1-ground 13607
+bound grounder all 3-slice  23887
+bound grounder all 4-emit   26650
 
 # --- orchestrator — skills/orchestrate/SKILL.md's numbered sections ----------
 #
@@ -135,7 +135,7 @@ open  orchestrate * 1-ground    skills/glossary/vocabulary/umbrella.md skills/gl
 open  orchestrate * 3-reconcile skills/orchestrate/references/reconciling.md
 open  orchestrate * 5-close-out skills/procedures/github-writes.md
 
-bound orchestrate all 0-config    17466
-bound orchestrate all 1-ground    18721
-bound orchestrate all 3-reconcile 24536
-bound orchestrate all 5-close-out 25169
+bound orchestrate all 0-config    17602
+bound orchestrate all 1-ground    18857
+bound orchestrate all 3-reconcile 24672
+bound orchestrate all 5-close-out 25305

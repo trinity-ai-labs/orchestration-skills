@@ -404,7 +404,7 @@ function Test-ReadyTrigger {
     $q = "[""']"
     $oneLine = "(^|[^A-Za-z0-9_])pull_request(_target)?${q}?[ \t]*:.*types.*ready_for_review"
     $prKey = "^${q}?pull_request(_target)?${q}?[ \t]*:"
-    $typesKey = '^types[ \t]*:'
+    $typesKey = "^${q}?types${q}?[ \t]*:"
     $inPr = $false
     $prIndent = 0
     $inTypes = $false
@@ -551,7 +551,7 @@ function Get-PrField {
     # asynchronously and it is polled until it settles, `isDraft` because it must
     # describe the instant before this run flips it, and `state` because after a
     # merge call that did not return cleanly it is what decides whether step 3
-    # succeeded.
+    # succeeded, and `headRefOid` because it is read on both sides of the checks.
     param([Parameter(Mandatory = $true)] [string] $Name)
     return Invoke-InMainCheckout -ArgumentList @($Name) -Body {
         param([string] $Field)
@@ -1059,6 +1059,9 @@ function Restore-DraftFlag {
     if ($WasDraft -ne 'true') { return }
     $script:RestoreFailed = $false
     Invoke-InMainCheckout {
+        # Errors as data: gh writes its success line to stderr, and Windows
+        # PowerShell 5.1 raises redirected native stderr as an error under 'Stop'.
+        $ErrorActionPreference = 'Continue'
         & gh pr ready $Pr --undo *> $null
         if ($LASTEXITCODE -ne 0) { $script:RestoreFailed = $true }
     }
@@ -1074,6 +1077,10 @@ function Find-ReadyWorkflow {
     # Fills $script:ReadyWorkflows with the name of each workflow at <commit> whose
     # PR trigger names ready_for_review.
     param([Parameter(Mandatory = $true)] [string] $Commit)
+    # Errors as data for this function's probes: a missing commit makes
+    # `cat-file -e` write to stderr, which Windows PowerShell 5.1 raises under 'Stop'
+    # before the fetch fallback is reached.
+    $ErrorActionPreference = 'Continue'
     $script:ReadyWorkflows = @()
     if (-not (Test-GitSuccess @('-C', $Main, 'cat-file', '-e', "$Commit^{commit}"))) {
         if (-not (Test-GitSuccess @('-C', $Main, 'fetch', '--quiet', 'origin', "refs/pull/$Pr/head"))) {
@@ -1139,6 +1146,11 @@ function Get-FlipRerunState {
 $Awaited = @()
 if ($State -ne 'MERGED') {
     $WasDraft = Get-PrField 'isDraft'
+    # Unread, it would decide silently that no flip is this run's to make, and so
+    # that nothing waits.
+    if (-not $WasDraft) {
+        Exit-WithError "could not read whether PR #$Pr is a draft - nothing has been touched: the worktree is intact and the PR is as it was. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+    }
     # The workflow files are read only where the draft skipped something, since only
     # a skipped check can be one the flip re-runs.
     $draftSkipped = @($PreFlipRows | Where-Object { [string](Get-JsonValue $_ 'bucket') -ceq 'skipping' })
@@ -1159,7 +1171,7 @@ if ($Awaited.Count -gt 0) {
     Write-Output "merge-pr: marking PR #$Pr ready (review approval) ahead of the teardown - the draft skipped $awaitedList, whose workflow starts on that flip, so the merge waits for it ..."
     # An interrupted wait must not leave a ready PR that is not being merged: a
     # Ctrl+C still runs the finally block, which puts the flag back unless the wait
-    # reached a verdict first.
+    # reached a verdict first. The teardown below guards its own stretch the same way.
     $flipSettled = $false
     try {
         Invoke-InMainCheckout {
@@ -1176,14 +1188,19 @@ if ($Awaited.Count -gt 0) {
         $flipDetail = ''
         $flipHint = ''
         # 24 polls 5 seconds apart, about two minutes for a run to register and start.
+        $readAny = $false
         foreach ($attempt in 1..24) {
             if (Get-PrCheck) {
+                $readAny = $true
                 Get-FlipRerunState
                 if (-not $script:PendingList) { break }
             }
             if ($attempt -lt 24) { Start-Sleep -Seconds 5 }
         }
-        if ($script:Rerun.Count -eq 0) {
+        if (-not $readAny) {
+            $flipRefusal = "could not read PR #$Pr's CI checks after marking it ready, so nothing has been merged: the worktree is intact and"
+            $flipHint = "Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+        } elseif ($script:Rerun.Count -eq 0) {
             $flipRefusal = "PR #$Pr was marked ready to start its CI - the draft skipped $awaitedList, whose workflow names ready_for_review - but none of them re-ran within about two minutes, so nothing has been merged: the worktree is intact and"
             $flipHint = "Read gh pr checks $Pr, and re-run merge-pr.ps1 $Pr once that CI reports; starting it by hand is the user's call."
         } else {
@@ -1191,11 +1208,13 @@ if ($Awaited.Count -gt 0) {
                 Write-Output "merge-pr: $($script:PendingList) did not re-run within about two minutes - waiting on the checks that did ..."
             }
             Write-Output "merge-pr: waiting for PR #$Pr's checks to finish (gh pr checks --watch --fail-fast) ..."
-            # The watch's own exit is not the verdict, the read after it is; a check
-            # gh had not surfaced when the watch returned gets a second watch, three
-            # at most.
+            # The watch's own exit is not the verdict, the read after it is. An
+            # awaited check that has still not re-run is NOT green, however its stale
+            # skip reads - it is pending, so it gets another watch, three at most, and
+            # is refused after that.
             foreach ($round in 1..3) {
                 Invoke-InMainCheckout {
+                    $ErrorActionPreference = 'Continue'
                     & gh pr checks $Pr --watch --fail-fast *> $null
                 }
                 if (-not (Get-PrCheck)) {
@@ -1204,7 +1223,15 @@ if ($Awaited.Count -gt 0) {
                     break
                 }
                 Get-CiNotGreen
+                Get-FlipRerunState
+                if ($script:PendingList) {
+                    $script:CiBad += "`n    pending: $($script:PendingList) - not re-run since the flip"
+                    $script:CiPending = $true
+                }
                 if (-not $script:CiPending -or $round -ge 3) { break }
+                # A check still to re-run gives gh nothing pending to watch, so the
+                # next round would return at once: give GitHub a moment to register it.
+                if ($script:PendingList) { Start-Sleep -Seconds 10 }
             }
             if (-not $flipRefusal -and $script:CiBad) {
                 $flipRefusal = "PR #$Pr has CI checks that are not green at $HeadOid after it was marked ready, so nothing has been merged: the worktree is intact and"
@@ -1261,11 +1288,24 @@ if ($HeadBranch) {
     if ($HeadWt) { $teardownTarget = $HeadWt }
     $priorRepo = [Environment]::GetEnvironmentVariable('REPO')
     [Environment]::SetEnvironmentVariable('REPO', $Main)
+    # After step 1c's flip a failed or interrupted teardown puts the draft flag back
+    # on its way out, since no merge follows it.
+    $teardownOk = $false
     try {
         & (Join-Path $Here 'remove-worktree.ps1') $teardownTarget
-        if ($LASTEXITCODE -ne 0) { Exit-WithError "remove-worktree.ps1 failed (exit $LASTEXITCODE)" }
+        if ($LASTEXITCODE -ne 0) {
+            $teardownStatus = $LASTEXITCODE
+            if ($Flipped) {
+                $teardownOk = $true
+                Restore-DraftFlag
+                Exit-WithError "remove-worktree.ps1 failed (exit $teardownStatus) after PR #$Pr was marked ready, so nothing has been merged; $($script:DraftNote). Fix what it reported and re-run merge-pr.ps1 $Pr."
+            }
+            Exit-WithError "remove-worktree.ps1 failed (exit $teardownStatus)"
+        }
+        $teardownOk = $true
     } finally {
         [Environment]::SetEnvironmentVariable('REPO', $priorRepo)
+        if ($Flipped -and -not $teardownOk) { Restore-DraftFlag }
     }
 }
 

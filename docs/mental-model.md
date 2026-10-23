@@ -216,7 +216,9 @@ no more an approval than the gate's comment is** — the same distinction, one s
 nothing left to do, never that anyone approved the merge. So a PR can sit for minutes or for weeks carrying a
 panel review and its dimension comments, a gate comment, a satisfied dispatcher review and this one, still a
 draft and still unapproved, until a human merges it on GitHub or tells the assistant to go ahead — and only
-then does `merge-pr.sh` flip it, one line above `gh pr merge`, as it always did.
+then does `merge-pr.sh` flip it, inside the run that merges — one line above `gh pr merge`, or ahead of the
+teardown where the draft skipped a check whose workflow starts on `ready_for_review`, so the merge waits on that
+CI.
 
 **Beside the panel's review sit plain comments, one per dimension it dispatched**, each carrying that
 reviewer's own findings and what the pass did with every one of them — applied, rejected with why, or flagged
@@ -232,8 +234,10 @@ own review on the PR as well, so a PR with no panel review on it reads as a reco
 went missing, never as a blank that could be either.
 
 A posted review is a different artifact from the gate's plain comment, which is what keeps the two readable
-side by side. `merge-pr.sh` is the only thing that sets it, one line above `gh pr merge`, so approval can
-never go stale between the review and the merge — and where that merge fails it puts the flag straight back
+side by side. `merge-pr.sh` is the only thing that sets it, inside the run that merges — one line above
+`gh pr merge`, or ahead of the teardown where the flip starts CI the merge then waits on, putting the flag back
+if that CI is not green — so approval can never go stale between the review and the merge — and where that
+merge fails it puts the flag straight back
 with `gh pr ready <n> --undo`, judging "fails" by the PR's own state rather than by the call's exit, since the
 call can hang or error after GitHub has merged, and only where *this* run is what set it, so a PR that arrived
 already ready keeps the state it came with rather than being pushed into a draft nobody asked for. The flag

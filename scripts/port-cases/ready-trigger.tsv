@@ -26,3 +26,4 @@ on:\n  pull_request:\n    types: [opened]\n    branches:\n      - ready_for_revi
 on:\n  pull_request:\njobs:\n  x:\n    if: github.event.action == 'ready_for_review'	no
 -	no
 on:\n  pull_request:\n    types: [opened, synchronize, ready_for_review]\n    paths: ['packages/api/**']	yes
+'on':\n  'pull_request_target':\n    'types': [ready_for_review]	yes

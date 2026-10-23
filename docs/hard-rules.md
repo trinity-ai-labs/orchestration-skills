@@ -400,7 +400,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   touches whether a review pass or a gate happens. What the dispatcher does instead of merging is post one
   comment saying the pipeline is satisfied and naming the key holding the merge with the value it resolved to,
   and stop — **with the PR still a draft, no `gh pr ready` and no `merge-pr.sh`**, since a PR flipped ready and
-  left unmerged is exactly the stale approval that flip's placement one line above the merge exists to prevent.
+  left unmerged is exactly the stale approval that flip's placement inside the merging run exists to prevent.
   No post-merge step runs either, issue closes and the base-branch sync included, and the run's own report names
   which PR is held — the comment sits on a draft nobody is watching. **The loop writes that same fact onto the
   tracked issue as a comment**, never into the umbrella body, which carries the remaining plan alone: the report

@@ -323,7 +323,7 @@ ready_trigger() {
   local q="[\"']"
   local one_line="(^|[^A-Za-z0-9_])pull_request(_target)?$q?[[:blank:]]*:.*types.*ready_for_review"
   local pr_key="^$q?pull_request(_target)?$q?[[:blank:]]*:"
-  local types_key="^types[[:blank:]]*:"
+  local types_key="^$q?types$q?[[:blank:]]*:"
   while IFS= read -r line; do
     line=${line%$'\r'}
     line=${line%%[[:blank:]]#*}
@@ -805,8 +805,7 @@ EOF
 
 HEAD_OID=""
 if [ "$STATE" != "MERGED" ]; then
-  HEAD_OID=$(pr_field headRefOid 2>/dev/null) \
-    || die "could not read the CI checks on PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once gh can reach GitHub."
+  HEAD_OID=$(pr_field headRefOid 2>/dev/null || true)
   [ -n "$HEAD_OID" ] || die "GitHub returned no head commit for PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft."
   if [ "$MERGE_MODE" = "squash" ] && [ "$HEAD_OID" != "$EPIC_TIP" ]; then
     die "PR #$PR's head moved from $EPIC_TIP to $HEAD_OID during this run — nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.sh $PR"
@@ -920,6 +919,7 @@ find_awaited() {
   AWAITED=""
   while IFS="$TAB" read -r bucket name workflow event link; do
     [ -n "$bucket$name" ] || continue
+    [ "$workflow" != - ] || workflow=""
     awaits_flip "$bucket" "$workflow" "$READY_WORKFLOWS" || continue
     AWAITED="$AWAITED$name$TAB$workflow$TAB$event$TAB$link$NL"
   done <<EOF
@@ -956,9 +956,12 @@ EOF
 
 if [ "$STATE" != "MERGED" ]; then
   WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
+  # Unread, it would decide silently that no flip is this run's to make, and so that
+  # nothing waits.
+  [ -n "$WAS_DRAFT" ] || die "could not read whether PR #$PR is a draft — nothing has been touched: the worktree is intact and the PR is as it was. Re-run merge-pr.sh $PR once gh can reach GitHub."
   # The workflow files are read only where the draft skipped something, since only a
   # skipped check can be one the flip re-runs.
-  if [ "$WAS_DRAFT" = "true" ] && printf '%s\n' "$PRE_FLIP_ROWS" | grep -q "^skipping$TAB"; then
+  if [ "$WAS_DRAFT" = "true" ] && [[ "$NL$PRE_FLIP_ROWS" == *"${NL}skipping$TAB"* ]]; then
     find_ready_workflows "$HEAD_OID"
     find_awaited
   fi
@@ -971,9 +974,10 @@ if [ -n "$AWAITED" ]; then
 $AWAITED
 EOF
   echo "merge-pr: marking PR #$PR ready (review approval) ahead of the teardown — the draft skipped $AWAITED_LIST, whose workflow starts on that flip, so the merge waits for it ..."
-  # An interrupted wait must not leave a ready PR that is not being merged, so each
-  # trap puts the flag back, then re-raises the signal with the default action
-  # restored, the same way the merge call's traps do.
+  # An interrupted wait or teardown must not leave a ready PR that is not being
+  # merged, so each trap puts the flag back, then re-raises the signal with the
+  # default action restored, the same way the merge call's traps do; they stay set
+  # until step 3 sets its own.
   trap 'restore_draft; trap - INT; kill -s INT $$' INT
   trap 'restore_draft; trap - TERM; kill -s TERM $$' TERM
   ( cd "$MAIN" && gh pr ready "$PR" ) \
@@ -983,8 +987,10 @@ EOF
   FLIP_DETAIL=""
   # 24 polls 5 seconds apart, about two minutes for a run to register and start.
   attempt=1
+  READ_ANY=""
   while :; do
     if read_checks; then
+      READ_ANY=1
       flip_rerun_state
       [ -n "$PENDING_LIST" ] || break
     fi
@@ -992,7 +998,10 @@ EOF
     attempt=$((attempt + 1))
     sleep 5
   done
-  if [ -z "$RERUN" ]; then
+  if [ -z "$READ_ANY" ]; then
+    FLIP_REFUSAL="could not read PR #$PR's CI checks after marking it ready, so nothing has been merged: the worktree is intact and"
+    FLIP_HINT="Re-run merge-pr.sh $PR once gh can reach GitHub."
+  elif [ -z "$RERUN" ]; then
     FLIP_REFUSAL="PR #$PR was marked ready to start its CI — the draft skipped $AWAITED_LIST, whose workflow names ready_for_review — but none of them re-ran within about two minutes, so nothing has been merged: the worktree is intact and"
     FLIP_HINT="Read gh pr checks $PR, and re-run merge-pr.sh $PR once that CI reports; starting it by hand is the user's call."
   else
@@ -1000,8 +1009,9 @@ EOF
       echo "merge-pr: $PENDING_LIST did not re-run within about two minutes — waiting on the checks that did ..."
     fi
     echo "merge-pr: waiting for PR #$PR's checks to finish (gh pr checks --watch --fail-fast) ..."
-    # The watch's own exit is not the verdict, the read after it is; a check gh had
-    # not surfaced when the watch returned gets a second watch, three at most.
+    # The watch's own exit is not the verdict, the read after it is. An awaited check
+    # that has still not re-run is NOT green, however its stale skip reads — it is
+    # pending, so it gets another watch, three at most, and is refused after that.
     for round in 1 2 3; do
       ( cd "$MAIN" && gh pr checks "$PR" --watch --fail-fast ) >/dev/null 2>&1 || true
       if ! read_checks; then
@@ -1010,7 +1020,15 @@ EOF
         break
       fi
       ci_not_green
+      flip_rerun_state
+      if [ -n "$PENDING_LIST" ]; then
+        CI_BAD="$CI_BAD\n    pending: $PENDING_LIST — not re-run since the flip"
+        CI_PENDING=1
+      fi
       [ -n "$CI_PENDING" ] && [ "$round" -lt 3 ] || break
+      # A check still to re-run gives gh nothing pending to watch, so the next round
+      # would return at once: give GitHub a moment to register it first.
+      [ -z "$PENDING_LIST" ] || sleep 10
     done
     if [ -z "$FLIP_REFUSAL" ] && [ -n "$CI_BAD" ]; then
       FLIP_REFUSAL="PR #$PR has CI checks that are not green at $HEAD_OID after it was marked ready, so nothing has been merged: the worktree is intact and"
@@ -1030,7 +1048,6 @@ EOF
     trap - INT TERM
     die "$FLIP_REFUSAL $DRAFT_NOTE.$FLIP_DETAIL\n  $FLIP_HINT"
   fi
-  trap - INT TERM
   echo "merge-pr: PR #$PR's CI is green at $HEAD_OID after the flip."
 fi
 
@@ -1058,8 +1075,16 @@ fi
 # is why both halves of this fix were needed and neither substitutes for the other.
 if [ -n "$HEAD_BRANCH" ]; then
   echo "merge-pr: tearing down worktree for $HEAD_BRANCH ..."
-  REPO="$MAIN" "$HERE/remove-worktree.sh" "${HEAD_WT:-$HEAD_BRANCH}"
+  # After step 1c's flip a failed teardown puts the draft flag back on its way out,
+  # since no merge follows it.
+  REPO="$MAIN" "$HERE/remove-worktree.sh" "${HEAD_WT:-$HEAD_BRANCH}" || {
+    td_status=$?
+    [ -n "$FLIPPED" ] || exit "$td_status"
+    restore_draft
+    die "remove-worktree.sh failed (exit $td_status) after PR #$PR was marked ready, so nothing has been merged; $DRAFT_NOTE. Fix what it reported and re-run merge-pr.sh $PR."
+  }
 fi
+[ -z "$FLIPPED" ] || trap - INT TERM
 
 # --- 3. Merge (unless already merged) ------------------------------------------
 # Set when the merge call did not return cleanly but the PR is merged all the same;

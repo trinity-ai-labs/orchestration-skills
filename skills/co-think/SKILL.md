@@ -109,6 +109,13 @@ resolves.
   out, establish what changing **it** would cost — by reading it, not recalling it — and say so beside the
   option it was blocking. **The expensive-looking constraint that turns out cheap is the common case**, since
   a mechanism that is present and enforced reads as fixed.
+- **CI comes up only where the work touches it, and then as a conversation with the user.** A new project, or
+  work that would add, widen or newly trigger a CI job, is talked through before the shape is approved:
+  whether the project runs CI at all, what it runs and on what trigger, priced in runner minutes or money
+  against what the local gate already proves. Not every project can afford CI, and where the local gate runs
+  the same checks, CI adds cost and little evidence; *no CI* is a valid answer. **Work that touches no CI asks
+  nothing about it** — most stories and operations never raise it — **and CI the project already runs is
+  followed as it stands, not re-litigated.**
 - **YAGNI, out loud.** Cut what the stated goal does not need from every approach you present — before a thing
   is designed is the cheapest moment it will ever be to remove it.
 - Aim at purpose, constraints and success criteria. A gap an existing pattern or the repo's own conventions

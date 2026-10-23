@@ -205,6 +205,14 @@ alternative, with its cost. Then carry on with everything that does not depend o
 **This rule says *surface*, never *file*** — where a surfaced finding goes, and who may file it, is written at
 each seat.
 
+## 14. CI is added, widened or started by hand only on the user's word
+
+**No seat creates or widens a CI workflow, or starts a CI run by hand — `gh workflow run`, a manual re-run, an
+empty commit to retrigger — that the user did not agree to in conversation**, since CI costs runner minutes or
+money not every project can afford. **CI a project already has is followed as it stands**: setup reads it as
+the gate, `merge-pr` refuses a merge while any of its checks fails or is pending and passes a PR with none, and
+the checks a push triggers are the project's own CI, not a run anyone started.
+
 ---
 
 **A pass that restates one of these at your seat is stating the same rule, and a pass that states

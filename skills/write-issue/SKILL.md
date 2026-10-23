@@ -224,7 +224,9 @@ what rule 13 asks.
 Write the body in this order. Small issues collapse to goal + surface + verify.
 
 - **Goal** — one or two sentences: what changes and why it's worth doing. Forward-facing.
-- **Approach** — the chosen design, stated as decisions rather than options you're weighing.
+- **Approach** — the chosen design, stated as decisions rather than options you're weighing. **An issue that
+  adds or changes a CI job carries the user's decision on it, with its price**; without that decision, the job
+  is not in the plan.
 - **Surface** — where the work lands: the real modules and files, grouped by area, plus the consumers each
   change ripples into, and the layer and domain each new file and test lands in. The heart of what Step 2 checked, and a
   **map, not a checklist** — nothing phrased as a sequence, since a to-do list gets executed as one. Not the per-slice owned-file list — that is

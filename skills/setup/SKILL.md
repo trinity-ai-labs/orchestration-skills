@@ -76,7 +76,10 @@ Every value must trace to a file you read.
   what's popular.
 - **Scripts** — `package.json`'s `scripts`, or the `Makefile`/`justfile`/`Taskfile`.
 - **The real gate** — whatever CI runs before merge (`.github/workflows/*.yml`); with no CI, the broadest
-  local command that builds and tests.
+  local command that builds and tests. **With no CI, setup does not propose CI**: it notes the absence and asks
+  the user once whether the project wants CI, priced in runner minutes or money against what that local gate
+  already proves, and records nothing when the answer is no, since the missing workflow is visible in the
+  tree. **No config key holds that answer.**
 - **The preflight** — every no-compile step of the gate, as `skills/procedures/config-keys.md` defines it,
   one hidden inside a build target included, composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm

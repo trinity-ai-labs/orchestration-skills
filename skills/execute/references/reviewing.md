@@ -1,6 +1,6 @@
 # Reading a gate result, and the transient-red window
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it the moment a verdict lands on a PR** — a
+Reference for `skills/execute/references/dispatcher.md`. **Read it the moment a verdict lands on a PR** — a
 green flag and a green gate are not the same claim, and one epic shape makes red the expected answer.
 
 ## Reading a gate result — verify the WHOLE failure set, and read the comment, not the flags
@@ -149,7 +149,7 @@ the holding comment, naming the key and the value it resolved to, on that same b
 ---
 
 
-Reference for `skills/execute/SKILL.md` → *Dispatcher*. **Read it before you mark any PR ready** — no gate can
+Reference for `skills/execute/references/dispatcher.md`. **Read it before you mark any PR ready** — no gate can
 tell whether a change is CORRECT, so the diff is the only review there is, and this is the half the runner
 does not do.
 
@@ -202,7 +202,7 @@ still no ticket → re-review → and only once the code is final do you ENQUEUE
 verdict corresponds to the exact commit you are going to merge. A fix round after a ticket has settled
 re-pushes and is re-enqueued the same way, that raise being yours too. **In in-line mode — a project declaring
 no queue, or a slice put in override mode — there is no ticket at any point** and the verdict comment is
-already on the PR when the hand-back arrives (`skills/execute/references/per-project-config.md`). Then verify
+already on the PR when the hand-back arrives (`skills/execute/references/dispatcher.md`, *Gate mode*). Then verify
 that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
 **Re-gate a fix round in proportion when the previous head gated green**: where the project declares

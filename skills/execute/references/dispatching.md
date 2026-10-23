@@ -218,7 +218,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   pointing outward at workspace-root conventions otherwise name a file nothing standing in one member's
   worktree can open. A repo with no workspace above it gets that set unchanged:
 
-  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
+  > **Update the docs in this PR, and report what you checked.** Write down the user-visible behavior your change adds, removes or alters, then find the docs describing *that behavior* and bring them in line. Search by the behavior, NOT by the vocabulary your change introduced — prose written for a user carries none of your new identifiers. Cover `<the doc set>`. Docs go in their own commit. In your hand-back comment list every doc you checked with a one-line verdict — updated, or not-affected-because — never a bare "docs reviewed".
 
   **On an epic slice** paste it with *record the entry* in place of *bring them in line*, and append the two
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
@@ -313,7 +313,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   `gh-post.sh comment pr <n> --key gate-verdict/<leaf> --body-file <file>`, leading with the SHA it ran
   against."*
 
-  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back, reporting that PR's number and URL and everything else the **Hand back** step of `skills/execute/references/implementer.md` lists — a longer set than this block. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
+  > After committing: **push your branch, then open a DRAFT PR** targeting `<base-branch>`. `<gate-mode sentence>` THEN hand back as the **Hand back** step of `skills/execute/references/implementer.md` says: the detail in one comment on that PR, posted with `gh-post.sh comment pr <n> --key handback/<leaf> --body-file <file>`, and to your dispatcher only the short hand-back record (`skills/glossary/vocabulary/hand-back-record.md`), naming that PR's number and URL and that comment's address. **Enqueue nothing, do NOT mark your own PR ready, and never merge it.** Never leave committed work unpushed, or a pushed branch without a draft PR.
 - **No AI attribution — and the pasted block states the rule GENERALLY on BOTH axes, because an enumeration of
   banned strings is a claim about a set the harness extends without notice and an enumeration of banned
   artifacts is a claim about a set this flow extends itself.** The general wording lets an implementer
@@ -478,7 +478,7 @@ because the answer comes back on this tick. Each tick, snapshot what each agent 
     the next tick's on-scope set**, since it is your own grant the divergence check is about to read and
     forgetting one fires a false divergence alarm on the very next tick. **The PR half instead goes silent**,
     handing the reviewer a diff that edits outside the brief's fence with nothing on the PR explaining why.
-    **The write stays yours rather than the implementer's**, whose hand-back line naming where each grant was
+    **The write stays yours rather than the implementer's**, whose hand-back comment's line naming where each grant was
     written down is the DETECTOR that one is missing — move the write there and the detector becomes the thing
     it was detecting. **Do not grant one path twice**: a second slice asking about ground already granted gets
     *the sibling owns it*, or two agents edit one file. **A grant you answer after that slice's review pass

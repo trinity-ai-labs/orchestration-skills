@@ -29,8 +29,9 @@
 #
 # Steps carry the spine's step numbers. Steps 5 (fix what you hit) and 7 (the
 # review pass, run only where a brief asks for one) open no file of their own in
-# either mode, so they have no line. Queue mode differs at step 8: there is no
-# gate run, so no verdict comment to post.
+# either mode, so they have no line. Step 8 is the hand-back in both modes: the
+# hand-back record's entry and the gh-post procedure for the hand-back comment,
+# which in-line mode also uses for its gate verdict.
 
 root  implementer skills/execute/SKILL.md
 modes implementer in-line queue
@@ -38,17 +39,18 @@ open  implementer * 1-2-before-first-edit skills/execute/SKILL.md skills/ground-
 open  implementer * 3-build               skills/procedures/code-shape.md
 open  implementer * 4-docs                skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md
 open  implementer * 6-commit-push-pr      skills/procedures/host-tools.md
-open  implementer in-line 8-gate-hand-back skills/procedures/github-writes.md
+open  implementer * 8-gate-hand-back skills/procedures/github-writes.md skills/glossary/vocabulary/hand-back-record.md
 
-bound implementer in-line 1-2-before-first-edit 15074
-bound implementer in-line 3-build               18434
-bound implementer in-line 4-docs                23008
-bound implementer in-line 6-commit-push-pr      24597
-bound implementer in-line 8-gate-hand-back      25230
-bound implementer queue   1-2-before-first-edit 15074
-bound implementer queue   3-build               18434
-bound implementer queue   4-docs                23008
-bound implementer queue   6-commit-push-pr      24597
+bound implementer in-line 1-2-before-first-edit 15312
+bound implementer in-line 3-build               18672
+bound implementer in-line 4-docs                23246
+bound implementer in-line 6-commit-push-pr      24835
+bound implementer in-line 8-gate-hand-back      25799
+bound implementer queue   1-2-before-first-edit 15312
+bound implementer queue   3-build               18672
+bound implementer queue   4-docs                23246
+bound implementer queue   6-commit-push-pr      24835
+bound implementer queue   8-gate-hand-back      25799
 
 # --- dispatcher — skills/execute/SKILL.md's four phases -------------------------
 
@@ -57,14 +59,14 @@ modes dispatcher all
 open  dispatcher * 0-read-config skills/execute/SKILL.md skills/ground-rules/SKILL.md skills/execute/references/per-project-config.md skills/procedures/config-keys.md skills/procedures/worktree-helper.md skills/procedures/host-tools.md
 open  dispatcher * 1-set-up      skills/execute/references/worktrees-and-branches.md
 open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
-open  dispatcher * 3-judge       skills/execute/references/reviewing.md
+open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
-bound dispatcher all 0-read-config 14662
-bound dispatcher all 1-set-up      20549
-bound dispatcher all 2-dispatch    33503
-bound dispatcher all 3-judge       41591
-bound dispatcher all 4-land        49733
+bound dispatcher all 0-read-config 14703
+bound dispatcher all 1-set-up      20595
+bound dispatcher all 2-dispatch    33574
+bound dispatcher all 3-judge       41994
+bound dispatcher all 4-land        50138
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #

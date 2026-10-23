@@ -26,13 +26,16 @@
 #      happens - the two steps that follow cannot be undone by a later failure, and
 #      the step that actually fails is the last one. A conflicting PR, or one with
 #      a failing or pending check, stops here with the worktree intact and the PR
-#      still a draft.
+#      still a draft. Where marking this draft ready starts CI - a workflow at its
+#      head names `ready_for_review` - it is marked ready HERE instead, and the
+#      merge waits on the checks that flip starts; a red one puts the draft flag
+#      back and stops, the worktree still intact.
 #   3. Remove the head branch's worktree - git refuses to delete a branch that's
 #      still checked out in a worktree, so `gh pr merge --delete-branch` would
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.ps1, which kills processes rooted in the tree first.
-#   4. Mark the PR ready - the dispatcher's review approval - and immediately
-#      `gh pr merge` it, deleting both the local and remote branch. The call is
+#   4. Mark the PR ready - the dispatcher's review approval, unless step 2 already
+#      did - and immediately `gh pr merge` it, deleting both the local and remote branch. The call is
 #      bounded at 120 seconds, and when it times out or fails the PR's own state
 #      decides: MERGED carries on (deleting any branch the call left behind), and
 #      anything else puts the draft flag back before it exits.
@@ -372,21 +375,99 @@ function Test-SquashBoundary {
 }
 
 function Get-CiVerdict {
-    # One CI check's verdict: pass, fail or pending. A check run carries a status
-    # and, once COMPLETED, a conclusion; a commit status carries no status and a
-    # state, so the caller hands that state in as $Result with $Status empty.
-    # Anything not named as passing or still running is a failure, so a conclusion
-    # GitHub adds later refuses the merge rather than waving it through. The bash
-    # sibling's ci_verdict answers the same table, scripts/port-cases/ci-verdict.tsv,
-    # and the case-SENSITIVE forms match its `case`.
-    param(
-        [AllowEmptyString()] [string] $Status,
-        [AllowEmptyString()] [string] $Result
-    )
-    if ($Status -and ($Status -cne 'COMPLETED')) { return 'pending' }
-    if (@('SUCCESS', 'NEUTRAL', 'SKIPPED') -ccontains $Result) { return 'pass' }
-    if ((-not $Result) -or (@('PENDING', 'EXPECTED') -ccontains $Result)) { return 'pending' }
+    # One CI check's verdict: pass, fail or pending, from the bucket `gh pr checks`
+    # sorts it into. gh has already folded a check run's status and conclusion and a
+    # commit status's state into that bucket, so this only decides what each bucket
+    # means for a merge: a skipped check is GitHub's own pass, which keeps path
+    # filters and `if:` conditions working. Anything not named as passing or still
+    # running is a failure, so a bucket gh adds later refuses the merge rather than
+    # waving it through. The bash sibling's ci_verdict answers the same table,
+    # scripts/port-cases/ci-verdict.tsv, and the case-SENSITIVE forms match its
+    # `case`.
+    param([AllowEmptyString()] [string] $Bucket)
+    if (@('pass', 'skipping') -ccontains $Bucket) { return 'pass' }
+    if ($Bucket -ceq 'pending') { return 'pending' }
     return 'fail'
+}
+
+function Test-ReadyTrigger {
+    # Does this workflow file start a run when a draft PR is marked ready? It does
+    # when `ready_for_review` is among the `types:` of its `pull_request` or
+    # `pull_request_target` trigger, in block or flow style. A plain line read
+    # rather than a YAML parser, since this repository has no dependencies to parse
+    # with: a comment is dropped, a trigger key opens a block that ends at the next
+    # line indented no deeper, and `types:` inside it opens a list that ends the
+    # same way. The bash sibling's ready_trigger answers the same table,
+    # scripts/port-cases/ready-trigger.tsv, and -cmatch is case-SENSITIVE as its
+    # `=~` is.
+    param([AllowEmptyString()] [string] $Text)
+    $q = "[""']"
+    $oneLine = "(^|[^A-Za-z0-9_])pull_request(_target)?${q}?[ \t]*:.*types.*ready_for_review"
+    $prKey = "^${q}?pull_request(_target)?${q}?[ \t]*:"
+    $typesKey = '^types[ \t]*:'
+    $inPr = $false
+    $prIndent = 0
+    $inTypes = $false
+    $typesIndent = 0
+    foreach ($raw in ($Text -split "`n")) {
+        $line = $raw -replace "`r$", ''
+        $line = $line -replace '[ \t]#.*$', ''
+        $content = $line.TrimStart(' ')
+        $indent = $line.Length - $content.Length
+        $content = $content.TrimEnd(' ', "`t")
+        if ($content -eq '' -or $content.StartsWith('#')) { continue }
+        if ($inPr -and $indent -le $prIndent) {
+            $inPr = $false
+            $inTypes = $false
+        }
+        if ($inTypes -and (($indent -lt $typesIndent) -or ($indent -eq $typesIndent -and -not $content.StartsWith('-')))) {
+            $inTypes = $false
+        }
+        if ($content -cmatch $oneLine) { return $true }
+        if ($content -cmatch $prKey) {
+            $inPr = $true
+            $prIndent = $indent
+            $inTypes = $false
+        } elseif ($inPr -and $content -cmatch $typesKey) {
+            $inTypes = $true
+            $typesIndent = $indent
+        }
+        if ($inTypes -and $content.Contains('ready_for_review')) { return $true }
+    }
+    return $false
+}
+
+function Get-WorkflowName {
+    # The name a workflow's checks carry in `gh pr checks`: its top-level `name:`,
+    # unquoted, or its path when it declares none, which is what GitHub falls back
+    # to. The bash sibling's workflow_name answers the same table,
+    # scripts/port-cases/workflow-name.tsv.
+    param(
+        [AllowEmptyString()] [string] $Path,
+        [AllowEmptyString()] [string] $Text
+    )
+    $value = ''
+    foreach ($raw in ($Text -split "`n")) {
+        $line = $raw -replace "`r$", ''
+        if (-not ($line -cmatch '^name[ \t]*:[ \t]*(.*)$')) { continue }
+        $value = $Matches[1]
+        if ($value.StartsWith('"')) {
+            $value = $value.Substring(1)
+            $end = $value.IndexOf('"')
+            if ($end -ge 0) { $value = $value.Substring(0, $end) }
+        } elseif ($value.StartsWith("'")) {
+            $value = $value.Substring(1)
+            $end = $value.IndexOf("'")
+            if ($end -ge 0) { $value = $value.Substring(0, $end) }
+        } elseif ($value.StartsWith('#')) {
+            $value = ''
+        } else {
+            $value = ($value -replace '[ \t]#.*$', '').TrimEnd(' ', "`t")
+        }
+        break
+    }
+    if (-not $value) { $value = $Path }
+    return $value
 }
 
 function Get-JsonValue {
@@ -838,58 +919,284 @@ PR #$Pr conflicts with '$BaseBranch' - nothing has been touched: the worktree is
 # A red CI blocks the merge just as a red gate verdict does, so every check on the
 # head is read here, while nothing has been touched: a failing one refuses, and so
 # does a pending one, since its answer is not in yet. A pending check is NOT waited
-# on - the caller re-runs once it settles - because a timed wait here would hold a
-# close-out for as long as the slowest job runs. Every check counts, not only the
+# on here - the caller re-runs once it settles - because a timed wait would hold a
+# close-out for as long as the slowest job runs; the one wait is on CI this run's
+# own ready flip starts (step 1c). Every check counts, not only the
 # required ones: a repository with no branch protection requires none, and that
 # test would pass it red. A PR with no checks at all passes, which is what a
 # project that runs no CI needs - and so does one read in the seconds after a push,
 # before GitHub registers its check suites; the gate that runs between that push
 # and this merge is what keeps the window shut.
 #
-# The head SHA is read in the same call as the checks, and the merge below passes
-# it as --match-head-commit, so the commit whose checks were read is the commit
-# that merges: a push landing in between makes GitHub refuse the merge rather than
+# The head SHA is read on both sides of the checks, and the merge below passes it
+# as --match-head-commit, so the commit whose checks were read is the commit that
+# merges: a push landing in between makes GitHub refuse the merge rather than
 # merge a head nobody read the checks of.
-$HeadOid = ''
-if ($State -ne 'MERGED') {
-    $ciJson = Invoke-InMainCheckout {
-        $raw = & gh pr view $Pr --json headRefOid,statusCheckRollup 2>$null
-        if ($LASTEXITCODE -ne 0) { return $null }
-        return (($raw | Out-String).Trim())
+#
+# The checks are read through `gh pr checks`, never the raw rollup: the rollup can
+# list one check several times on one commit, once per run, so a failure followed
+# by a passing re-run would still refuse, while gh keeps only the latest run of each
+# check (by name, workflow and event) and sorts it into a bucket. gh answers a PR
+# with no checks at all with an error rather than an empty list, and that one
+# error is read as the empty list it means.
+$script:CheckRows = @()
+function Get-PrCheck {
+    # Fills $script:CheckRows with the PR's checks; $false if gh could not answer.
+    # Its stderr is captured beside stdout with errors as data, the same way the
+    # sync's fast-forward reads git's, since whether a redirected native stderr is
+    # data or a terminating error under 'Stop' has moved between versions.
+    $script:CheckRows = @()
+    $answer = Invoke-InMainCheckout {
+        $ErrorActionPreference = 'Continue'
+        $all = @(& gh pr checks $Pr --json 'name,bucket,link,workflow,event' 2>&1)
+        $code = $LASTEXITCODE
+        $out = ($all | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | Out-String).Trim()
+        $err = ($all | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | Out-String)
+        return @{ Code = $code; Out = $out; Err = $err }
     }
-    if (-not $ciJson) {
-        Exit-WithError "could not read the CI checks on PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
-    }
+    if ($answer.Code -ne 0) { return ($answer.Err -match 'no checks reported') }
     try {
-        $ciView = $ciJson | ConvertFrom-Json
+        $parsed = $answer.Out | ConvertFrom-Json
     } catch {
-        Exit-WithError "could not read the CI checks on PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+        return $false
     }
-    $HeadOid = [string](Get-JsonValue $ciView 'headRefOid')
+    if ($null -ne $parsed) { $script:CheckRows = @($parsed) }
+    return $true
+}
+
+function Get-FieldOrDash {
+    # One field of a check, or '-' where it has none, as the bash sibling prints it.
+    param($Check, [Parameter(Mandatory = $true)] [string] $Name)
+    $value = [string](Get-JsonValue $Check $Name)
+    if (-not $value) { return '-' }
+    return $value
+}
+
+$script:CiBad = ''
+$script:CiPending = $false
+function Get-CiNotGreen {
+    # The checks in $script:CheckRows that are not green, as the "`n    <verdict>:
+    # <check> ..." lines a refusal lists, in $script:CiBad; $script:CiPending says
+    # whether any of them is pending.
+    $script:CiBad = ''
+    $script:CiPending = $false
+    foreach ($check in $script:CheckRows) {
+        $answer = Get-CiVerdict ([string](Get-JsonValue $check 'bucket'))
+        if ($answer -eq 'pending') { $script:CiPending = $true }
+        if ($answer -ne 'pass') {
+            $script:CiBad += "`n    ${answer}: $(Get-FieldOrDash $check 'name') ($(Get-FieldOrDash $check 'workflow'), $(Get-FieldOrDash $check 'event')) - $(Get-FieldOrDash $check 'link')"
+        }
+    }
+}
+
+$HeadOid = ''
+$PreFlipLinks = @()
+if ($State -ne 'MERGED') {
+    $HeadOid = Get-PrField 'headRefOid'
     if (-not $HeadOid) {
         Exit-WithError "GitHub returned no head commit for PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft."
     }
     if ($MergeMode -eq 'squash' -and $HeadOid -cne $EpicTip) {
         Exit-WithError "PR #$Pr's head moved from $EpicTip to $HeadOid during this run - nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.ps1 $Pr"
     }
-    $ciBad = ''
-    $checks = @()
-    $rollup = Get-JsonValue $ciView 'statusCheckRollup'
-    if ($null -ne $rollup) { $checks = @($rollup) }
-    foreach ($check in $checks) {
-        $ciResult = [string](Get-JsonValue $check 'conclusion')
-        if (-not $ciResult) { $ciResult = [string](Get-JsonValue $check 'state') }
-        $ciName = [string](Get-JsonValue $check 'name')
-        if (-not $ciName) { $ciName = [string](Get-JsonValue $check 'context') }
-        $ciUrl = [string](Get-JsonValue $check 'detailsUrl')
-        if (-not $ciUrl) { $ciUrl = [string](Get-JsonValue $check 'targetUrl') }
-        if (-not $ciUrl) { $ciUrl = '-' }
-        $ciAnswer = Get-CiVerdict ([string](Get-JsonValue $check 'status')) $ciResult
-        if ($ciAnswer -ne 'pass') { $ciBad += "`n    ${ciAnswer}: $ciName - $ciUrl" }
+    if (-not (Get-PrCheck)) {
+        Exit-WithError "could not read the CI checks on PR #$Pr - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
     }
-    if ($ciBad) {
-        Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$ciBad`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
+    # The head is read again AFTER its checks, since gh reads the checks of whatever
+    # the head is at that moment: a push landing between the two reads would have
+    # this run judge one commit's checks and pin the merge to another.
+    $headNow = Get-PrField 'headRefOid'
+    if ($headNow -cne $HeadOid) {
+        if (-not $headNow) { $headNow = '<unreadable>' }
+        Exit-WithError "PR #$Pr's head moved from $HeadOid to $headNow while its checks were read - nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.ps1 $Pr"
     }
+    Get-CiNotGreen
+    if ($script:CiBad) {
+        Exit-WithError "PR #$Pr has CI checks that are not green at $HeadOid - nothing has been touched: the worktree is intact and the PR is still a draft.$($script:CiBad)`n  A pending check: re-run merge-pr.ps1 $Pr once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
+    }
+    foreach ($check in $script:CheckRows) {
+        $link = [string](Get-JsonValue $check 'link')
+        if ($link) { $PreFlipLinks += $link }
+    }
+}
+
+# --- 1c. CI the ready flip starts -------------------------------------------------
+# A project can keep its CI off drafts - a job guarded by
+# `if: github.event.pull_request.draft == false`, with `ready_for_review` among the
+# PR trigger's types so it starts when the draft flag comes off. On a draft that job
+# reports SKIPPED, which the read above passes, and the run that matters starts on
+# the very flip step 3 makes a second before the merge, so it would finish after the
+# merge had already landed. So where marking THIS draft ready starts CI, the flip
+# moves here, ahead of the teardown, and the merge waits on what it started.
+#
+# Whether it does is read from the tree, never guessed from a skipped check: a
+# workflow under .github/workflows/ at the PR's head whose PR trigger names
+# `ready_for_review`. A PR that is already ready flips nothing and starts nothing, so
+# it is not asked. Where nothing names it, nothing below runs and the order is
+# exactly what it was: a skipped check on such a project is GitHub's own pass.
+#
+# GitHub registers a run a few seconds after the event, and until a new run's checks
+# appear `gh pr checks` still shows the draft's skipped ones under the same names,
+# so a watch started straight after the flip would find nothing pending and return.
+# The wait for them is BOUNDED, a fixed number of polls, since a frozen contract has
+# no knob for it; the wait for them to FINISH is `gh pr checks --watch --fail-fast`,
+# which waits on the checks rather than on a timer. Either way the verdict is the
+# read that follows. A red, a cancelled or a still-pending check, a head that moved,
+# or a bound that expired with none of them appeared puts the PR back to draft and
+# refuses here, before the teardown, so the worktree is still there to fix it in.
+#
+# A check counts as the flip's when it belongs to a workflow that named the trigger
+# and its link (one job's run) was not on the PR before the flip.
+$WasDraft = ''
+$Flipped = $false
+$script:DraftNote = ''
+function Restore-DraftFlag {
+    # Put the draft flag back on a PR this run marked ready, saying in
+    # $script:DraftNote what became of it. Only a PR that arrived as a draft is
+    # touched: one that arrived ready keeps the state it came with rather than being
+    # pushed into a draft nobody asked for.
+    $script:DraftNote = 'it was already non-draft before this run and is left that way'
+    if ($WasDraft -ne 'true') { return }
+    $script:RestoreFailed = $false
+    Invoke-InMainCheckout {
+        & gh pr ready $Pr --undo *> $null
+        if ($LASTEXITCODE -ne 0) { $script:RestoreFailed = $true }
+    }
+    if ($script:RestoreFailed) {
+        $script:DraftNote = "its draft flag could NOT be restored - put it back by hand: gh pr ready $Pr --undo"
+    } else {
+        $script:DraftNote = 'it is back to a draft'
+    }
+}
+
+$script:ReadyWorkflows = @()
+function Find-ReadyWorkflow {
+    # Fills $script:ReadyWorkflows with the name of each workflow at <commit> whose
+    # PR trigger names ready_for_review.
+    param([Parameter(Mandatory = $true)] [string] $Commit)
+    $script:ReadyWorkflows = @()
+    if (-not (Test-GitSuccess @('-C', $Main, 'cat-file', '-e', "$Commit^{commit}"))) {
+        if (-not (Test-GitSuccess @('-C', $Main, 'fetch', '--quiet', 'origin', "refs/pull/$Pr/head"))) {
+            if (-not (Test-GitSuccess @('-C', $Main, 'fetch', '--quiet', 'origin', $HeadBranch))) {
+                Exit-WithError "git fetch of PR #$Pr's head $Commit failed, so its workflows cannot be read - nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.ps1 $Pr once origin can be reached."
+            }
+        }
+        if (-not (Test-GitSuccess @('-C', $Main, 'cat-file', '-e', "$Commit^{commit}"))) {
+            Exit-WithError "PR #$Pr's head $Commit is not in $Main even after a fetch, so its workflows cannot be read - nothing has been touched: the worktree is intact and the PR is still a draft."
+        }
+    }
+    $listing = Get-GitOutput @('-C', $Main, 'ls-tree', $Commit, '.github/workflows/')
+    foreach ($entry in ($listing -split "`r?`n")) {
+        if (-not $entry.Contains(' blob ')) { continue }
+        $path = $entry.Substring($entry.IndexOf("`t") + 1)
+        if (-not ($path.EndsWith('.yml') -or $path.EndsWith('.yaml'))) { continue }
+        $text = Get-GitOutput @('-C', $Main, 'show', "${Commit}:$path")
+        if (-not (Test-ReadyTrigger $text)) { continue }
+        $script:ReadyWorkflows += (Get-WorkflowName $path $text)
+    }
+}
+
+$script:Appeared = @()
+$script:Settled = $false
+function Get-FlipCheckState {
+    # For each workflow in $script:ReadyWorkflows, against $script:CheckRows:
+    # $script:Appeared lists those with a check the flip started, and
+    # $script:Settled is true only when every one of them shows only such checks - a
+    # pre-flip link still showing is a job whose new run gh has not surfaced.
+    $script:Appeared = @()
+    $script:Settled = $true
+    foreach ($wf in $script:ReadyWorkflows) {
+        $fresh = $false
+        $stale = $false
+        foreach ($check in $script:CheckRows) {
+            if ([string](Get-JsonValue $check 'workflow') -cne $wf) { continue }
+            $link = Get-FieldOrDash $check 'link'
+            if ($PreFlipLinks -ccontains $link) { $stale = $true } else { $fresh = $true }
+        }
+        if ($fresh) { $script:Appeared += $wf }
+        if (-not $fresh -or $stale) { $script:Settled = $false }
+    }
+}
+
+if ($State -ne 'MERGED') {
+    $WasDraft = Get-PrField 'isDraft'
+    if ($WasDraft -eq 'true') { Find-ReadyWorkflow -Commit $HeadOid }
+}
+if ($script:ReadyWorkflows.Count -gt 0) {
+    $readyList = ($script:ReadyWorkflows | ForEach-Object { "'$_'" }) -join ', '
+    Write-Output "merge-pr: marking PR #$Pr ready (review approval) ahead of the teardown - workflow(s) $readyList start CI on that flip, so the merge waits for it ..."
+    # An interrupted wait must not leave a ready PR that is not being merged: a
+    # Ctrl+C still runs the finally block, which puts the flag back unless the wait
+    # reached a verdict first.
+    $flipSettled = $false
+    try {
+        Invoke-InMainCheckout {
+            & gh pr ready $Pr
+            if ($LASTEXITCODE -ne 0) { $script:FlipFailed = $true } else { $script:FlipFailed = $false }
+        }
+        if ($script:FlipFailed) {
+            $flipSettled = $true
+            Restore-DraftFlag
+            Exit-WithError "gh pr ready failed on PR #$Pr - nothing has been merged: the worktree is intact and $($script:DraftNote)."
+        }
+        $Flipped = $true
+        $flipRefusal = ''
+        $flipDetail = ''
+        $flipHint = ''
+        # 24 polls 5 seconds apart, about two minutes for a run to register and start.
+        foreach ($attempt in 1..24) {
+            if (Get-PrCheck) {
+                Get-FlipCheckState
+                if ($script:Settled) { break }
+            }
+            if ($attempt -lt 24) { Start-Sleep -Seconds 5 }
+        }
+        if ($script:Appeared.Count -eq 0) {
+            $flipRefusal = "PR #$Pr was marked ready to start its CI - workflow(s) $readyList name ready_for_review - but no check from it appeared within about two minutes, so nothing has been merged: the worktree is intact and"
+            $flipHint = "Read gh pr checks $Pr, and re-run merge-pr.ps1 $Pr once that CI reports; starting it by hand is the user's call."
+        } else {
+            if (-not $script:Settled) {
+                Write-Output "merge-pr: not every run the flip should start has surfaced within about two minutes - waiting on the checks that did ..."
+            }
+            Write-Output "merge-pr: waiting for PR #$Pr's checks to finish (gh pr checks --watch --fail-fast) ..."
+            # The watch's own exit is not the verdict, the read after it is; a check
+            # gh had not surfaced when the watch returned gets a second watch, three
+            # at most.
+            foreach ($round in 1..3) {
+                Invoke-InMainCheckout {
+                    & gh pr checks $Pr --watch --fail-fast *> $null
+                }
+                if (-not (Get-PrCheck)) {
+                    $flipRefusal = "could not read PR #$Pr's CI checks after marking it ready, so nothing has been merged: the worktree is intact and"
+                    $flipHint = "Re-run merge-pr.ps1 $Pr once gh can reach GitHub."
+                    break
+                }
+                Get-CiNotGreen
+                if (-not $script:CiPending -or $round -ge 3) { break }
+            }
+            if (-not $flipRefusal -and $script:CiBad) {
+                $flipRefusal = "PR #$Pr has CI checks that are not green at $HeadOid after it was marked ready, so nothing has been merged: the worktree is intact and"
+                $flipDetail = $script:CiBad
+                $flipHint = "A failing one: fix it on the branch, push, re-gate, then re-run merge-pr.ps1 $Pr; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
+            }
+            if (-not $flipRefusal) {
+                $headNow = Get-PrField 'headRefOid'
+                if ($headNow -cne $HeadOid) {
+                    if (-not $headNow) { $headNow = '<unreadable>' }
+                    $flipRefusal = "PR #$Pr's head moved from $HeadOid to $headNow while its CI ran, so nothing has been merged: the worktree is intact and"
+                    $flipHint = "Re-gate the new head and re-run merge-pr.ps1 $Pr."
+                }
+            }
+        }
+        $flipSettled = $true
+        if ($flipRefusal) {
+            Restore-DraftFlag
+            Exit-WithError "$flipRefusal $($script:DraftNote).$flipDetail`n  $flipHint"
+        }
+    } finally {
+        if (-not $flipSettled) { Restore-DraftFlag }
+    }
+    Write-Output "merge-pr: PR #$Pr's CI is green at $HeadOid after the flip."
 }
 
 # --- 2. Remove the head branch's worktree --------------------------------------
@@ -944,18 +1251,19 @@ if ($State -eq 'MERGED') {
     # one line above it so `ready` can never be a stale badge, since the step-2
     # teardown kills processes rooted in the worktree and can take real time, and a
     # flip before that would leave a window where the PR reads as approved but is
-    # not merged. `gh pr ready` on an already-ready PR is a no-op, so the flip
-    # itself is unconditional and idempotent on re-run.
+    # not merged. The one exception is a flip that starts CI, which step 1c has
+    # already made and waited on. `gh pr ready` on an already-ready PR is a no-op,
+    # so the flip itself is unconditional and idempotent on re-run.
     #
-    # isDraft is read anyway, and read HERE rather than with the fields at the top,
-    # because it has one job: to say whether THIS run is what set the flag. Only
-    # then may the failure path put it back - a PR that arrived already ready keeps
-    # the state it came with rather than being pushed into a draft nobody asked for.
-    $WasDraft = Get-PrField 'isDraft'
-    Write-Output "merge-pr: marking PR #$Pr ready (review approval) ..."
-    Invoke-InMainCheckout {
-        & gh pr ready $Pr
-        if ($LASTEXITCODE -ne 0) { Exit-WithError "gh pr ready failed (exit $LASTEXITCODE)" }
+    # isDraft was read in step 1c, before either flip, because it has one job: to
+    # say whether THIS run is what set the flag. Only then may the failure path put
+    # it back - Restore-DraftFlag leaves a PR that arrived already ready as it came.
+    if (-not $Flipped) {
+        Write-Output "merge-pr: marking PR #$Pr ready (review approval) ..."
+        Invoke-InMainCheckout {
+            & gh pr ready $Pr
+            if ($LASTEXITCODE -ne 0) { Exit-WithError "gh pr ready failed (exit $LASTEXITCODE)" }
+        }
     }
     # The squash path deliberately does NOT pass --delete-branch. The branch has to
     # outlive the merge long enough for the squash close-out below to compare what
@@ -1062,19 +1370,8 @@ if ($State -eq 'MERGED') {
         # diff a dispatcher approved - so leaving it set would have the PR wearing
         # a review it never received. This matters most when step 1 answered UNKNOWN
         # and fell through: the conflict it could not rule out surfaces exactly here.
-        $DraftNote = 'it was already non-draft before this run and is left that way'
-        if ($WasDraft -eq 'true') {
-            $script:RestoreFailed = $false
-            Invoke-InMainCheckout {
-                & gh pr ready $Pr --undo
-                if ($LASTEXITCODE -ne 0) { $script:RestoreFailed = $true }
-            }
-            if ($script:RestoreFailed) {
-                $DraftNote = "its draft flag could NOT be restored - put it back by hand: gh pr ready $Pr --undo"
-            } else {
-                $DraftNote = 'it is back to a draft'
-            }
-        }
+        Restore-DraftFlag
+        $DraftNote = $script:DraftNote
         $shownState = $afterState
         if (-not $shownState) { $shownState = '<state unreadable>' }
         Exit-WithError @"

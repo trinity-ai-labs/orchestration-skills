@@ -13,13 +13,16 @@
 #      happens — the two steps that follow cannot be undone by a later failure, and
 #      the step that actually fails is the last one. A conflicting PR, or one with
 #      a failing or pending check, stops here with the worktree intact and the PR
-#      still a draft.
+#      still a draft. Where marking this draft ready starts CI — a workflow at its
+#      head names `ready_for_review` — it is marked ready HERE instead, and the
+#      merge waits on the checks that flip starts; a red one puts the draft flag
+#      back and stops, the worktree still intact.
 #   3. Remove the head branch's worktree — git refuses to delete a branch that's
 #      still checked out in a worktree, so `gh pr merge --delete-branch` would
 #      error on the local-branch step if the worktree still existed. Done via
 #      remove-worktree.sh, which kills processes rooted in the tree first.
-#   4. Mark the PR ready — the dispatcher's review approval — and immediately
-#      `gh pr merge` it, deleting both the local and remote branch. The call is
+#   4. Mark the PR ready — the dispatcher's review approval, unless step 2 already
+#      did — and immediately `gh pr merge` it, deleting both the local and remote branch. The call is
 #      bounded at 120 seconds, and when it times out or fails the PR's own state
 #      decides: MERGED carries on (deleting any branch the call left behind), and
 #      anything else puts the draft flag back before it exits.
@@ -289,25 +292,99 @@ squash_boundary_ok() {
   [ -n "$default" ] && [ "$base" != "$default" ]
 }
 
-# One CI check's verdict: pass, fail or pending. A check run carries a status and,
-# once COMPLETED, a conclusion; a commit status carries no status and a state, so
-# the caller hands that state in as the second argument with the first empty.
-# Anything not named as passing or still running is a failure, so a conclusion
-# GitHub adds later refuses the merge rather than waving it through. The
-# PowerShell sibling's Get-CiVerdict answers the same table,
+# One CI check's verdict: pass, fail or pending, from the bucket `gh pr checks`
+# sorts it into. gh has already folded a check run's status and conclusion and a
+# commit status's state into that bucket, so this only decides what each bucket
+# means for a merge: a skipped check is GitHub's own pass, which keeps path filters
+# and `if:` conditions working. Anything not named as passing or still running is
+# a failure, so a bucket gh adds later refuses the merge rather than waving it
+# through. The PowerShell sibling's Get-CiVerdict answers the same table,
 # scripts/port-cases/ci-verdict.tsv.
-#   ci_verdict <status> <conclusion-or-state>
+#   ci_verdict <bucket>
 ci_verdict() {
-  local status="$1" result="$2"
-  if [ -n "$status" ] && [ "$status" != "COMPLETED" ]; then
-    echo pending
-    return
-  fi
-  case "$result" in
-  SUCCESS | NEUTRAL | SKIPPED) echo pass ;;
-  '' | PENDING | EXPECTED) echo pending ;;
+  case "$1" in
+  pass | skipping) echo pass ;;
+  pending) echo pending ;;
   *) echo fail ;;
   esac
+}
+
+# Does this workflow file start a run when a draft PR is marked ready? It does when
+# `ready_for_review` is among the `types:` of its `pull_request` or
+# `pull_request_target` trigger, in block or flow style. A plain line read rather
+# than a YAML parser, since this repository has no dependencies to parse with: a
+# comment is dropped, a trigger key opens a block that ends at the next line
+# indented no deeper, and `types:` inside it opens a list that ends the same way.
+# The PowerShell sibling's Test-ReadyTrigger answers the same table,
+# scripts/port-cases/ready-trigger.tsv.
+#   ready_trigger <workflow-text>
+ready_trigger() {
+  local line content indent in_pr="" pr_indent=0 in_types="" types_indent=0
+  local q="[\"']"
+  local one_line="(^|[^A-Za-z0-9_])pull_request(_target)?$q?[[:blank:]]*:.*types.*ready_for_review"
+  local pr_key="^$q?pull_request(_target)?$q?[[:blank:]]*:"
+  local types_key="^types[[:blank:]]*:"
+  while IFS= read -r line; do
+    line=${line%$'\r'}
+    line=${line%%[[:blank:]]#*}
+    content=${line#"${line%%[! ]*}"}
+    indent=$((${#line} - ${#content}))
+    content=${content%"${content##*[![:blank:]]}"}
+    case "$content" in '' | '#'*) continue ;; esac
+    if [ -n "$in_pr" ] && [ "$indent" -le "$pr_indent" ]; then
+      in_pr=""
+      in_types=""
+    fi
+    if [ -n "$in_types" ] && { [ "$indent" -lt "$types_indent" ] \
+      || { [ "$indent" -eq "$types_indent" ] && [ "${content#-}" = "$content" ]; }; }; then
+      in_types=""
+    fi
+    [[ $content =~ $one_line ]] && return 0
+    if [[ $content =~ $pr_key ]]; then
+      in_pr=1
+      pr_indent=$indent
+      in_types=""
+    elif [ -n "$in_pr" ] && [[ $content =~ $types_key ]]; then
+      in_types=1
+      types_indent=$indent
+    fi
+    if [ -n "$in_types" ] && [[ $content == *ready_for_review* ]]; then
+      return 0
+    fi
+  done <<<"$1"
+  return 1
+}
+
+# The name a workflow's checks carry in `gh pr checks`: its top-level `name:`,
+# unquoted, or its path when it declares none, which is what GitHub falls back to.
+# The PowerShell sibling's Get-WorkflowName answers the same table,
+# scripts/port-cases/workflow-name.tsv.
+#   workflow_name <path> <workflow-text>
+workflow_name() {
+  local line value=""
+  while IFS= read -r line; do
+    line=${line%$'\r'}
+    [[ $line =~ ^name[[:blank:]]*:[[:blank:]]*(.*)$ ]] || continue
+    value=${BASH_REMATCH[1]}
+    case "$value" in
+    \"*)
+      value=${value#\"}
+      value=${value%%\"*}
+      ;;
+    \'*)
+      value=${value#\'}
+      value=${value%%\'*}
+      ;;
+    '#'*) value="" ;;
+    *)
+      value=${value%%[[:blank:]]#*}
+      value=${value%"${value##*[![:blank:]]}"}
+      ;;
+    esac
+    break
+  done <<<"$2"
+  [ -n "$value" ] || value=$1
+  printf '%s\n' "$value"
 }
 
 # printf '%b' rather than echo, so a message can carry the `\n` its recovery
@@ -671,41 +748,260 @@ fi
 # A red CI blocks the merge just as a red gate verdict does, so every check on the
 # head is read here, while nothing has been touched: a failing one refuses, and so
 # does a pending one, since its answer is not in yet. A pending check is NOT waited
-# on — the caller re-runs once it settles — because a timed wait here would hold a
-# close-out for as long as the slowest job runs. Every check counts, not only the
+# on here — the caller re-runs once it settles — because a timed wait would hold a
+# close-out for as long as the slowest job runs; the one wait is on CI this run's
+# own ready flip starts (step 1c). Every check counts, not only the
 # required ones: a repository with no branch protection requires none, and that
 # test would pass it red. A PR with no checks at all passes, which is what a
 # project that runs no CI needs — and so does one read in the seconds after a push,
 # before GitHub registers its check suites; the gate that runs between that push
 # and this merge is what keeps the window shut.
 #
-# The head SHA is read in the same call as the checks, and the merge below passes
-# it as --match-head-commit, so the commit whose checks were read is the commit
-# that merges: a push landing in between makes GitHub refuse the merge rather than
+# The head SHA is read on both sides of the checks, and the merge below passes it
+# as --match-head-commit, so the commit whose checks were read is the commit that
+# merges: a push landing in between makes GitHub refuse the merge rather than
 # merge a head nobody read the checks of.
+#
+# The checks are read through `gh pr checks`, never the raw rollup: the rollup can
+# list one check several times on one commit, once per run, so a failure followed
+# by a passing re-run would still refuse, while gh keeps only the latest run of each
+# check (by name, workflow and event) and sorts it into a bucket. gh answers a PR
+# with no checks at all with an error rather than an empty list, and that one
+# error is read as the empty list it means.
+TAB=$(printf '\t')
+NL='
+'
+CHECK_ROWS=""
+read_checks() { # sets CHECK_ROWS to `bucket name workflow event link` rows; 1 if gh could not answer
+  local errf status=0
+  errf=$(mktemp) || return 1
+  CHECK_ROWS=$( cd "$MAIN" && gh pr checks "$PR" --json name,bucket,link,workflow,event -q '.[] | [.bucket, .name, .workflow, .event, .link] | map(if . == null or . == "" then "-" else . end) | @tsv' 2>"$errf" ) || status=$?
+  if [ "$status" -ne 0 ] && grep -q 'no checks reported' "$errf"; then
+    CHECK_ROWS=""
+    status=0
+  fi
+  rm -f "$errf"
+  return "$status"
+}
+
+# The rows of CHECK_ROWS that are not green, as the `\n    <verdict>: <check> …`
+# lines a refusal lists, in CI_BAD; CI_PENDING says whether any of them is pending.
+CI_BAD=""
+CI_PENDING=""
+ci_not_green() {
+  local bucket name workflow event link answer
+  CI_BAD=""
+  CI_PENDING=""
+  while IFS="$TAB" read -r bucket name workflow event link; do
+    [ -n "$bucket$name" ] || continue
+    [ "$bucket" != - ] || bucket=""
+    answer=$(ci_verdict "$bucket")
+    [ "$answer" != pending ] || CI_PENDING=1
+    [ "$answer" = pass ] || CI_BAD="$CI_BAD\n    $answer: $name ($workflow, $event) — $link"
+  done <<EOF
+$CHECK_ROWS
+EOF
+}
+
 HEAD_OID=""
+PRE_FLIP_LINKS=""
 if [ "$STATE" != "MERGED" ]; then
-  CI_ROWS=$( cd "$MAIN" && gh pr view "$PR" --json headRefOid,statusCheckRollup -q '.headRefOid, (.statusCheckRollup[]? | [(.status // ""), (if (.conclusion // "") != "" then .conclusion else (.state // "") end), (.name // .context // ""), (.detailsUrl // .targetUrl // "")] | map(if . == "" then "-" else . end) | @tsv)' 2>/dev/null ) \
+  HEAD_OID=$(pr_field headRefOid 2>/dev/null) \
     || die "could not read the CI checks on PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once gh can reach GitHub."
-  HEAD_OID=$(printf '%s\n' "$CI_ROWS" | sed -n 1p)
   [ -n "$HEAD_OID" ] || die "GitHub returned no head commit for PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft."
   if [ "$MERGE_MODE" = "squash" ] && [ "$HEAD_OID" != "$EPIC_TIP" ]; then
     die "PR #$PR's head moved from $EPIC_TIP to $HEAD_OID during this run — nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.sh $PR"
   fi
-  CI_BAD=""
-  TAB=$(printf '\t')
-  while IFS="$TAB" read -r ci_status ci_result ci_name ci_url; do
-    [ -n "$ci_status$ci_result$ci_name" ] || continue
-    [ "$ci_status" != - ] || ci_status=""
-    [ "$ci_result" != - ] || ci_result=""
-    ci_answer=$(ci_verdict "$ci_status" "$ci_result")
-    [ "$ci_answer" = pass ] || CI_BAD="$CI_BAD\n    $ci_answer: $ci_name — $ci_url"
-  done <<EOF
-$(printf '%s\n' "$CI_ROWS" | sed 1d)
-EOF
+  read_checks \
+    || die "could not read the CI checks on PR #$PR — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once gh can reach GitHub."
+  # The head is read again AFTER its checks, since gh reads the checks of whatever
+  # the head is at that moment: a push landing between the two reads would have this
+  # run judge one commit's checks and pin the merge to another.
+  HEAD_NOW=$(pr_field headRefOid 2>/dev/null || true)
+  [ "$HEAD_NOW" = "$HEAD_OID" ] \
+    || die "PR #$PR's head moved from $HEAD_OID to ${HEAD_NOW:-<unreadable>} while its checks were read — nothing has been touched: the worktree is intact and the PR is still a draft. Re-gate the new head and re-run: merge-pr.sh $PR"
+  ci_not_green
   if [ -n "$CI_BAD" ]; then
     die "PR #$PR has CI checks that are not green at $HEAD_OID — nothing has been touched: the worktree is intact and the PR is still a draft.$CI_BAD\n  A pending check: re-run merge-pr.sh $PR once it settles. A failing one: fix it on the branch, push, re-gate, then re-run; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
   fi
+  while IFS="$TAB" read -r _ _ _ _ link; do
+    [ -z "$link" ] || PRE_FLIP_LINKS="$PRE_FLIP_LINKS$link$NL"
+  done <<EOF
+$CHECK_ROWS
+EOF
+fi
+
+# --- 1c. CI the ready flip starts -------------------------------------------------
+# A project can keep its CI off drafts — a job guarded by
+# `if: github.event.pull_request.draft == false`, with `ready_for_review` among the
+# PR trigger's types so it starts when the draft flag comes off. On a draft that job
+# reports SKIPPED, which the read above passes, and the run that matters starts on
+# the very flip step 3 makes a second before the merge, so it would finish after the
+# merge had already landed. So where marking THIS draft ready starts CI, the flip
+# moves here, ahead of the teardown, and the merge waits on what it started.
+#
+# Whether it does is read from the tree, never guessed from a skipped check: a
+# workflow under .github/workflows/ at the PR's head whose PR trigger names
+# `ready_for_review`. A PR that is already ready flips nothing and starts nothing, so
+# it is not asked. Where nothing names it, nothing below runs and the order is
+# exactly what it was: a skipped check on such a project is GitHub's own pass.
+#
+# GitHub registers a run a few seconds after the event, and until a new run's checks
+# appear `gh pr checks` still shows the draft's skipped ones under the same names,
+# so a watch started straight after the flip would find nothing pending and return.
+# The wait for them is BOUNDED, a fixed number of polls, since a frozen contract has
+# no knob for it; the wait for them to FINISH is `gh pr checks --watch --fail-fast`,
+# which waits on the checks rather than on a timer. Either way the verdict is the
+# read that follows. A red, a cancelled or a still-pending check, a head that moved,
+# or a bound that expired with none of them appeared puts the PR back to draft and
+# refuses here, before the teardown, so the worktree is still there to fix it in.
+#
+# A check counts as the flip's when it belongs to a workflow that named the trigger
+# and its link (one job's run) was not on the PR before the flip.
+WAS_DRAFT=""
+FLIPPED=""
+DRAFT_NOTE=""
+# Put the draft flag back on a PR this run marked ready, saying in DRAFT_NOTE what
+# became of it. Only a PR that arrived as a draft is touched: one that arrived ready
+# keeps the state it came with rather than being pushed into a draft nobody asked for.
+restore_draft() {
+  DRAFT_NOTE="it was already non-draft before this run and is left that way"
+  [ "$WAS_DRAFT" = "true" ] || return 0
+  if ( cd "$MAIN" && gh pr ready "$PR" --undo ) >/dev/null 2>&1; then
+    DRAFT_NOTE="it is back to a draft"
+  else
+    DRAFT_NOTE="its draft flag could NOT be restored — put it back by hand: gh pr ready $PR --undo"
+  fi
+}
+
+READY_WORKFLOWS=""
+find_ready_workflows() { # find_ready_workflows <commit> — sets READY_WORKFLOWS, one name a line
+  local listing entry path text
+  READY_WORKFLOWS=""
+  if ! git -C "$MAIN" cat-file -e "$1^{commit}" 2>/dev/null; then
+    git -C "$MAIN" fetch --quiet origin "refs/pull/$PR/head" >/dev/null 2>&1 \
+      || git -C "$MAIN" fetch --quiet origin "$HEAD_BRANCH" >/dev/null 2>&1 \
+      || die "git fetch of PR #$PR's head $1 failed, so its workflows cannot be read — nothing has been touched: the worktree is intact and the PR is still a draft. Re-run merge-pr.sh $PR once origin can be reached."
+    git -C "$MAIN" cat-file -e "$1^{commit}" 2>/dev/null \
+      || die "PR #$PR's head $1 is not in $MAIN even after a fetch, so its workflows cannot be read — nothing has been touched: the worktree is intact and the PR is still a draft."
+  fi
+  git_out -C "$MAIN" ls-tree "$1" .github/workflows/
+  listing=$GIT_OUT
+  while IFS= read -r entry; do
+    case "$entry" in *" blob "*) ;; *) continue ;; esac
+    path=${entry#*"$TAB"}
+    case "$path" in *.yml | *.yaml) ;; *) continue ;; esac
+    git_out -C "$MAIN" show "$1:$path"
+    text=$GIT_OUT
+    ready_trigger "$text" || continue
+    READY_WORKFLOWS="$READY_WORKFLOWS$(workflow_name "$path" "$text")$NL"
+  done <<EOF
+$listing
+EOF
+}
+
+# For each workflow in READY_WORKFLOWS, against CHECK_ROWS: APPEARED lists those with
+# a check the flip started, SETTLED is empty unless every one of them shows only such
+# checks — a pre-flip link still showing is a job whose new run gh has not surfaced.
+APPEARED=""
+SETTLED=""
+flip_checks_state() {
+  local wf bucket name workflow event link fresh stale
+  APPEARED=""
+  SETTLED=1
+  while IFS= read -r wf; do
+    [ -n "$wf" ] || continue
+    fresh=""
+    stale=""
+    while IFS="$TAB" read -r bucket name workflow event link; do
+      [ "$workflow" = "$wf" ] || continue
+      case "$NL$PRE_FLIP_LINKS" in
+      *"$NL$link$NL"*) stale=1 ;;
+      *) fresh=1 ;;
+      esac
+    done <<EOF
+$CHECK_ROWS
+EOF
+    [ -z "$fresh" ] || APPEARED="$APPEARED$wf$NL"
+    [ -n "$fresh" ] && [ -z "$stale" ] || SETTLED=""
+  done <<EOF
+$READY_WORKFLOWS
+EOF
+}
+
+if [ "$STATE" != "MERGED" ]; then
+  WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
+  [ "$WAS_DRAFT" != "true" ] || find_ready_workflows "$HEAD_OID"
+fi
+if [ -n "$READY_WORKFLOWS" ]; then
+  READY_LIST=""
+  while IFS= read -r wf; do
+    [ -z "$wf" ] || READY_LIST="${READY_LIST:+$READY_LIST, }'$wf'"
+  done <<EOF
+$READY_WORKFLOWS
+EOF
+  echo "merge-pr: marking PR #$PR ready (review approval) ahead of the teardown — workflow(s) $READY_LIST start CI on that flip, so the merge waits for it ..."
+  # An interrupted wait must not leave a ready PR that is not being merged, so each
+  # trap puts the flag back, then re-raises the signal with the default action
+  # restored, the same way the merge call's traps do.
+  trap 'restore_draft; trap - INT; kill -s INT $$' INT
+  trap 'restore_draft; trap - TERM; kill -s TERM $$' TERM
+  ( cd "$MAIN" && gh pr ready "$PR" ) \
+    || { restore_draft; die "gh pr ready failed on PR #$PR — nothing has been merged: the worktree is intact and $DRAFT_NOTE."; }
+  FLIPPED=1
+  FLIP_REFUSAL=""
+  FLIP_DETAIL=""
+  # 24 polls 5 seconds apart, about two minutes for a run to register and start.
+  attempt=1
+  while :; do
+    if read_checks; then
+      flip_checks_state
+      [ -z "$SETTLED" ] || break
+    fi
+    [ "$attempt" -lt 24 ] || break
+    attempt=$((attempt + 1))
+    sleep 5
+  done
+  if [ -z "$APPEARED" ]; then
+    FLIP_REFUSAL="PR #$PR was marked ready to start its CI — workflow(s) $READY_LIST name ready_for_review — but no check from it appeared within about two minutes, so nothing has been merged: the worktree is intact and"
+    FLIP_HINT="Read gh pr checks $PR, and re-run merge-pr.sh $PR once that CI reports; starting it by hand is the user's call."
+  else
+    if [ -z "$SETTLED" ]; then
+      echo "merge-pr: not every run the flip should start has surfaced within about two minutes — waiting on the checks that did ..."
+    fi
+    echo "merge-pr: waiting for PR #$PR's checks to finish (gh pr checks --watch --fail-fast) ..."
+    # The watch's own exit is not the verdict, the read after it is; a check gh had
+    # not surfaced when the watch returned gets a second watch, three at most.
+    for round in 1 2 3; do
+      ( cd "$MAIN" && gh pr checks "$PR" --watch --fail-fast ) >/dev/null 2>&1 || true
+      if ! read_checks; then
+        FLIP_REFUSAL="could not read PR #$PR's CI checks after marking it ready, so nothing has been merged: the worktree is intact and"
+        FLIP_HINT="Re-run merge-pr.sh $PR once gh can reach GitHub."
+        break
+      fi
+      ci_not_green
+      [ -n "$CI_PENDING" ] && [ "$round" -lt 3 ] || break
+    done
+    if [ -z "$FLIP_REFUSAL" ] && [ -n "$CI_BAD" ]; then
+      FLIP_REFUSAL="PR #$PR has CI checks that are not green at $HEAD_OID after it was marked ready, so nothing has been merged: the worktree is intact and"
+      FLIP_DETAIL=$CI_BAD
+      FLIP_HINT="A failing one: fix it on the branch, push, re-gate, then re-run merge-pr.sh $PR; one cancelled, timed out or stale with nothing in the code to fix needs a CI re-run, which is the user's call."
+    fi
+    if [ -z "$FLIP_REFUSAL" ]; then
+      HEAD_NOW=$(pr_field headRefOid 2>/dev/null || true)
+      if [ "$HEAD_NOW" != "$HEAD_OID" ]; then
+        FLIP_REFUSAL="PR #$PR's head moved from $HEAD_OID to ${HEAD_NOW:-<unreadable>} while its CI ran, so nothing has been merged: the worktree is intact and"
+        FLIP_HINT="Re-gate the new head and re-run merge-pr.sh $PR."
+      fi
+    fi
+  fi
+  if [ -n "$FLIP_REFUSAL" ]; then
+    restore_draft
+    trap - INT TERM
+    die "$FLIP_REFUSAL $DRAFT_NOTE.$FLIP_DETAIL\n  $FLIP_HINT"
+  fi
+  trap - INT TERM
+  echo "merge-pr: PR #$PR's CI is green at $HEAD_OID after the flip."
 fi
 
 # --- 2. Remove the head branch's worktree --------------------------------------
@@ -749,16 +1045,17 @@ else
   # one line above it so `ready` can never be a stale badge, since the step-2
   # teardown kills processes rooted in the worktree and can take real time, and a
   # flip before that would leave a window where the PR reads as approved but is not
-  # merged. `gh pr ready` on an already-ready PR is a no-op, so the flip itself is
-  # unconditional and idempotent on re-run.
+  # merged. The one exception is a flip that starts CI, which step 1c has already
+  # made and waited on. `gh pr ready` on an already-ready PR is a no-op, so the flip
+  # itself is unconditional and idempotent on re-run.
   #
-  # `isDraft` is read anyway, and read HERE rather than with the fields at the top,
-  # because it has one job: to say whether THIS run is what set the flag. Only then
-  # may the failure path put it back — a PR that arrived already ready keeps the
-  # state it came with rather than being pushed into a draft nobody asked for.
-  WAS_DRAFT=$(pr_field isDraft 2>/dev/null || true)
-  echo "merge-pr: marking PR #$PR ready (review approval) ..."
-  ( cd "$MAIN" && gh pr ready "$PR" )
+  # `isDraft` was read in step 1c, before either flip, because it has one job: to
+  # say whether THIS run is what set the flag. Only then may the failure path put it
+  # back — restore_draft leaves a PR that arrived already ready as it came.
+  if [ -z "$FLIPPED" ]; then
+    echo "merge-pr: marking PR #$PR ready (review approval) ..."
+    ( cd "$MAIN" && gh pr ready "$PR" )
+  fi
   # The squash path deliberately does NOT pass --delete-branch. The branch has to
   # outlive the merge long enough for the squash close-out below to compare what
   # landed against the commit that was gated, because that comparison is what
@@ -869,14 +1166,7 @@ else
     # a dispatcher approved — so leaving it set would have the PR wearing a
     # review it never received. This matters most when step 1 answered UNKNOWN and
     # fell through: the conflict it could not rule out surfaces exactly here.
-    DRAFT_NOTE="it was already non-draft before this run and is left that way"
-    if [ "$WAS_DRAFT" = "true" ]; then
-      if ( cd "$MAIN" && gh pr ready "$PR" --undo ); then
-        DRAFT_NOTE="it is back to a draft"
-      else
-        DRAFT_NOTE="its draft flag could NOT be restored — put it back by hand: gh pr ready $PR --undo"
-      fi
-    fi
+    restore_draft
     die "merging PR #$PR failed — $MERGE_CALL and GitHub reports the PR as ${AFTER_STATE:-<state unreadable>}, not MERGED; $DRAFT_NOTE, and its worktree has already been torn down (step 2).\n  Re-attach a tree to the branch, fix it there, and re-run:\n    setup-worktree.sh --existing $HEAD_BRANCH\n    cd <the READY: path it prints> && git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>   (merge the base IN — never rebase)\n    merge-pr.sh $PR"
   fi
 fi

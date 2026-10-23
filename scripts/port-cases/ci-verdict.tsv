@@ -1,29 +1,17 @@
-# merge-pr: one CI check's verdict, pass / fail / pending. Read by BOTH ports
-# (ci_verdict / Get-CiVerdict). Anything but pass refuses the merge, so a false
-# pass merges a red PR and a false fail or pending blocks a green one.
+# merge-pr: one CI check's verdict, pass / fail / pending, from the bucket
+# `gh pr checks --json bucket` sorts it into. Read by BOTH ports (ci_verdict /
+# Get-CiVerdict). Anything but pass refuses the merge, so a false pass merges a red
+# PR and a false fail or pending blocks a green one.
 #
-# status	conclusion-or-state	expect
-# "-" means an empty string: a commit status has no status, only a state.
-COMPLETED	SUCCESS	pass
-COMPLETED	NEUTRAL	pass
-COMPLETED	SKIPPED	pass
-COMPLETED	FAILURE	fail
-COMPLETED	CANCELLED	fail
-COMPLETED	TIMED_OUT	fail
-COMPLETED	ACTION_REQUIRED	fail
-COMPLETED	STARTUP_FAILURE	fail
-COMPLETED	STALE	fail
-COMPLETED	-	pending
-IN_PROGRESS	-	pending
-QUEUED	-	pending
-WAITING	-	pending
-PENDING	-	pending
-IN_PROGRESS	FAILURE	pending
--	SUCCESS	pass
--	FAILURE	fail
--	ERROR	fail
--	PENDING	pending
--	EXPECTED	pending
--	-	pending
-COMPLETED	success	fail
-completed	SUCCESS	pending
+# bucket	expect
+# "-" means an empty string.
+pass	pass
+skipping	pass
+pending	pending
+fail	fail
+cancel	fail
+-	fail
+PASS	fail
+Pending	fail
+neutral	fail
+SUCCESS	fail

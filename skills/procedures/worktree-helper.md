@@ -12,8 +12,9 @@ written where each seat acts.
 **`setup-worktree.sh <branch> <base>`, both required.** It ships in this plugin's `bin/`, alongside its
 siblings `merge-pr.sh` / `remove-worktree.sh`; **whether it resolves as a bare command or needs an
 absolute path is per-host, and so is the extension — `skills/procedures/host-tools.md` settles both.** It
-auto-detects the project and reads that project's `.agents/worktree.json`, so it works the same for any
-repo.
+auto-detects the project and reads that project's config — `.agents/worktree.json` overlaid by its
+gitignored `.agents/worktree.overrides.json` (`skills/procedures/config-keys.md`) — so it works the same for
+any repo.
 
 Run it from **anywhere inside the target repo** — the root, a subdirectory, a monorepo subpackage, or
 even a linked worktree, since it walks up to the repo's common gitdir. If cwd is not inside the repo,
@@ -26,16 +27,21 @@ prefix `REPO=/path/to/repo`.
   and a hardcoded default just goes stale. It errors early with a `git fetch` hint if `<base>` is not a
   local ref yet.
 
-**It creates the worktree at `$WORKTREE_HOME/<project>/<branch-leaf>`, symlinks the config's `envFiles`,
+**It creates the worktree at `<home>/<project>/<branch-leaf>`, symlinks the config's `envFiles`,
 and runs `install`** (`skills/procedures/config-keys.md` carries what those keys mean). Every branch is
 treated the same, docs included: a worktree always gets its own install, so it is always self-contained
 and can face any check the project has.
 
-`WORKTREE_HOME` defaults to `~/.worktrees`, **except on Windows, where it defaults to
-`%LOCALAPPDATA%\wt`** — a worktree path there carries a whole dependency tree
-(`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely exceeds
-Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename
-rather than on the length. Setting `WORKTREE_HOME` yourself still overrides it everywhere. Two more
+**`<home>` is `WORKTREE_HOME`, else `worktreeHome` in the repo's overrides file, else `worktreeHome` in
+`~/.agents/worktree.json`, else `~/.worktrees`**, identically in every helper, a leading `~` expanding to the
+user's home; a workspace member's trees (`<home>/<workspace>/<leaf>/<repo>`) skip the overrides layer, since
+`setup-workspace` runs from no single repo. **An unreachable home is a refusal**: setup refuses where the
+home's parent does not exist — an unmounted drive — rather than creating it on the main disk, and teardown
+refuses before any `git worktree prune` while a home a file or `WORKTREE_HOME` set is missing, since that
+prune would forget every tree on it. The default is `%LOCALAPPDATA%\wt` **on Windows** instead — a worktree
+path there carries a whole dependency tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from
+`~/.worktrees` that routinely exceeds Windows' 260-character `MAX_PATH`, which surfaces as an install failing
+on some deeply nested filename rather than on the length. Two more
 Windows-only notes worth knowing before you read a worktree's stderr as a code bug: `setup-worktree.sh`
 warns when `git config core.longpaths` is unset (the same `MAX_PATH` ceiling, from git's side), and it
 warns when an env file was **copied** rather than symlinked — Git Bash's `ln -s` silently copies unless
@@ -126,7 +132,7 @@ verify before anything else runs.
 **Which is why a change to that config cannot be exercised by the tree it is written in.** The helper
 resolves the main checkout from the repo's common gitdir, so it finds the same one from any cwd — the
 root, a subdirectory, a linked worktree, or an explicit `REPO=` — then reads
-`<main checkout>/.agents/worktree.json` out of that tree. **No ref enters the lookup, `<base>`
+`<main checkout>/.agents/worktree.json` and the `.agents/worktree.overrides.json` beside it out of that tree. **No ref enters the lookup, `<base>`
 included**; `merge-pr` reads `epicMerge` and `integrationBranch` from the same copy, and a workspace's
 `integrationBranch` from the manifest beside it. So a change adding an `envFiles` entry, altering
 `install`, or introducing a new key is provisioned from the **pre-change** config, as is every worktree

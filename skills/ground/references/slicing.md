@@ -267,7 +267,7 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
 - **File-disjoint is not independent when the slices share a resource that lives outside the worktree — the
   one entry here that can make the right wave width ONE.** A worktree isolates the filesystem and nothing
   further, so two slices touching no common file still contend for one database, Redis instance, cache
-  directory or fixed port. Read `sharedResources` in the project's `.agents/worktree.json`:
+  directory or fixed port. Read `sharedResources` in the project's config (`skills/procedures/config-keys.md`):
   `"isolatedBy": null` says the resource stays shared, and the key **missing entirely** says nobody has been
   asked — not an answer, and not a no. The drained gate does not cover it: the slot serializes *gates* and
   never sees the implementers' `preflight` and targeted test runs, and a project declaring no

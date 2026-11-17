@@ -394,7 +394,7 @@ identical afterwards.
   `.claude-plugin/plugin.json`; never the consuming tracker unless the finding is about that project, and
   never the version-pinned plugin cache, which is not a git repository at all.
 - **Filing upstream is OFF unless the project turned it on, and a MISSING KEY IS A NO** —
-  `.agents/worktree.json`'s `upstreamFindings` (`skills/procedures/config-keys.md`).
+  the project config's `upstreamFindings` (`skills/procedures/config-keys.md`).
   **Not enabled, the question is still asked and answered in writing** — *not enabled here* — and the finding
   goes to the maintainer in the run's report in full, the one place a report may house one.
   **Where the resolved target IS the repository the arc is running in the key does not apply and what the arc

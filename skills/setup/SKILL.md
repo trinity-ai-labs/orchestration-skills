@@ -207,6 +207,12 @@ direction, as holding is for a merge:
 reads which key included. Read it once; the table below is what this pass sources each value FROM, which is a
 different question and this pass's own.
 
+**Whenever this pass writes or reconciles the config, the repo's `.gitignore` carries
+`.agents/worktree.overrides.json`** — add the line in the same change where it is missing. That file holds one
+clone's own values and `worktreeHome` (`skills/procedures/config-keys.md`), so a tracked one follows every
+clone, and the helpers warn when they find it tracked. **Never write the overrides file, or
+`~/.agents/worktree.json`, yourself**: both are the user's, and neither belongs in a reviewable change.
+
 ### First, ask for the four values no file in the repo holds
 
 1. **What does the gate touch OUTSIDE the worktree?** No lockfile or CI file names the Postgres the suite
@@ -421,6 +427,8 @@ runs again so the fourth ask declares `fullGate`. **Never a restructure made by 
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
 `/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
-scaffolded a queue, and the verification results. Then:
+scaffolded a queue, and the verification results — and name the two local files beside it: the gitignored
+`.agents/worktree.overrides.json` for this clone's own values, and `~/.agents/worktree.json` for where this
+machine keeps every worktree. Then:
 
 > **Ready to run the pipeline.** `<repo>` is configured — hand an idea to `/pipeline:co-think`, or a shape you have already settled to `/pipeline:write-issue`, which files it and hands off to `/pipeline:orchestrate`, the one command that ships dispatched work of any size.

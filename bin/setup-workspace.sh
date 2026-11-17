@@ -71,8 +71,8 @@ is_windows() {
 # On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
 # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
 # past MAX_PATH's 260 characters as a matter of routine, and the install then fails
-# naming some deeply nested file rather than the length that actually broke it. An
-# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+# naming some deeply nested file rather than the length that actually broke it. It
+# is only the LAST layer of the home, which resolve_worktree_home below resolves.
 worktree_home_default() {
   if is_windows && [ -n "${LOCALAPPDATA:-}" ]; then
     printf '%s/wt\n' "$(norm_path "$LOCALAPPDATA")"

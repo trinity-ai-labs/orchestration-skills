@@ -166,8 +166,8 @@ path_inside() { # path_inside <candidate-dir> <tree>
 # On Windows the default home is %LOCALAPPDATA%/wt, not ~/.worktrees: a path like
 # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/<pkg>@<version>/… runs
 # past MAX_PATH's 260 characters as a matter of routine, and the install then fails
-# naming some deeply nested file rather than the length that actually broke it. An
-# explicitly set WORKTREE_HOME still wins everywhere, unchanged.
+# naming some deeply nested file rather than the length that actually broke it. It
+# is only the LAST layer of the home, which resolve_worktree_home below resolves.
 #
 # This has to agree with setup-worktree.sh's default exactly: the wrong-repo guard
 # below decides "is there anything to close out here?" from whether a worktree

@@ -2,6 +2,28 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.27.0
+
+- **Worktrees can live on another drive, set once per machine.** `~/.agents/worktree.json` carries one key,
+  `worktreeHome`, the home every repo's worktrees go under. Every helper, in both ports, resolves the home
+  from `WORKTREE_HOME`, then `worktreeHome` in the repo's overrides file, then `~/.agents/worktree.json`,
+  then the old default of `~/.worktrees` (`%LOCALAPPDATA%\wt` on Windows), and a leading `~` expands. A
+  workspace member's trees skip the per-repo layer. `worktreeHome` in the committed `.agents/worktree.json`
+  is not read. With neither file present, trees land where they did before.
+- **A per-clone overrides file, `.agents/worktree.overrides.json`, gitignored.** It overlays the committed
+  config key by key: a key it carries replaces the committed value whole, so an `env` map is replaced rather
+  than merged, and a key it omits falls through. The helpers read it from the main checkout beside the
+  config, and every pass that reads the project's config means the merged view. A tracked overrides file
+  gets a warning and is still read. `/pipeline:setup` adds the line to `.gitignore` when it writes or
+  reconciles the config.
+- **An unreachable home is a refusal.** `setup-worktree` and `setup-workspace` exit `1` without creating
+  anything when the home's parent does not exist, which is what an unmounted drive looks like. They name the
+  path and the layer that set it. `remove-worktree`, and `merge-pr` through it, refuse before either
+  `git worktree prune` while a home that the env or a file set does not exist, since that prune would drop the
+  registration of every tree on the drive. An unreadable file that may set the home is also a refusal. New
+  tables `worktree-home.tsv`, asked of every helper's copy in both ports, and `config-overlay.tsv` /
+  `config-overlay-nested.tsv` pin the resolver and the overlay.
+
 ## 5.26.1
 
 - **`merge-pr` waits for the CI that marking a draft ready starts.** A project whose CI skips drafts reported

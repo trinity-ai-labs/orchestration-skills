@@ -10,6 +10,17 @@ after it either, which on a multi-slice arc is the rest of the arc:
 [`skills/procedures/worktree-helper.md`](../skills/procedures/worktree-helper.md) carries why neither pushing
 the branch nor cutting a second worktree gets round it, and which merge ends the window.
 
+**Two local files sit beside it, and neither is committed.** `<repo>/.agents/worktree.overrides.json` is
+gitignored and holds this clone's own values: it overlays the committed config key by key, a key it carries
+replacing the committed one whole (an `env` map is replaced, not merged) and a key it omits falling through.
+Every helper and every pass reads that merged view, the overrides file from the same main-checkout copy as the
+config. `~/.agents/worktree.json` holds one key for the whole machine, `worktreeHome`. The worktree home
+resolves `WORKTREE_HOME` → `worktreeHome` in the overrides file → `worktreeHome` in `~/.agents/worktree.json`
+→ `~/.worktrees` (`%LOCALAPPDATA%\wt` on Windows); a workspace member's trees skip the overrides layer, and
+`worktreeHome` in the committed config is never read, since it would follow every clone. A tracked overrides
+file draws a warning and is still read; `/pipeline:setup` gitignores it. A home on a drive that is not mounted
+is a refusal — see [Troubleshooting](troubleshooting.md#a-helper-refuses-the-worktree-home-is-unreachable).
+
 **The canonical statement of what each key means, and what its absence means, is
 [`skills/procedures/config-keys.md`](../skills/procedures/config-keys.md)** — one copy that every pass cites
 rather than restates, since a key's meaning is the same whichever seat is reading it. This page is the

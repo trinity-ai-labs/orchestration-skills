@@ -112,7 +112,10 @@ against what the local gate already proves; *no* is a valid answer and records n
 workflow is visible in the tree.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
-[Per-project config](per-project-config.md#per-project-config), and commit it. Read the repo's agent guidance,
+[Per-project config](per-project-config.md#per-project-config), add `.agents/worktree.overrides.json` to its
+`.gitignore`, and commit both. Setup writes that `.gitignore` line itself whenever it writes or reconciles the
+config, and names the two local files beside it in its report — the overrides file for this clone's own
+values and `~/.agents/worktree.json` for where this machine keeps every worktree — without writing either. Read the repo's agent guidance,
 its package scripts, and its CI to fill in the commands rather than guessing.
 
 **Onboarding is not the only job this command has — an artifact that is already there may be *behind*, and run

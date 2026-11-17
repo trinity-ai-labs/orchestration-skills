@@ -75,7 +75,12 @@ worktree intact. `remove-worktree`
 takes a branch leaf or an absolute path, and after the removal (or the prune, for a tree already absent) prints its own `reclaim:` lines while running the
 project's `reclaim.drop`, which can never change its exit status; `setup-workspace`
 takes `[--dry-run] <branch> [repo …]` or `[--dry-run] <branch> --exclude <repo,repo>`, and prints
-`READY: <path>`. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
+`READY: <path>`. Every helper that builds a path under the worktree home resolves it `WORKTREE_HOME` →
+`worktreeHome` in the repo's gitignored `.agents/worktree.overrides.json` → `worktreeHome` in
+`~/.agents/worktree.json` → the platform default, the workspace layout skipping the per-repo layer, and reads
+the project's config through that overrides file key by key; an unreachable home exits `1` — at setup where
+the home's parent is missing, in `remove-worktree` before any prune where a home the env or a file set is
+missing — and `scripts/port-cases/worktree-home.tsv` asks every helper's copy of the resolver, in both ports. The `READY:` line's shape is what callers parse, so an addition to a helper's output goes on
 its OWN line rather than into that one. **A `git` call that fails where the helper assumed it would succeed
 exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through,
 and never a silent success: a substitution inside an `echo` takes its status from the `echo`.

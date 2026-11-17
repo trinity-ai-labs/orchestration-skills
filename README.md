@@ -74,7 +74,7 @@ The detail lives in [`docs/`](docs/), one page per topic:
 |---|---|
 | [Filing findings upstream](docs/filing-findings-upstream.md) | **Read this before you install** — what this plugin can write into its own public repository, and the per-project key that is off unless you switch it on |
 | [Troubleshooting](docs/troubleshooting.md) | The three causes behind a git error while installing, and the fix for each |
-| [Per-project config](docs/per-project-config.md) | Every key in `.agents/worktree.json`, what reads it, and what its absence means |
+| [Per-project config](docs/per-project-config.md) | Every key in `.agents/worktree.json`, what reads it, and what its absence means — and the local overrides file and machine-wide worktree home beside it |
 | [The mental model](docs/mental-model.md) | The loop, the two grounding depths, the branch levels, and why the shape is this shape |
 | [Onboarding a new project](docs/onboarding-a-project.md) | What `/pipeline:setup` grounds, what it asks you, and how it reconciles a config that has drifted |
 | [The hard rules](docs/hard-rules.md) | The rules the agent follows, stated so you can check its work |
@@ -256,6 +256,29 @@ quietly behind the integration tip.
 then `HEAD: <sha>` — and the comparison that catches a base gone stale under it, plus why the fetch is part of
 that comparison rather than preparation for it, is in
 [The hard rules](docs/hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know).
+
+### Where worktrees live, and local overrides
+
+Trees land at `~/.worktrees/<project>/<branch-leaf>` (`%LOCALAPPDATA%\wt` on Windows) unless one of two local
+files says otherwise — neither is committed, so nothing machine-specific reaches the repo:
+
+```jsonc
+// ~/.agents/worktree.json — this machine, every repo; only worktreeHome is read
+{ "worktreeHome": "/Volumes/SSD/worktrees" }
+
+// <repo>/.agents/worktree.overrides.json — this clone only, gitignored
+{ "worktreeHome": "/Volumes/Fast/wt", "install": "pnpm install --offline" }
+```
+
+The home resolves `WORKTREE_HOME` → the repo's overrides file → `~/.agents/worktree.json` → the default, and a
+leading `~` expands. The overrides file may carry any key the committed `.agents/worktree.json` carries, and
+each one it carries replaces the committed key whole; `/pipeline:setup` adds it to `.gitignore`. `worktreeHome`
+in the committed file is not read.
+
+**On an external drive**, format it APFS (or another filesystem with symlinks and POSIX permissions), not
+exFAT, which has neither — `envFiles` are symlinks. While the drive is unplugged, setup refuses rather than
+building the home on your main disk, and teardown (`remove-worktree`, and `merge-pr` through it) refuses before
+`git worktree prune`, which would otherwise forget every tree on the drive; plug it back in and re-run.
 
 ---
 

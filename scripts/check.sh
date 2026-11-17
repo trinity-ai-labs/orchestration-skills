@@ -41,6 +41,8 @@
 #      each step and mode, counted in words the same way on every platform —
 #      sums to exactly its recorded bound (a ratchet), and every file listed is
 #      one that seat's own prose routes it to.
+#  20. remove-worktree, in both ports, refuses before `git worktree prune` while
+#      the worktree home's drive is missing — run against a real scratch repo.
 #
 # Checks 9, 11 and 12 exist together and guard one thing: a skill must be
 # actionable without opening anything else. 10 bounds what one file and one
@@ -2155,10 +2157,71 @@ else
 fi
 rm -f "$load_out"
 
+# --- 20. teardown refuses before prune while the worktree home is unreachable -
+
+# The one helper behaviour run end to end here rather than as a predicate,
+# because what it guards is an ORDER: remove-worktree must refuse BEFORE
+# `git worktree prune`, which drops the registration of every tree whose
+# directory is missing — every tree on an unplugged drive at once, silently, with
+# nothing left in `git worktree list` to say they were ever there. A table of
+# inputs cannot see a call moved below the prune; a real repo can.
+#
+# A scratch repo registers one tree under a home its overrides file names, the
+# home's drive is then moved away (its parent goes missing), and each port is
+# asked to remove that tree: exit 1, and the porcelain listing byte-identical
+# before and after. HOME points into the scratch directory and WORKTREE_HOME is
+# unset, so neither the contributor's real ~/.agents/worktree.json nor their
+# shell can pick the home.
+
+tr_tmp="$(mktemp -d)" || exit 2
+tr_home="$tr_tmp/drive/wt"
+tr_repo="$tr_tmp/repo"
+tr_ok=1
+if ! {
+	mkdir -p "$tr_tmp/home" "$tr_repo/.agents" "$tr_home/repo" &&
+		git init -q -b main "$tr_repo" &&
+		git -C "$tr_repo" -c user.email=check@example.com -c user.name=check commit -q --allow-empty -m seed &&
+		printf '{ "worktreeHome": "%s" }\n' "$tr_home" >"$tr_repo/.agents/worktree.overrides.json" &&
+		git -C "$tr_repo" worktree add -q -b unplugged "$tr_home/repo/unplugged" &&
+		mv "$tr_tmp/drive" "$tr_tmp/drive-unplugged" &&
+		git -C "$tr_repo" worktree list --porcelain >"$tr_tmp/before"
+}; then
+	fail "teardown-refusal: could not build the scratch repo in $tr_tmp — this check compared nothing"
+	tr_ok=0
+fi
+
+tr_run() { # tr_run <label> <command...> — one port, asked to tear down the unplugged tree
+	tr_label="$1"
+	shift
+	tr_status=0
+	(cd "$tr_repo" && env -u WORKTREE_HOME HOME="$tr_tmp/home" REPO="$tr_repo" "$@" unplugged) \
+		>"$tr_tmp/out" 2>&1 || tr_status=$?
+	git -C "$tr_repo" worktree list --porcelain >"$tr_tmp/after"
+	if [ "$tr_status" -ne 1 ]; then
+		sed 's/^/      /' "$tr_tmp/out" >&2
+		fail "teardown-refusal: $tr_label exited $tr_status, not 1, with the worktree home's drive missing"
+	elif ! cmp -s "$tr_tmp/before" "$tr_tmp/after"; then
+		sed 's/^/      /' "$tr_tmp/out" >&2
+		fail "teardown-refusal: $tr_label changed git's worktree registry with the home's drive missing — a prune ran before the refusal"
+	else
+		ok "teardown-refusal: $tr_label refuses with the home's drive missing and leaves git's worktree registry byte-identical"
+	fi
+}
+
+if [ "$tr_ok" -eq 1 ]; then
+	tr_run "bin/remove-worktree.sh" bash "$root/bin/remove-worktree.sh"
+	if command -v pwsh >/dev/null 2>&1; then
+		tr_run "bin/remove-worktree.ps1" pwsh -NoProfile -NonInteractive -File "$root/bin/remove-worktree.ps1"
+	else
+		skip "teardown-refusal: pwsh is not on PATH so bin/remove-worktree.ps1 was NOT asked here; the check job on ubuntu-latest ships pwsh and does ask it"
+	fi
+fi
+rm -rf "$tr_tmp"
+
 # --- report ------------------------------------------------------------------
 
 if [ "$fails" -eq 0 ]; then
-	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, every slice-field enumeration names every field, and shipped prose names a capability rather than a host tool literal, and the load each seat opens sits at its recorded bound\n'
+	printf '\ncheck: ok — scripts lint clean, manifest and skills well-formed, example config reads, bin/ helpers at parity, skills/ paths resolve, and shipped prose is within budget and free of issue numbers, war stories, cross-skill citations and half-deleted sentences, the glossary is tied to the tree, the procedures home holds procedure rather than stance, the two bin/ ports answer their shared predicates identically, every slice-field enumeration names every field, and shipped prose names a capability rather than a host tool literal, the load each seat opens sits at its recorded bound, and teardown refuses before a prune while the worktree home is unreachable\n'
 	exit 0
 fi
 printf '\ncheck: %s failure(s)\n' "$fails" >&2

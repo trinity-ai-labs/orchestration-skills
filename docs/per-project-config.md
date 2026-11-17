@@ -1,14 +1,26 @@
 ## Per-project config
 
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two
-scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads
-`epicMerge` and `integrationBranch`. The skills read the rest — and `install` as well, the one key both a
-script and a skill read, because the epic worktree's tick re-runs it. Both scripts read the
+Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Three
+scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, `remove-worktree.sh` reads
+`reclaim.drop`, and `merge-pr.sh` reads `epicMerge` and `integrationBranch`. The skills read the rest — and
+`install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it.
+The scripts read the
 **main checkout's working copy** of the file, never the branch they are acting on, so a change to this config
 is exercised by no worktree at all until it reaches that copy — not the one that writes it, and not any cut
 after it either, which on a multi-slice arc is the rest of the arc:
 [`skills/procedures/worktree-helper.md`](../skills/procedures/worktree-helper.md) carries why neither pushing
 the branch nor cutting a second worktree gets round it, and which merge ends the window.
+
+**Two local files sit beside it, and neither is committed.** `<repo>/.agents/worktree.overrides.json` is
+gitignored and holds this clone's own values: it overlays the committed config key by key, a key it carries
+replacing the committed one whole (an `env` map is replaced, not merged) and a key it omits falling through.
+Every helper and every pass reads that merged view, the overrides file from the same main-checkout copy as the
+config. `~/.agents/worktree.json` holds one key for the whole machine, `worktreeHome`. The worktree home
+resolves `WORKTREE_HOME` → `worktreeHome` in the overrides file → `worktreeHome` in `~/.agents/worktree.json`
+→ `~/.worktrees` (`%LOCALAPPDATA%\wt` on Windows); a workspace member's trees skip the overrides layer, and
+`worktreeHome` in the committed config is never read, since it would follow every clone. A tracked overrides
+file draws a warning and is still read; `/pipeline:setup` gitignores it. A home on a drive that is not mounted
+is a refusal — see [Troubleshooting](troubleshooting.md#a-helper-refuses-the-worktree-home-is-unreachable).
 
 **The canonical statement of what each key means, and what its absence means, is
 [`skills/procedures/config-keys.md`](../skills/procedures/config-keys.md)** — one copy that every pass cites

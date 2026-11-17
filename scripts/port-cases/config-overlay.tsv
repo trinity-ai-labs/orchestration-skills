@@ -1,0 +1,18 @@
+# The project's config read through its overrides file: a key the overrides file
+# carries replaces the committed value WHOLE, a key it omits falls through, and an
+# unreadable file in the pair reads as an unreadable config does. Read by BOTH
+# ports (merge-pr's read_config_scalar / Get-ConfigScalar). Fixtures are under
+# fixtures/overlay/; missing.json does not exist.
+#
+# config	key	overrides	expect
+# "-" means an empty string. A top-level array declares no key, in every engine.
+scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/missing.json	main
+scripts/port-cases/fixtures/overlay/base.json	integrationBranch	-	main
+scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/over.json	develop
+scripts/port-cases/fixtures/overlay/base.json	epicMerge	scripts/port-cases/fixtures/overlay/over.json	squash
+scripts/port-cases/fixtures/overlay/missing.json	integrationBranch	scripts/port-cases/fixtures/overlay/over.json	develop
+scripts/port-cases/fixtures/overlay/base.json	epicMerge	scripts/port-cases/fixtures/overlay/over-null.json	-
+scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/bad.json	-
+scripts/port-cases/fixtures/overlay/bad.json	integrationBranch	scripts/port-cases/fixtures/overlay/missing.json	-
+scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/empty.json	-
+scripts/port-cases/fixtures/overlay/base.json	epicMerge	scripts/port-cases/fixtures/overlay/over-array.json	squash

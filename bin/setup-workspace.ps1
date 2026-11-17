@@ -24,9 +24,12 @@
 #
 # It creates one worktree per named repo, laid out the same way the workspace is:
 #
-#   $WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>/
+#   <home>/<workspace>/<branch-leaf>/<repo>/
 #
-# (WORKTREE_HOME defaults to %LOCALAPPDATA%\wt on Windows, ~/.worktrees elsewhere.)
+# (<home> is WORKTREE_HOME, else `worktreeHome` in ~/.agents/worktree.json, else
+# %LOCALAPPDATA%\wt on Windows and ~/.worktrees elsewhere. No repo's own overrides
+# file is read for it: the workspace root is no single repo. A home whose parent
+# does not exist - a drive that is not mounted - is a refusal, never a mkdir.)
 #
 # Mirroring the layout is the point. A cross-repo task gets a single directory that
 # looks exactly like the workspace, so relative paths between repos still resolve
@@ -107,18 +110,94 @@ function Test-OnWindows {
     return $true
 }
 
-function Get-WorktreeHome {
-    # WORKTREE_HOME wins whenever it is set. Otherwise the default is
-    # platform-dependent, and it MUST match the bash sibling byte for byte: on
-    # Windows that is %LOCALAPPDATA%\wt rather than ~/.worktrees, because
+function Get-WorktreeHomeDefault {
+    # The platform default, the last layer Resolve-WorktreeHome falls to. It MUST
+    # match the bash sibling byte for byte: on Windows that is %LOCALAPPDATA%\wt
+    # rather than ~/.worktrees, because
     # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/... routinely runs
     # past MAX_PATH's 260 characters. Disagreeing here is not cosmetic - merge-pr
     # reads this location to decide whether a merged PR still has anything to close
     # out, so a worktree cut in one shell would be invisible to the other and the
     # close-out would refuse with a "wrong repo" error against a perfectly good tree.
-    if ($env:WORKTREE_HOME) { return $env:WORKTREE_HOME }
     if ((Test-OnWindows) -and $env:LOCALAPPDATA) { return (Join-Path $env:LOCALAPPDATA 'wt') }
     return (Join-Path $HOME '.worktrees')
+}
+
+function Get-HomeFileValue {
+    # The string `worktreeHome` from one JSON file: '' when the file or the key is
+    # absent, $null when the file is there but cannot be read - a home is never
+    # guessed past a file that may have set it. The key is matched
+    # CASE-SENSITIVELY, as the bash sibling's node / python parse reads it.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
+    try {
+        $raw = Get-Content -LiteralPath $Path -Raw
+        if (-not $raw -or -not $raw.Trim()) { return $null }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return '' }
+        $cfg = $raw | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+    if ($null -eq $cfg -or $cfg -is [array]) { return '' }
+    foreach ($prop in $cfg.PSObject.Properties) {
+        if ($prop.Name -ceq 'worktreeHome') {
+            if ($prop.Value -is [string]) { return $prop.Value }
+            return ''
+        }
+    }
+    return ''
+}
+
+function Resolve-WorktreeHome {
+    # The home resolves through layers, identical in every helper and both ports:
+    # WORKTREE_HOME -> `worktreeHome` in <main>/.agents/worktree.overrides.json
+    # (the gitignored per-clone file) -> `worktreeHome` in ~/.agents/worktree.json
+    # (this machine, every repo) -> Get-WorktreeHomeDefault. The committed
+    # .agents/worktree.json is never read for it, since a path committed there
+    # would follow every clone onto machines that have no such drive. The
+    # workspace layout skips the per-repo layer: setup-workspace runs from a root
+    # that is no single repo, so the two could never agree on a path if one of
+    # them read it. scripts/check.sh asks every copy, and the bash sibling, the
+    # same table.
+    #
+    # Returns "<layer> <home>": the layer that set the home, one space, then the
+    # home with a leading ~ expanded against UserHome. The layer is WORKTREE_HOME,
+    # .agents/worktree.overrides.json, ~/.agents/worktree.json or default - or
+    # "unreadable", followed by the file that could not be read.
+    param(
+        [string] $EnvValue,
+        [string] $Main,
+        [string] $Layout,
+        [string] $UserHome,
+        [string] $Default
+    )
+    $value = ''
+    $layer = ''
+    if ($EnvValue) {
+        $value = $EnvValue
+        $layer = 'WORKTREE_HOME'
+    }
+    if (-not $layer -and $Layout -ceq 'bare' -and $Main) {
+        $file = "$Main/.agents/worktree.overrides.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '.agents/worktree.overrides.json' }
+    }
+    if (-not $layer) {
+        $file = "$UserHome/.agents/worktree.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '~/.agents/worktree.json' }
+    }
+    if (-not $layer) { return "default $Default" }
+    if ($value -ceq '~') {
+        $value = $UserHome
+    } elseif ($value.StartsWith('~/')) {
+        $value = "$UserHome/" + $value.Substring(2)
+    }
+    return "$layer $value"
 }
 
 function Test-GitSuccess {
@@ -165,7 +244,6 @@ $Branch = [string]$rest[0]
 $rest = Get-ArgTail -Items $rest -Skip 1
 $Slug = $Branch.Substring($Branch.LastIndexOf('/') + 1)
 
-$WorktreeHome = Get-NormalPath (Get-WorktreeHome)
 
 # Find the workspace root by walking up for the manifest. Starting from a member
 # repo is the common case - you are usually already inside one. The loop stops when
@@ -274,7 +352,26 @@ Write-Output "branch:    $Branch  off  $Base"
 Write-Output "repos:     $($Repos -join ' ')"
 Write-Output ""
 
-$TaskDir = "$WorktreeHome/$WorkspaceName/$Slug"
+$homeLine = Resolve-WorktreeHome $env:WORKTREE_HOME '' 'workspace' $HOME (Get-WorktreeHomeDefault)
+$HomeLayer = $homeLine.Substring(0, $homeLine.IndexOf(' '))
+$WtHome = $homeLine.Substring($homeLine.IndexOf(' ') + 1)
+if ($HomeLayer -ceq 'unreadable') {
+    Exit-WithError "could not read $WtHome, which may set worktreeHome - fix or remove it; no home is guessed past it."
+}
+$WtHome = Get-NormalPath $WtHome
+# Created only where its parent exists, for the reason setup-worktree gives: a
+# missing parent is most often an unmounted drive, and creating it would build the
+# home on the main disk instead.
+$WtHomeParent = Split-Path -Path $WtHome -Parent
+# A relative home with no separator has the current directory as its parent,
+# as `dirname` gives it on the bash side.
+if (-not $WtHomeParent) { $WtHomeParent = '.' }
+if (-not (Test-Path -LiteralPath $WtHome) -and -not ($WtHomeParent -and (Test-Path -LiteralPath $WtHomeParent))) {
+    Exit-WithError ("the worktree home $WtHome (set by $HomeLayer) is unreachable - its parent $(Get-NormalPath $WtHomeParent) does not exist.`n" +
+        "  Is the drive it lives on unplugged? Nothing was created.`n" +
+        "  Reconnect it and re-run, or point $HomeLayer at a home that exists.")
+}
+$TaskDir = "$WtHome/$WorkspaceName/$Slug"
 
 if ($DryRun) {
     Write-Output "would create: $TaskDir/{$($Repos -join ',')}"

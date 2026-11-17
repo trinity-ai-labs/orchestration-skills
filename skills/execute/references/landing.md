@@ -465,7 +465,7 @@ in place of the integration gate this file asks for, since an audit gives way an
 it is answered in writing: did the arc surface a defect or gap in the pipeline itself?** Exactly one of four
 answers, in that order of preference — **fixed**, closed in this release and naming where it landed;
 **filed**, naming the issue; **none found**; or **not enabled here**, where
-`.agents/worktree.json`'s `upstreamFindings` is anything but exactly `true`, in which case the finding goes to
+the project config's `upstreamFindings` is anything but exactly `true`, in which case the finding goes to
 the maintainer in the run's report instead. **Fixed is the default and clears no bar**: a gap closable in the
 release already being shipped is closed there and names the file and — where the project declares
 `changelog` — the changelog entry it landed in, held

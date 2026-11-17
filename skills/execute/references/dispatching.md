@@ -86,7 +86,7 @@ default. Seven items have one of those shapes and go into every brief close to v
 **foreground-handoff rule** (b). Any future addition with either shape goes the same way.
 **The count is stated here and nowhere else.**
 
-**What the project's config changes in a brief — read `<repo>/.agents/worktree.json`, then write each row's
+**What the project's config changes in a brief — read it (`skills/procedures/config-keys.md` defines it), then write each row's
 case into the brief with the SETTING named beside what it makes the implementer do**: *"Gate mode: in-line —
 this project declares no `enqueue`/`drain`, so you run `gate` once, in the foreground, and comment the result
 on your draft PR"*, since a rule handed over with no setting beside it reads as the only case there is. What a
@@ -188,7 +188,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   or leave it out and have the brief say to take it before the first edit, which is where anything else the
   slice needs goes too.
 - **Project conventions for this slice.** The bits of `briefConventions`
-  (`<repo>/.agents/worktree.json`) that bite this slice, beside the agent guidance that bites it — the key
+  (the project's config) that bite this slice, beside the agent guidance that bites it — the key
   carrying the facts that change how this pipeline dispatches and gates, and the guidance the coding
   conventions, a line `skills/procedures/config-keys.md` draws rather than this brief.
   **Name the guidance by its files**: the router chain of every directory the slice touches, up to the root,

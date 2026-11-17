@@ -28,7 +28,8 @@ reason to look.
 
 **The four invariants** (the helper covers 1, 3, 4 outright and part of 2 — the rest of step 2 is always on
 you):
-1. The worktree lives under `$WORKTREE_HOME/<project>/`, **never** under `.claude/worktrees`.
+1. The worktree lives under `<home>/<project>/` (`skills/procedures/worktree-helper.md` says what `<home>`
+   is), **never** under `.claude/worktrees`.
 2. **Verify its HEAD == the base tip BEFORE dispatching any agent** — compare the `HEAD: <sha>` line the
    helper just printed against `git rev-parse origin/<base>` (e.g. `origin/release/x.x.x`), or re-read it
    yourself with `git -C <worktree> rev-parse HEAD`. **The helper makes a comparison of its own here, and it
@@ -209,7 +210,7 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   checkout, one HEAD, one epic. **Push it**, or `origin/<epic-branch>` does not exist: nothing for invariant 2
   to compare a slice's `HEAD:` against, no base for `gh pr create`.
 - **⛔ The epic branch's leaf must be unique across the whole epic — no slice may reuse it.** The worktree path
-  is `$WORKTREE_HOME/<project>/<branch-leaf>`, so `epic/checkout-flow` and a slice `feat/checkout-flow` land
+  is `<home>/<project>/<branch-leaf>`, so `epic/checkout-flow` and a slice `feat/checkout-flow` land
   in the **same directory**. `setup-worktree.sh` refuses there — no `READY:` line, non-zero exit — because it
   reads the branch back and finds the epic's. Which generalises: **a `READY:` line is not by itself evidence
   the branch was created, the branch-back check is.** The likeliest collision is the epic's own

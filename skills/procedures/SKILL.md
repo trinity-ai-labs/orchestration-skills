@@ -30,7 +30,7 @@ GitHub and the `gh` CLI behave, true whether or not this pipeline exists — is 
 |---|---|
 | `skills/procedures/worktree-helper.md` | `setup-worktree` and its siblings: the arguments, the recovery form, what a run creates, the two lines it prints, and what it refuses rather than reporting a false success |
 | `skills/procedures/github-writes.md` | `gh-post`: the four GitHub writes it makes safe to re-run — comment, review, close, sub-issue link — the key that names a post, the three lines it prints, and what stays a raw `gh api` call |
-| `skills/procedures/config-keys.md` | Every key in `<repo>/.agents/worktree.json`, and the two a workspace declares in `.agents/workspace.json` — what each one means, and what its absence means |
+| `skills/procedures/config-keys.md` | Every key in the project's config — `<repo>/.agents/worktree.json` overlaid by its gitignored `.agents/worktree.overrides.json` — and the two a workspace declares in `.agents/workspace.json`: what each one means, and what its absence means |
 | `skills/procedures/host-tools.md` | The host tool behind each capability this flow needs, the tier-to-model table, and the two questions to answer before calling a helper |
 | `skills/procedures/agent-guidance-layout.md` | Reading a project's agent guidance for one piece of work, checking its shape for a monolith, the four-question test that places a line, and the steps of a split |
 | `skills/procedures/code-shape.md` | Reading a project's code shape — its layering, manifests and domains — the signals and how to take each with its unit, the test policy, placing new code and a new test, pruning, recognising a missing tool, and the properties a split gate needs to be safe |

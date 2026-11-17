@@ -1,18 +1,21 @@
 # The per-project config keys
 
-Entry in `skills/procedures/SKILL.md`. **What each key in `<repo>/.agents/worktree.json` MEANS, and what
-its absence means.** Every value here is per-repo and cannot be derived from the tree you are standing
-in, so read the file rather than inferring it: `cat <repo>/.agents/worktree.json`. **Two keys are also
+Entry in `skills/procedures/SKILL.md`. **What each key in the project's config MEANS, and what its
+absence means.** **The project's config is `<repo>/.agents/worktree.json` overlaid by its gitignored
+`.agents/worktree.overrides.json`**, one clone's own values: a key there replaces the committed one WHOLE (an
+`env` map too, never merged), an absent one falls through, and every reader means that merged view. Every
+value is per-repo and underivable from the tree you stand in, so read both rather than inferring either:
+`cat <repo>/.agents/worktree.json <repo>/.agents/worktree.overrides.json`. **Two keys are also
 declared one level up, in a workspace's `.agents/workspace.json`** — `integrationBranch` and
 `briefConventions`, each with its own entry below saying how the two layers combine; every other key is
 the repo's own alone.
 
 Each project declares its specifics in **its own repo**, so the config travels with the clone and is
 reviewed alongside the change that alters it. **`setup-worktree` reads `envFiles`, `env` and `install`;
-`merge-pr` reads `epicMerge` and `integrationBranch`** — the second from `.agents/workspace.json` too,
-where a workspace declares one, which is the only key it looks for outside the repo's own config. Every
+`remove-worktree` reads `reclaim.drop`; `merge-pr` reads `epicMerge` and `integrationBranch`** — the second
+from `.agents/workspace.json` too, where a workspace declares one, which is the only key it looks for outside the repo's own config. Every
 other key is read by a pass rather than by a helper. `skills/procedures/worktree-helper.md` carries which
-copy of the file a helper reads, and why a change to it cannot be exercised by the tree it is written in.
+copy of the two files a helper reads, and why a change to them cannot be exercised by the tree it is written in.
 
 **What a seat DOES about a key is that seat's rule, not part of the key's meaning**, and it is written
 where that reader acts.
@@ -22,6 +25,13 @@ notes it on stderr and cuts a bare worktree — no env symlinks, no `node_module
 that tree afterwards fails in the shape of a code bug, and the gate, the conventions and the framework
 skills are all guesses on top of that. A repo can legitimately want none of this, which is why absence is
 a question rather than a default.
+
+## Where worktrees live
+
+**`worktreeHome` is never read from the committed config**, whose paths follow every clone: it comes from the
+overrides file, else from **`~/.agents/worktree.json`** — this machine's file for every repo, from which
+nothing else is read. Absent from both, the platform default holds; `skills/procedures/worktree-helper.md`
+carries the precedence and the refusals.
 
 ## The keys
 
@@ -246,9 +256,9 @@ a question rather than a default.
   satisfy:
 
   - **Liveness is git's registry minus `prunable`** — `git worktree list --porcelain`, never `test -d` (a
-    `locked` worktree whose directory is gone is still live) and never a `WORKTREE_HOME` scan
-    (`$WORKTREE_HOME/<project>/<leaf>`, `$WORKTREE_HOME/<workspace>/<leaf>/<repo>` and `WORKTREE_DEST`
-    are all live layouts).
+    `locked` worktree whose directory is gone is still live) and never a scan of the worktree home
+    (`<home>/<project>/<leaf>`, `<home>/<workspace>/<leaf>/<repo>` and `WORKTREE_DEST` are all live
+    layouts).
   - **Only resources whose mark names a worktree of THIS clone** — anything else is out of scope, not
     orphaned: another machine sharing the host is invisible to this registry.
   - **Enumerate the resources first, then the live set** — the other order makes a worktree created

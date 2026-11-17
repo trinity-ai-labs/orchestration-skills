@@ -1,7 +1,8 @@
 # Per-project config
 
 Reference for `skills/execute/SKILL.md`. **Read the project's config before you cut a worktree, write a brief,
-or run a project's gate** — `cat <repo>/.agents/worktree.json`, since every value in it is per-repo and
+or run a project's gate** — `cat <repo>/.agents/worktree.json <repo>/.agents/worktree.overrides.json`, the
+second (gitignored, this clone's own) replacing any key it carries whole, since every value is per-repo and
 nothing derives it from the tree you are standing in.
 
 **What each key MEANS, and what its absence means, is `skills/procedures/config-keys.md`.** This file carries

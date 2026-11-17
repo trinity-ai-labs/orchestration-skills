@@ -88,3 +88,17 @@ Fix:
 ```
 git config --global --add safe.directory <path>
 ```
+
+### A helper refuses: the worktree home is unreachable
+
+Not an install failure, and not a git one either. It presents as one of:
+
+```
+refusing: the worktree home /Volumes/SSD/wt (set by ~/.agents/worktree.json) is unreachable — its parent /Volumes/SSD does not exist.
+remove-worktree: error: the worktree home /Volumes/SSD/wt (set by .agents/worktree.overrides.json) does not exist — is the drive it lives on unplugged?
+```
+
+The home was set by `WORKTREE_HOME`, a repo's `.agents/worktree.overrides.json` or `~/.agents/worktree.json`
+(the message names which), and the drive it is on is not mounted. Setup refuses rather than creating the home
+on your main disk, and teardown refuses before `git worktree prune`, which would drop the registration of
+every tree on that drive. Fix: mount the drive and re-run, or point the named layer at a home that exists.

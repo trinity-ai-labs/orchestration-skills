@@ -392,7 +392,7 @@ pile of them.** The test is *same site, different reasons*:
   as one voice.
 
 **Then verify, on a fixed budget.** The project's **preflight** (`preflight` in
-`<repo>/.agents/worktree.json`; `skills/procedures/config-keys.md` carries what that key means) plus, at most,
+the project's config; `skills/procedures/config-keys.md` carries what that key means) plus, at most,
 one **targeted test run** — the project's `targetedTest` where declared, else single test files, each run
 singly, never a suite — where one covers what you changed, and where an edit you applied changes a module's
 export surface, each test file that mocks or imports that module, found by grepping its specifier, run singly.

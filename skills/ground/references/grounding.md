@@ -95,8 +95,8 @@ with nothing erroring, so the implementer builds against the nearest plausible t
   pre-commit chain entry that regenerates something; a generated file `.gitignore` does **not** list. The
   other half is the falsification question pointed at checkers, which catches the generated file whose
   regenerator is a test.
-- **Read the agent guidance and the per-project config** (`<repo>/.agents/worktree.json`, the same config
-  `/pipeline:execute` reads; `skills/procedures/config-keys.md` carries what each key means) for the
+- **Read the agent guidance and the per-project config** (the same config `/pipeline:execute` reads;
+  `skills/procedures/config-keys.md` defines it and carries what each key means) for the
   **framework skills** per area, the **gate**, the **compat policy** and the style conventions, and bake them
   into each slice. **The guidance is read per slice**: the router chain of every directory the slice touches,
   up to the root, plus only the chapters those routers route it to, and a monolith whole
@@ -115,7 +115,7 @@ with nothing erroring, so the implementer builds against the nearest plausible t
   installed copy against the worktree's and trust the worktree.*
 - **Read the integration branch out of the project's own config**
   (`skills/glossary/vocabulary/integration-branch.md` defines it, `skills/procedures/config-keys.md` carries
-  the key), don't assume it and don't derive it: `integrationBranch` in `<repo>/.agents/worktree.json`, or a
+  the key), don't assume it and don't derive it: `integrationBranch` in the project's config, or a
   workspace's manifest where one exists. Slices target whichever branch that names —
   **`main` is the right answer in a project whose work lands there and the wrong one elsewhere**, so never
   hardcode it or a version — or the **epic branch** cut from it, where the issue's verdict calls for one. ⚠️

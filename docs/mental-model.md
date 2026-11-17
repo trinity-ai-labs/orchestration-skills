@@ -111,17 +111,19 @@ without comes back in.
 
 You **never code directly in the main checkout.** The main checkout holds the **integration branch** (in a
 project that releases from one, something like `release/x.x.x`) and nothing else, ever — every other branch,
-slice *or* epic, lives in its own worktree under `$WORKTREE_HOME/<project>/<branch-leaf>` — or, for a repo that
-sits inside a polyrepo workspace (`setup-workspace`), under `$WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>`,
+slice *or* epic, lives in its own worktree under `<home>/<project>/<branch-leaf>` — or, for a repo that
+sits inside a polyrepo workspace (`setup-workspace`), under `<home>/<workspace>/<branch-leaf>/<repo>`,
 so a task spanning several member repos lands as one directory laid out the way the workspace is. Every helper
 resolves both layouts — a teardown that knew only the first would look at a path that never exists for a
 workspace member, report the tree already gone, and exit 0. That is the one rule the whole layout follows: the
 main checkout is the only shared mutable state here, and a branch parked in it is a branch several sessions can
-move under each other. `WORKTREE_HOME` defaults to `~/.worktrees`, except on Windows where it defaults to
-`%LOCALAPPDATA%\wt` — a worktree path there ends up carrying a whole dependency tree
-(`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past Windows'
-260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather than on the
-length. Setting `WORKTREE_HOME` yourself overrides the default on every platform. Work → commit → push → PR back
+move under each other. `<home>` is `WORKTREE_HOME`, else `worktreeHome` in the repo's gitignored
+`.agents/worktree.overrides.json`, else `worktreeHome` in the machine-wide `~/.agents/worktree.json`, else
+`~/.worktrees` — or `%LOCALAPPDATA%\wt` on Windows, where a worktree path ends up carrying a whole dependency
+tree (`…/<repo>/node_modules/.pnpm/<pkg>@<version>/…`), and from `~/.worktrees` that routinely runs past
+Windows' 260-character `MAX_PATH`, which surfaces as an install failing on some deeply nested filename rather
+than on the length. A home on a drive that is not mounted is a refusal, never a directory built on the main
+disk. Work → commit → push → PR back
 into the integration branch → review → **merge with a real merge commit** → sync the local integration branch →
 delete branch + worktree.
 

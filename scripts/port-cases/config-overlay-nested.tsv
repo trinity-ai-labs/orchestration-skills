@@ -1,0 +1,14 @@
+# The overlay one level down: a key the overrides file carries replaces the
+# committed one WHOLE, so an `env` map is replaced and never merged. Read by BOTH
+# ports (remove-worktree's read_config_nested / Get-ConfigNested). Fixtures are
+# under fixtures/overlay/; missing.json does not exist.
+#
+# config	key	subkey	overrides	expect
+# "-" means an empty string.
+scripts/port-cases/fixtures/overlay/base.json	env	A	scripts/port-cases/fixtures/overlay/missing.json	1
+scripts/port-cases/fixtures/overlay/base.json	env	A	scripts/port-cases/fixtures/overlay/over.json	-
+scripts/port-cases/fixtures/overlay/base.json	reclaim	drop	scripts/port-cases/fixtures/overlay/over.json	base-drop
+scripts/port-cases/fixtures/overlay/missing.json	env	B	scripts/port-cases/fixtures/overlay/over.json	3
+scripts/port-cases/fixtures/overlay/base.json	reclaim	drop	scripts/port-cases/fixtures/overlay/over-null.json	-
+scripts/port-cases/fixtures/overlay/base.json	reclaim	drop	scripts/port-cases/fixtures/overlay/bad.json	-
+scripts/port-cases/fixtures/overlay/base.json	reclaim	drop	scripts/port-cases/fixtures/overlay/empty.json	-

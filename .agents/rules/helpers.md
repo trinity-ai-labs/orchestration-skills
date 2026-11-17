@@ -80,6 +80,12 @@ its OWN line rather than into that one. **A `git` call that fails where the help
 exits `1`, with a helper-owned message on stderr, in both ports** — never git's own status leaking through,
 and never a silent success: a substitution inside an `echo` takes its status from the `echo`.
 
+Every helper that builds a path under the worktree home resolves it the one way
+`skills/procedures/worktree-helper.md` states, from its own copy of the resolver, and
+`scripts/port-cases/worktree-home.tsv` asks every copy in both ports; each reads the project's config through
+the gitignored overrides file key by key. An unreachable home exits `1` — at setup where the home's parent is
+missing, in `remove-worktree` before any prune where a home the env or a file set is missing.
+
 `gh-post` makes one of this flow's GitHub writes so that a re-run never duplicates it. It takes
 `comment <issue|pr> <n> --key <key> --body-file <file>`, `review <pr-n> --key <key> --body-file <file>`,
 `close <issue-n> --reason <completed|not_planned> [--key <key> --body-file <file>]` or

@@ -1242,7 +1242,9 @@ fi
 # `answer` is `print` when the predicate prints its answer, or `<yes>/<no>` when
 # its exit status (bash) or truthiness (PowerShell) is the answer, named by those
 # two words. In a table, every column but the last is an argument, in order, and
-# the last is the expected answer; `-` is an empty string and `\n` a newline.
+# the last is the expected answer; `-` is an empty string, in an argument and in an
+# answer alike, and `\n` a newline. A table may sit on more than one row, once per
+# helper that carries its own copy of the predicate, so every copy is asked.
 
 pc_registry='squash-boundary.tsv|merge-pr.sh|squash_boundary_ok|merge-pr.ps1|Test-SquashBoundary|squash/merge
 gh-post-marker.tsv|gh-post.sh|build_marker|gh-post.ps1|Get-PipelineMarker|print
@@ -1251,7 +1253,13 @@ gh-post-args.tsv|gh-post.sh|arg_kind|gh-post.ps1|Get-ArgKind|print
 ci-verdict.tsv|merge-pr.sh|ci_verdict|merge-pr.ps1|Get-CiVerdict|print
 ready-trigger.tsv|merge-pr.sh|ready_trigger|merge-pr.ps1|Test-ReadyTrigger|yes/no
 workflow-name.tsv|merge-pr.sh|workflow_name|merge-pr.ps1|Get-WorkflowName|print
-flip-await.tsv|merge-pr.sh|awaits_flip|merge-pr.ps1|Test-AwaitsFlip|yes/no'
+flip-await.tsv|merge-pr.sh|awaits_flip|merge-pr.ps1|Test-AwaitsFlip|yes/no
+worktree-home.tsv|setup-worktree.sh|resolve_worktree_home home_file_value|setup-worktree.ps1|Resolve-WorktreeHome Get-HomeFileValue|print
+worktree-home.tsv|setup-workspace.sh|resolve_worktree_home home_file_value|setup-workspace.ps1|Resolve-WorktreeHome Get-HomeFileValue|print
+worktree-home.tsv|merge-pr.sh|resolve_worktree_home home_file_value|merge-pr.ps1|Resolve-WorktreeHome Get-HomeFileValue|print
+worktree-home.tsv|remove-worktree.sh|resolve_worktree_home home_file_value|remove-worktree.ps1|Resolve-WorktreeHome Get-HomeFileValue|print
+config-overlay.tsv|merge-pr.sh|read_config_scalar|merge-pr.ps1|Get-ConfigScalar|print
+config-overlay-nested.tsv|remove-worktree.sh|read_config_nested|remove-worktree.ps1|Get-ConfigNested|print'
 
 pc_registered=''
 pc_unregistered=''
@@ -1261,7 +1269,7 @@ while IFS='|' read -r pc_table pc_sh pc_shfns pc_ps1 pc_psfns pc_answer; do
 	pc_count=$((pc_count + 1))
 	pc_registered="$pc_registered $pc_table "
 	pc_cases="scripts/port-cases/$pc_table"
-	pc_label="port-cases[$pc_table]"
+	pc_label="port-cases[$pc_table: ${pc_sh%.sh}]"
 	pc_fn=${pc_shfns%% *}
 	pc_psfn=${pc_psfns%% *}
 
@@ -1323,6 +1331,7 @@ PY
 		printf '%s\n' "    got=\$($pc_fn \${args[@]+\"\${args[@]}\"})"
 		printf '%s\n' "  elif $pc_fn \${args[@]+\"\${args[@]}\"}; then got=\${answer%%/*}"
 		printf '%s\n' '  else got=${answer#*/}; fi'
+		printf '%s\n' '  [ -n "$got" ] || got=-'
 		printf '%s\n' '  printf "%s\t%s\n" "$exp" "$got"'
 		printf '%s\n' "done < $pc_cases"
 	} > "$pc_tmp/run.sh"
@@ -1363,6 +1372,7 @@ foreach ($line in Get-Content -Encoding utf8 $Cases) {
         $words = $Answer -split '/'
         $got = if (& $Func @vals) { $words[0] } else { $words[1] }
     }
+    if ($got -eq '') { $got = '-' }
     "$($f[$f.Count - 1])`t$got"
 }
 PS

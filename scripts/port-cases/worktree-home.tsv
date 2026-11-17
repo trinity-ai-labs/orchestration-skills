@@ -1,0 +1,28 @@
+# The worktree home: WORKTREE_HOME -> `worktreeHome` in the repo's gitignored
+# .agents/worktree.overrides.json -> `worktreeHome` in ~/.agents/worktree.json ->
+# the platform default, with a leading ~ expanded against the user home. Read by
+# BOTH ports of EVERY helper that builds a path under the home
+# (resolve_worktree_home / Resolve-WorktreeHome), so no two can disagree on where
+# a tree lives. Fixtures are under fixtures/home/; a user home that does not
+# exist (user-none, /h) is one with no ~/.agents/worktree.json.
+#
+# env	main-checkout	layout	user-home	default	expect ("<layer> <home>")
+# "-" means an empty string.
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-none	/d	default /d
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
+-	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-none	/d	.agents/worktree.overrides.json /over
+-	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-set	/d	.agents/worktree.overrides.json /over
+/env	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-set	/d	WORKTREE_HOME /env
+-	scripts/port-cases/fixtures/home/repo-committed	bare	scripts/port-cases/fixtures/home/user-none	/d	default /d
+-	scripts/port-cases/fixtures/home/repo-tilde	bare	/h	/d	.agents/worktree.overrides.json /h/wt
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-tilde	/d	~/.agents/worktree.json scripts/port-cases/fixtures/home/user-tilde/ssd
+~/e	scripts/port-cases/fixtures/home/repo-plain	bare	/h	/d	WORKTREE_HOME /h/e
+~	-	bare	/h	/d	WORKTREE_HOME /h
+-	scripts/port-cases/fixtures/home/repo-over	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
+-	scripts/port-cases/fixtures/home/repo-over	workspace	scripts/port-cases/fixtures/home/user-none	/d	default /d
+-	-	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
+-	scripts/port-cases/fixtures/home/repo-bad	bare	scripts/port-cases/fixtures/home/user-set	/d	unreadable scripts/port-cases/fixtures/home/repo-bad/.agents/worktree.overrides.json
+-	scripts/port-cases/fixtures/home/repo-bad	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
+-	scripts/port-cases/fixtures/home/repo-nonstring	bare	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-bad	/d	unreadable scripts/port-cases/fixtures/home/user-bad/.agents/worktree.json
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-case	/d	default /d

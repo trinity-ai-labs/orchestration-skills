@@ -1,0 +1,1 @@
+{ "integrationBranch": "main", "epicMerge": "squash", "env": { "A": "1", "B": "2" }, "reclaim": { "drop": "base-drop" } }

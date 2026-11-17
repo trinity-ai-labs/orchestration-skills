@@ -118,7 +118,9 @@ are one fact, and a reader landing on a commit carrying two of the three cannot 
    section prepended to it, a DIRECTORY takes the version's own file created there.
 3. **Route A only: `integrationBranch`**, in `.agents/worktree.json` or the workspace manifest that declares
    it, pointed at the new branch. **In this same commit**: it is the field that stops the two facts drifting,
-   so moving one without the other rebuilds the drift this pass exists to end.
+   so moving one without the other rebuilds the drift this pass exists to end. Where the main checkout's
+   gitignored `.agents/worktree.overrides.json` pins its own `integrationBranch`, report it rather than edit
+   it: the file is that clone's, and it keeps the old branch until its owner moves it.
 
 ⛔ **Whether the branch you cut FROM also moves its version is the project's habit, not this pass's policy —
 read it, then ask.** Find the last commit that moved these files and see whether the branch you are standing

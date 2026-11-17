@@ -223,7 +223,8 @@ home_file_value() { # home_file_value <json-file>
     node -e '
       const fs = require("fs");
       let cfg;
-      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      // A leading byte-order mark is stripped, as Get-Content strips it in the PowerShell port.
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8").replace(/^\uFEFF/, "")); } catch (err) { process.exit(1); }
       const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
       if (typeof value === "string") process.stdout.write(value);
     ' "$1" 2>/dev/null
@@ -231,7 +232,7 @@ home_file_value() { # home_file_value <json-file>
     "${runner[@]}" - "$1" 2>/dev/null <<'PY'
 import json, sys
 try:
-    cfg = json.load(open(sys.argv[1]))
+    cfg = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 except Exception:
     sys.exit(1)
 value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
@@ -284,8 +285,8 @@ OVERRIDES_REL=".agents/worktree.overrides.json"
 
 # One scalar out of the project's own config, or nothing at all. Given an overrides
 # file that exists, it overlays the config KEY BY KEY — a key it carries replaces
-# the committed value whole, a key it omits falls through — and an unreadable one
-# reads as an unreadable config does.
+# the committed value whole, a key it omits falls through — and either file being
+# unreadable makes the whole read "not declared", as below.
 #
 # Deliberately smaller than setup-worktree.sh's emit_config: that one hands back
 # an array and an env map, so it has to emit shell for its caller to eval, while a
@@ -349,7 +350,11 @@ try:
     cfg = {}
     for path in (sys.argv[1], sys.argv[3]):
         if path and os.path.exists(path):
-            cfg.update(json.load(open(path)))
+            loaded = json.load(open(path))
+            # A non-object reads as declaring nothing, as Object.assign and the
+            # PowerShell sibling read it, rather than as unreadable.
+            if isinstance(loaded, dict):
+                cfg.update(loaded)
     value = cfg.get(sys.argv[2])
 except Exception:
     value = None
@@ -618,17 +623,17 @@ if [ -n "$RETIRED_IN" ]; then
 fi
 # Each layout resolves its own home, as setup-worktree.sh does: the workspace
 # layout skips this repo's overrides file, so the two can be different drives.
-home_for() { # home_for <bare|workspace> — prints the home, or dies on an unreadable file
+home_path() { # home_path <bare|workspace> — prints the home, or dies on an unreadable file
   local line
   line=$(resolve_worktree_home "${WORKTREE_HOME:-}" "$MAIN" "$1" "$HOME" "$(worktree_home_default)")
   [ "${line%% *}" != "unreadable" ] || die "could not read ${line#* }, which may set worktreeHome — fix or remove it; no home is guessed past it, and nothing has been touched."
   line="$(norm_path "${line#* }")"
   printf '%s\n' "${line%/}"
 }
-BARE_HOME=$(home_for bare) || exit 1
+BARE_HOME=$(home_path bare) || exit 1
 WORKSPACE_WT=""
 if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
-  WORKSPACE_HOME=$(home_for workspace) || exit 1
+  WORKSPACE_HOME=$(home_path workspace) || exit 1
   WORKSPACE_WT="$WORKSPACE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
 fi
 if [ "$STATE" = "MERGED" ]; then

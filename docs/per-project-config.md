@@ -1,9 +1,10 @@
 ## Per-project config
 
-Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Two
-scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, and `merge-pr.sh` reads
-`epicMerge` and `integrationBranch`. The skills read the rest — and `install` as well, the one key both a
-script and a skill read, because the epic worktree's tick re-runs it. Both scripts read the
+Each project declares its own specifics at **`<repo>/.agents/worktree.json`**, committed to that repo. Three
+scripts read it: `setup-worktree.sh` reads `envFiles`, `env`, and `install`, `remove-worktree.sh` reads
+`reclaim.drop`, and `merge-pr.sh` reads `epicMerge` and `integrationBranch`. The skills read the rest — and
+`install` as well, the one key both a script and a skill read, because the epic worktree's tick re-runs it.
+The scripts read the
 **main checkout's working copy** of the file, never the branch they are acting on, so a change to this config
 is exercised by no worktree at all until it reaches that copy — not the one that writes it, and not any cut
 after it either, which on a multi-slice arc is the rest of the arc:

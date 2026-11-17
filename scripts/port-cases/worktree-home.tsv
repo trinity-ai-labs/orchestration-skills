@@ -7,22 +7,23 @@
 # exist (user-none, /h) is one with no ~/.agents/worktree.json.
 #
 # env	main-checkout	layout	user-home	default	expect ("<layer> <home>")
-# "-" means an empty string.
+# "-" means an empty string. Keys are matched case-sensitively (user-case), a
+# byte-order mark is read past (user-bom), and a top-level array declares no key
+# (user-array), the same in both ports.
 -	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-none	/d	default /d
 -	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
 -	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-none	/d	.agents/worktree.overrides.json /over
 -	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-set	/d	.agents/worktree.overrides.json /over
 /env	scripts/port-cases/fixtures/home/repo-over	bare	scripts/port-cases/fixtures/home/user-set	/d	WORKTREE_HOME /env
 -	scripts/port-cases/fixtures/home/repo-committed	bare	scripts/port-cases/fixtures/home/user-none	/d	default /d
--	scripts/port-cases/fixtures/home/repo-tilde	bare	/h	/d	.agents/worktree.overrides.json /h/wt
 -	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-tilde	/d	~/.agents/worktree.json scripts/port-cases/fixtures/home/user-tilde/ssd
 ~/e	scripts/port-cases/fixtures/home/repo-plain	bare	/h	/d	WORKTREE_HOME /h/e
 ~	-	bare	/h	/d	WORKTREE_HOME /h
 -	scripts/port-cases/fixtures/home/repo-over	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
--	scripts/port-cases/fixtures/home/repo-over	workspace	scripts/port-cases/fixtures/home/user-none	/d	default /d
--	-	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
 -	scripts/port-cases/fixtures/home/repo-bad	bare	scripts/port-cases/fixtures/home/user-set	/d	unreadable scripts/port-cases/fixtures/home/repo-bad/.agents/worktree.overrides.json
 -	scripts/port-cases/fixtures/home/repo-bad	workspace	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
 -	scripts/port-cases/fixtures/home/repo-nonstring	bare	scripts/port-cases/fixtures/home/user-set	/d	~/.agents/worktree.json /user
 -	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-bad	/d	unreadable scripts/port-cases/fixtures/home/user-bad/.agents/worktree.json
 -	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-case	/d	default /d
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-bom	/d	~/.agents/worktree.json /bom
+-	scripts/port-cases/fixtures/home/repo-plain	bare	scripts/port-cases/fixtures/home/user-array	/d	default /d

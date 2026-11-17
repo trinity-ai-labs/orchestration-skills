@@ -300,6 +300,5 @@ Only these. Everything above is generic:
 The queue root's **placement** is not on that list: home-relative and durable everywhere, for the reason under
 *Queue layout*.
 
-Read the varying pieces from the project's config — `.agents/worktree.json` overlaid by its gitignored
-overrides file, as `skills/procedures/config-keys.md` defines it — rather than hardcoding them, all but the
-audit's task-runner switch, which setup writes into the runner.
+Read the varying pieces from the project's config (`skills/procedures/config-keys.md` defines it) rather than
+hardcoding them — all but the audit's task-runner switch, which setup writes into the runner.

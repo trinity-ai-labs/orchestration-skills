@@ -173,7 +173,8 @@ home_file_value() { # home_file_value <json-file>
     node -e '
       const fs = require("fs");
       let cfg;
-      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      // A leading byte-order mark is stripped, as Get-Content strips it in the PowerShell port.
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8").replace(/^\uFEFF/, "")); } catch (err) { process.exit(1); }
       const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
       if (typeof value === "string") process.stdout.write(value);
     ' "$1" 2>/dev/null
@@ -181,7 +182,7 @@ home_file_value() { # home_file_value <json-file>
     "${runner[@]}" - "$1" 2>/dev/null <<'PY'
 import json, sys
 try:
-    cfg = json.load(open(sys.argv[1]))
+    cfg = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 except Exception:
     sys.exit(1)
 value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
@@ -310,8 +311,8 @@ assert_homes_reachable() { # assert_homes_reachable <main-checkout>
 # Duplicated rather than shared with merge-pr.sh's read_config_scalar, for the
 # reason norm_path above gives. This one reads a key one level down. The overrides
 # file, when present, overlays the config KEY BY KEY — a <key> it carries replaces
-# the committed one whole, never merged with it — and an unreadable one reads as
-# an unreadable config does.
+# the committed one whole, never merged with it — and either file being unreadable
+# makes the whole read "not declared", as an unreadable config always has.
 read_config_nested() { # read_config_nested <config-path> <key> <subkey> [<overrides-path>]
   [ -f "$1" ] || [ -f "${4:-}" ] || return 0
   local -a runner=()
@@ -354,7 +355,11 @@ try:
     cfg = {}
     for path in (sys.argv[1], sys.argv[4]):
         if path and os.path.exists(path):
-            cfg.update(json.load(open(path)))
+            loaded = json.load(open(path))
+            # A non-object reads as declaring nothing, as Object.assign and the
+            # PowerShell sibling read it, rather than as unreadable.
+            if isinstance(loaded, dict):
+                cfg.update(loaded)
     parent = cfg.get(sys.argv[2])
     value = parent.get(sys.argv[3]) if isinstance(parent, dict) else None
 except Exception:
@@ -521,7 +526,8 @@ if [ ! -d "$WT" ]; then
   fi
 
   # Announced here rather than beside the message above, so a run that stops on the
-  # stray check does not first claim it is about to prune and then not do it.
+  # stray check does not first claim it is about to prune and then not do it. The
+  # home check is here too: this path exits before the one ahead of the kill scan.
   assert_homes_reachable "$MAIN"
   echo "  running git worktree prune to clean stale refs..."
   # Checked by hand rather than left to `set -e`, here and at the teardown at the

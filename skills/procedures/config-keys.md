@@ -12,8 +12,8 @@ the repo's own alone.
 
 Each project declares its specifics in **its own repo**, so the config travels with the clone and is
 reviewed alongside the change that alters it. **`setup-worktree` reads `envFiles`, `env` and `install`;
-`merge-pr` reads `epicMerge` and `integrationBranch`** — the second from `.agents/workspace.json` too,
-where a workspace declares one, which is the only key it looks for outside the repo's own config. Every
+`remove-worktree` reads `reclaim.drop`; `merge-pr` reads `epicMerge` and `integrationBranch`** — the second
+from `.agents/workspace.json` too, where a workspace declares one, which is the only key it looks for outside the repo's own config. Every
 other key is read by a pass rather than by a helper. `skills/procedures/worktree-helper.md` carries which
 copy of the two files a helper reads, and why a change to them cannot be exercised by the tree it is written in.
 
@@ -30,7 +30,8 @@ a question rather than a default.
 
 **`worktreeHome` is never read from the committed config**, whose paths follow every clone: it comes from the
 overrides file, else from **`~/.agents/worktree.json`** — this machine's file for every repo, from which
-nothing else is read. `skills/procedures/worktree-helper.md` carries the precedence and the refusals.
+nothing else is read. Absent from both, the platform default holds; `skills/procedures/worktree-helper.md`
+carries the precedence and the refusals.
 
 ## The keys
 

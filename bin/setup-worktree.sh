@@ -154,7 +154,8 @@ home_file_value() { # home_file_value <json-file>
     node -e '
       const fs = require("fs");
       let cfg;
-      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      // A leading byte-order mark is stripped, as Get-Content strips it in the PowerShell port.
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8").replace(/^\uFEFF/, "")); } catch (err) { process.exit(1); }
       const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
       if (typeof value === "string") process.stdout.write(value);
     ' "$1" 2>/dev/null
@@ -162,7 +163,7 @@ home_file_value() { # home_file_value <json-file>
     "${runner[@]}" - "$1" 2>/dev/null <<'PY'
 import json, sys
 try:
-    cfg = json.load(open(sys.argv[1]))
+    cfg = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 except Exception:
     sys.exit(1)
 value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
@@ -390,7 +391,11 @@ import json, os, shlex, sys
 cfg = {}
 for path in sys.argv[1:3]:
     if path and os.path.exists(path):
-        cfg.update(json.load(open(path)))
+        loaded = json.load(open(path))
+        # A non-object reads as declaring nothing, as Object.assign and the
+        # PowerShell sibling read it, rather than as unreadable.
+        if isinstance(loaded, dict):
+            cfg.update(loaded)
 print("INSTALL_CMD=%s" % shlex.quote(cfg.get("install") or ""))
 print("ENV_FILES=(%s)" % " ".join(shlex.quote(p) for p in cfg.get("envFiles") or []))
 # Emitted UNQUOTED so a value may use shell expansion — `${VAR:-$HOME/...}` is how
@@ -423,7 +428,13 @@ if [ -f "$CONFIG" ] || [ -f "$OVERRIDES" ]; then
     exit 1
   fi
   eval "$CONFIG_SH"
-else
+fi
+# Keyed on the COMMITTED file alone: an overrides file with no config under it is
+# a clone that set a home, not a project that declared its envFiles and install.
+if [ ! -f "$CONFIG" ] && [ -f "$OVERRIDES" ]; then
+  echo "note: no config at $CONFIG — only this clone's $OVERRIDES_REL was read; the project itself declares nothing." >&2
+  echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
+elif [ ! -f "$CONFIG" ]; then
   echo "note: no config at $CONFIG — creating a bare worktree (no env symlinks, no install)." >&2
   echo "  add $CONFIG_REL to '$PROJECT' to declare envFiles / install." >&2
 fi

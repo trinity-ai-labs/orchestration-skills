@@ -210,7 +210,7 @@ different question and this pass's own.
 **Whenever this pass writes or reconciles the config, the repo's `.gitignore` carries
 `.agents/worktree.overrides.json`** — add the line in the same change where it is missing. That file holds one
 clone's own values and `worktreeHome` (`skills/procedures/config-keys.md`), so a tracked one follows every
-clone, and the helpers warn when they find it tracked. **Never write the overrides file, or
+clone. **Never write the overrides file, or
 `~/.agents/worktree.json`, yourself**: both are the user's, and neither belongs in a reviewable change.
 
 ### First, ask for the four values no file in the repo holds

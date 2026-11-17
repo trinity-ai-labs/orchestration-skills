@@ -95,9 +95,8 @@ with nothing erroring, so the implementer builds against the nearest plausible t
   pre-commit chain entry that regenerates something; a generated file `.gitignore` does **not** list. The
   other half is the falsification question pointed at checkers, which catches the generated file whose
   regenerator is a test.
-- **Read the agent guidance and the per-project config** (`<repo>/.agents/worktree.json` read through its
-  overrides file, the same merged view `/pipeline:execute` reads; `skills/procedures/config-keys.md` defines
-  it and carries what each key means) for the
+- **Read the agent guidance and the per-project config** (the same config `/pipeline:execute` reads;
+  `skills/procedures/config-keys.md` defines it and carries what each key means) for the
   **framework skills** per area, the **gate**, the **compat policy** and the style conventions, and bake them
   into each slice. **The guidance is read per slice**: the router chain of every directory the slice touches,
   up to the root, plus only the chapters those routers route it to, and a monolith whole

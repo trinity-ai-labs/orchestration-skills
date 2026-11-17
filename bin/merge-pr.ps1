@@ -230,6 +230,9 @@ function Get-HomeFileValue {
     try {
         $raw = Get-Content -LiteralPath $Path -Raw
         if (-not $raw -or -not $raw.Trim()) { return $null }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return '' }
         $cfg = $raw | ConvertFrom-Json
     } catch {
         return $null
@@ -312,8 +315,8 @@ function Get-GitOutput {
 function Get-ConfigScalar {
     # One scalar out of the project's own config, or an empty string. An overrides
     # file that exists overlays the config KEY BY KEY - a key it carries replaces the
-    # committed value whole, a key it omits falls through - and an unreadable one
-    # reads as an unreadable config does.
+    # committed value whole, a key it omits falls through - and either file being
+    # unreadable makes the whole read "not declared", as below.
     #
     # Deliberately smaller than setup-worktree.ps1's config block: that one reads an
     # array and an env map and has to expand shell syntax in the values, while this
@@ -344,6 +347,9 @@ function Get-ConfigScalar {
             if (-not $file -or -not (Test-Path -LiteralPath $file)) { continue }
             $raw = Get-Content -LiteralPath $file -Raw
             if (-not $raw -or -not $raw.Trim()) { throw "empty: $file" }
+            # A top-level array declares no key, and ConvertFrom-Json would unroll a
+            # one-element one into the object inside it.
+            if ($raw.TrimStart().StartsWith('[')) { continue }
             if ($file -ceq $Overrides) { $over = $raw | ConvertFrom-Json } else { $base = $raw | ConvertFrom-Json }
         }
     } catch {
@@ -368,7 +374,6 @@ function Get-ConfigScalar {
     }
     return ''
 }
-
 
 function Get-RepoRoot {
     # Resolve the MAIN working tree. The common gitdir's parent is the repo root,

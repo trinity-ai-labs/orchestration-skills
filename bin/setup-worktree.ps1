@@ -166,6 +166,9 @@ function Get-HomeFileValue {
     try {
         $raw = Get-Content -LiteralPath $Path -Raw
         if (-not $raw -or -not $raw.Trim()) { return $null }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return '' }
         $cfg = $raw | ConvertFrom-Json
     } catch {
         return $null
@@ -282,6 +285,9 @@ function Read-ConfigFile {
         # ConvertFrom-Json alone would read it as a config that declared nothing.
         $raw = Get-Content -LiteralPath $Path -Raw
         if (-not $raw -or -not $raw.Trim()) { throw 'the file is empty' }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return $null }
         return ($raw | ConvertFrom-Json)
     } catch {
         Exit-WithError "could not parse $Path as JSON: $($_.Exception.Message)"
@@ -293,7 +299,8 @@ function Get-OverlaidValue {
     # value WHOLE, so an `env` map is never merged - and from the committed config
     # otherwise.
     param($Base, $Over, [Parameter(Mandatory = $true)] [string] $Name)
-    if ($null -ne $Over -and $null -ne $Over.PSObject.Properties[$Name]) {
+    # Presence is matched CASE-SENSITIVELY, as the bash sibling's parse reads it.
+    if ($null -ne $Over -and $null -ne ($Over.PSObject.Properties | Where-Object { $_.Name -ceq $Name } | Select-Object -First 1)) {
         return (Get-JsonValue -Object $Over -Name $Name)
     }
     return (Get-JsonValue -Object $Base -Name $Name)
@@ -465,6 +472,9 @@ if ($env:WORKTREE_DEST) {
     # most often a drive that is not mounted, and creating it would quietly build
     # the home on the main disk instead - the very disk the user moved worktrees off.
     $WtHomeParent = Split-Path -Path $WtHome -Parent
+    # A relative home with no separator has the current directory as its parent,
+    # as `dirname` gives it on the bash side.
+    if (-not $WtHomeParent) { $WtHomeParent = '.' }
     if (-not (Test-Path -LiteralPath $WtHome) -and -not ($WtHomeParent -and (Test-Path -LiteralPath $WtHomeParent))) {
         Write-Stderr "refusing: the worktree home $WtHome (set by $HomeLayer) is unreachable - its parent $(Get-NormalPath $WtHomeParent) does not exist."
         Write-Stderr "  Is the drive it lives on unplugged? Nothing was created."
@@ -505,7 +515,13 @@ if ((Test-Path -LiteralPath $Config) -or (Test-Path -LiteralPath $Overrides)) {
             [Environment]::SetEnvironmentVariable($prop.Name, (Expand-ShellValue ([string]$prop.Value)))
         }
     }
-} else {
+}
+# Keyed on the COMMITTED file alone: an overrides file with no config under it is
+# a clone that set a home, not a project that declared its envFiles and install.
+if (-not (Test-Path -LiteralPath $Config) -and (Test-Path -LiteralPath $Overrides)) {
+    Write-Stderr "note: no config at $Config - only this clone's $OverridesRel was read; the project itself declares nothing."
+    Write-Stderr "  add $ConfigRel to '$Project' to declare envFiles / install."
+} elseif (-not (Test-Path -LiteralPath $Config)) {
     Write-Stderr "note: no config at $Config - creating a bare worktree (no env symlinks, no install)."
     Write-Stderr "  add $ConfigRel to '$Project' to declare envFiles / install."
 }

@@ -132,9 +132,9 @@ verify before anything else runs.
 **Which is why a change to that config cannot be exercised by the tree it is written in.** The helper
 resolves the main checkout from the repo's common gitdir, so it finds the same one from any cwd — the
 root, a subdirectory, a linked worktree, or an explicit `REPO=` — then reads
-`<main checkout>/.agents/worktree.json` and the `.agents/worktree.overrides.json` beside it out of that tree. **No ref enters the lookup, `<base>`
-included**; `merge-pr` reads `epicMerge` and `integrationBranch` from the same copy, and a workspace's
-`integrationBranch` from the manifest beside it. So a change adding an `envFiles` entry, altering
+`<main checkout>/.agents/worktree.json` and the `.agents/worktree.overrides.json` beside it out of that
+tree. **No ref enters the lookup, `<base>` included**; `merge-pr` reads `epicMerge` and `integrationBranch`
+from the same copy, and a workspace's `integrationBranch` from the manifest beside it. So a change adding an `envFiles` entry, altering
 `install`, or introducing a new key is provisioned from the **pre-change** config, as is every worktree
 cut anywhere while that change is unmerged.
 

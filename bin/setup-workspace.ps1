@@ -133,6 +133,9 @@ function Get-HomeFileValue {
     try {
         $raw = Get-Content -LiteralPath $Path -Raw
         if (-not $raw -or -not $raw.Trim()) { return $null }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return '' }
         $cfg = $raw | ConvertFrom-Json
     } catch {
         return $null
@@ -360,6 +363,9 @@ $WtHome = Get-NormalPath $WtHome
 # missing parent is most often an unmounted drive, and creating it would build the
 # home on the main disk instead.
 $WtHomeParent = Split-Path -Path $WtHome -Parent
+# A relative home with no separator has the current directory as its parent,
+# as `dirname` gives it on the bash side.
+if (-not $WtHomeParent) { $WtHomeParent = '.' }
 if (-not (Test-Path -LiteralPath $WtHome) -and -not ($WtHomeParent -and (Test-Path -LiteralPath $WtHomeParent))) {
     Exit-WithError ("the worktree home $WtHome (set by $HomeLayer) is unreachable - its parent $(Get-NormalPath $WtHomeParent) does not exist.`n" +
         "  Is the drive it lives on unplugged? Nothing was created.`n" +

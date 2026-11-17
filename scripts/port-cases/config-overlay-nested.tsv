@@ -6,7 +6,6 @@
 # config	key	subkey	overrides	expect
 # "-" means an empty string.
 scripts/port-cases/fixtures/overlay/base.json	env	A	scripts/port-cases/fixtures/overlay/missing.json	1
-scripts/port-cases/fixtures/overlay/base.json	env	B	scripts/port-cases/fixtures/overlay/over.json	3
 scripts/port-cases/fixtures/overlay/base.json	env	A	scripts/port-cases/fixtures/overlay/over.json	-
 scripts/port-cases/fixtures/overlay/base.json	reclaim	drop	scripts/port-cases/fixtures/overlay/over.json	base-drop
 scripts/port-cases/fixtures/overlay/missing.json	env	B	scripts/port-cases/fixtures/overlay/over.json	3

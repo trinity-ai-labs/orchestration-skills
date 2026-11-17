@@ -5,7 +5,7 @@
 # fixtures/overlay/; missing.json does not exist.
 #
 # config	key	overrides	expect
-# "-" means an empty string.
+# "-" means an empty string. A top-level array declares no key, in every engine.
 scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/missing.json	main
 scripts/port-cases/fixtures/overlay/base.json	integrationBranch	-	main
 scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/over.json	develop
@@ -15,3 +15,4 @@ scripts/port-cases/fixtures/overlay/base.json	epicMerge	scripts/port-cases/fixtu
 scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/bad.json	-
 scripts/port-cases/fixtures/overlay/bad.json	integrationBranch	scripts/port-cases/fixtures/overlay/missing.json	-
 scripts/port-cases/fixtures/overlay/base.json	integrationBranch	scripts/port-cases/fixtures/overlay/empty.json	-
+scripts/port-cases/fixtures/overlay/base.json	epicMerge	scripts/port-cases/fixtures/overlay/over-array.json	squash

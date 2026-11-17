@@ -227,6 +227,9 @@ function Get-HomeFileValue {
     try {
         $raw = Get-Content -LiteralPath $Path -Raw
         if (-not $raw -or -not $raw.Trim()) { return $null }
+        # A top-level array declares no key, and ConvertFrom-Json would unroll a
+        # one-element one into the object inside it.
+        if ($raw.TrimStart().StartsWith('[')) { return '' }
         $cfg = $raw | ConvertFrom-Json
     } catch {
         return $null
@@ -323,6 +326,9 @@ function Get-ConfigNested {
             if (-not $file -or -not (Test-Path -LiteralPath $file)) { continue }
             $raw = Get-Content -LiteralPath $file -Raw
             if (-not $raw -or -not $raw.Trim()) { throw "empty: $file" }
+            # A top-level array declares no key, and ConvertFrom-Json would unroll a
+            # one-element one into the object inside it.
+            if ($raw.TrimStart().StartsWith('[')) { continue }
             if ($file -ceq $Overrides) { $over = $raw | ConvertFrom-Json } else { $base = $raw | ConvertFrom-Json }
         }
     } catch {
@@ -346,7 +352,6 @@ function Get-ConfigNested {
     }
     return ''
 }
-
 
 function Get-HomeFor {
     # The home <main>'s trees live under in one layout, or a refusal naming a file
@@ -535,6 +540,7 @@ no worktree at $Wt, but $Main has one REGISTERED at $Stray whose directory is na
 
     # Announced here rather than beside the message above, so a run that stops on the
     # stray check does not first claim it is about to prune and then not do it.
+    # This path exits before the home check ahead of the kill scan, so it asks here.
     Assert-HomesReachable -MainDir $Main
     Write-Output "  running git worktree prune to clean stale refs..."
     & git -C $Main worktree prune

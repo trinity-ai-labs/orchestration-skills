@@ -123,7 +123,8 @@ home_file_value() { # home_file_value <json-file>
     node -e '
       const fs = require("fs");
       let cfg;
-      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      // A leading byte-order mark is stripped, as Get-Content strips it in the PowerShell port.
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8").replace(/^\uFEFF/, "")); } catch (err) { process.exit(1); }
       const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
       if (typeof value === "string") process.stdout.write(value);
     ' "$1" 2>/dev/null
@@ -131,7 +132,7 @@ home_file_value() { # home_file_value <json-file>
     "${runner[@]}" - "$1" 2>/dev/null <<'PY'
 import json, sys
 try:
-    cfg = json.load(open(sys.argv[1]))
+    cfg = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 except Exception:
     sys.exit(1)
 value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None

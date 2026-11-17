@@ -28,9 +28,8 @@ reason to look.
 
 **The four invariants** (the helper covers 1, 3, 4 outright and part of 2 — the rest of step 2 is always on
 you):
-1. The worktree lives under `<home>/<project>/`, **never** under `.claude/worktrees` — `<home>` being
-   `WORKTREE_HOME`, else `worktreeHome` from the repo's overrides file or `~/.agents/worktree.json`, else
-   `~/.worktrees` (`skills/procedures/worktree-helper.md`).
+1. The worktree lives under `<home>/<project>/` (`skills/procedures/worktree-helper.md` says what `<home>`
+   is), **never** under `.claude/worktrees`.
 2. **Verify its HEAD == the base tip BEFORE dispatching any agent** — compare the `HEAD: <sha>` line the
    helper just printed against `git rev-parse origin/<base>` (e.g. `origin/release/x.x.x`), or re-read it
    yourself with `git -C <worktree> rev-parse HEAD`. **The helper makes a comparison of its own here, and it

@@ -20,7 +20,8 @@
 #   2. Runs `git worktree remove <path> --force` + `git worktree prune` to
 #      unregister the worktree from git.
 #
-#   3. Runs the project's own `reclaim.drop` (from <repo>/.agents/worktree.json),
+#   3. Runs the project's own `reclaim.drop` (from <repo>/.agents/worktree.json,
+#      or its gitignored .agents/worktree.overrides.json, whose `reclaim` replaces it whole),
 #      if it declares one, AFTER the tree has left git's worktree registry --
 #      which is what makes that checkout's resources dead by the classification
 #      `reclaim` already uses, so the project's existing command collects them.
@@ -43,6 +44,8 @@
 #   - Escalates SIGTERM → SIGKILL with a brief pause so in-flight cleanup runs
 #     where possible (node's process.on('exit') release path).
 #   - Idempotent: if the path doesn't exist or no processes match, no-ops cleanly.
+#   - REFUSES before any prune while a worktree home that WORKTREE_HOME or a file
+#     set does not exist (an unplugged drive): prune would drop every tree on it.
 #   - But "the path I computed does not exist" and "the worktree I was asked to
 #     remove is already gone" are DIFFERENT claims, and only the second one is a
 #     clean no-op. When a leaf resolves to nothing, git's worktree registry is
@@ -128,6 +131,103 @@ worktree_home_default() {
   fi
 }
 
+# The home is resolved through layers, identical in every helper and both ports:
+# WORKTREE_HOME → `worktreeHome` in <main>/.agents/worktree.overrides.json (the
+# gitignored per-clone file) → `worktreeHome` in ~/.agents/worktree.json (this
+# machine, every repo) → the platform default above. The committed
+# .agents/worktree.json is never read for it, since a path committed there would
+# follow every clone onto machines that have no such drive. The workspace layout
+# (<home>/<workspace>/<leaf>/<repo>) skips the per-repo layer: setup-workspace
+# runs from a root that is no single repo, so the two could never agree on a path
+# if one of them read it. Duplicated verbatim in each bin/*.sh, for the reason
+# norm_path gives; scripts/check.sh asks every copy, and both ports, the same table.
+#
+# home_file_value prints the string `worktreeHome` from one JSON file, or nothing
+# when the file or the key is absent, and returns 1 when the file is there but
+# cannot be read — a home is never guessed past a file that may have set it.
+home_file_value() { # home_file_value <json-file>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 1
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      let cfg;
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
+      if (typeof value === "string") process.stdout.write(value);
+    ' "$1" 2>/dev/null
+  else
+    "${runner[@]}" - "$1" 2>/dev/null <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
+
+# Prints "<layer> <home>": the layer that set the home, one space, then the home
+# with a leading ~ expanded against <user-home>. The layer is WORKTREE_HOME,
+# .agents/worktree.overrides.json, ~/.agents/worktree.json or default — or
+# "unreadable", followed by the file that could not be read.
+resolve_worktree_home() { # resolve_worktree_home <env-value> <main-checkout> <bare|workspace> <user-home> <default>
+  local value="" layer="" file=""
+  if [ -n "$1" ]; then
+    value="$1"
+    layer="WORKTREE_HOME"
+  fi
+  if [ -z "$layer" ] && [ "$3" = "bare" ] && [ -n "$2" ]; then
+    file="$2/.agents/worktree.overrides.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=".agents/worktree.overrides.json"
+  fi
+  if [ -z "$layer" ]; then
+    file="$4/.agents/worktree.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=\~/.agents/worktree.json
+  fi
+  if [ -z "$layer" ]; then
+    printf 'default %s\n' "$5"
+    return 0
+  fi
+  case "$value" in
+  \~) value="$4" ;;
+  \~/*) value="$4/${value#\~/}" ;;
+  esac
+  printf '%s %s\n' "$layer" "$value"
+}
+
 # "Absolute" has two spellings under Git Bash. A Windows-form path (C:/… or C:\…)
 # does not start with a slash, so a `== /*` test files it as a BRANCH LEAF and the
 # script then resolves $WORKTREE_HOME/<project>/C:/… — a path that never exists,
@@ -140,14 +240,42 @@ is_abs_path() { # is_abs_path <string>
   esac
 }
 
-WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
-
 # printf '%b' rather than echo, so a message can carry the `\n` its recovery
 # instructions need: bash's builtin echo prints those two characters verbatim, so a
 # multi-line message written with it arrives as one line with a literal \n inside —
 # and the PowerShell sibling, whose `\n` IS a newline, would then say something the
 # bash side does not.
 die() { printf 'remove-worktree: error: %b\n' "$*" >&2; exit 1; }
+
+# Sets WT_HOME and WT_HOME_LAYER to the home <main>'s trees live under in one
+# layout, or dies naming a file that may set it and cannot be read.
+home_for() { # home_for <main-checkout> <bare|workspace>
+  local line
+  line=$(resolve_worktree_home "${WORKTREE_HOME:-}" "$1" "$2" "$HOME" "$(worktree_home_default)")
+  WT_HOME_LAYER="${line%% *}"
+  WT_HOME="${line#* }"
+  [ "$WT_HOME_LAYER" != "unreadable" ] || die "could not read $WT_HOME, which may set worktreeHome — fix or remove it; no home is guessed past it, and nothing has been removed."
+  WT_HOME="$(norm_path "$WT_HOME")"
+  WT_HOME="${WT_HOME%/}"
+}
+
+# Refuses, before any `git worktree prune`, while a home that WORKTREE_HOME or a
+# file set does not exist. prune drops the registration of every worktree whose
+# directory is missing, and every tree on an unplugged drive is missing, so one
+# teardown run with the drive out would forget them all. The default home is
+# exempt: it sits on the main disk, so its absence means no tree was ever cut
+# there. Both layouts are asked where <main> is a workspace member, since its
+# bare home and its workspace home can be different drives.
+assert_homes_reachable() { # assert_homes_reachable <main-checkout>
+  local layout
+  for layout in bare workspace; do
+    [ "$layout" = "bare" ] || [ -f "$(dirname "$1")/.agents/workspace.json" ] || continue
+    home_for "$1" "$layout"
+    [ "$WT_HOME_LAYER" != "default" ] || continue
+    [ ! -d "$WT_HOME" ] || continue
+    die "the worktree home $WT_HOME (set by $WT_HOME_LAYER) does not exist — is the drive it lives on unplugged?\n  REFUSED before 'git worktree prune', which would drop the registration of every worktree on it; nothing has been killed or removed.\n  Reconnect it and re-run, or point $WT_HOME_LAYER at a home that exists."
+  done
+}
 
 # --- The project's own sweep, run once the tree is out of the registry ------------
 # `reclaim` is the project's command for the resources a checkout created and left
@@ -180,9 +308,12 @@ die() { printf 'remove-worktree: error: %b\n' "$*" >&2; exit 1; }
 # watching.
 #
 # Duplicated rather than shared with merge-pr.sh's read_config_scalar, for the
-# reason norm_path above gives. This one reads a key one level down.
-read_config_nested() { # read_config_nested <config-path> <key> <subkey>
-  [ -f "$1" ] || return 0
+# reason norm_path above gives. This one reads a key one level down. The overrides
+# file, when present, overlays the config KEY BY KEY — a <key> it carries replaces
+# the committed one whole, never merged with it — and an unreadable one reads as
+# an unreadable config does.
+read_config_nested() { # read_config_nested <config-path> <key> <subkey> [<overrides-path>]
+  [ -f "$1" ] || [ -f "${4:-}" ] || return 0
   local -a runner=()
   local cand probe
   for cand in node python3 python py; do
@@ -208,17 +339,23 @@ read_config_nested() { # read_config_nested <config-path> <key> <subkey>
   if [ "${runner[0]}" = "node" ]; then
     node -e '
       const fs = require("fs");
+      const read = (p) => (p && fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {});
       try {
-        const parent = JSON.parse(fs.readFileSync(process.argv[1], "utf8"))[process.argv[2]];
+        const cfg = Object.assign({}, read(process.argv[1]), read(process.argv[4]));
+        const parent = cfg[process.argv[2]];
         const value = parent && typeof parent === "object" ? parent[process.argv[3]] : undefined;
         if (typeof value === "string") process.stdout.write(value);
       } catch (err) { /* unreadable config reads as "not declared" */ }
-    ' "$1" "$2" "$3" 2>/dev/null || true
+    ' "$1" "$2" "$3" "${4:-}" 2>/dev/null || true
   else
-    "${runner[@]}" - "$1" "$2" "$3" 2>/dev/null <<'PY' || true
-import json, sys
+    "${runner[@]}" - "$1" "$2" "$3" "${4:-}" 2>/dev/null <<'PY' || true
+import json, os, sys
 try:
-    parent = json.load(open(sys.argv[1])).get(sys.argv[2])
+    cfg = {}
+    for path in (sys.argv[1], sys.argv[4]):
+        if path and os.path.exists(path):
+            cfg.update(json.load(open(path)))
+    parent = cfg.get(sys.argv[2])
     value = parent.get(sys.argv[3]) if isinstance(parent, dict) else None
 except Exception:
     value = None
@@ -230,7 +367,7 @@ PY
 
 run_reclaim() { # run_reclaim <main-checkout>
   local main="$1" cmd rc=0
-  cmd=$(read_config_nested "$main/.agents/worktree.json" reclaim drop)
+  cmd=$(read_config_nested "$main/.agents/worktree.json" reclaim drop "$main/.agents/worktree.overrides.json")
   # Nothing declared is the ordinary case and says nothing.
   [ -n "$cmd" ] || return 0
 
@@ -282,7 +419,8 @@ else
   # (e.g. `feat/1319-foo` → `1319-foo`), so derive the leaf the same way —
   # otherwise a full branch name resolves to a non-existent nested path.
   LEAF="${INPUT##*/}"
-  WT="$WORKTREE_HOME/$PROJECT/$LEAF"
+  home_for "$MAIN" bare
+  WT="$WT_HOME/$PROJECT/$LEAF"
   # A repo inside a workspace (a containing folder of sibling repos, marked by
   # .agents/workspace.json) keeps its worktrees under the WORKSPACE's namespace
   # rather than its own — setup-worktree.sh puts them at
@@ -305,7 +443,8 @@ else
   # path regardless of which leaf was asked for.
   WORKSPACE_ROOT="$(dirname "$MAIN")"
   if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
-    WORKSPACE_WT="$WORKTREE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
+    home_for "$MAIN" workspace
+    WORKSPACE_WT="$WT_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
     if [ -d "$WORKSPACE_WT" ] || [ ! -d "$WT" ]; then
       WT="$WORKSPACE_WT"
     fi
@@ -383,6 +522,7 @@ if [ ! -d "$WT" ]; then
 
   # Announced here rather than beside the message above, so a run that stops on the
   # stray check does not first claim it is about to prune and then not do it.
+  assert_homes_reachable "$MAIN"
   echo "  running git worktree prune to clean stale refs..."
   # Checked by hand rather than left to `set -e`, here and at the teardown at the
   # bottom. Errexit does stop the run, but it stops it MUTE and with GIT's status
@@ -416,6 +556,9 @@ if is_abs_path "$INPUT"; then
   fi
   MAIN=$(dirname "$(norm_path "$COMMON")")
 fi
+
+# Before the kill scan, so the refusal leaves every process and the tree as found.
+assert_homes_reachable "$MAIN"
 
 # --- Refuse to tear down the tree this process is running in --------------------
 # The scan below finds processes by their open descriptors and cwd (lsof) and by

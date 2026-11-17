@@ -9,11 +9,16 @@
 # common gitdir, so it always resolves the right project. If cwd isn't inside a
 # git repo, pass REPO=/path/to/repo.
 #
-# What it does, driven by the project's own config at <repo>/.agents/worktree.json:
-#   - creates the worktree at  $WORKTREE_HOME/<project>/<branch-leaf>
-#     (WORKTREE_HOME defaults to ~/.worktrees, or %LOCALAPPDATA%/wt on Windows —
-#     the worktrees themselves stay out of the repo, since a worktree nested
-#     inside its own repo confuses git)
+# What it does, driven by the project's own config at <repo>/.agents/worktree.json,
+# overlaid key by key by the gitignored <repo>/.agents/worktree.overrides.json
+# when this clone has one (a key there replaces the committed key whole):
+#   - creates the worktree at  <home>/<project>/<branch-leaf>, where <home> is
+#     WORKTREE_HOME, else `worktreeHome` in the overrides file, else
+#     `worktreeHome` in ~/.agents/worktree.json, else ~/.worktrees
+#     (%LOCALAPPDATA%/wt on Windows) — the worktrees themselves stay out of the
+#     repo, since a worktree nested inside its own repo confuses git. A home
+#     whose parent does not exist (a drive that is not mounted) is a refusal,
+#     never a mkdir onto the main disk.
 #   - symlinks the project's gitignored env files (envFiles)
 #   - exports the project's env (env) — e.g. a shared build-cache dir
 #   - runs the project's install command (install) inside the worktree
@@ -62,7 +67,8 @@
 # re-attached tree exactly as much as a fresh one.
 #
 # The config lives in the repo, so it travels with the clone and is reviewed
-# alongside the code it describes. This script reads only `envFiles`, `env`, and
+# alongside the code it describes; the overrides file is this clone's alone, and a
+# tracked one is warned about and still read. This script reads only `envFiles`, `env`, and
 # `install`; the remaining keys (gate, preflight, enqueue, drain,
 # frameworkSkills, briefConventions) are read by the skills, not here. No config
 # → a bare worktree (no env symlinks, no install).
@@ -106,6 +112,103 @@ worktree_home_default() {
   fi
 }
 
+# The home is resolved through layers, identical in every helper and both ports:
+# WORKTREE_HOME → `worktreeHome` in <main>/.agents/worktree.overrides.json (the
+# gitignored per-clone file) → `worktreeHome` in ~/.agents/worktree.json (this
+# machine, every repo) → the platform default above. The committed
+# .agents/worktree.json is never read for it, since a path committed there would
+# follow every clone onto machines that have no such drive. The workspace layout
+# (<home>/<workspace>/<leaf>/<repo>) skips the per-repo layer: setup-workspace
+# runs from a root that is no single repo, so the two could never agree on a path
+# if one of them read it. Duplicated verbatim in each bin/*.sh, for the reason
+# norm_path gives; scripts/check.sh asks every copy, and both ports, the same table.
+#
+# home_file_value prints the string `worktreeHome` from one JSON file, or nothing
+# when the file or the key is absent, and returns 1 when the file is there but
+# cannot be read — a home is never guessed past a file that may have set it.
+home_file_value() { # home_file_value <json-file>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 1
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      let cfg;
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
+      if (typeof value === "string") process.stdout.write(value);
+    ' "$1" 2>/dev/null
+  else
+    "${runner[@]}" - "$1" 2>/dev/null <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
+
+# Prints "<layer> <home>": the layer that set the home, one space, then the home
+# with a leading ~ expanded against <user-home>. The layer is WORKTREE_HOME,
+# .agents/worktree.overrides.json, ~/.agents/worktree.json or default — or
+# "unreadable", followed by the file that could not be read.
+resolve_worktree_home() { # resolve_worktree_home <env-value> <main-checkout> <bare|workspace> <user-home> <default>
+  local value="" layer="" file=""
+  if [ -n "$1" ]; then
+    value="$1"
+    layer="WORKTREE_HOME"
+  fi
+  if [ -z "$layer" ] && [ "$3" = "bare" ] && [ -n "$2" ]; then
+    file="$2/.agents/worktree.overrides.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=".agents/worktree.overrides.json"
+  fi
+  if [ -z "$layer" ]; then
+    file="$4/.agents/worktree.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=\~/.agents/worktree.json
+  fi
+  if [ -z "$layer" ]; then
+    printf 'default %s\n' "$5"
+    return 0
+  fi
+  case "$value" in
+  \~) value="$4" ;;
+  \~/*) value="$4/${value#\~/}" ;;
+  esac
+  printf '%s %s\n' "$layer" "$value"
+}
+
 # --- git calls this script assumes will succeed --------------------------------
 # Run one through here and its stdout lands in GIT_OUT; a non-zero exit is this
 # script's own refusal instead of git's.
@@ -135,8 +238,8 @@ git_out() { # git_out <git-arg>… — sets GIT_OUT to git's stdout, or exits 1
   fi
 }
 
-WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
 CONFIG_REL=".agents/worktree.json"
+OVERRIDES_REL=".agents/worktree.overrides.json"
 
 usage() {
   echo "usage: setup-worktree.sh <branch> <base>  |  --existing <branch>" >&2
@@ -200,10 +303,31 @@ fi
 # setup-workspace.sh sets WORKTREE_DEST directly when it cuts a whole task.
 if [ -n "${WORKTREE_DEST:-}" ]; then
   WT="$WORKTREE_DEST"
-elif [ -f "$(dirname "$MAIN")/.agents/workspace.json" ]; then
-  WT="$WORKTREE_HOME/$(basename "$(dirname "$MAIN")")/$SLUG/$PROJECT"
 else
-  WT="$WORKTREE_HOME/$PROJECT/$SLUG"
+  if [ -f "$(dirname "$MAIN")/.agents/workspace.json" ]; then LAYOUT=workspace; else LAYOUT=bare; fi
+  HOME_LINE=$(resolve_worktree_home "${WORKTREE_HOME:-}" "$MAIN" "$LAYOUT" "$HOME" "$(worktree_home_default)")
+  HOME_LAYER="${HOME_LINE%% *}"
+  WT_HOME="${HOME_LINE#* }"
+  if [ "$HOME_LAYER" = "unreadable" ]; then
+    echo "could not read $WT_HOME, which may set worktreeHome — fix or remove it; no home is guessed past it." >&2
+    exit 1
+  fi
+  WT_HOME="$(norm_path "$WT_HOME")"
+  WT_HOME="${WT_HOME%/}"
+  # A home is created only where its parent exists. A parent that is missing is
+  # most often a drive that is not mounted, and `mkdir -p` would quietly build the
+  # home on the main disk instead — the very disk the user moved worktrees off.
+  if [ ! -d "$WT_HOME" ] && [ ! -d "$(dirname "$WT_HOME")" ]; then
+    echo "refusing: the worktree home $WT_HOME (set by $HOME_LAYER) is unreachable — its parent $(dirname "$WT_HOME") does not exist." >&2
+    echo "  Is the drive it lives on unplugged? Nothing was created." >&2
+    echo "  Reconnect it and re-run, or point $HOME_LAYER at a home that exists." >&2
+    exit 1
+  fi
+  if [ "$LAYOUT" = "workspace" ]; then
+    WT="$WT_HOME/$(basename "$(dirname "$MAIN")")/$SLUG/$PROJECT"
+  else
+    WT="$WT_HOME/$PROJECT/$SLUG"
+  fi
 fi
 # WORKTREE_HOME and WORKTREE_DEST are caller-supplied and may arrive in either
 # form, so normalize the assembled path once, here, rather than at each use.
@@ -214,7 +338,7 @@ WT="$(norm_path "$WT")"
 # scripts/check.sh extracts it by name and runs it standalone to prove the
 # shipped example config is one the REAL reader can consume, and a call out to a
 # helper defined elsewhere in this file would break that extraction.
-emit_config() { # emit_config <config-path>
+emit_config() { # emit_config <config-path> [<overrides-path>]
   # Pick an interpreter by RUNNING each candidate, never by `command -v` alone.
   # On Windows `command -v python3` succeeds against the Microsoft Store's
   # python3.exe App Execution Alias — a stub that opens the Store and prints
@@ -248,18 +372,25 @@ emit_config() { # emit_config <config-path>
   if [ "${runner[0]}" = "node" ]; then
     # Read + parse rather than require(): require() resolves a bare relative path
     # as a module name, so it fails on exactly the paths a caller passes by hand.
+    # The overrides file, when given and present, overlays the config KEY BY KEY:
+    # a key it carries replaces the committed one whole (an `env` map is replaced,
+    # never merged), and a key it omits falls through.
     node -e '
       const fs = require("fs");
-      const cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+      const read = (p) => (p && fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {});
+      const cfg = Object.assign({}, read(process.argv[1]), read(process.argv[2]));
       const q = (s) => "\x27" + String(s).replace(/\x27/g, "\x27\\\x27\x27") + "\x27";
       console.log("INSTALL_CMD=" + q(cfg.install || ""));
       console.log("ENV_FILES=(" + (cfg.envFiles || []).map(q).join(" ") + ")");
       for (const [k, v] of Object.entries(cfg.env || {})) console.log("export " + k + "=" + v);
-    ' "$1"
+    ' "$1" "${2:-}"
   else
-    "${runner[@]}" - "$1" <<'PY'
-import json, shlex, sys
-cfg = json.load(open(sys.argv[1]))
+    "${runner[@]}" - "$1" "${2:-}" <<'PY'
+import json, os, shlex, sys
+cfg = {}
+for path in sys.argv[1:3]:
+    if path and os.path.exists(path):
+        cfg.update(json.load(open(path)))
 print("INSTALL_CMD=%s" % shlex.quote(cfg.get("install") or ""))
 print("ENV_FILES=(%s)" % " ".join(shlex.quote(p) for p in cfg.get("envFiles") or []))
 # Emitted UNQUOTED so a value may use shell expansion — `${VAR:-$HOME/...}` is how
@@ -274,14 +405,21 @@ PY
 ENV_FILES=()
 INSTALL_CMD=""
 CONFIG="$MAIN/$CONFIG_REL"
-if [ -f "$CONFIG" ]; then
+OVERRIDES="$MAIN/$OVERRIDES_REL"
+# The overrides file is per-clone and machine-specific, so it belongs in
+# .gitignore; a tracked one still reads, but every clone would inherit it.
+if [ -f "$OVERRIDES" ] && git -C "$MAIN" ls-files --error-unmatch -- "$OVERRIDES_REL" >/dev/null 2>&1; then
+  echo "warning: $OVERRIDES_REL is TRACKED in '$PROJECT' — it is read, but every clone now inherits it." >&2
+  echo "  It holds this clone's own values: git rm --cached it and add it to .gitignore." >&2
+fi
+if [ -f "$CONFIG" ] || [ -f "$OVERRIDES" ]; then
   # Captured before eval'ing so a reader that failed is a hard stop: eval'ing the
   # substitution inline would discard its exit status and silently proceed with
   # an empty config, which looks exactly like a repo that declared nothing.
   # Same trust level as INSTALL_CMD below, which is eval'd too: by the time you
   # are cutting a worktree you already run this repo's install and test commands.
-  if ! CONFIG_SH="$(emit_config "$CONFIG")"; then
-    echo "could not read $CONFIG" >&2
+  if ! CONFIG_SH="$(emit_config "$CONFIG" "$OVERRIDES")"; then
+    if [ -f "$OVERRIDES" ]; then echo "could not read $CONFIG or $OVERRIDES" >&2; else echo "could not read $CONFIG" >&2; fi
     exit 1
   fi
   eval "$CONFIG_SH"

@@ -10,9 +10,12 @@
 #
 # It creates one worktree per named repo, laid out the same way the workspace is:
 #
-#   $WORKTREE_HOME/<workspace>/<branch-leaf>/<repo>/
+#   <home>/<workspace>/<branch-leaf>/<repo>/
 #
-# ($WORKTREE_HOME defaults to ~/.worktrees, or %LOCALAPPDATA%/wt on Windows.)
+# (<home> is WORKTREE_HOME, else `worktreeHome` in ~/.agents/worktree.json, else
+# ~/.worktrees, or %LOCALAPPDATA%/wt on Windows. No repo's own overrides file is
+# read for it: the workspace root is no single repo. A home whose parent does not
+# exist — a drive that is not mounted — is a refusal, never a mkdir.)
 #
 # Mirroring the layout is the point. A cross-repo task gets a single directory
 # that looks exactly like the workspace, so relative paths between repos still
@@ -78,7 +81,103 @@ worktree_home_default() {
   fi
 }
 
-WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
+# The home is resolved through layers, identical in every helper and both ports:
+# WORKTREE_HOME → `worktreeHome` in <main>/.agents/worktree.overrides.json (the
+# gitignored per-clone file) → `worktreeHome` in ~/.agents/worktree.json (this
+# machine, every repo) → the platform default above. The committed
+# .agents/worktree.json is never read for it, since a path committed there would
+# follow every clone onto machines that have no such drive. The workspace layout
+# (<home>/<workspace>/<leaf>/<repo>) skips the per-repo layer: setup-workspace
+# runs from a root that is no single repo, so the two could never agree on a path
+# if one of them read it. Duplicated verbatim in each bin/*.sh, for the reason
+# norm_path gives; scripts/check.sh asks every copy, and both ports, the same table.
+#
+# home_file_value prints the string `worktreeHome` from one JSON file, or nothing
+# when the file or the key is absent, and returns 1 when the file is there but
+# cannot be read — a home is never guessed past a file that may have set it.
+home_file_value() { # home_file_value <json-file>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 1
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      let cfg;
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
+      if (typeof value === "string") process.stdout.write(value);
+    ' "$1" 2>/dev/null
+  else
+    "${runner[@]}" - "$1" 2>/dev/null <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
+
+# Prints "<layer> <home>": the layer that set the home, one space, then the home
+# with a leading ~ expanded against <user-home>. The layer is WORKTREE_HOME,
+# .agents/worktree.overrides.json, ~/.agents/worktree.json or default — or
+# "unreadable", followed by the file that could not be read.
+resolve_worktree_home() { # resolve_worktree_home <env-value> <main-checkout> <bare|workspace> <user-home> <default>
+  local value="" layer="" file=""
+  if [ -n "$1" ]; then
+    value="$1"
+    layer="WORKTREE_HOME"
+  fi
+  if [ -z "$layer" ] && [ "$3" = "bare" ] && [ -n "$2" ]; then
+    file="$2/.agents/worktree.overrides.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=".agents/worktree.overrides.json"
+  fi
+  if [ -z "$layer" ]; then
+    file="$4/.agents/worktree.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=\~/.agents/worktree.json
+  fi
+  if [ -z "$layer" ]; then
+    printf 'default %s\n' "$5"
+    return 0
+  fi
+  case "$value" in
+  \~) value="$4" ;;
+  \~/*) value="$4/${value#\~/}" ;;
+  esac
+  printf '%s %s\n' "$layer" "$value"
+}
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 die() { echo "setup-workspace: error: $*" >&2; exit 1; }
@@ -263,7 +362,21 @@ echo "branch:    $BRANCH  off  $BASE"
 echo "repos:     ${REPOS[*]}"
 echo
 
-TASK_DIR="$WORKTREE_HOME/$WORKSPACE_NAME/$SLUG"
+HOME_LINE=$(resolve_worktree_home "${WORKTREE_HOME:-}" "" workspace "$HOME" "$(worktree_home_default)")
+HOME_LAYER="${HOME_LINE%% *}"
+WT_HOME="${HOME_LINE#* }"
+[ "$HOME_LAYER" != "unreadable" ] || die "could not read $WT_HOME, which may set worktreeHome — fix or remove it; no home is guessed past it."
+WT_HOME="$(norm_path "$WT_HOME")"
+WT_HOME="${WT_HOME%/}"
+# Created only where its parent exists, for the reason setup-worktree.sh gives:
+# a missing parent is most often an unmounted drive, and mkdir -p would build the
+# home on the main disk instead.
+if [ ! -d "$WT_HOME" ] && [ ! -d "$(dirname "$WT_HOME")" ]; then
+  die "the worktree home $WT_HOME (set by $HOME_LAYER) is unreachable — its parent $(dirname "$WT_HOME") does not exist.
+  Is the drive it lives on unplugged? Nothing was created.
+  Reconnect it and re-run, or point $HOME_LAYER at a home that exists."
+fi
+TASK_DIR="$WT_HOME/$WORKSPACE_NAME/$SLUG"
 
 if [ "$DRY_RUN" = "1" ]; then
   echo "would create: $TASK_DIR/{$(IFS=,; echo "${REPOS[*]}")}"

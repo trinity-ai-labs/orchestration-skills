@@ -50,6 +50,8 @@
 #     to close, which is the closest equivalent, and `Stop-Process -Force` is the
 #     SIGKILL end of the escalation.
 #   - Idempotent: if the path doesn't exist or no processes match, no-ops cleanly.
+#   - REFUSES before any prune while a worktree home that WORKTREE_HOME or a file
+#     set does not exist (an unplugged drive): prune would drop every tree on it.
 #   - But "the path I computed does not exist" and "the worktree I was asked to
 #     remove is already gone" are DIFFERENT claims, and only the second one is a
 #     clean no-op. When a leaf resolves to nothing, git's worktree registry is
@@ -59,7 +61,8 @@
 #   - Exits non-zero with a descriptive message on real failure.
 #
 # After the removal (and after the prune on the already-absent path) it runs the
-# project's own `reclaim.drop` from <repo>/.agents/worktree.json, if declared: once
+# project's own `reclaim.drop` from <repo>/.agents/worktree.json (or its gitignored
+# .agents/worktree.overrides.json, whose `reclaim` replaces it whole), if declared: once
 # the tree has left git's worktree registry its resources are dead by the project's
 # own classification, so the existing command collects them. Best-effort - a reclaim
 # that fails, is missing or is slow is reported and never changes the exit status.
@@ -201,18 +204,91 @@ function Find-StrayWorktree {
     return ''
 }
 
-function Get-WorktreeHome {
-    # WORKTREE_HOME wins whenever it is set. Otherwise the default is
-    # platform-dependent, and it MUST match the bash sibling byte for byte: on
-    # Windows that is %LOCALAPPDATA%\wt rather than ~/.worktrees, because
+function Get-WorktreeHomeDefault {
+    # The platform default, the last layer Resolve-WorktreeHome falls to. It MUST
+    # match the bash sibling byte for byte: on Windows that is %LOCALAPPDATA%\wt
+    # rather than ~/.worktrees, because
     # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/... routinely runs
     # past MAX_PATH's 260 characters. Disagreeing here is not cosmetic - merge-pr
     # reads this location to decide whether a merged PR still has anything to close
     # out, so a worktree cut in one shell would be invisible to the other and the
     # close-out would refuse with a "wrong repo" error against a perfectly good tree.
-    if ($env:WORKTREE_HOME) { return $env:WORKTREE_HOME }
     if ((Test-OnWindows) -and $env:LOCALAPPDATA) { return (Join-Path $env:LOCALAPPDATA 'wt') }
     return (Join-Path $HOME '.worktrees')
+}
+
+function Get-HomeFileValue {
+    # The string `worktreeHome` from one JSON file: '' when the file or the key is
+    # absent, $null when the file is there but cannot be read - a home is never
+    # guessed past a file that may have set it. The key is matched
+    # CASE-SENSITIVELY, as the bash sibling's node / python parse reads it.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
+    try {
+        $raw = Get-Content -LiteralPath $Path -Raw
+        if (-not $raw -or -not $raw.Trim()) { return $null }
+        $cfg = $raw | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+    if ($null -eq $cfg -or $cfg -is [array]) { return '' }
+    foreach ($prop in $cfg.PSObject.Properties) {
+        if ($prop.Name -ceq 'worktreeHome') {
+            if ($prop.Value -is [string]) { return $prop.Value }
+            return ''
+        }
+    }
+    return ''
+}
+
+function Resolve-WorktreeHome {
+    # The home resolves through layers, identical in every helper and both ports:
+    # WORKTREE_HOME -> `worktreeHome` in <main>/.agents/worktree.overrides.json
+    # (the gitignored per-clone file) -> `worktreeHome` in ~/.agents/worktree.json
+    # (this machine, every repo) -> Get-WorktreeHomeDefault. The committed
+    # .agents/worktree.json is never read for it, since a path committed there
+    # would follow every clone onto machines that have no such drive. The
+    # workspace layout skips the per-repo layer: setup-workspace runs from a root
+    # that is no single repo, so the two could never agree on a path if one of
+    # them read it. scripts/check.sh asks every copy, and the bash sibling, the
+    # same table.
+    #
+    # Returns "<layer> <home>": the layer that set the home, one space, then the
+    # home with a leading ~ expanded against UserHome. The layer is WORKTREE_HOME,
+    # .agents/worktree.overrides.json, ~/.agents/worktree.json or default - or
+    # "unreadable", followed by the file that could not be read.
+    param(
+        [string] $EnvValue,
+        [string] $Main,
+        [string] $Layout,
+        [string] $UserHome,
+        [string] $Default
+    )
+    $value = ''
+    $layer = ''
+    if ($EnvValue) {
+        $value = $EnvValue
+        $layer = 'WORKTREE_HOME'
+    }
+    if (-not $layer -and $Layout -ceq 'bare' -and $Main) {
+        $file = "$Main/.agents/worktree.overrides.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '.agents/worktree.overrides.json' }
+    }
+    if (-not $layer) {
+        $file = "$UserHome/.agents/worktree.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '~/.agents/worktree.json' }
+    }
+    if (-not $layer) { return "default $Default" }
+    if ($value -ceq '~') {
+        $value = $UserHome
+    } elseif ($value.StartsWith('~/')) {
+        $value = "$UserHome/" + $value.Substring(2)
+    }
+    return "$layer $value"
 }
 
 function Test-OnWindows {
@@ -228,33 +304,81 @@ function Get-ConfigNested {
     # empty string. Mirrors the bash sibling's read_config_nested, including the
     # CASE-SENSITIVE key match PowerShell does not do on its own (a PSObject property
     # lookup ignores case, so "Reclaim" would be found here and not by the bash
-    # parse). An unreadable config reads as
-    # "not declared": the sweep is housekeeping and must never be the reason a
-    # removal reports an error.
+    # parse). An overrides file that exists overlays the config KEY BY KEY: a <Name>
+    # it carries replaces the committed one whole, never merged with it. An
+    # unreadable file in the pair reads as "not declared": the sweep is housekeeping
+    # and must never be the reason a removal reports an error.
     param(
         [Parameter(Mandatory = $true)] [string] $Path,
         [Parameter(Mandatory = $true)] [string] $Name,
-        [Parameter(Mandatory = $true)] [string] $SubName
+        [Parameter(Mandatory = $true)] [string] $SubName,
+        [string] $Overrides = ''
     )
-    if (-not (Test-Path -LiteralPath $Path)) { return '' }
     try {
-        $cfg = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
-        foreach ($prop in $cfg.PSObject.Properties) {
-            if ($prop.Name -ceq $Name) {
-                if ($null -eq $prop.Value -or $prop.Value -is [string]) { return '' }
-                foreach ($sub in $prop.Value.PSObject.Properties) {
-                    if ($sub.Name -ceq $SubName) {
-                        if ($sub.Value -is [string]) { return $sub.Value }
-                        return ''
-                    }
-                }
-                return ''
-            }
+        $over = $null
+        $base = $null
+        # An EMPTY file is unreadable, as JSON.parse and json.load find it on the bash
+        # side; ConvertFrom-Json alone would read it as absent.
+        foreach ($file in @($Overrides, $Path)) {
+            if (-not $file -or -not (Test-Path -LiteralPath $file)) { continue }
+            $raw = Get-Content -LiteralPath $file -Raw
+            if (-not $raw -or -not $raw.Trim()) { throw "empty: $file" }
+            if ($file -ceq $Overrides) { $over = $raw | ConvertFrom-Json } else { $base = $raw | ConvertFrom-Json }
         }
     } catch {
         return ''
     }
+    $parent = $null
+    foreach ($cfg in @($over, $base)) {
+        if ($null -eq $cfg) { continue }
+        $prop = $cfg.PSObject.Properties | Where-Object { $_.Name -ceq $Name } | Select-Object -First 1
+        if ($null -ne $prop) {
+            $parent = $prop.Value
+            break
+        }
+    }
+    if ($null -eq $parent -or $parent -is [string]) { return '' }
+    foreach ($sub in $parent.PSObject.Properties) {
+        if ($sub.Name -ceq $SubName) {
+            if ($sub.Value -is [string]) { return $sub.Value }
+            return ''
+        }
+    }
     return ''
+}
+
+
+function Get-HomeFor {
+    # The home <main>'s trees live under in one layout, or a refusal naming a file
+    # that may set it and cannot be read. Returns @(<home>, <layer>).
+    param([Parameter(Mandatory = $true)] [string] $MainDir, [Parameter(Mandatory = $true)] [string] $Layout)
+    $line = Resolve-WorktreeHome $env:WORKTREE_HOME $MainDir $Layout $HOME (Get-WorktreeHomeDefault)
+    $layer = $line.Substring(0, $line.IndexOf(' '))
+    $path = $line.Substring($line.IndexOf(' ') + 1)
+    if ($layer -ceq 'unreadable') {
+        Exit-WithError "could not read $path, which may set worktreeHome - fix or remove it; no home is guessed past it, and nothing has been removed."
+    }
+    return @((Get-NormalPath $path), $layer)
+}
+
+function Assert-HomesReachable {
+    # Refuses, before any `git worktree prune`, while a home that WORKTREE_HOME or
+    # a file set does not exist. prune drops the registration of every worktree
+    # whose directory is missing, and every tree on an unplugged drive is missing,
+    # so one teardown run with the drive out would forget them all. The default home
+    # is exempt: it sits on the main disk, so its absence means no tree was ever cut
+    # there. Both layouts are asked where <main> is a workspace member, since its
+    # bare home and its workspace home can be different drives.
+    param([Parameter(Mandatory = $true)] [string] $MainDir)
+    foreach ($layout in @('bare', 'workspace')) {
+        if ($layout -ceq 'workspace' -and -not (Test-Path -LiteralPath (Join-Path (Split-Path -Path $MainDir -Parent) '.agents/workspace.json'))) { continue }
+        $found = Get-HomeFor -MainDir $MainDir -Layout $layout
+        if ($found[1] -ceq 'default') { continue }
+        if (Test-Path -LiteralPath $found[0]) { continue }
+        Exit-WithError ("the worktree home $($found[0]) (set by $($found[1])) does not exist - is the drive it lives on unplugged?`n" +
+            "  REFUSED before 'git worktree prune', which would drop the registration of every worktree on it; nothing has been killed or removed.`n" +
+            "  Reconnect it and re-run, or point $($found[1]) at a home that exists.")
+    }
 }
 
 function Invoke-Reclaim {
@@ -274,7 +398,7 @@ function Invoke-Reclaim {
     # teardown.
     param([Parameter(Mandatory = $true)] [string] $MainDir)
     try {
-        $cmd = Get-ConfigNested -Path (Join-Path $MainDir '.agents/worktree.json') -Name 'reclaim' -SubName 'drop'
+        $cmd = Get-ConfigNested -Path (Join-Path $MainDir '.agents/worktree.json') -Name 'reclaim' -SubName 'drop' -Overrides (Join-Path $MainDir '.agents/worktree.overrides.json')
         # Nothing declared is the ordinary case and says nothing.
         if (-not $cmd) { return }
 
@@ -314,8 +438,6 @@ if ($args.Count -lt 1) {
 
 $Target = [string]$args[0]
 
-$WorktreeHome = Get-NormalPath (Get-WorktreeHome)
-
 $Repo = $env:REPO
 if (-not $Repo) { $Repo = (Get-Location).Path }
 
@@ -344,7 +466,7 @@ if ($Target -match '^(/|[A-Za-z]:[\\/])') {
     # (e.g. `feat/1319-foo` -> `1319-foo`), so derive the leaf the same way -
     # otherwise a full branch name resolves to a non-existent nested path.
     $Leaf = $Target.Substring($Target.LastIndexOf('/') + 1)
-    $Wt = "$WorktreeHome/$Project/$Leaf"
+    $Wt = "$((Get-HomeFor -MainDir $Main -Layout 'bare')[0])/$Project/$Leaf"
     # A repo inside a workspace (a containing folder of sibling repos, marked by
     # .agents/workspace.json) keeps its worktrees under the WORKSPACE's namespace
     # rather than its own - setup-worktree.ps1 puts them at
@@ -367,7 +489,7 @@ if ($Target -match '^(/|[A-Za-z]:[\\/])') {
     # single fixed path regardless of which leaf was asked for.
     $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
     if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
-        $WorkspaceWt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
+        $WorkspaceWt = "$((Get-HomeFor -MainDir $Main -Layout 'workspace')[0])/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
         if ((Test-Path -LiteralPath $WorkspaceWt) -or -not (Test-Path -LiteralPath $Wt)) {
             $Wt = $WorkspaceWt
         }
@@ -413,6 +535,7 @@ no worktree at $Wt, but $Main has one REGISTERED at $Stray whose directory is na
 
     # Announced here rather than beside the message above, so a run that stops on the
     # stray check does not first claim it is about to prune and then not do it.
+    Assert-HomesReachable -MainDir $Main
     Write-Output "  running git worktree prune to clean stale refs..."
     & git -C $Main worktree prune
     if ($LASTEXITCODE -ne 0) { Exit-WithError "git worktree prune failed (exit $LASTEXITCODE)" }
@@ -437,6 +560,9 @@ if (-not $Main) {
         exit 0
     }
 }
+
+# Before the kill scan, so the refusal leaves every process and the tree as found.
+Assert-HomesReachable -MainDir $Main
 
 # --- Refuse to tear down the tree this process is running in --------------------
 # The scan below finds processes by their command line and excludes exactly one PID:

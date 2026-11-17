@@ -37,7 +37,8 @@
 # the integration branch it was cut from. That branch is scaffolding — it exists
 # for one arc and is deleted at its end — so on a long-lived release branch a
 # project may prefer one commit per arc to N slice merges plus a merge commit.
-# It is declared up front in <repo>/.agents/worktree.json, never decided here:
+# It is declared up front in <repo>/.agents/worktree.json (or overridden in this
+# clone's gitignored .agents/worktree.overrides.json), never decided here:
 #
 #   { "epicMerge": "merge" }   // "merge" (the default) | "squash"
 #
@@ -180,11 +181,111 @@ worktree_home_default() {
   fi
 }
 
-WORKTREE_HOME="${WORKTREE_HOME:-$(worktree_home_default)}"
+# The home is resolved through layers, identical in every helper and both ports:
+# WORKTREE_HOME → `worktreeHome` in <main>/.agents/worktree.overrides.json (the
+# gitignored per-clone file) → `worktreeHome` in ~/.agents/worktree.json (this
+# machine, every repo) → the platform default above. The committed
+# .agents/worktree.json is never read for it, since a path committed there would
+# follow every clone onto machines that have no such drive. The workspace layout
+# (<home>/<workspace>/<leaf>/<repo>) skips the per-repo layer: setup-workspace
+# runs from a root that is no single repo, so the two could never agree on a path
+# if one of them read it. Duplicated verbatim in each bin/*.sh, for the reason
+# norm_path gives; scripts/check.sh asks every copy, and both ports, the same table.
+#
+# home_file_value prints the string `worktreeHome` from one JSON file, or nothing
+# when the file or the key is absent, and returns 1 when the file is there but
+# cannot be read — a home is never guessed past a file that may have set it.
+home_file_value() { # home_file_value <json-file>
+  [ -f "$1" ] || return 0
+  local -a runner=()
+  local cand probe
+  for cand in node python3 python py; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    case "$cand" in
+    node)
+      runner=(node)
+      probe=$(node -e 'process.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    py)
+      runner=(py -3)
+      probe=$(py -3 -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    *)
+      runner=("$cand")
+      probe=$("$cand" -c 'import sys; sys.stdout.write("ok")' 2>/dev/null) || probe=''
+      ;;
+    esac
+    if [ "$probe" = "ok" ]; then break; fi
+    runner=()
+  done
+  [ "${#runner[@]}" -gt 0 ] || return 1
+  if [ "${runner[0]}" = "node" ]; then
+    node -e '
+      const fs = require("fs");
+      let cfg;
+      try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (err) { process.exit(1); }
+      const value = cfg && typeof cfg === "object" && !Array.isArray(cfg) ? cfg.worktreeHome : undefined;
+      if (typeof value === "string") process.stdout.write(value);
+    ' "$1" 2>/dev/null
+  else
+    "${runner[@]}" - "$1" 2>/dev/null <<'PY'
+import json, sys
+try:
+    cfg = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+value = cfg.get("worktreeHome") if isinstance(cfg, dict) else None
+if isinstance(value, str):
+    sys.stdout.write(value)
+PY
+  fi
+}
+
+# Prints "<layer> <home>": the layer that set the home, one space, then the home
+# with a leading ~ expanded against <user-home>. The layer is WORKTREE_HOME,
+# .agents/worktree.overrides.json, ~/.agents/worktree.json or default — or
+# "unreadable", followed by the file that could not be read.
+resolve_worktree_home() { # resolve_worktree_home <env-value> <main-checkout> <bare|workspace> <user-home> <default>
+  local value="" layer="" file=""
+  if [ -n "$1" ]; then
+    value="$1"
+    layer="WORKTREE_HOME"
+  fi
+  if [ -z "$layer" ] && [ "$3" = "bare" ] && [ -n "$2" ]; then
+    file="$2/.agents/worktree.overrides.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=".agents/worktree.overrides.json"
+  fi
+  if [ -z "$layer" ]; then
+    file="$4/.agents/worktree.json"
+    if ! value=$(home_file_value "$file"); then
+      printf 'unreadable %s\n' "$file"
+      return 0
+    fi
+    [ -z "$value" ] || layer=\~/.agents/worktree.json
+  fi
+  if [ -z "$layer" ]; then
+    printf 'default %s\n' "$5"
+    return 0
+  fi
+  case "$value" in
+  \~) value="$4" ;;
+  \~/*) value="$4/${value#\~/}" ;;
+  esac
+  printf '%s %s\n' "$layer" "$value"
+}
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_REL=".agents/worktree.json"
+OVERRIDES_REL=".agents/worktree.overrides.json"
 
-# One scalar out of the project's own config, or nothing at all.
+# One scalar out of the project's own config, or nothing at all. Given an overrides
+# file that exists, it overlays the config KEY BY KEY — a key it carries replaces
+# the committed value whole, a key it omits falls through — and an unreadable one
+# reads as an unreadable config does.
 #
 # Deliberately smaller than setup-worktree.sh's emit_config: that one hands back
 # an array and an env map, so it has to emit shell for its caller to eval, while a
@@ -205,8 +306,8 @@ CONFIG_REL=".agents/worktree.json"
 # state, so an unreadable config costs a cosmetic miss, where refusing would break
 # the close-out of every PR on a machine with neither node nor python over a key
 # most projects never set.
-read_config_scalar() { # read_config_scalar <config-path> <key>
-  [ -f "$1" ] || return 0
+read_config_scalar() { # read_config_scalar <config-path> <key> [<overrides-path>]
+  [ -f "$1" ] || [ -f "${3:-}" ] || return 0
   local -a runner=()
   local cand probe
   for cand in node python3 python py; do
@@ -235,16 +336,21 @@ read_config_scalar() { # read_config_scalar <config-path> <key>
   if [ "${runner[0]}" = "node" ]; then
     node -e '
       const fs = require("fs");
+      const read = (p) => (p && fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {});
       try {
-        const value = JSON.parse(fs.readFileSync(process.argv[1], "utf8"))[process.argv[2]];
+        const value = Object.assign({}, read(process.argv[1]), read(process.argv[3]))[process.argv[2]];
         if (typeof value === "string") process.stdout.write(value);
       } catch (err) { /* unreadable config reads as "not declared" */ }
-    ' "$1" "$2" 2>/dev/null || true
+    ' "$1" "$2" "${3:-}" 2>/dev/null || true
   else
-    "${runner[@]}" - "$1" "$2" 2>/dev/null <<'PY' || true
-import json, sys
+    "${runner[@]}" - "$1" "$2" "${3:-}" 2>/dev/null <<'PY' || true
+import json, os, sys
 try:
-    value = json.load(open(sys.argv[1])).get(sys.argv[2])
+    cfg = {}
+    for path in (sys.argv[1], sys.argv[3]):
+        if path and os.path.exists(path):
+            cfg.update(json.load(open(path)))
+    value = cfg.get(sys.argv[2])
 except Exception:
     value = None
 if isinstance(value, str):
@@ -269,7 +375,7 @@ integration_branch() {
   if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
     branch=$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" integrationBranch)
   fi
-  [ -n "$branch" ] || branch=$(read_config_scalar "$MAIN/$CONFIG_REL" integrationBranch)
+  [ -n "$branch" ] || branch=$(read_config_scalar "$MAIN/$CONFIG_REL" integrationBranch "$MAIN/$OVERRIDES_REL")
   # A declared branch this repository does not have is a typo or a stale config, and
   # reading it anyway makes the comparison below a tautology that says yes to every
   # head. Unverifiable reads as undeclared, which is the direction this whole path
@@ -493,8 +599,8 @@ assert_checkout_unmoved() {
 # it. Verify PR #$PR actually belongs to this working set before touching anything.
 LEAF="${HEAD_BRANCH##*/}"
 PROJECT=$(basename "$MAIN")
-# A workspace member's worktree lives at $WORKTREE_HOME/<workspace>/<slug>/<project>
-# (setup-worktree.sh:68), not the bare $WORKTREE_HOME/<project>/<slug> layout used
+# A workspace member's worktree lives at <home>/<workspace>/<slug>/<project>
+# (setup-worktree.sh), not the bare <home>/<project>/<slug> layout used
 # outside a workspace — so the existence check below must accept either, or it
 # misfires "wrong repo" for every workspace member even when its worktree is
 # exactly where setup-worktree.sh put it.
@@ -503,27 +609,38 @@ WORKSPACE_ROOT="$(dirname "$MAIN")"
 RETIRED_IN=""
 if [ -n "$(read_config_scalar "$WORKSPACE_ROOT/.agents/workspace.json" branchingModel)" ]; then
   RETIRED_IN=".agents/workspace.json"
-elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel)" ]; then
+elif [ -n "$(read_config_scalar "$MAIN/$CONFIG_REL" branchingModel "$MAIN/$OVERRIDES_REL")" ]; then
   RETIRED_IN="$CONFIG_REL"
 fi
 if [ -n "$RETIRED_IN" ]; then
   echo "merge-pr: note: $RETIRED_IN declares 'branchingModel', which this version no longer reads." >&2
   echo "  Declare 'integrationBranch' instead — the branch this project's work lands on." >&2
 fi
+# Each layout resolves its own home, as setup-worktree.sh does: the workspace
+# layout skips this repo's overrides file, so the two can be different drives.
+home_for() { # home_for <bare|workspace> — prints the home, or dies on an unreadable file
+  local line
+  line=$(resolve_worktree_home "${WORKTREE_HOME:-}" "$MAIN" "$1" "$HOME" "$(worktree_home_default)")
+  [ "${line%% *}" != "unreadable" ] || die "could not read ${line#* }, which may set worktreeHome — fix or remove it; no home is guessed past it, and nothing has been touched."
+  line="$(norm_path "${line#* }")"
+  printf '%s\n' "${line%/}"
+}
+BARE_HOME=$(home_for bare) || exit 1
 WORKSPACE_WT=""
 if [ -f "$WORKSPACE_ROOT/.agents/workspace.json" ]; then
-  WORKSPACE_WT="$WORKTREE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
+  WORKSPACE_HOME=$(home_for workspace) || exit 1
+  WORKSPACE_WT="$WORKSPACE_HOME/$(basename "$WORKSPACE_ROOT")/$LEAF/$PROJECT"
 fi
 if [ "$STATE" = "MERGED" ]; then
   # Idempotent-rerun case: finishing a half-done close-out implies SOME local
   # residue — a worktree in either layout, or the local head branch. Neither
   # existing means there is nothing to close out here: almost certainly the
   # wrong repo.
-  if [ ! -d "$WORKTREE_HOME/$PROJECT/$LEAF" ] \
+  if [ ! -d "$BARE_HOME/$PROJECT/$LEAF" ] \
      && { [ -z "$WORKSPACE_WT" ] || [ ! -d "$WORKSPACE_WT" ]; } \
      && ! git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH" \
      && [ "${MERGE_PR_FORCE:-}" != "1" ]; then
-    die "PR #$PR is already MERGED and neither a worktree ($WORKTREE_HOME/$PROJECT/$LEAF${WORKSPACE_WT:+ or $WORKSPACE_WT}) nor a local branch '$HEAD_BRANCH' exists in $MAIN — nothing to close out here. WRONG REPO? cd into the intended repo and re-run (or MERGE_PR_FORCE=1 to run teardown+sync here anyway)."
+    die "PR #$PR is already MERGED and neither a worktree ($BARE_HOME/$PROJECT/$LEAF${WORKSPACE_WT:+ or $WORKSPACE_WT}) nor a local branch '$HEAD_BRANCH' exists in $MAIN — nothing to close out here. WRONG REPO? cd into the intended repo and re-run (or MERGE_PR_FORCE=1 to run teardown+sync here anyway)."
   fi
 else
   git -C "$MAIN" show-ref --verify --quiet "refs/heads/$HEAD_BRANCH" \
@@ -648,7 +765,7 @@ MERGE_MODE="merge"
 EPIC_TIP=""
 SQUASH_TITLE=""
 SQUASH_BODY=""
-if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge)" = "squash" ]; then
+if [ -n "$HEAD_BRANCH" ] && [ "$(read_config_scalar "$MAIN/$CONFIG_REL" epicMerge "$MAIN/$OVERRIDES_REL")" = "squash" ]; then
   INTEGRATION_BRANCH=$(integration_branch)
   # The repository's DEFAULT branch is only consulted where no integration branch is
   # declared -- it is the fallback's question, and asking it otherwise spends a gh
@@ -739,7 +856,7 @@ if [ "$STATE" != "MERGED" ]; then
   if [ "$MERGEABLE" = "CONFLICTING" ] && [ "$CONFLICT_READS" -ge 2 ]; then
     # Name the worktree the caller has to resolve it in — setup-worktree.sh puts it
     # at one of exactly two paths, decided by whether this repo sits in a workspace.
-    CONFLICT_WT="${WORKSPACE_WT:-$WORKTREE_HOME/$PROJECT/$LEAF}"
+    CONFLICT_WT="${WORKSPACE_WT:-$BARE_HOME/$PROJECT/$LEAF}"
     die "PR #$PR conflicts with '$BASE_BRANCH' — nothing has been touched: the worktree is intact and the PR is still a draft.\n  Resolve it in the branch's own worktree, by merging the base IN (never rebase — these branches are never rewritten):\n    cd $CONFLICT_WT\n    git fetch origin && git merge origin/$BASE_BRANCH\n    <resolve, commit, push>\n  If that worktree is gone, re-attach one first: setup-worktree.sh --existing $HEAD_BRANCH\n  Then re-gate the PR and re-run: merge-pr.sh $PR"
   fi
 fi
@@ -1059,8 +1176,8 @@ fi
 #
 # Hand over the PATH this run already resolved, not the branch name. HEAD_WT is
 # git's own answer to "which worktree has this branch checked out", so it is right
-# under every layout at once — the bare $WORKTREE_HOME/<project>/<leaf>, a workspace
-# member's $WORKTREE_HOME/<workspace>/<leaf>/<repo>, and anywhere WORKTREE_DEST put
+# under every layout at once — the bare <home>/<project>/<leaf>, a workspace
+# member's <home>/<workspace>/<leaf>/<repo>, and anywhere WORKTREE_DEST put
 # one. Passing the branch made the callee re-derive from scratch what the caller
 # was already holding, and that is exactly how the two got out of step: this helper
 # knew about the workspace layout and remove-worktree did not, so a workspace

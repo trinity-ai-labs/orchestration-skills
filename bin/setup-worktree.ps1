@@ -24,12 +24,17 @@
 # which makes it expensive to trace back. Shipping a BOM to dodge that is worse
 # than staying ASCII, so every byte in this file sits inside 0x20-0x7E.
 #
-# What it does, driven by the project's own config at <repo>/.agents/worktree.json:
-#   - creates the worktree at  $WORKTREE_HOME/<project>/<branch-leaf>
-#     (WORKTREE_HOME defaults to %LOCALAPPDATA%\wt on Windows and ~/.worktrees
-#     elsewhere - the worktrees themselves stay out of the repo, since a worktree
-#     nested inside its own repo confuses git, and the Windows default is shorter
-#     because a nested node_modules path under ~/.worktrees blows past MAX_PATH)
+# What it does, driven by the project's own config at <repo>/.agents/worktree.json,
+# overlaid key by key by the gitignored <repo>/.agents/worktree.overrides.json
+# when this clone has one (a key there replaces the committed key whole):
+#   - creates the worktree at  <home>/<project>/<branch-leaf>, where <home> is
+#     WORKTREE_HOME, else `worktreeHome` in the overrides file, else
+#     `worktreeHome` in ~/.agents/worktree.json, else %LOCALAPPDATA%\wt on
+#     Windows and ~/.worktrees elsewhere - the worktrees themselves stay out of
+#     the repo, since a worktree nested inside its own repo confuses git, and the
+#     Windows default is shorter because a nested node_modules path under
+#     ~/.worktrees blows past MAX_PATH. A home whose parent does not exist (a
+#     drive that is not mounted) is a refusal, never a mkdir onto the main disk.
 #   - symlinks the project's gitignored env files (envFiles)
 #   - exports the project's env (env) - e.g. a shared build-cache dir
 #   - runs the project's install command (install) inside the worktree
@@ -138,18 +143,91 @@ function Test-OnWindows {
     return $true
 }
 
-function Get-WorktreeHome {
-    # WORKTREE_HOME wins whenever it is set. Otherwise the default is
-    # platform-dependent, and it MUST match the bash sibling byte for byte: on
-    # Windows that is %LOCALAPPDATA%\wt rather than ~/.worktrees, because
+function Get-WorktreeHomeDefault {
+    # The platform default, the last layer Resolve-WorktreeHome falls to. It MUST
+    # match the bash sibling byte for byte: on Windows that is %LOCALAPPDATA%\wt
+    # rather than ~/.worktrees, because
     # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/... routinely runs
     # past MAX_PATH's 260 characters. Disagreeing here is not cosmetic - merge-pr
     # reads this location to decide whether a merged PR still has anything to close
     # out, so a worktree cut in one shell would be invisible to the other and the
     # close-out would refuse with a "wrong repo" error against a perfectly good tree.
-    if ($env:WORKTREE_HOME) { return $env:WORKTREE_HOME }
     if ((Test-OnWindows) -and $env:LOCALAPPDATA) { return (Join-Path $env:LOCALAPPDATA 'wt') }
     return (Join-Path $HOME '.worktrees')
+}
+
+function Get-HomeFileValue {
+    # The string `worktreeHome` from one JSON file: '' when the file or the key is
+    # absent, $null when the file is there but cannot be read - a home is never
+    # guessed past a file that may have set it. The key is matched
+    # CASE-SENSITIVELY, as the bash sibling's node / python parse reads it.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
+    try {
+        $raw = Get-Content -LiteralPath $Path -Raw
+        if (-not $raw -or -not $raw.Trim()) { return $null }
+        $cfg = $raw | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+    if ($null -eq $cfg -or $cfg -is [array]) { return '' }
+    foreach ($prop in $cfg.PSObject.Properties) {
+        if ($prop.Name -ceq 'worktreeHome') {
+            if ($prop.Value -is [string]) { return $prop.Value }
+            return ''
+        }
+    }
+    return ''
+}
+
+function Resolve-WorktreeHome {
+    # The home resolves through layers, identical in every helper and both ports:
+    # WORKTREE_HOME -> `worktreeHome` in <main>/.agents/worktree.overrides.json
+    # (the gitignored per-clone file) -> `worktreeHome` in ~/.agents/worktree.json
+    # (this machine, every repo) -> Get-WorktreeHomeDefault. The committed
+    # .agents/worktree.json is never read for it, since a path committed there
+    # would follow every clone onto machines that have no such drive. The
+    # workspace layout skips the per-repo layer: setup-workspace runs from a root
+    # that is no single repo, so the two could never agree on a path if one of
+    # them read it. scripts/check.sh asks every copy, and the bash sibling, the
+    # same table.
+    #
+    # Returns "<layer> <home>": the layer that set the home, one space, then the
+    # home with a leading ~ expanded against UserHome. The layer is WORKTREE_HOME,
+    # .agents/worktree.overrides.json, ~/.agents/worktree.json or default - or
+    # "unreadable", followed by the file that could not be read.
+    param(
+        [string] $EnvValue,
+        [string] $Main,
+        [string] $Layout,
+        [string] $UserHome,
+        [string] $Default
+    )
+    $value = ''
+    $layer = ''
+    if ($EnvValue) {
+        $value = $EnvValue
+        $layer = 'WORKTREE_HOME'
+    }
+    if (-not $layer -and $Layout -ceq 'bare' -and $Main) {
+        $file = "$Main/.agents/worktree.overrides.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '.agents/worktree.overrides.json' }
+    }
+    if (-not $layer) {
+        $file = "$UserHome/.agents/worktree.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '~/.agents/worktree.json' }
+    }
+    if (-not $layer) { return "default $Default" }
+    if ($value -ceq '~') {
+        $value = $UserHome
+    } elseif ($value.StartsWith('~/')) {
+        $value = "$UserHome/" + $value.Substring(2)
+    }
+    return "$layer $value"
 }
 
 function Get-GitOutput {
@@ -191,6 +269,34 @@ function Get-JsonValue {
     $prop = $Object.PSObject.Properties[$Name]
     if ($null -eq $prop) { return $null }
     return $prop.Value
+}
+
+function Read-ConfigFile {
+    # One config file parsed, $null where it is absent, and a refusal where it is
+    # there but is not JSON - a config that cannot be read never reads as one that
+    # declared nothing.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    try {
+        # An EMPTY file is not JSON, as the bash sibling's parse finds it;
+        # ConvertFrom-Json alone would read it as a config that declared nothing.
+        $raw = Get-Content -LiteralPath $Path -Raw
+        if (-not $raw -or -not $raw.Trim()) { throw 'the file is empty' }
+        return ($raw | ConvertFrom-Json)
+    } catch {
+        Exit-WithError "could not parse $Path as JSON: $($_.Exception.Message)"
+    }
+}
+
+function Get-OverlaidValue {
+    # A key from the overrides file where it carries one - replacing the committed
+    # value WHOLE, so an `env` map is never merged - and from the committed config
+    # otherwise.
+    param($Base, $Over, [Parameter(Mandatory = $true)] [string] $Name)
+    if ($null -ne $Over -and $null -ne $Over.PSObject.Properties[$Name]) {
+        return (Get-JsonValue -Object $Over -Name $Name)
+    }
+    return (Get-JsonValue -Object $Base -Name $Name)
 }
 
 function Expand-ShellValue {
@@ -323,12 +429,11 @@ if ($args.Count -ge 1 -and [string]$args[0] -eq '--existing') {
     $Base = [string]$args[1]
 }
 
-$WorktreeHome = Get-NormalPath (Get-WorktreeHome)
-
 $Repo = $env:REPO
 if (-not $Repo) { $Repo = (Get-Location).Path }
 
 $ConfigRel = '.agents/worktree.json'
+$OverridesRel = '.agents/worktree.overrides.json'
 
 $Main = Get-RepoRoot -Path $Repo
 if (-not $Main) {
@@ -346,29 +451,55 @@ $Slug = $Branch.Substring($Branch.LastIndexOf('/') + 1)
 $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
 if ($env:WORKTREE_DEST) {
     $Wt = Get-NormalPath $env:WORKTREE_DEST
-} elseif (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
-    $Wt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Slug/$Project"
 } else {
-    $Wt = "$WorktreeHome/$Project/$Slug"
+    $Layout = 'bare'
+    if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) { $Layout = 'workspace' }
+    $homeLine = Resolve-WorktreeHome $env:WORKTREE_HOME $Main $Layout $HOME (Get-WorktreeHomeDefault)
+    $HomeLayer = $homeLine.Substring(0, $homeLine.IndexOf(' '))
+    $WtHome = $homeLine.Substring($homeLine.IndexOf(' ') + 1)
+    if ($HomeLayer -ceq 'unreadable') {
+        Exit-WithError "could not read $WtHome, which may set worktreeHome - fix or remove it; no home is guessed past it."
+    }
+    $WtHome = Get-NormalPath $WtHome
+    # A home is created only where its parent exists. A parent that is missing is
+    # most often a drive that is not mounted, and creating it would quietly build
+    # the home on the main disk instead - the very disk the user moved worktrees off.
+    $WtHomeParent = Split-Path -Path $WtHome -Parent
+    if (-not (Test-Path -LiteralPath $WtHome) -and -not ($WtHomeParent -and (Test-Path -LiteralPath $WtHomeParent))) {
+        Write-Stderr "refusing: the worktree home $WtHome (set by $HomeLayer) is unreachable - its parent $(Get-NormalPath $WtHomeParent) does not exist."
+        Write-Stderr "  Is the drive it lives on unplugged? Nothing was created."
+        Exit-WithError "  Reconnect it and re-run, or point $HomeLayer at a home that exists."
+    }
+    if ($Layout -ceq 'workspace') {
+        $Wt = "$WtHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Slug/$Project"
+    } else {
+        $Wt = "$WtHome/$Project/$Slug"
+    }
 }
 
-# Per-project config (optional).
+# Per-project config (optional), overlaid KEY BY KEY by this clone's gitignored
+# overrides file: a key it carries replaces the committed one whole (an `env` map
+# is replaced, never merged), and a key it omits falls through.
 $EnvFiles = @()
 $InstallCmd = ''
 $Config = "$Main/$ConfigRel"
-if (Test-Path -LiteralPath $Config) {
-    try {
-        $cfg = Get-Content -LiteralPath $Config -Raw | ConvertFrom-Json
-    } catch {
-        Exit-WithError "could not parse $Config as JSON: $($_.Exception.Message)"
-    }
-    $install = Get-JsonValue -Object $cfg -Name 'install'
+$Overrides = "$Main/$OverridesRel"
+# The overrides file is per-clone and machine-specific, so it belongs in
+# .gitignore; a tracked one still reads, but every clone would inherit it.
+if ((Test-Path -LiteralPath $Overrides) -and (Test-GitSuccess @('-C', $Main, 'ls-files', '--error-unmatch', '--', $OverridesRel))) {
+    Write-Stderr "warning: $OverridesRel is TRACKED in '$Project' - it is read, but every clone now inherits it."
+    Write-Stderr "  It holds this clone's own values: git rm --cached it and add it to .gitignore."
+}
+if ((Test-Path -LiteralPath $Config) -or (Test-Path -LiteralPath $Overrides)) {
+    $cfg = Read-ConfigFile -Path $Config
+    $over = Read-ConfigFile -Path $Overrides
+    $install = Get-OverlaidValue -Base $cfg -Over $over -Name 'install'
     if ($install) { $InstallCmd = [string]$install }
 
-    $files = Get-JsonValue -Object $cfg -Name 'envFiles'
+    $files = Get-OverlaidValue -Base $cfg -Over $over -Name 'envFiles'
     if ($files) { $EnvFiles = @($files) }
 
-    $declaredEnv = Get-JsonValue -Object $cfg -Name 'env'
+    $declaredEnv = Get-OverlaidValue -Base $cfg -Over $over -Name 'env'
     if ($declaredEnv) {
         foreach ($prop in $declaredEnv.PSObject.Properties) {
             [Environment]::SetEnvironmentVariable($prop.Name, (Expand-ShellValue ([string]$prop.Value)))

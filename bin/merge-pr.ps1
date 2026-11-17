@@ -50,7 +50,8 @@
 # the integration branch it was cut from. That branch is scaffolding - it exists
 # for one arc and is deleted at its end - so on a long-lived release branch a
 # project may prefer one commit per arc to N slice merges plus a merge commit.
-# It is declared up front in <repo>/.agents/worktree.json, never decided here:
+# It is declared up front in <repo>/.agents/worktree.json (or overridden in this
+# clone's gitignored .agents/worktree.overrides.json), never decided here:
 #
 #   { "epicMerge": "merge" }   // "merge" (the default) | "squash"
 #
@@ -140,6 +141,7 @@ $PSNativeCommandUseErrorActionPreference = $false
 
 $Here = $PSScriptRoot
 $ConfigRel = '.agents/worktree.json'
+$OverridesRel = '.agents/worktree.overrides.json'
 
 function Write-Stderr {
     param([Parameter(Mandatory = $true)] [string] $Message)
@@ -205,18 +207,91 @@ function Test-OnWindows {
     return $true
 }
 
-function Get-WorktreeHome {
-    # WORKTREE_HOME wins whenever it is set. Otherwise the default is
-    # platform-dependent, and it MUST match the bash sibling byte for byte: on
-    # Windows that is %LOCALAPPDATA%\wt rather than ~/.worktrees, because
+function Get-WorktreeHomeDefault {
+    # The platform default, the last layer Resolve-WorktreeHome falls to. It MUST
+    # match the bash sibling byte for byte: on Windows that is %LOCALAPPDATA%\wt
+    # rather than ~/.worktrees, because
     # ~/.worktrees/<workspace>/<leaf>/<repo>/node_modules/.pnpm/... routinely runs
     # past MAX_PATH's 260 characters. Disagreeing here is not cosmetic - merge-pr
     # reads this location to decide whether a merged PR still has anything to close
     # out, so a worktree cut in one shell would be invisible to the other and the
     # close-out would refuse with a "wrong repo" error against a perfectly good tree.
-    if ($env:WORKTREE_HOME) { return $env:WORKTREE_HOME }
     if ((Test-OnWindows) -and $env:LOCALAPPDATA) { return (Join-Path $env:LOCALAPPDATA 'wt') }
     return (Join-Path $HOME '.worktrees')
+}
+
+function Get-HomeFileValue {
+    # The string `worktreeHome` from one JSON file: '' when the file or the key is
+    # absent, $null when the file is there but cannot be read - a home is never
+    # guessed past a file that may have set it. The key is matched
+    # CASE-SENSITIVELY, as the bash sibling's node / python parse reads it.
+    param([Parameter(Mandatory = $true)] [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return '' }
+    try {
+        $raw = Get-Content -LiteralPath $Path -Raw
+        if (-not $raw -or -not $raw.Trim()) { return $null }
+        $cfg = $raw | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+    if ($null -eq $cfg -or $cfg -is [array]) { return '' }
+    foreach ($prop in $cfg.PSObject.Properties) {
+        if ($prop.Name -ceq 'worktreeHome') {
+            if ($prop.Value -is [string]) { return $prop.Value }
+            return ''
+        }
+    }
+    return ''
+}
+
+function Resolve-WorktreeHome {
+    # The home resolves through layers, identical in every helper and both ports:
+    # WORKTREE_HOME -> `worktreeHome` in <main>/.agents/worktree.overrides.json
+    # (the gitignored per-clone file) -> `worktreeHome` in ~/.agents/worktree.json
+    # (this machine, every repo) -> Get-WorktreeHomeDefault. The committed
+    # .agents/worktree.json is never read for it, since a path committed there
+    # would follow every clone onto machines that have no such drive. The
+    # workspace layout skips the per-repo layer: setup-workspace runs from a root
+    # that is no single repo, so the two could never agree on a path if one of
+    # them read it. scripts/check.sh asks every copy, and the bash sibling, the
+    # same table.
+    #
+    # Returns "<layer> <home>": the layer that set the home, one space, then the
+    # home with a leading ~ expanded against UserHome. The layer is WORKTREE_HOME,
+    # .agents/worktree.overrides.json, ~/.agents/worktree.json or default - or
+    # "unreadable", followed by the file that could not be read.
+    param(
+        [string] $EnvValue,
+        [string] $Main,
+        [string] $Layout,
+        [string] $UserHome,
+        [string] $Default
+    )
+    $value = ''
+    $layer = ''
+    if ($EnvValue) {
+        $value = $EnvValue
+        $layer = 'WORKTREE_HOME'
+    }
+    if (-not $layer -and $Layout -ceq 'bare' -and $Main) {
+        $file = "$Main/.agents/worktree.overrides.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '.agents/worktree.overrides.json' }
+    }
+    if (-not $layer) {
+        $file = "$UserHome/.agents/worktree.json"
+        $value = Get-HomeFileValue -Path $file
+        if ($null -eq $value) { return "unreadable $file" }
+        if ($value) { $layer = '~/.agents/worktree.json' }
+    }
+    if (-not $layer) { return "default $Default" }
+    if ($value -ceq '~') {
+        $value = $UserHome
+    } elseif ($value.StartsWith('~/')) {
+        $value = "$UserHome/" + $value.Substring(2)
+    }
+    return "$layer $value"
 }
 
 function Test-GitSuccess {
@@ -235,7 +310,10 @@ function Get-GitOutput {
 }
 
 function Get-ConfigScalar {
-    # One scalar out of the project's own config, or an empty string.
+    # One scalar out of the project's own config, or an empty string. An overrides
+    # file that exists overlays the config KEY BY KEY - a key it carries replaces the
+    # committed value whole, a key it omits falls through - and an unreadable one
+    # reads as an unreadable config does.
     #
     # Deliberately smaller than setup-worktree.ps1's config block: that one reads an
     # array and an env map and has to expand shell syntax in the values, while this
@@ -254,11 +332,20 @@ function Get-ConfigScalar {
     # the close-out of every PR over a key most projects never set.
     param(
         [Parameter(Mandatory = $true)] [string] $Path,
-        [Parameter(Mandatory = $true)] [string] $Name
+        [Parameter(Mandatory = $true)] [string] $Name,
+        [string] $Overrides = ''
     )
-    if (-not (Test-Path -LiteralPath $Path)) { return '' }
     try {
-        $cfg = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+        $over = $null
+        $base = $null
+        # An EMPTY file is unreadable, as JSON.parse and json.load find it on the bash
+        # side; ConvertFrom-Json alone would read it as absent.
+        foreach ($file in @($Overrides, $Path)) {
+            if (-not $file -or -not (Test-Path -LiteralPath $file)) { continue }
+            $raw = Get-Content -LiteralPath $file -Raw
+            if (-not $raw -or -not $raw.Trim()) { throw "empty: $file" }
+            if ($file -ceq $Overrides) { $over = $raw | ConvertFrom-Json } else { $base = $raw | ConvertFrom-Json }
+        }
     } catch {
         return ''
     }
@@ -270,14 +357,18 @@ function Get-ConfigScalar {
     # promise of the key is that a misspelling cannot silently squash. Iterating the
     # properties is also what keeps this safe under Set-StrictMode 2.0, which turns
     # a plain read of an absent property into a throw.
-    foreach ($prop in $cfg.PSObject.Properties) {
-        if ($prop.Name -ceq $Name) {
-            if ($prop.Value -is [string]) { return $prop.Value }
-            return ''
+    foreach ($cfg in @($over, $base)) {
+        if ($null -eq $cfg) { continue }
+        foreach ($prop in $cfg.PSObject.Properties) {
+            if ($prop.Name -ceq $Name) {
+                if ($prop.Value -is [string]) { return $prop.Value }
+                return ''
+            }
         }
     }
     return ''
 }
+
 
 function Get-RepoRoot {
     # Resolve the MAIN working tree. The common gitdir's parent is the repo root,
@@ -299,8 +390,6 @@ if ($args.Count -lt 1) {
 }
 
 $Pr = [string]$args[0]
-
-$WorktreeHome = Get-NormalPath (Get-WorktreeHome)
 
 $Repo = $env:REPO
 if (-not $Repo) { $Repo = (Get-Location).Path }
@@ -345,7 +434,11 @@ function Get-IntegrationBranch {
     if ($WorkspaceManifest -and (Test-Path -LiteralPath $WorkspaceManifest)) {
         $branch = Get-ConfigScalar -Path $WorkspaceManifest -Name 'integrationBranch'
     }
-    if (-not $branch) { $branch = Get-ConfigScalar -Path $ProjectConfig -Name 'integrationBranch' }
+    if (-not $branch) {
+        # The project config's gitignored sibling overlays it, as everywhere it is read.
+        $overrides = Join-Path (Split-Path -Path $ProjectConfig -Parent) 'worktree.overrides.json'
+        $branch = Get-ConfigScalar -Path $ProjectConfig -Name 'integrationBranch' -Overrides $overrides
+    }
     # A declared branch this repository does not have is a typo or a stale config, and
     # reading it anyway makes the comparison a tautology that says yes to every head.
     # Unverifiable reads as undeclared, the direction this whole path errs in. Applied
@@ -642,23 +735,35 @@ $WorkspaceRoot = Get-NormalPath (Split-Path -Path $Main -Parent)
 $retiredIn = ''
 if (Get-ConfigScalar -Path (Join-Path $WorkspaceRoot '.agents/workspace.json') -Name 'branchingModel') {
     $retiredIn = '.agents/workspace.json'
-} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel') {
+} elseif (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'branchingModel' -Overrides "$Main/$OverridesRel") {
     $retiredIn = $ConfigRel
 }
 if ($retiredIn) {
     Write-Stderr "merge-pr: note: $retiredIn declares 'branchingModel', which this version no longer reads."
     Write-Stderr "  Declare 'integrationBranch' instead - the branch this project's work lands on."
 }
+# Each layout resolves its own home, as setup-worktree does: the workspace layout
+# skips this repo's overrides file, so the two can be different drives.
+function Get-HomeFor {
+    param([Parameter(Mandatory = $true)] [string] $Layout)
+    $line = Resolve-WorktreeHome $env:WORKTREE_HOME $Main $Layout $HOME (Get-WorktreeHomeDefault)
+    $path = $line.Substring($line.IndexOf(' ') + 1)
+    if ($line.Substring(0, $line.IndexOf(' ')) -ceq 'unreadable') {
+        Exit-WithError "could not read $path, which may set worktreeHome - fix or remove it; no home is guessed past it, and nothing has been touched."
+    }
+    return (Get-NormalPath $path)
+}
+$BareHome = Get-HomeFor -Layout 'bare'
 $WorkspaceWt = ''
 if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot '.agents/workspace.json')) {
-    $WorkspaceWt = "$WorktreeHome/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
+    $WorkspaceWt = "$(Get-HomeFor -Layout 'workspace')/$(Split-Path -Path $WorkspaceRoot -Leaf)/$Leaf/$Project"
 }
 if ($State -eq 'MERGED') {
     # Idempotent-rerun case: finishing a half-done close-out implies SOME local
     # residue - a worktree in either layout, or the local head branch. Neither
     # existing means there is nothing to close out here: almost certainly the
     # wrong repo.
-    $plainWt = "$WorktreeHome/$Project/$Leaf"
+    $plainWt = "$BareHome/$Project/$Leaf"
     $hasPlain = Test-Path -LiteralPath $plainWt
     $hasWorkspace = $WorkspaceWt -and (Test-Path -LiteralPath $WorkspaceWt)
     $hasBranch = Test-GitSuccess @('-C', $Main, 'show-ref', '--verify', '--quiet', "refs/heads/$HeadBranch")
@@ -808,7 +913,7 @@ $SquashBody = ''
 # would accept "Squash" and "SQUASH" where the bash sibling's `=` accepts neither.
 # Observed on this very pair before the fix - the .ps1 squashed a config the .sh
 # merged, from the same file. Only the exact string counts, on both sides.
-if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge') -ceq 'squash') {
+if ($HeadBranch -and (Get-ConfigScalar -Path "$Main/$ConfigRel" -Name 'epicMerge' -Overrides "$Main/$OverridesRel") -ceq 'squash') {
     $integrationBranch = Get-IntegrationBranch -WorkspaceManifest (Join-Path $WorkspaceRoot '.agents/workspace.json') -ProjectConfig "$Main/$ConfigRel"
 
     # The repository's DEFAULT branch is only consulted where no integration branch is
@@ -901,7 +1006,7 @@ if ($State -ne 'MERGED') {
         # Name the worktree the caller has to resolve it in - setup-worktree.ps1 puts
         # it at one of exactly two paths, decided by whether this repo sits in a
         # workspace.
-        $ConflictWt = "$WorktreeHome/$Project/$Leaf"
+        $ConflictWt = "$BareHome/$Project/$Leaf"
         if ($WorkspaceWt) { $ConflictWt = $WorkspaceWt }
         Exit-WithError @"
 PR #$Pr conflicts with '$BaseBranch' - nothing has been touched: the worktree is intact and the PR is still a draft.

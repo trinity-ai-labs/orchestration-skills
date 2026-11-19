@@ -248,10 +248,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
-- **Every commit is held to the project's preflight, and whether a hook does that is observed rather than
-  declared** — git's pre-commit hook, or the host's commit-hook row in `skills/procedures/host-tools.md` —
-  where either one runs the preflight it holds commits to it, and where neither does the implementer runs
-  the preflight itself before each commit. There is no config key for it, since a hook's presence is
+- **The head an implementer pushes is held green to the project's preflight, and whether a hook does that is
+  observed rather than declared** — git's pre-commit hook, or the host's commit-hook or turn-end-hook row in
+  `skills/procedures/host-tools.md` — where one runs the preflight over that head it holds it, and where none
+  does the implementer runs the preflight itself before pushing. There is no config key for it, since a hook's presence is
   something any pass can observe.
 - **An agent reads the project's guidance by its routers and writes to it by the same layout.** It loads the
   `AGENTS.md` router of every directory its work touches, up to the root, and only the `.agents/rules/`

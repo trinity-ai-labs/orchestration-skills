@@ -70,9 +70,10 @@ carries the precedence and the refusals.
   files, each run singly.**
 - **`preflight`** — **every check of the gate that needs no product compile and no tests** —
   format-check + lint + typecheck, and whatever else the gate runs without building, configuring and code
-  generation allowed — **run first by the gate, which holds no copy of it**, so a no-compile failure fails in
-  seconds, before any gate run. A slice's commits are held to it. **Equal to `gate` where the gate itself runs
-  in seconds**, a correct answer rather than a missing tier. **Absent, a declared retired `scopedCheck` is
+  generation allowed — **no compile or test step of the gate starts before every one of these has passed, the
+  gate holding no copy of it**, so a no-compile failure fails in seconds. **A slice is held to it green at the
+  head it pushes**, and it runs inside the project's `check` slot where a gate queue scaffolds one. **Equal to
+  `gate` where the gate itself runs in seconds**, a correct answer rather than a missing tier. **Absent, a declared retired `scopedCheck` is
   read as the preflight** (the retired-name paragraph under the `autoMerge*` keys below).
   **A preflight stays fast by construction**: an unchanged tree skips it; an expensive step caches its verdict
   by content — the file, what it includes, the tool's version and its config — in a store every worktree

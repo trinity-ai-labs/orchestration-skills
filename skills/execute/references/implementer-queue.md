@@ -13,6 +13,6 @@ your dispatcher's:
   script — and **backgrounding it is still running it**. Never wait on a gate either: the ticket is your
   dispatcher's, raised after it reads your diff.
 
-- **Queue mode — both declared:** the implementer runs `preflight`, pushes, opens a **draft** PR and hands
-  back; **the dispatcher enqueues that ticket once it has read the diff**, and a runner drains it, gates it
-  and comments the verdict.
+- **Queue mode — both declared:** the implementer pushes a head `preflight` holds green
+  (`skills/execute/references/implementer-commit.md`), opens a **draft** PR and hands back; **the dispatcher
+  enqueues that ticket once it has read the diff**, and a runner drains it, gates it and comments the verdict.

@@ -115,7 +115,7 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   `skills/procedures/code-shape.md`'s *The shape of a split gate*, **structure-selected first** —
   colocating each test with its subject and adding a manifest per release unit and component, its cost those
   moves — and a domain map with checked tags only for what the folders cannot carry, its cost the map, the
-  tags and the checks on both; a gate queue's machine-wide slot so full runs stop contending is the cheaper
+  tags and the checks on both; a gate queue's per-project gate slot so full runs stop contending is the cheaper
   alternative after it.
 - **The recommendation for `Gate share` is the `Prune candidates` first, then what the project itself adds
   to the cadence `skills/procedures/config-keys.md` sets for `gate` and `fullGate`** — a rule or CI job

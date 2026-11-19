@@ -491,13 +491,14 @@ job.
 
 ## On the gate — one run per PR; you read the diff
 **One `gate` run per PR IS the gate, and the project's `enqueue`/`drain` say whose it is**: the RUNNER's,
-drained one at a time behind the slim machine-wide slot (the scaffolded `gate-slot.mjs`) so concurrent
-gates can't saturate the box, where both are declared; and the implementer's own, once, in the foreground,
+drained one at a time behind the project's slim gate slot (the scaffolded `gate-slot.mjs`, whose `check` slot,
+where scaffolded, also bounds how many preflights run at once) so concurrent gates can't saturate the box, where
+both are declared; and the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
-diff can affect. Beyond that one run an implementer's commits are held only to the cheap preflight — by a
-hook where one runs it, git's pre-commit hook or the host's commit-hook row in
-`skills/procedures/host-tools.md`, by the implementer before each commit where neither does — and
+diff can affect. Beyond that one run an implementer's pushed head is held only to the cheap preflight — by a
+hook where one covers it, git's pre-commit hook or the host's commit-hook or turn-end-hook row in
+`skills/procedures/host-tools.md`, by the implementer before pushing where none does — and
 release-branch PRs typically get no CI, so that gate run is what stands in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,

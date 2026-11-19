@@ -237,7 +237,7 @@ sequence them across waves — and **one shared OWNED path already forces that, 
 looks**, since the `Owns` constraint above is absolute where this trigger is a matter of degree.
 
 **Size against the gate, not against an idealized infinite machine.** Where the project declares
-`enqueue`/`drain`, `/pipeline:execute` drains the queue one PR at a time behind a slim machine-wide slot, so N
+`enqueue`/`drain`, `/pipeline:execute` drains the queue one PR at a time behind the project's slim gate slot, so N
 slices means N sequential gate runs; where it declares neither, each implementer runs its own, so N slices
 means N gate runs with no slot between them. Either way add one review panel per review checkpoint on an epic
 branch and per slice the `Brief` field above marks as an exception, **each up to one fresh reader per
@@ -269,15 +269,15 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   further, so two slices touching no common file still contend for one database, Redis instance, cache
   directory or fixed port. Read `sharedResources` in the project's config (`skills/procedures/config-keys.md`):
   `"isolatedBy": null` says the resource stays shared, and the key **missing entirely** says nobody has been
-  asked — not an answer, and not a no. The drained gate does not cover it: the slot serializes *gates* and
-  never sees the implementers' `preflight` and targeted test runs, and a project declaring no
-  `enqueue`/`drain` has no slot at all. Size the wave against the resource — one
+  asked — not an answer, and not a no. The drained gate does not cover it: the gate slot serializes *gates*, a
+  scaffolded `check` slot still lets its capacity of preflights contend, targeted test runs pass no slot, and a
+  project declaring no `enqueue`/`drain` has no slot at all. Size the wave against the resource — one
   live slice touching it, the rest sequenced.
 - **Gate once on the merged tip and the binding constraint moves to the dispatcher's own capacity to read N
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *preflight* implementers run before each commit is NOT the sizing cost; the **per-PR gate** is — drained
+- The *preflight* implementers hold their pushed head to is NOT the sizing cost; the **per-PR gate** is — drained
   where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
   `fullGate`, `gate` may be partial and `fullGate` runs on the critical path at most once, at a close-out

@@ -2,6 +2,30 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.28.0
+
+- **The preflight is held at the head an implementer pushes.** The bar was worded per commit, so with no
+  commit hook it ran whenever an implementer remembered. It is now a goal stated once at the implementer seat:
+  `preflight` green at the head you push, whatever runs per commit. A hook counts only where it runs the
+  preflight over that head — git's `pre-commit`, the host's commit hook, or a new host turn-end hook row (a
+  `Stop` / `SubagentStop` hook in Claude Code); where none does, the implementer runs it before pushing.
+- **"The gate runs the preflight first" is a goal, not a step position**: no compile or test step of the gate
+  starts before every no-compile check has passed.
+- **A `check` slot beside the `gate` slot in the scaffolded `gate-slot.mjs`.** `--slot gate|check` (or
+  `GATE_SLOT_NAME`), with `gate` still the default so every existing caller is unchanged. `check` holds 2 by
+  default, a constant in the project's script; slot 0 keeps the un-suffixed lock path. Re-entrancy is
+  one-directional: a gate holder's stamp satisfies a nested check, a check holder's never satisfies a gate.
+  Locks are per project, and the reference names the gap that leaves: two projects' gates can run on one box
+  at once. The script and the `--slot check` wrapper around the preflight script land together.
+- **`/pipeline:setup` scaffolds the check slot, verifies it, and reconciles an older queue by reporting the
+  patch.** Step 4 overlaps three wrapped preflights: two run and the third waits naming both holders. A
+  reconcile reports a missing check slot, or two-way re-entrancy, as the newest delta with the patch text for
+  the script and the wrapper together, and never flags the capacity number. No config key is added.
+- **Readers aligned.** The dispatcher's `sharedResources` caveat now says a check slot bounds preflights at its
+  capacity while two can still contend on a shared resource; the slot is called per-project rather than
+  machine-wide throughout; and a merge into an epic branch takes no *integration* gate, a slice's own gate
+  before its merge still required.
+
 ## 5.27.0
 
 - **Worktrees can live on another drive, set once per machine.** `~/.agents/worktree.json` carries one key,

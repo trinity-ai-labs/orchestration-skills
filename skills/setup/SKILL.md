@@ -295,7 +295,9 @@ push, open a draft PR and hand back, while the dispatcher drops the durable tick
 and drains one gate at a time. Scaffold the three scripts with their `package.json` entries — the runner
 learning the `full` mode only where the project declares `fullGate`, and the `audit` mode always — and **read
 the reference first**: the whole rests on a few invariants (atomic-rename claims, PID liveness, re-entrant
-slot) whose failure mode is a green gate against code no gate ever saw.
+slot) whose failure mode is a green gate against code no gate ever saw. **Scaffold the slot script with both
+its slots, and wrap the project's preflight script in `--slot check` in that same change** — never the wrapper
+alone, which an older script runs as a command (the reference's *The slots*).
 
 **Write the audit's cold command into the runner as you scaffold it**: `fullGate` where declared; otherwise
 `gate` with the cache switch of the task runner you find `gate` invoking, or `gate` itself where it invokes
@@ -315,8 +317,12 @@ deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
-The `audit` mode (invariant 11), with its cold command, is currently that one; the refusal to gate a
-worktree carrying uncommitted tracked changes (invariant 10) is the one before. A runner without the `audit` mode rejects the dispatcher's
+The `check` slot is currently that one — a slot script with none, or whose re-entrancy runs both ways so a
+check holder's stamp satisfies a gate (invariant 5) — **reported with its patch text: the script's change and
+the `--slot check` wrapper around the preflight script, as one patch** for the maintainer to apply in their own
+PR. **Never report the `check` capacity as a delta**: a deliberate 1 or 3 is the project's call. The `audit`
+mode (invariant 11), with its cold command, is the one before; the refusal to gate a
+worktree carrying uncommitted tracked changes (invariant 10) is the one before that. A runner without the `audit` mode rejects the dispatcher's
 audit enqueue, so its project gets no cold run between close-outs until it adopts one — report what the
 runner would have to add, and the cold command you would write into it. **The two newest verdict FIELDS — the
 failure set by identifier and the per-step executed-or-replayed record — are absent the same way and reported
@@ -353,13 +359,15 @@ first one.
      value** (`skills/procedures/code-shape.md` names the threshold), re-running it with them where its Step 1
      run came first.
 4. **The queue round-trips**, if you scaffolded one. Enqueue, drain, confirm the ticket reached `done/` and
-   the PR carries the verdict comment. Then three more, each invisible to the one before it:
+   the PR carries the verdict comment. Then four more, each invisible to the one before it:
    **`drain --status` reports and claims nothing** — an unrecognised flag falling through to a full drain
    looks identical until you read the output shape; **a blocked acquire names the holder**, what they are
    gating and since when, before it waits; and **a PR-less enqueue** (no `--pr-number`/`--pr-url`)
    **passes either way**, settling into `done/` with the verdict on the ticket or refused non-zero naming the
    missing fields — report a refusal as a delta, the dispatcher's mid-arc integration gate then getting
-   hand-run. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
+   hand-run. **Overlap three runs of the wrapped preflight: two run at once and the third blocks, naming both
+   holders** — a slot script with no `check` slot is the delta reconcile reports, and a deliberate capacity
+   other than 2 shifts the count rather than failing it. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
    `fullGate`, or is refused non-zero naming the mode — a delta the same way, never a ticket gated in
    `default`. **And an `--mode audit` enqueue at the base tip** is either refused naming the mode — a delta —
    or claimed; once it runs, enqueue an ordinary ticket and confirm the audit yields: back in `queue/`, no

@@ -12,9 +12,10 @@ concurrent runners are safe, a killed runner loses nothing, and a reboot leaves 
 |---|---|
 | `enqueue-gate.mjs` | Drops a durable ticket for one gate — the dispatcher's, against a slice's draft PR once it has read that diff, on a tree that has no PR, or a tip audit |
 | `gate-runner.mjs` | A one-shot drain pass: claim → check the tree → gate → report → repeat until empty, then **exit** — plus a read-only `--status` mode (invariant 9) |
-| `gate-slot.mjs` | A machine-wide mutex so only one heavy gate runs at a time |
+| `gate-slot.mjs` | Per-project named slots: `gate`, capacity 1, so one heavy gate runs at a time, and `check`, capacity 2 by default, so at most two preflights run at once (*The slots*) |
 
-Wire them up as `gate:enqueue`, `gate:drain`, and (wrapping the gate) `gate`.
+Wire them up as `gate:enqueue`, `gate:drain`, and (wrapping the gate) `gate`, and wrap the project's preflight
+script in `--slot check` in the same change.
 
 ## Queue layout
 
@@ -30,7 +31,7 @@ Per-user, under the user's home, shared across the project's worktrees:
 
 **The root is durable storage, not scratch.** Until its comment lands (invariant 7) a resolved ticket holds a
 verdict that exists nowhere else, so a temp root hands the ledger to the OS's own reaper. Home-relative
-everywhere: nothing sweeps `~`. The slot is the exception — a lock, not data — and may sit in the temp dir.
+everywhere: nothing sweeps `~`. The slots are the exception — locks, not data — and may sit in the temp dir.
 
 **`done/` keeps the claim suffix.** Settling is a rename out of `processing/` and the suffix rides along: a
 resolved ticket is `<name>.json.<runnerPid>`. Read the ledger by parsing the JSON, never by pattern-matching
@@ -94,6 +95,28 @@ verdict survives only as an exit status in one terminal — which is what the op
 keying on one silently drops PR-less tickets. The dispatcher's ledger watch is that consumer, and needs
 `branch` as its fallback handle.
 
+## The slots
+
+```
+node scripts/gate-slot.mjs [--slot gate|check] <command> [args...]
+  gate  → capacity 1   <tmp>/<project>-gate-slot.lock
+  check → capacity 2   <tmp>/<project>-check-slot.lock     slot 0
+                       <tmp>/<project>-check-slot.1.lock   slot 1, and so on to capacity − 1
+```
+
+- **`--slot` names the slot, else `GATE_SLOT_NAME`, else `gate`** — so every caller written before the `check`
+  slot is unchanged.
+- **The `check` capacity is a constant in the project's script, 2 by default and the project's to change** —
+  no config key carries it. A caller tries slot 0 upward, takes the first free lock directory, and waits
+  (invariant 9) only when every one is held.
+- **Slot 0 keeps the un-suffixed path, and the names the project's script already uses win over the ones
+  above**, so worktrees on scripts of differing capacity share their low lock directories and never hold more
+  than the larger capacity between them.
+- **Locks are per project — the project's name prefixes every lock directory, as it names the queue.** That
+  leaves one gap, named rather than closed: two projects' gates can run on one box at once.
+- **The script and the `--slot check` wrapper around the project's preflight script land together, never the
+  wrapper alone** — a script predating `--slot` runs the flag as the command.
+
 ## The invariants that make it correct
 
 Get these wrong and the failure mode is a **green gate against code no gate ever saw**.
@@ -106,16 +129,19 @@ Get these wrong and the failure mode is a **green gate against code no gate ever
 the suffix, and test `process.kill(pid, 0)`; if it throws, rename the ticket back to `queue/`. A runner dying
 mid-gate therefore never wedges the queue, and re-gating is safe because **the gate is idempotent**.
 
-**3. The slot is a directory, and stealing it is also a rename.** `mkdirSync` of a fixed path is atomic:
-exactly one caller creates it. Write the holder's PID inside. To steal an abandoned slot, `rename` it away and
+**3. Each lock directory is a slot, and stealing it is also a rename.** Every invariant from here to 5 holds per
+lock directory — the gate's and each of the check's. `mkdirSync` of a fixed path is atomic: exactly one caller
+creates it. Write the holder's PID inside. To steal an abandoned slot, `rename` it away and
 *then* remove it — the rename gives one thief the win, where `rm` + `mkdir` lets two callers both hold it.
 
 **4. Grace-period the PID file.** Between `mkdir` and the PID write the slot exists with no owner, so treat a
 PID-less slot as abandoned only after a grace period — otherwise a runner steals a healthy peer's slot.
 
-**5. The slot must be re-entrant for descendants.** The `gate` script runs inside the slot and may invoke
-something that also acquires, so pass the holder down (an env var) — a descendant must recognize its
-ancestor's slot rather than deadlock on it.
+**5. The slot must be re-entrant for descendants, in one direction only.** The `gate` script runs inside the
+slot and may invoke something that also acquires, so pass the holder and its slot's name down (an env var) — a
+descendant must recognize its ancestor's slot rather than deadlock on it. **A `gate` holder's stamp satisfies a
+nested `gate` or `check`**, so the gate's own preflight step inherits it; **a `check` holder's stamp satisfies a
+nested `check` only**, so a gate spawned under a check still waits for the `gate` slot.
 
 **6. A drain pass exits.** It drains what is queued and returns, so a dispatcher re-invokes it each tick and
 bounds it with `--max <n>`; a daemon would reintroduce the process state this design avoids.
@@ -151,12 +177,13 @@ injectable dependency — a wall-clock-only rule can be tested only by waiting.
 **9. Contention is announced.** Claiming (invariant 1) and acquiring the slot (invariant 3) are separate
 steps, so a second runner claims immediately and *then* blocks — and from outside, blocking and gating look
 identical, both exiting at a time unrelated to when they started. On a failed acquire, print the holder before
-waiting: who holds it, what that holder is gating, and since when. Say there that
+waiting: which slot, who holds it — every holder, for a `check` slot at capacity — what that holder is gating,
+and since when. Say there that
 **more runners never add throughput** — a pass loops until the queue is empty (invariant 6), so concurrency
 changes which process works, not when work finishes.
 
 **Add a read-only `--status` mode** — queue depth, which tickets are claimed and by which runner, who holds
-the slot — that claims nothing and gates nothing. Both read state already on disk: the PID is in the slot,
+each slot — that claims nothing and gates nothing. Both read state already on disk: the PID is in the slot,
 `processing/`'s claim suffix maps it to that runner's ticket (invariant 2's extraction), and the slot's
 timestamp (invariant 4's grace period reads the same one) says since when. The mode is the load-bearing half:
 the announcement only ever reaches the waiting runner's own stderr. **An audit in flight gets its own line** —
@@ -166,9 +193,9 @@ pending, so nobody reads a cold run holding the slot as a stuck ordinary gate.
 **A runner that does not implement `--status` must reject the unrecognised flag and exit without claiming
 anything — never fall through to a drain**, or the mode's absence is silent in projects scaffolded before it.
 
-**A runner blocked on a held slot WAITS.** The queue is machine-wide, so the holder is routinely another
-session's runner; refusing would also decide off a PID liveness check inside the window invariant 4 documents
-as wrong. A wrong refusal drops a drain, where a wrong wait costs a sleeping process.
+**A runner blocked on a held slot WAITS, and so does a blocked check.** The queue and its slots are shared by
+every session working the project on this box, so the holder is routinely another session's; refusing would
+also decide off a PID liveness check inside the window invariant 4 documents as wrong. A wrong refusal drops a drain, where a wrong wait costs a sleeping process.
 
 **10. Refuse to gate a worktree carrying uncommitted tracked changes.** After the claim and *before* acquiring
 the slot, run `git status --porcelain` in the ticket's `worktreePath`; where any tracked path is modified,
@@ -296,9 +323,11 @@ Only these. Everything above is generic:
 - the package manager used to invoke them
 - how the verdict is posted as a comment on the PR (`gh` for GitHub; something else elsewhere)
 - the queue directory's *name*, and the retention window the prune applies
+- the `check` slot's capacity
 
 The queue root's **placement** is not on that list: home-relative and durable everywhere, for the reason under
 *Queue layout*.
 
 Read the varying pieces from the project's config (`skills/procedures/config-keys.md` defines it) rather than
-hardcoding them — all but the audit's task-runner switch, which setup writes into the runner.
+hardcoding them — all but the audit's task-runner switch, which setup writes into the runner, and the `check`
+capacity, which the script holds.

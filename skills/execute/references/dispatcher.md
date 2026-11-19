@@ -18,7 +18,8 @@ asks for, and never for single-slice work. Per-project values live in each repo'
 
 **Parallelization is the default, and the project's `sharedResources` decides whether it holds**: where no
 entry's `isolatedBy` is `null`, independent tasks run concurrently in their own worktrees and nothing an
-implementer runs serializes on a lock; where one is, the slices touching that resource run one at a time.
+implementer runs serializes on a lock beyond a `check` slot's bound; where one is, the slices touching that
+resource run one at a time.
 
 **One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than
 typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against
@@ -62,8 +63,8 @@ The heavy gate (`gate` = build + full test suite, which may be partial only wher
 `fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it** — queue mode or
 in-line mode, both defined under *Gate mode* below. Either way an implementer holds itself to the cheap
 **preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook
-where one covers the head it pushes, git's pre-commit hook or the host's commit-hook or turn-end-hook row in
-`skills/procedures/host-tools.md`, and run by the implementer before pushing where none does — then pushes, and
+where one covers the head it pushes (`skills/procedures/host-tools.md`'s hook rows),
+and run by the implementer before pushing where none does — then pushes, and
 opens its **draft PR**.
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
@@ -74,9 +75,9 @@ with the close-out review (`skills/execute/references/worktrees-and-branches.md`
 gate** after a merge onto the integration branch, as a **PR-less ticket** whose verdict settles onto the
 ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
 run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
-dispatch and none in front of a merge into an epic branch** — the audit after one holds no merge. Only a
-`full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at a
-close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
+dispatch and no integration gate in front of a merge into an epic branch** — the audit after one holds no merge.
+Only a `full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at
+a close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
 PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
 sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
@@ -232,7 +233,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
   **The slots cover less than they look**: the gate slot serializes *drained gates*, a scaffolded `check` slot
-  bounds preflights at its capacity — two of which can still contend — and targeted test files run unbounded;
+  bounds preflights at its capacity plus a gate's own — any two of which can still contend — and targeted test
+  files run unbounded;
   with no `check` slot every preflight runs concurrent too, and with **no queue** there is no slot at all, so
   the exposure is the whole fan-out. Narrow the wave to one live slice against that resource, or
   sequence those slices across waves. The contention surfaces as a red in whichever slice lost the race

@@ -48,9 +48,9 @@ carries the precedence and the refusals.
   `~/.zshrc`.
   **Windows has no equivalent file**; set a real user environment variable (`setx VAR value`), `$PROFILE`
   being interactive-only and the same trap.
-- **`gate`** — the heavy per-PR gate (build + test, the `preflight` below first), run against a queued PR's
-  worktree. **It is the full gate wherever `fullGate` is absent**, and may be partial only where that key is
-  declared.
+- **`gate`** — the heavy per-PR gate (build + test, none of it starting before the `preflight` below passes), run
+  against a queued PR's worktree. **It is the full gate wherever `fullGate` is absent**, and may be partial only
+  where that key is declared.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
@@ -73,8 +73,8 @@ carries the precedence and the refusals.
   generation allowed — **no compile or test step of the gate starts before every one of these has passed, the
   gate holding no copy of it**, so a no-compile failure fails in seconds. **A slice is held to it green at the
   head it pushes**, and it runs inside the project's `check` slot where a gate queue scaffolds one. **Equal to
-  `gate` where the gate itself runs in seconds**, a correct answer rather than a missing tier. **Absent, a declared retired `scopedCheck` is
-  read as the preflight** (the retired-name paragraph under the `autoMerge*` keys below).
+  `gate` where the gate itself runs in seconds**, a correct answer rather than a missing tier. **Absent, a declared
+  retired `scopedCheck` is read as the preflight** (the retired-name paragraph under the `autoMerge*` keys below).
   **A preflight stays fast by construction**: an unchanged tree skips it; an expensive step caches its verdict
   by content — the file, what it includes, the tool's version and its config — in a store every worktree
   shares, and never caches a failure; the gate's no-cache switch runs a cold preflight inside a cold gate; and

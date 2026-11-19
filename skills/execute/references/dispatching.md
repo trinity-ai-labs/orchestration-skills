@@ -103,7 +103,7 @@ value does to a brief, and every pasted block below whose right form depends on 
 | | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours. |
 | `targetedTest` | declared | The ban's `<targeted run>` is that template, its one of `{files}` or `{names}` filled with the slice's tests. |
 | | absent | The ban's `<targeted run>` is single test files, each run singly (`vitest run path/to/x.test.ts`). |
-| commit hook — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook or turn-end-hook row in `skills/procedures/host-tools.md` | one runs `preflight` over the pushed head | The pushed head is held to the preflight by the hook. |
+| hook that runs the preflight — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook or turn-end-hook row in `skills/procedures/host-tools.md` | one runs `preflight` over the pushed head | The pushed head is held to the preflight by the hook. |
 | | none does, or each runs something else | "No hook runs the preflight here: run `preflight` yourself on the head you push, before pushing." |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
 | | absent | No formatter step, and the brief says the project has none. |
@@ -637,7 +637,7 @@ never gate and never enqueue at all.
   from *different* dispatchers are safe by construction, so don't coordinate, just drain. To read the queue's
   state rather than work it, that is `drain --status`.
 - **`--status` answers OWNERSHIP, never MOVEMENT — and on a runner scaffolded before that flag existed it does
-  not fail, it DRAINS.** It gives queue depth, who holds the slot, and which runner claimed which ticket; for
+  not fail, it DRAINS.** It gives queue depth, who holds each slot, and which runner claimed which ticket; for
   **movement**, read the gate's child processes in that worktree — a clock cannot tell a gating runner from
   one blocked on a slot. An older runner, scaffolded before the flag existed, passes it straight through to a
   drain, so **read a `--status` whose output looks like a drain as evidence that it WAS one**; the portable

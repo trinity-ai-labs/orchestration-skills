@@ -317,12 +317,13 @@ deliberate divergence
 from a stale one; and **read the code, never a version stamp**, which says "current" on partial adoption.
 
 **Expect the newest invariant absent from every queue predating it — that is the delta working, not drift.**
-The `check` slot is currently that one — a slot script with none, or whose re-entrancy runs both ways so a
-check holder's stamp satisfies a gate (invariant 5) — **reported with its patch text: the script's change and
+The `check` slot is currently that one — a slot script with none, or with two-way re-entrancy
+(invariant 5) — **reported with its patch text: the script's change and
 the `--slot check` wrapper around the preflight script, as one patch** for the maintainer to apply in their own
 PR. **Never report the `check` capacity as a delta**: a deliberate 1 or 3 is the project's call. The `audit`
 mode (invariant 11), with its cold command, is the one before; the refusal to gate a
-worktree carrying uncommitted tracked changes (invariant 10) is the one before that. A runner without the `audit` mode rejects the dispatcher's
+worktree carrying uncommitted tracked changes (invariant 10) is the one before that. A runner without the `audit`
+mode rejects the dispatcher's
 audit enqueue, so its project gets no cold run between close-outs until it adopts one — report what the
 runner would have to add, and the cold command you would write into it. **The two newest verdict FIELDS — the
 failure set by identifier and the per-step executed-or-replayed record — are absent the same way and reported
@@ -365,12 +366,13 @@ first one.
    gating and since when, before it waits; and **a PR-less enqueue** (no `--pr-number`/`--pr-url`)
    **passes either way**, settling into `done/` with the verdict on the ticket or refused non-zero naming the
    missing fields — report a refusal as a delta, the dispatcher's mid-arc integration gate then getting
-   hand-run. **Overlap three runs of the wrapped preflight: two run at once and the third blocks, naming both
-   holders** — a slot script with no `check` slot is the delta reconcile reports, and a deliberate capacity
-   other than 2 shifts the count rather than failing it. **Where `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run
-   `fullGate`, or is refused non-zero naming the mode — a delta the same way, never a ticket gated in
-   `default`. **And an `--mode audit` enqueue at the base tip** is either refused naming the mode — a delta —
-   or claimed; once it runs, enqueue an ordinary ticket and confirm the audit yields: back in `queue/`, no
+   hand-run. **Overlap one more run under `--slot check` than the script's capacity, each held long enough to
+   overlap** (a sleep, since an unchanged tree's preflight skips): as many as the capacity run at once, and the
+   extra one blocks naming every holder — a slot script with no `check` slot being the delta above. **Where
+   `fullGate` is declared, one more: a PR-less `--mode full` enqueue** settles having run `fullGate`, or is refused
+   non-zero naming the mode — a delta the same way, never a ticket gated in `default`. **And an `--mode audit`
+   enqueue at the base tip** is either refused naming the mode — a delta — or claimed; once it runs, enqueue an
+   ordinary ticket and confirm the audit yields: back in `queue/`, no
    process of its group left, its tree gone, no verdict written — then delete that requeued ticket while the
    ordinary one gates. A complete audit is a full cold run this step does not spend, so say its completion
    was not produced here.

@@ -138,7 +138,7 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
 - **The recommendation for a `Preflight: <what>` item, and for `Preflight cost`, is a preflight built from the
   gate's no-compile steps alone, cached by content as `skills/procedures/config-keys.md` describes**; its
   alternatives are a reason stated beside the step it leaves out (one more claim to keep true), or leaving it
-  (every no-compile failure waiting on a build, or every commit paying one).
+  (every no-compile failure waiting on a build, or every pushed head paying one).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).

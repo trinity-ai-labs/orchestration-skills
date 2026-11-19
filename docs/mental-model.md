@@ -146,8 +146,8 @@ single gate ever ran, land only when the slices actually run concurrently. Which
 **epic branch** is cut from the integration branch **into a worktree of its own** —
 `setup-worktree.sh <epic-branch> <integration-branch>`, the same command that cuts a slice, one level up, and
 one that never touches the main checkout. The epic's slices fork from it and PR into it, it is gated as a
-whole in that worktree once they have all landed — one `gate` over its combined diff, no gate running on the
-merges before it — and it reaches the integration
+whole in that worktree once they have all landed — one `gate` over its combined diff, no integration gate running
+on the merges before it — and it reaches the integration
 branch as one merge at the end — the single boundary where a project may declare `epicMerge` and get a squash
 instead ([The hard rules](hard-rules.md#the-hard-rules-the-agent-follows-these-good-to-know) states the rule,
 [Per-project config](per-project-config.md#per-project-config) the key). Neither rule is "the integration
@@ -376,8 +376,8 @@ outstanding.
   real ticket and records nothing when stopped — so it catches what a scoped or cached gate cannot without
   ever holding up a merge, and a red one is narrowed to the merge that caused it.
 - **Tests a minority of an arc's time** → a slice pays its preflight, its own tests by name and one `gate`
-  on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no gate, the epic paying
-  one `gate` over its combined diff at close-out.
+  on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no integration gate, the
+  epic paying one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
   only what its change affects, because the full suite runs on demand, before a release, on the tip audit,
   and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the

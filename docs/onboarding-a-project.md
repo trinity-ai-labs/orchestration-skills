@@ -71,22 +71,23 @@ item beside its last value.
 
 It verifies by cutting a real worktree and round-tripping a ticket, then tears the worktree down. **It runs
 your preflight for real and holds it to what a preflight is** — every check of your gate that needs no product
-compile and no tests, which the gate runs first: it times it on an unchanged tree and after a one-file edit,
-lists every no-compile step of your gate, one buried inside a build target included, and flags each the
-preflight leaves out with no reason stated, and flags a preflight that compiles or runs tests, proposing one.
-Each flag goes to `/pipeline:health` as an item, where a preflight past 60 seconds on a one-file edit is debt
-too — unless your preflight is your gate and that gate runs in seconds, which is a correct answer. Where you
-named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at once, because two
-runs colliding is not observable in one run, and then reverses the mechanism to confirm the collision
-reproduces — an entry that instead names why the resource does not contend has no mechanism to reverse, so
-there the overlap alone is what it can report. Where you declared a `reclaim` it runs the report on **both**
-sides of the teardown (the teardown itself runs your `drop`), since a sweep that calls everything dead and a correct one are the same output on a box
-with one worktree. Where it scaffolded a queue the verification goes past that happy path too, because a round
-trip comes back green whether or not the queue holds up where a dispatcher later leans on it: it also asks the
-queue for its state read-only and confirms that asking moved nothing, puts two drains in contention to confirm
-the blocked one says who holds the slot rather than sitting silent, and enqueues a ticket with no PR to
-confirm the runner either settles it with the verdict on the ticket or refuses it outright rather than
-spending a full gate on a verdict it can never deliver. Both answers are correct and they are not
+compile and no tests, every one of which passes before the gate compiles or tests anything: it times it on an
+unchanged tree and after a one-file edit, lists every no-compile step of your gate, one buried inside a build
+target included, and flags each the preflight leaves out with no reason stated, and flags a preflight that compiles
+or runs tests, proposing one. Each flag goes to `/pipeline:health` as an item, where a preflight past 60 seconds on
+a one-file edit is debt too — unless your preflight is your gate and that gate runs in seconds, which is a correct
+answer. Where you named an isolation mechanism it cuts a **second** worktree and runs the real gate in both at
+once, because two runs colliding is not observable in one run, and then reverses the mechanism to confirm the
+collision reproduces — an entry that instead names why the resource does not contend has no mechanism to reverse,
+so there the overlap alone is what it can report. Where you declared a `reclaim` it runs the report on **both**
+sides of the teardown (the teardown itself runs your `drop`), since a sweep that calls everything dead and a
+correct one are the same output on a box with one worktree. Where it scaffolded a queue the verification goes past
+that happy path too, because a round trip comes back green whether or not the queue holds up where a dispatcher
+later leans on it: it also asks the queue for its state read-only and confirms that asking moved nothing, puts two
+drains in contention to confirm the blocked one says who holds the slot rather than sitting silent, runs one
+more wrapped preflight than the check slot holds to confirm the extra one waits naming every holder, and enqueues a ticket
+with no PR to confirm the runner either settles it with the verdict on the ticket or refuses it outright rather
+than spending a full gate on a verdict it can never deliver. Both answers are correct and they are not
 interchangeable downstream: a runner that refuses is one scaffolded before that ticket shape, and the
 dispatcher's mid-arc integration gate is then hand-run in a project that otherwise has a working queue — which
 is the one case every "where the project has no queue" fallback in the flow structurally cannot cover, so the
@@ -101,9 +102,16 @@ gives way to every real ticket and records nothing when stopped, so it never sit
 cold command is written into the runner at setup: your `fullGate` where you declared one; otherwise `gate`
 with your task runner's cache switched off, the switch read off the runner your gate invokes, or `gate` as it
 stands where it invokes no runner that keeps a cache; and where setup can name neither, it asks you for the
-cold form, a runner left without one rejecting the audit. Setup's verification enqueues an audit and then a real ticket,
-and confirms the audit stepped aside cleanly — no process left, its tree gone, no verdict written. A queue
-scaffolded before the audit rejects it, and a reconcile reports that as its newest delta.
+cold form, a runner left without one rejecting the audit. Setup's verification enqueues an audit and then a real
+ticket, and confirms the audit stepped aside cleanly — no process left, its tree gone, no verdict written. A queue
+scaffolded before the audit rejects it, and a reconcile reports that as a delta.
+
+**A scaffolded queue also bounds your checks.** Its slot script holds a `gate` slot, one heavy gate at a time,
+and a `check` slot your preflight script is wrapped in, two preflights at a time by default beside a gate's own — a
+number in your script, yours to change, which no reconcile ever flags. Both are per project, so two projects' gates
+can still run on one machine at once. A queue scaffolded before the `check` slot keeps working, its preflights
+simply unbounded, and a reconcile reports it as its newest delta with the exact patch — the slot script's change
+and the preflight wrapper together — for you to apply in your own PR.
 
 **One ask is a decision rather than a value: whether your project wants CI, only where it has none, and only
 on onboarding** — setup reads CI a project already runs as its gate

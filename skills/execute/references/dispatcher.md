@@ -18,7 +18,8 @@ asks for, and never for single-slice work. Per-project values live in each repo'
 
 **Parallelization is the default, and the project's `sharedResources` decides whether it holds**: where no
 entry's `isolatedBy` is `null`, independent tasks run concurrently in their own worktrees and nothing an
-implementer runs serializes on a lock; where one is, the slices touching that resource run one at a time.
+implementer runs serializes on a lock beyond a `check` slot's bound; where one is, the slices touching that
+resource run one at a time.
 
 **One increment is the unit here, and the dispatcher seat is REACHED FROM `/pipeline:orchestrate` rather than
 typed** — that loop grounds the **horizon**, dispatches it through this skill, reconciles what remains against
@@ -62,8 +63,9 @@ The heavy gate (`gate` = build + full test suite, which may be partial only wher
 `fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it** — queue mode or
 in-line mode, both defined under *Gate mode* below. Either way an implementer holds itself to the cheap
 **preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook
-where one runs it, git's pre-commit hook or the host's commit-hook row in `skills/procedures/host-tools.md`,
-and run by the implementer before each commit where neither does — then pushes, and opens its **draft PR**.
+where one covers the head it pushes (`skills/procedures/host-tools.md`'s hook rows),
+and run by the implementer before pushing where none does — then pushes, and
+opens its **draft PR**.
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
@@ -73,9 +75,9 @@ with the close-out review (`skills/execute/references/worktrees-and-branches.md`
 gate** after a merge onto the integration branch, as a **PR-less ticket** whose verdict settles onto the
 ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
 run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
-dispatch and none in front of a merge into an epic branch** — the audit after one holds no merge. Only a
-`full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at a
-close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
+dispatch and no integration gate in front of a merge into an epic branch** — the audit after one holds no merge.
+Only a `full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at
+a close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
 PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
 sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
@@ -184,7 +186,7 @@ a PR is gated — in queue mode both are properties of the **ticket**, set at en
   have rewritten — which is the order phase 3 already asks for, *review BEFORE you drain*. **Nothing is at
   risk in the gap**: the branch is pushed and the PR open before you are handed anything, so the work is
   durable in git and a ticket nobody queued costs a gate run's latency rather than work. A runner (`drain`)
-  then claims tickets **one at a time**, in each ticket's own worktree behind a slim machine-wide slot,
+  then claims tickets **one at a time**, in each ticket's own worktree behind the project's slim gate slot,
   gating in the mode that ticket declared (*Which gate runs*, below) and commenting the verdict on the PR
   while leaving it draft.
 - **In-line mode — neither declared, where it is the project's default rather than a grant, or a slice a
@@ -230,9 +232,11 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
   `{files}` or `{names}` filled; **absent** → it is single test files, each run singly, never a suite.
 - **A `sharedResources` entry whose `isolatedBy` is `null`** → **parallelization is not the default in this
   project.** File-disjoint slices contend for that resource the moment two of them run checks at once.
-  **The slot covers less than it looks**: it serializes *drained gates* only, so every implementer's
-  `preflight` and targeted test file is uncovered and concurrent — and with **no queue** there is no slot at
-  all, so the exposure is the whole fan-out. Narrow the wave to one live slice against that resource, or
+  **The slots cover less than they look**: the gate slot serializes *drained gates*, a scaffolded `check` slot
+  bounds preflights at its capacity plus a gate's own — any two of which can still contend — and targeted test
+  files run unbounded;
+  with no `check` slot every preflight runs concurrent too, and with **no queue** there is no slot at all, so
+  the exposure is the whole fan-out. Narrow the wave to one live slice against that resource, or
   sequence those slices across waves. The contention surfaces as a red in whichever slice lost the race
   (*Reading a gate result*). **A non-null `isolatedBy` leaves the default fan-out in place, and does so for
   either of its two forms**, so the honest answer and the correct dispatch decision are the same answer, and a

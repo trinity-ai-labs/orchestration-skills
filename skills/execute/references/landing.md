@@ -3,8 +3,8 @@
 Reference for `skills/execute/references/dispatcher.md`. **Read it after any merge onto the integration branch
 that combined work from more than one slice** — each branch was gated against its own fork point, blind to the
 other slices, so the branch that now carries all of them **may** be carrying a tree no gate has ever run.
-**A merge into an epic branch takes no gate** — a slice's, or the tick's merge of the integration branch —
-since the epic's close-out gates its combined diff once (*The epic branch* → *Mechanics*).
+**A merge into an epic branch takes no integration gate** — a slice's, or the tick's merge of the integration
+branch — since the epic's close-out gates its combined diff once (*The epic branch* → *Mechanics*).
 Every merge this check reads makes a real merge commit, so every one has a second parent — with the single
 exception the closing-merge paragraph below takes up, an epic → integration merge in a project that declared
 `"epicMerge": "squash"`, where there is no `^2` to read and a different instrument answers instead. After each
@@ -102,7 +102,7 @@ whose runner takes the ticket this gate goes in as a **PR-less ticket** on the t
 where one holds the merges and the gate branch and its throwaway tree otherwise — never the main checkout,
 where another session's close-out moves the tree mid-gate and the frozen-worktree rule cannot be held — with no
 `--pr-number` and no `--pr-url`; those two fields are optional on a ticket precisely so this gate can be
-recorded like any other. A runner claims it, gates that worktree behind the machine-wide slot, and settles it
+recorded like any other. A runner claims it, gates that worktree behind the project's gate slot, and settles it
 into `done/` with the verdict written on the ticket; the only step it skips is the comment, because there is
 no PR to put one on. So **you read the verdict off the ticket**, not off a shell's exit status, and the ledger
 watch armed for the wave sees it settle by `branch` only where that branch is in the watch's set — so before

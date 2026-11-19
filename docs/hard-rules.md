@@ -139,7 +139,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   fast-forwards the main checkout, so nobody can hold it frozen for a gate, and whatever a project keys on the
   checkout path — a per-tree test database, a cache, a generated artifact — is shared by every agent gating
   there at once, so two gates that overlap there corrupt each other's runs in both directions and neither
-  failure output names the cause. Where an epic branch holds the merges, no gate runs on them and the
+  failure output names the cause. Where an epic branch holds the merges, no integration gate runs on them and the
   close-out gate runs in the epic's own worktree, installed immediately before that gate or its enqueue
   because `merge-pr.sh` fast-forwards it on every slice close-out without installing, and held still while its
   ticket is outstanding. Where the merges landed on the integration branch itself, the dispatcher cuts a
@@ -149,8 +149,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   artifact regenerated there goes back as a fix instead.
 - **Test runs are a minority of an arc's time.** A slice pays its preflight, its own tests by name and one
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
-  the failing tests at the slice's fork point. A merge into an epic branch takes no gate: the epic pays one
-  `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
+  the failing tests at the slice's fork point. A merge into an epic branch takes no integration gate: the epic pays
+  one `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
   demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — for
   a gate that selects from the project's structure, only a change to its selection machinery (the gate itself,
   how manifests are discovered, the exception list and its checks, the toolchain or a lockfile), never shared
@@ -248,11 +248,11 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
-- **Every commit is held to the project's preflight, and whether a hook does that is observed rather than
-  declared** — git's pre-commit hook, or the host's commit-hook row in `skills/procedures/host-tools.md` —
-  where either one runs the preflight it holds commits to it, and where neither does the implementer runs
-  the preflight itself before each commit. There is no config key for it, since a hook's presence is
-  something any pass can observe.
+- **The head an implementer pushes is held green to the project's preflight, and whether a hook does that is
+  observed rather than declared** — git's pre-commit hook, or the host's commit-hook or turn-end-hook row in
+  `skills/procedures/host-tools.md` — where one runs the preflight over that head it holds it, and where none
+  does the implementer runs the preflight itself before pushing. There is no config key for it, since a hook's
+  presence is something any pass can observe.
 - **An agent reads the project's guidance by its routers and writes to it by the same layout.** It loads the
   `AGENTS.md` router of every directory its work touches, up to the root, and only the `.agents/rules/`
   chapters those routers send its work to — a monolith it reads whole. A convention it adds goes where a

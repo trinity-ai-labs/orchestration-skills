@@ -113,11 +113,23 @@ can still run on one machine at once. A queue scaffolded before the `check` slot
 simply unbounded, and a reconcile reports it as its newest delta with the exact patch — the slot script's change
 and the preflight wrapper together — for you to apply in your own PR.
 
-**One ask is a decision rather than a value: whether your project wants CI, only where it has none, and only
-on onboarding** — setup reads CI a project already runs as its gate
-and never proposes one. Where there is none it notes that and asks you once, priced in runner minutes or money
-against what the local gate already proves; *no* is a valid answer and records nothing, since the missing
-workflow is visible in the tree.
+**Where your CI runs on pull requests, setup tells you the gate will run there by default** — a PR's own
+checks at its head are its verdict, whether GitHub, a paid provider or your own machine runs them, and nobody
+runs `gate` locally for it, the local gate stepping in only when CI gives no answer. It writes
+`"gatePreference": "local"` only if you say you want the local gate anyway.
+
+**One ask is an offer rather than a value: a self-hosted runner for the gate, only on onboarding** — made where
+no workflow runs the gate on pull requests, or where one runs only on paid hosted runners and you want it free,
+for this repo or across a workspace's members, priced in conversation. *No* is a complete answer and records
+nothing; the project then gates locally. On a yes setup writes a committed install script of the project's
+own, `.github/scripts/install-<os>-runner.sh`, that registers the runner (a token from `gh api`, the runner's
+own config and service install, a label) and — on macOS — strips the `SessionCreate` key the service install
+writes, which would otherwise start the runner in a session that cannot reach your login Keychain; it drafts a
+gate workflow on that label; and it shows you each before anything is committed or registered. Your machine's
+facts and secrets never go into the config. The first remote gate is compared against a local run of the same
+`gate` at the same SHA, so a red seen only on the runner is read as the runner's environment rather than your
+code. Under a remote gate a gate queue is needed only for the runs that stay local, so setup scaffolds one
+there only where those saturate the box.
 
 To do it by hand instead: add `.agents/worktree.json` to that repo, declaring the keys in
 [Per-project config](per-project-config.md#per-project-config), add `.agents/worktree.overrides.json` to its

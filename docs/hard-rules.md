@@ -71,8 +71,17 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   and then as a conversation before the shape is approved, priced in runner minutes or money against what the
   local gate already proves; *no CI* is a valid answer, and work that touches no CI asks nothing about it. No
   seat creates or widens a workflow, or starts a run by hand (`gh workflow run`, a manual re-run, an empty
-  commit to retrigger), that you did not agree to. CI your project already has is followed as it stands: setup
+  commit to retrigger), that you did not agree to — setup's offer to stand up a self-hosted runner and a gate
+  workflow included, which acts only on your yes. CI your project already has is followed as it stands: setup
   reads it as the gate, and `merge-pr` refuses a merge while any of its checks fails or is pending.
+- **Where your CI runs on pull requests, a PR's gate is that CI — unless you set `"gatePreference": "local"`.**
+  No seat runs `gate` locally for such a PR: the verdict is its checks at the head SHA, green only where at
+  least one check actually ran and every one that ran passed. **A red CI is a red gate, fixed on the branch —
+  never a reason to fall back to the local gate**; the fallback is for no answer, a head where no check ran or
+  none was picked up within the dispatcher's bound, and the dispatch report says which gate each PR got and
+  why. Because `merge-pr` passes a PR with no checks, the dispatcher calls it only after it has seen a check
+  run and pass at that head. A gate with no PR — the mid-arc integration gate, the tip audit, `fullGate` —
+  stays local, and so does the preflight.
 - **A finding is settled where that is cheap and within reach, and surfaced — with a recommendation — where it
   is not.** Nothing is dropped silently, and nothing reaches you, a dispatcher or a caller as a bare list or a
   bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
@@ -217,8 +226,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   whose user asked it to merge each slice as it lands, an instruction that covers that arc and not the next.
   A PR targets the same branch its worktree came from.
 - **Implementers never enqueue a gate, never mark their own PRs ready, and never merge their own PRs — and
-  whether they run `gate` is the project's `enqueue`/`drain` to say, while a declared `fullGate` is never
-  theirs**
+  whether they run `gate` is the project's `enqueue`/`drain` to say where the gate runs locally, while under a
+  remote gate and for a declared `fullGate` it is never theirs**
   ([Per-project config](per-project-config.md#per-project-config)). **Where the project declares both —
   queue mode —** an implementer never runs it: it pushes, opens a draft PR and hands back; the dispatcher then
   posts the verdict it formed onto the PR as a review on each round of that loop, and **enqueues only once it
@@ -227,7 +236,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   to rewrite, nothing being able to take a ticket back, and it is the shape an epic's close-out has always
   had — draft PR first, gate enqueued against it. **Where it declares neither — in-line mode, which a
   dispatcher can also put a single slice in — the implementer runs the gate once itself and comments the
-  result on its draft PR, and no ticket exists at any point.** The implementer's half reads the same in both:
+  result on its draft PR, and no ticket exists at any point.** **Where the gate runs remote, the implementer
+  runs only the preflight and posts no gate comment**, the PR's CI being its verdict, and nothing is enqueued
+  for that PR. The implementer's half reads the same in every mode:
   still a draft, still never its own merge. The dispatcher's does not — in-line, the verdict comment arrives
   *before* the hand-back rather than after it, so it is not the signal that the implementer is done, and
   *Where the review approval lives* in [The mental model](mental-model.md#the-mental-model) is where that is

@@ -30,7 +30,7 @@ needs.
 
 | You type | Does |
 |---|---|
-| [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo once: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if the project wants one — with a cold tip audit that yields to real gates — and verifies by cutting real worktrees — timing the preflight and flagging one that compiles, runs tests or skips a no-compile step of the gate. Checks the shape of the project's agent guidance, tells you first when it is a monolith every agent has to load whole, and splits it into routers and rule chapters in its own PR. Also reconciles a config that has gone stale — against its repo, or against this plugin. |
+| [`/pipeline:setup`](skills/setup/SKILL.md) | Onboards a repo once: grounds its real commands, writes `.agents/worktree.json`, scaffolds a gate queue if the project wants one — with a cold tip audit that yields to real gates — offers to stand up a self-hosted CI runner for the gate where no PR CI runs it, and verifies by cutting real worktrees — timing the preflight and flagging one that compiles, runs tests or skips a no-compile step of the gate. Checks the shape of the project's agent guidance, tells you first when it is a monolith every agent has to load whole, and splits it into routers and rule chapters in its own PR. Also reconciles a config that has gone stale — against its repo, or against this plugin. |
 | [`/pipeline:cut-release`](skills/cut-release/SKILL.md) | Cuts the next release branch and moves the version, as one reviewable commit in its own worktree that it PRs and merges on the yes it took before anything ran — the repository side only, never tags or publishing. It exists because that moment was the one nothing in the flow was present for, which is how `integrationBranch` went stale and the version moved invisibly. |
 | [`/pipeline:health`](skills/health/SKILL.md) | Answers how healthy a project's setup is, whenever you ask: states the project's shape — its release units, its test suite and its gate's minutes — and measures only the signals that shape makes apply — imports from one release unit into another and imports pointing up a layer, tests living away from their subject's folder, hotspot files most merged PRs touch, a domain map's coverage and size, how many tests carry a domain tag, what one full gate run costs and how fast that cost is growing (with the days left before its threshold), what one preflight run costs on a one-file edit, how often a scoped gate fell back to the whole suite and how much of it a domain filter could select, what share of an arc's time goes to gate and test runs, per-domain test counts and minutes, and each loop's sweep multiplicity — and the shape of its agent guidance, each figure with its unit, then compares each against its last value. Keeps one rolling `Setup debt` issue in your tracker, appending new items, updating listed ones with their trend, ticking off what is gone and settling what you chose to leave (the issue closing once nothing is left unticked), and reports every item most expensive first with its cost, a recommendation, its alternatives and the command that removes it. It never restructures anything; `/pipeline:setup` runs it for you, and `/pipeline:orchestrate` runs it once per arc, as the arc leaves, carrying the setup debt the arc found. Its `Prune candidates` item lists the tests to prune or merge, each with file, cost and reason, and a slow gate's first recommendation is to clear them; health never deletes one. |
 | [`/pipeline:co-think`](skills/co-think/SKILL.md) | The front door, and where a request for your judgment on a shape lands as much as a request to build one. Writes the goal down as one testable sentence, classifies the work — spike, bounded or architectural — shapes an arc with you before anything is filed, and routes: to `write-issue`, straight to `orchestrate`, or to a root cause first when it is a bug. It shapes toward that goal rather than around the mechanisms it finds, so an existing check, ceiling or step is something it may propose changing or deleting. |
@@ -208,9 +208,10 @@ work back in.
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
 the docs it falsifies along with it, greens the preflight, opens a draft PR and hands back. Where the
-project declares a gate queue (`enqueue`/`drain`) the gate ticket is the dispatcher's, raised once it has read
-that diff; where it declares none, Claude runs the gate once itself and comments the result on that draft PR
-before handing back.
+project's CI runs on pull requests, that PR's own CI checks are its gate by default (`"gatePreference":
+"local"` opts out), and nothing runs `gate` locally for it. Otherwise, where the project declares a gate queue
+(`enqueue`/`drain`) the gate ticket is the dispatcher's, raised once it has read that diff; where it declares
+none, Claude runs the gate once itself and comments the result on that draft PR before handing back.
 
 **By hand:**
 
@@ -315,7 +316,9 @@ building the home on your main disk, and teardown (`remove-worktree`, and `merge
 └── skills/
     ├── setup/
     │   ├── SKILL.md
-    │   └── references/gate-queue.md
+    │   └── references/
+    │       ├── gate-queue.md
+    │       └── ci-runner.md     # the self-hosted runner offer, read only on a yes
     ├── cut-release/SKILL.md
     ├── health/SKILL.md
     ├── co-think/SKILL.md

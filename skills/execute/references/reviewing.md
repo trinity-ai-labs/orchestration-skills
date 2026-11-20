@@ -78,8 +78,9 @@ status.**
   reconcile. An audit settled **refused** `replayed` reached a cache, through the runner's switch or a
   `fullGate` that is not cold, so say `/pipeline:setup` should reconcile it.
 
-- **Under a remote gate the PR's CI checks at its head SHA are the verdict — read them there, never off a
-  comment** (`skills/execute/references/dispatcher.md`, *Gate mode*). Once `gh pr checks <n> --watch` returns,
+- **Under a remote gate — `gatePreference` not `"local"`, and a workflow running on `pull_request` to the PR's
+  target — the PR's CI checks at its head SHA are the verdict; read them there, never off a comment**
+  (`skills/execute/references/dispatcher.md`, *Gate mode*). Once `gh pr checks <n> --watch` returns,
   take the head with `gh pr view <n> --json headRefOid --jq .headRefOid` and its checks with
   `gh api repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] | [.name, .status, .conclusion] | @tsv'`:
   - **Green: at least one check actually ran at that head, and every check that ran passed** — a skipped

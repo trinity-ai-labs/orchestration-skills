@@ -85,10 +85,10 @@ open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/g
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
 bound dispatcher all 0-read-config 16193
-bound dispatcher all 1-set-up      22127
-bound dispatcher all 2-dispatch    35455
-bound dispatcher all 3-judge       44532
-bound dispatcher all 4-land        53170
+bound dispatcher all 1-set-up      22139
+bound dispatcher all 2-dispatch    35467
+bound dispatcher all 3-judge       44558
+bound dispatcher all 4-land        53196
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #

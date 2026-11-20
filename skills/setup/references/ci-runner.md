@@ -29,8 +29,12 @@ the whole of this for each member the user names, each with its own runner direc
 
 Write `.github/scripts/install-<os>-runner.sh` (`install-macos-runner.sh`, `install-linux-runner.sh`) into the
 project, show it, and commit it on the user's yes in the PR setup opens, the project running and evolving it
-from there. **It is idempotent: a re-run converges on the same runner, never a
-second registration.** It must:
+from there. **It is the PROJECT's script because what a runner needs differs by project**, so it is written from
+what this project's `gate` — and any other job the user means to put on the runner — actually needs, and
+never from a fixed recipe.
+
+**Every script does the same five things**, since they are what registering a runner is. It is idempotent: a
+re-run converges on the same runner, never a second registration.
 
 1. Resolve `<o>/<r>` with `gh repo view --json nameWithOwner --jq .nameWithOwner`, a runner directory outside
    the repository (default `$HOME/actions-runner/<r>`) and a label (default `<r>-gate`), each overridable.
@@ -40,35 +44,50 @@ second registration.** It must:
    and run `./config.sh --unattended --url https://github.com/<o>/<r> --token "$TOKEN" --labels <label>`.
 4. Install the service with `./svc.sh install` only where it is not installed yet — on macOS, where its plist
    is absent, since `install` refuses an existing one — on Linux under `sudo`, naming the user it runs as.
-5. **On macOS, remove `SessionCreate` from the plist and reload the service** (below), on every run.
-6. Where the gate needs the user's login-shell toolchain, write the runner's `.path` from
-   `"$SHELL" -lc 'printf %s "$PATH"'`, in the runner's directory.
-7. Start the service (`./svc.sh start`, after the patch on macOS) and print the label and its status.
+5. Start the service (`./svc.sh start`) and print the label and its status.
 
-### The macOS SessionCreate trap
+**Everything else goes in only where this project needs it.** Read the gate's script, the project's existing
+CI and its agent guidance for what the gate reaches on the machine, ask the user what they cannot show, and
+**add a step per need you found, each with a comment saying which need it answers** — so the next reader can
+tell a step the project relies on from one copied in. **A step for a need the project does not have is not
+caution, it is a change to the machine nobody asked for.** The traps below are a checklist to read the project
+against, never steps to include by default.
 
-**`./svc.sh install` writes `SessionCreate = true` into the runner's launchd plist**
-(`~/Library/LaunchAgents/actions.runner.<o>-<r>.<runner-name>.plist`), which starts the runner in a fresh
-security session that cannot reach the user's login Keychain — so **anything needing that Keychain fails on the
-runner and passes in the user's own session**: WebKit's WebCrypto key storage falls back to another backend,
-and code signing and notarization cannot reach the Developer ID identity. The script removes the key after
-`svc.sh install` and reloads, and since reinstalling the service writes a fresh plist, **the patch is part of
-the script and runs on every run, never a one-off hand edit**:
+### Traps to check the project against
 
-```sh
-/usr/libexec/PlistBuddy -c 'Delete :SessionCreate' "$PLIST" 2>/dev/null || true
-./svc.sh stop 2>/dev/null || true
-./svc.sh start
-```
+**A self-hosted runner's environment can differ from the user's own session** — its security session, its
+`PATH`, the login-shell environment a service never sources — so a gate that passes in the user's terminal can
+fail on the runner with nothing wrong in the code. Each known case, and the project need that makes it bite:
 
-**It is one case of a general class: a self-hosted runner's environment can differ from the user's session** —
-its security session, its `PATH`, the login-shell environment a service never sources. Say so to the user, and
-read a red seen only on the runner through it (*The first-run parity check*).
+- **macOS: the login Keychain.** `./svc.sh install` writes `SessionCreate = true` into the runner's launchd
+  plist (`~/Library/LaunchAgents/actions.runner.<o>-<r>.<runner-name>.plist`), which starts the runner in a
+  fresh security session that cannot reach the login Keychain. **It bites only a project whose jobs reach that
+  Keychain** — code signing or notarization with a Developer ID identity, or tests storing keys through the
+  platform (WebKit's WebCrypto key storage falls back to another backend there). Where one does, the script
+  removes the key after the service install and reloads, and since reinstalling the service writes a fresh
+  plist, **that step runs on every run of the script, never as a one-off hand edit**:
+
+  ```sh
+  # The gate signs with the login Keychain's Developer ID identity; SessionCreate would hide it.
+  /usr/libexec/PlistBuddy -c 'Delete :SessionCreate' "$PLIST" 2>/dev/null || true
+  ./svc.sh stop 2>/dev/null || true
+  ./svc.sh start
+  ```
+
+  A project whose jobs never touch the Keychain leaves the plist as the runner wrote it.
+- **The login-shell toolchain.** A service never sources the user's shell profile, so a toolchain found only
+  through it (a version manager's shims, a Homebrew prefix) is missing on the runner. **It bites only where
+  the gate relies on such a tool**; there the script writes the runner's `.path` from
+  `"$SHELL" -lc 'printf %s "$PATH"'` in the runner's directory, or the workflow installs the toolchain itself.
+
+**A trap the project hits that is not listed here** goes into its script the same way, with its comment, and
+is worth raising for this list.
 
 ## The gate workflow — drafted, shown, committed only on a yes
 
 Draft `.github/workflows/gate.yml` running the project's `gate` on every `pull_request`, on the runner's label,
-and show it before anything is committed — this yes is the user's agreement to adding CI, and covers this
+its setup steps taken from what the project's gate needs and from any CI it already runs rather than from the
+skeleton below alone, and show it before anything is committed — this yes is the user's agreement to adding CI, and covers this
 workflow alone. **Give it no `branches` filter**: a slice of an epic targets the epic branch, and a filter
 naming only the integration branch leaves every such slice with no PR CI, gating locally:
 
@@ -93,11 +112,11 @@ leave every slice with no answer and send it to the local fallback. The concurre
 head's run, so a fix-round push does not queue a stale gate on a runner that takes one job at a time. Set the
 environment `gate` needs in the workflow or the runner's `.env`, never by assuming the user's shell.
 
-## The first-run parity check
+## Reading the first remote gate
 
-**The first remote gate is compared against a local run of the same `gate` at the same SHA** — the setup PR
-that adds the workflow being that first run, so register the runner before that PR opens, and the local one
-made in a worktree cut at its head, never the main checkout. Green on both settles it. **A red only on the
-runner points at the runner's environment, not the code**: name what differs, by the class above, fix it in
-the install script, and re-run, a CI re-run being the user's call. Red on both is the gate's own answer. Report
-the result in setup's handoff.
+The setup PR that adds the workflow is the runner's first gate, so register the runner before that PR opens.
+**Green settles it.** **Where it is red, re-run the failing tests by name locally at the same SHA**, in a
+worktree cut at that head and never the main checkout: **a red only on the runner points at the runner's
+environment, not the code** — name what differs, read it against *Traps to check the project against*, fix it
+in the project's install script, and re-run, a CI re-run being the user's call. Red on both is the gate's own
+answer. Report the result in setup's handoff.

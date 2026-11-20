@@ -125,11 +125,12 @@ no workflow runs the gate on pull requests, or where one runs only on paid hoste
 for this repo or across a workspace's members, priced in conversation. *No* is a complete answer and records
 nothing; the project then gates locally. On a yes setup writes a committed install script of the project's
 own, `.github/scripts/install-<os>-runner.sh`, that registers the runner (a token from `gh api`, the runner's
-own config and service install, a label) and — on macOS — strips the `SessionCreate` key the service install
-writes, which would otherwise start the runner in a session that cannot reach your login Keychain; it drafts a
+own config and service install, a label) and then does only what this project's gate needs on the machine —
+setup reads the gate, the project's CI and its guidance for that, checking it against known runner traps such
+as macOS's `SessionCreate`, which matters only to a project whose jobs reach the login Keychain; it drafts a
 gate workflow on that label; and it shows you each before anything is committed or registered. Your machine's
-facts and secrets never go into the config. The first remote gate is compared against a local run of the same
-`gate` at the same SHA, so a red seen only on the runner is read as the runner's environment rather than your
+facts and secrets never go into the config. Where the first remote gate is red, its failing tests are re-run
+locally at the same SHA, so a red seen only on the runner is read as the runner's environment rather than your
 code. Under a remote gate a gate queue is needed only for the runs that stay local, so setup scaffolds one
 there only where those saturate the box.
 

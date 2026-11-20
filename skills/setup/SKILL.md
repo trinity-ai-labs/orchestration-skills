@@ -454,7 +454,7 @@ runs again so the fourth ask declares `fullGate`. **Never a restructure made by 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
 `/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
 scaffolded a queue, and the verification results. Say where the gate runs, remote on the PR's CI or local,
-and why, with any runner stood up and its first-run parity result. Then name the two local files beside it: the gitignored
+and why, with any runner stood up and how its first remote gate read. Then name the two local files beside it: the gitignored
 `.agents/worktree.overrides.json` for this clone's own values, and `~/.agents/worktree.json` for where this
 machine keeps every worktree. Then:
 

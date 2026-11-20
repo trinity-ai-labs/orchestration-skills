@@ -2,6 +2,16 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.29.1
+
+- **A project's runner install script is built from what that project needs, not from a fixed recipe.** Every
+  script still registers, installs and starts the runner the same way; anything beyond that — removing macOS's
+  `SessionCreate` from the service plist, writing the runner's `.path` from the login shell — goes in only where
+  the project's gate (or another job meant for the runner) needs it, each such step commented with the need it
+  answers. `skills/setup/references/ci-runner.md` now carries those as traps to check a project against rather
+  than steps every script runs, and the local re-run that tells a runner's environment from the code happens
+  where the first remote gate is red, rather than on every new runner.
+
 ## 5.29.0
 
 - **The default gate changed for projects whose CI runs their gate on pull requests: a PR's gate is now its own CI.** A new

@@ -15,6 +15,7 @@
     }
   ],
   "gate": "pnpm gate",
+  "gatePreference": "local",
   "fullGate": "pnpm gate:full",
   "preflight": "pnpm check",
   "targetedTest": "pnpm vitest run {files}",

@@ -2,6 +2,35 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.29.0
+
+- **The default gate changed for projects whose CI runs their gate on pull requests: a PR's gate is now its own CI.** A new
+  key, `gatePreference` (`"remote"` or `"local"`), absent meaning remote wherever a workflow under
+  `.github/workflows/` triggered on `pull_request` to the PR's target runs the project's `gate` (its command's
+  text in a `run:` step, read off the file) — observed at dispatch, never declared. There
+  no seat runs `gate` locally for a PR: the implementer runs `preflight`, pushes, opens its draft PR and hands
+  back with no gate comment, nothing is enqueued, and the dispatcher waits on `gh pr checks --watch`. The
+  verdict is the checks at the head SHA — green where at least one ran and every one that ran passed, red on
+  any failure, which is fixed on the branch and is never a fallback trigger. **`"local"` is the opt-out**, for a
+  project whose PR CI runs its gate that wants the local gate anyway; a project whose PR CI runs no `gate` (none, or lint or
+  typecheck alone) gates locally exactly as before, with no key, and setup offers to have that workflow run
+  `gate`.
+- **The local gate is the fallback for no answer**: no check ran at the head, or none was picked up within two
+  divergence ticks. Checks the draft skipped in a `ready_for_review` workflow stay gated by `merge-pr`'s
+  ready-flip wait. Because `merge-pr` passes a PR with no checks, the dispatcher calls it only after it has seen
+  a check run and pass at the head. PR-less gates — the mid-arc integration gate, the tip audit, `fullGate` —
+  and the preflight stay local whatever the key says, and a queue under a remote gate carries only those, the
+  fallback and the `check` slot.
+- **A remote red whose failing tests pass when re-run by name locally at the same SHA is read first as the CI
+  machine's environment**, reported with what differs, and stays red.
+- **`/pipeline:setup` offers to stand up a self-hosted runner for the gate** where no workflow gates PRs, or
+  where only paid hosted runners do — per repo or per workspace member, acting only on a yes. It writes a
+  committed, project-owned `.github/scripts/install-<os>-runner.sh` (registration token through `gh api`, the
+  runner's config and service install, a label, and on macOS an idempotent removal of the `SessionCreate` key
+  `svc.sh install` writes, which would cut the runner off from the login Keychain), drafts a gate workflow on
+  that label for review, and compares the first remote gate against a local run at the same SHA. The procedure
+  is the new `skills/setup/references/ci-runner.md`. The gate rule itself never asks where a runner lives.
+
 ## 5.28.0
 
 - **The preflight is held at the head an implementer pushes.** The bar was worded per commit, so with no

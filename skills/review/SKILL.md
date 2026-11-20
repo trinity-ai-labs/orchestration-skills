@@ -39,8 +39,8 @@ not, since you hold context a reviewer lacks and N readers with a veto produce t
 
 This is the **narrow, first** tier on that PR. The broad tier is not yours: the dispatcher reads the
 same diff and forms the verdict its ready flip rests on, and the gate runs the full build and suite
-over it — a runner's, drained, where the project declares `enqueue`/`drain`, and the caller's own
-single in-line run where it declares neither. So this is neither a second gate nor the dispatcher's
+over it — the PR's own CI where the gate runs remote, else a runner's, drained, where the project declares
+`enqueue`/`drain`, and the caller's own single in-line run where it declares neither. So this is neither a second gate nor the dispatcher's
 review, and it is never pointed at someone else's PR — it reads the one the caller has just opened,
 and it is the first thing written on it, the one exception being the dispatcher's review checkpoints and
 close-out panel on an epic's own PR.
@@ -399,8 +399,9 @@ export surface, each test file that mocks or imports that module, found by grepp
 Read the project's config for the actual command rather than assuming one. If an edit breaks a check, fix the
 cause or revert that edit — never suppress the check.
 
-⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one run per PR — a runner's where
-the project declares `enqueue`/`drain`, the caller's own single in-line run where it declares neither, and a
+⛔ **Never run a full-suite or whole-package test run.** The gate owns that, one run per PR — the PR's own CI
+where the gate runs remote, a runner's where the project declares `enqueue`/`drain`, the caller's own single
+in-line run where it declares neither, and a
 declared `fullGate` where a dispatcher runs one — and running it here saturates the machine that run
 needs. Backgrounding a banned run does not make it allowed. **No reviewer runs one either**, which is why no
 brief you write names a test command.
@@ -542,8 +543,9 @@ the one thing that tells a parked slice from a stalled one, whose trees look the
   what each reviewer reported running**. Every brief asked for that line, so a reviewer that reported none
   is a fact you pass on rather than a gap you fill in, and one naming the gate is the caller's budget
   already spent — read the finding it came with, and report that the run happened, since the seat that
-  runs the real gate is the one that can size around it: the dispatcher enqueuing its ticket where the
-  project declares `enqueue`/`drain`, the caller itself where it declares neither.
+  runs the real gate is the one that can size around it: the dispatcher reading the PR's CI where the gate
+  runs remote, enqueuing its ticket where the project declares `enqueue`/`drain`, the caller itself where it
+  declares neither.
 
 The record's *Carried elsewhere* is where **the review's URL and each dimension comment's** reach whatever
 called you — the dispatcher's closing comment on the issue links them, and should not have to re-derive them
@@ -627,8 +629,8 @@ behind that positive frame rather than the mechanism** — a reader told only *d
 command would confirm and handed no verification state, reads the ban as a formality. Say WHY in the
 brief and what it costs: a reviewer that runs the gate saturates the machine the real gate needs,
 produces a green nobody reads, double-spends a run you have already paid for, and leaves the seat that
-runs the real gate — the dispatcher's ticket or the caller's own in-line run, by the project's
-`enqueue`/`drain` — sizing it against a run nobody told it about. **So every brief also asks the
+runs the real gate — the PR's own CI where the gate runs remote, else the dispatcher's ticket or the
+caller's own in-line run, by the project's `enqueue`/`drain` — sizing it against a run nobody told it about. **So every brief also asks the
 reviewer to report what it RAN** — the
 commands behind its findings, at the granularity your own verification line carries — and you carry that
 per reviewer into your report, which is what makes a blank there a fact rather than a silence.

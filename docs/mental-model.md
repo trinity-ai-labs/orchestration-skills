@@ -180,9 +180,12 @@ is only half the step: a `transient-red/<epic-slug>` marker ref is pushed beside
 commit-time tooling cannot read a plan and the ref graph is the only place it can learn the window is open. It
 is deleted with the epic branch, which is what closes the window again.
 
-**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. The gate
-reports its verdict as a **comment** — a pass or the failing tail — so the reading is one sentence: *a PR is
-gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: a
+**Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. **Where
+your CI runs your `gate` on pull requests, the gate is that CI by default** — the PR's own checks at its head SHA, a record
+GitHub holds about the exact pushed commit, and nobody runs `gate` locally for that PR — with the local gate as
+the fallback when CI gives no answer and `"gatePreference": "local"` as the opt-out. **Where the gate runs
+locally**, it reports its verdict as a **comment** — a pass or the failing tail — so the reading is one
+sentence: *a PR is gated iff it carries a gate comment.* The `draft → ready` flip means something different and stronger: a
 dispatcher read this diff and is merging it. **And the reasoning behind that flip is written down where it
 outlives the conversation that produced it**: each round of the review loop the dispatcher posts the verdict
 it has just formed onto the PR as a **review** — event `COMMENT`, findings threaded on the lines they concern,
@@ -230,7 +233,7 @@ They stay on the PR. The issue gets the dispatcher's closing comment instead: an
 naming the
 merge commit and the branch it landed on, the verdict, what was rejected or flagged, whether the review pass
 ran, was skipped and why, or was left to a review checkpoint, linked, links back to the PR's reviews,
-dimension comments and gate comment, and the arc's other PRs that landed beside it — so a closed issue says
+dimension comments and gate comment — or its CI run, under a remote gate — and the arc's other PRs that landed beside it — so a closed issue says
 what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip decision into its
 own review on the PR as well, so a PR with no panel review on it reads as a recorded skip or as a write that
 went missing, never as a blank that could be either.
@@ -250,8 +253,9 @@ an edit that pass never read, so the dispatcher's own read of the diff is the on
 slice's hand-back comment flags which edit that is ([The hard rules](hard-rules.md) carry the grant rule). One PR in the flow has no implementer behind it and so no
 hand-back to promote: the epic branch's closing PR into the integration branch, which the orchestrator authors
 and then merges. It is a draft like every other, because it opens *first* and the integrated close-out check
-runs against it — enqueued, its verdict commented there, where the project declares a queue, and run by the
-dispatcher in the epic's own worktree where it declares none — green before the **merge**, which is the step
+runs against it — that PR's own CI where the gate runs remote, else enqueued, its verdict commented there,
+where the project declares a queue, and run by the dispatcher in the epic's own worktree where it declares
+none — green before the **merge**, which is the step
 that actually puts the change set on the shared branch, rather than before the open, which puts nothing
 anywhere. What stands in for the hand-back there is the epic's panels: **the close-out PR carries a full
 `/pipeline:review` panel of its own**, run between its open (where no review checkpoint opened it) and its
@@ -274,13 +278,13 @@ the orchestrator, which wrote none of that code and is reading a combination no 
 orchestrator applies none of it either — it writes no code at any step — so a fix agent goes into the epic's
 own worktree and pushes onto that same PR, before the gate rather than after it.
 
-**And a gate comment says nothing about the implementer either — which is a distinction you only need in one
-mode, and it is the mode where the comment is most visible.** On a project that declares no queue the
-implementer runs the gate itself, so its verdict comment lands on the PR the dispatcher is already watching
-*before* the hand-back, which arrives through another channel entirely — and the hand-back is the step that
+**And a gate verdict says nothing about the implementer either — which matters most where the verdict is
+most visible.** On a project that declares no queue the implementer runs the gate itself, so its verdict
+comment lands on the PR the dispatcher is already watching *before* the hand-back, as a remote gate's green CI
+can too, while the hand-back arrives through another channel entirely — and the hand-back is the step that
 says the implementer has stopped working. So the merge, which tears down the tree that implementer may still
-be standing in, waits on the hand-back and never on the comment. The absence direction is a caution rather
-than a rule: a bare PR is not evidence a gate ran, not evidence that none did, and not evidence about the
+be standing in, waits on the hand-back and never on the verdict. The absence direction is a caution rather
+than a rule: under a local gate a bare PR is not evidence a gate ran, not evidence that none did, and not evidence about the
 implementer either — so what it licenses is a question to the agent and nothing else.
 
 `/pipeline:execute` is where one increment gets shipped, and it runs in one of
@@ -321,9 +325,10 @@ implementer either — so what it licenses is a question to the agent and nothin
   them), and the detail behind it — a verdict per doc it checked, every question it asked and what came back,
   every grant it acted on, each repair outside its slice — sits in one comment on its own PR keyed
   `handback/<leaf>`, which the record names by URL, so a dispatcher holding every slice's record across a long
-  arc holds little and reads the rest where it lives. Where the project declares `enqueue`/`drain` the gate ticket is the
-  dispatcher's, raised after it has read the diff; where it declares neither there is no ticket at all, and
-  the implementer runs the gate once itself, on its draft PR, before it hands back. Work it finds outside its
+  arc holds little and reads the rest where it lives. Where the gate runs remote, the PR's own CI is its gate
+  and the implementer runs none; where it runs locally and the project declares `enqueue`/`drain` the gate
+  ticket is the dispatcher's, raised after it has read the diff; where it declares neither there is no ticket
+  at all, and the implementer runs the gate once itself, on its draft PR, before it hands back. Work it finds outside its
   owned files
   it **fixes**, in the PR it already has
   open, each repair in its own commit — it opens no GitHub issue in any circumstance, and neither does any
@@ -368,8 +373,12 @@ outstanding.
   intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no
   config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives
   each slice its own and names it in the brief, the same way it gives each slice a worktree.
+- **A PR's own CI as its gate, by default where CI runs `gate` on PRs** → the verdict is bound to the exact pushed
+  commit, checked out fresh rather than read off a warm worktree, and held by GitHub rather than written by the
+  agent about its own run; Actions queues those runs, so a self-hosted runner on your own machine takes them one
+  at a time at no cost, and `/pipeline:setup` offers to stand one up.
 - **A durable gate queue, where a project declares one** → implementers hand back rather than waiting and the
-  dispatcher enqueues once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
+  dispatcher enqueues, for the gates that stay local under a remote gate, once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
   draft PR are pushed before the hand-back either way. The same queue runs a **cold tip audit** each time a
   branch's tip moves: one run of the whole tip with no cache, in a tree of its own, that gives way to every

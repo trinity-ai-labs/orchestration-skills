@@ -29,8 +29,8 @@ are guesses; a guessed gate passes while testing nothing. **Treat "no config" as
 
 ---
 
-**Six steps, in order.** Each carries the rules that fire at it; Step 3 is the only one with a reference
-behind it.
+**Six steps, in order.** Each carries the rules that fire at it; Step 3 has a reference behind it, and so
+does Step 1's CI-runner offer, opened only on the user's yes.
 
 ## Step 0 — Decide how much of this the repo needs
 
@@ -40,12 +40,12 @@ Machinery a project doesn't need is a cost. Pick the tier, and say which one and
 |---|---|---|
 | **No flow** | Nothing to isolate, no check to run | None. Say so and stop |
 | **Worktrees + a check** | The check runs in seconds — this plugin's repo | `gate` == `preflight`, no queue, often no `install`/`envFiles` |
-| **Worktrees + gate + queue** | The gate takes minutes and saturates the box | The full set |
+| **Worktrees + gate + queue** | The gate takes minutes and saturates the box — where the gate runs remote, counting only the runs that stay local (Step 3) | The full set |
 
 - **`gate` and `preflight` being one command is a correct answer** — one authoritative check, no heavy tier;
   a fabricated heavier one tests nothing.
-- **No queue is normal too**: omit `enqueue`/`drain` and the implementer gates in-line on its own draft PR,
-  still handing back a draft.
+- **No queue is normal too**: omit `enqueue`/`drain` and, wherever the project gates locally, the implementer
+  gates in-line on its own draft PR, still handing back a draft.
 - ⛔ **A key with no honest value is left out, never guessed** — `"install": "npm install"` in a markdown repo
   fails every worktree setup. **`sharedResources` is the exception: `[]` is an answer, absent is an unasked
   question**, and a dispatcher reads `[]` as licence to fan out.
@@ -76,11 +76,24 @@ Every value must trace to a file you read.
   what's popular.
 - **Scripts** — `package.json`'s `scripts`, or the `Makefile`/`justfile`/`Taskfile`.
 - **The real gate** — whatever CI runs before merge (`.github/workflows/*.yml`); with no CI, the broadest
-  local command that builds and tests. **With no CI, setup does not propose CI**: it notes the absence and asks
-  the user once whether the project wants CI, priced in runner minutes or money against what that local gate
-  already proves, and records nothing when the answer is no, since the missing workflow is visible in the
-  tree. **It asks on onboarding only, never on a reconcile**, where a tree with no CI is the answer already
-  given. **No config key holds that answer.**
+  local command that builds and tests. **Where a workflow triggered on `pull_request` to the integration branch
+  runs the `gate` you write — its command's text, or the script it invokes, in a `run:` step — tell the user
+  the gate runs remote by default** — that PR's CI checks at its head are its verdict, wherever
+  the runner lives, and no seat runs `gate` locally for a PR (`skills/procedures/config-keys.md`,
+  `gatePreference`) — and write `"gatePreference": "local"` only on their word that they want the local gate
+  anyway; the default is never written.
+  **Where the PR CI runs something other than `gate` — lint or typecheck alone, another command — tell the
+  user the project will gate locally, and offer to have its PR workflow run `gate`**: priced in runner minutes
+  or money against the local gate it replaces, acted on only on a yes, the change shown before it is committed
+  (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
+  **Offer to stand up CI that runs the gate on a self-hosted runner** — for this repo, or across a
+  workspace's members — **where no workflow runs the gate on PRs, or where one runs only on paid hosted
+  runners and the user wants it free**: priced in conversation, a no being a complete answer that records
+  nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes opens
+  `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
+  registered without the user's yes to that artifact. **It offers on onboarding only, never on a reconcile**
+  unless the user asks, since a tree with no PR CI is the answer already given. **No config key holds that
+  answer.**
 - **The preflight** — every no-compile step of the gate, as `skills/procedures/config-keys.md` defines it,
   one hidden inside a build target included, composed yourself where no script already does.
 - **Env files** — the gitignored files tests and builds read: `git check-ignore` over candidates, then confirm
@@ -252,6 +265,7 @@ clone. **Never write the overrides file, or
 | `install` | The lockfile's package manager, frozen/CI form |
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
+| `gatePreference` | **The user's word, never a file's** — `"local"`, only where the project's CI runs `gate` on PRs and they want the local gate anyway; **omit** otherwise, absence meaning remote wherever PR CI runs `gate` |
 | `preflight` | The gate's no-compile steps, as `skills/procedures/config-keys.md` defines them |
 | `targetedTest` | The project's test runner, as a template using one of `{files}` (test paths) or `{names}` (test names), values space-separated unless the template quotes them (`vitest run {files}`). **Omit** where no runner takes either |
 | `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |
@@ -290,7 +304,9 @@ it means.
 
 ## Step 3 — Scaffold the gate queue, only where the project wants one → `skills/setup/references/gate-queue.md`
 
-Only where Step 0 picked the queue tier. The queue is what lets implementers never run the heavy gate — they
+Only where Step 0 picked the queue tier. **Where the gate runs remote, the queue carries only the local runs** —
+the PR-less gates, the local fallback and the `check` slot — so scaffold one only where those saturate the box,
+say so, and keep a queue the project already has. The queue is what lets implementers never run the heavy gate — they
 push, open a draft PR and hand back, while the dispatcher drops the durable ticket once it has read that diff
 and drains one gate at a time. Scaffold the three scripts with their `package.json` entries — the runner
 learning the `full` mode only where the project declares `fullGate`, and the `audit` mode always — and **read
@@ -437,7 +453,8 @@ runs again so the fourth ask declares `fullGate`. **Never a restructure made by 
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
 `/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
-scaffolded a queue, and the verification results — and name the two local files beside it: the gitignored
+scaffolded a queue, and the verification results. Say where the gate runs, remote on the PR's CI or local,
+and why, with any runner stood up and its first-run parity result. Then name the two local files beside it: the gitignored
 `.agents/worktree.overrides.json` for this clone's own values, and `~/.agents/worktree.json` for where this
 machine keeps every worktree. Then:
 

@@ -37,7 +37,8 @@ you HIT outside your owned files, in this PR → commit → push → draft PR �
 what you accept, preflight, one more commit, push again onto the same PR) →
 (in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
-in-line mode there is none. While you build, run only *cheap* checks: format, the preflight
+in-line mode there is none; **in remote mode neither is there a gate run of yours**, the PR's own CI at its
+head being the gate your dispatcher reads. While you build, run only *cheap* checks: format, the preflight
 (`preflight`, or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and the one targeted test run
 the spine's step 3 bounds, **a change to a module's export surface** — adding, removing or renaming an export,
 or moving code between modules — widening it to every test file that mocks or imports that module, found by

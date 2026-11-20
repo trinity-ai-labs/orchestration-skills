@@ -62,7 +62,8 @@ under `skills/` or `bin/`, which ship.
 
 ## Commands
 
-- `sh scripts/check.sh` — `gate` and `preflight` are the same command and there is no queue.
+- `sh scripts/check.sh` — `gate` and `preflight` are the same command and there is no queue. `ci.yml` runs it on
+  every pull request, so with no `gatePreference` declared a PR's gate here is that CI run at its head.
 
 ## Rules by topic
 

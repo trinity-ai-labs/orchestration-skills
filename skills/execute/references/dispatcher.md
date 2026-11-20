@@ -190,13 +190,13 @@ gated — in queue mode the last two are properties of the **ticket**, set at en
 (`skills/procedures/config-keys.md`), read at dispatch, before any check exists, so from the workflow trigger
 and never from checks:
 
-- **Remote — `gatePreference` absent or `"remote"`, and a workflow under `.github/workflows/` at the PR's
-  target names `pull_request` in its `on:` with `branches`, where it lists any, matching that target** —
-  `pull_request_target` does not count. **The PR's own CI checks at its head SHA are its gate**, whatever
+- **Remote — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs on `pull_request`
+  to it**, as `skills/procedures/config-keys.md` reads that trigger. **The PR's own CI checks at its head SHA are its gate**, whatever
   machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer runs
   `preflight`, pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for
-  that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, a wait that returns
-  a verdict, and read it by *Reading a gate result* (`skills/execute/references/reviewing.md`), which carries
+  that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, backgrounded where your host re-invokes you on its exit and
+  otherwise read on the divergence tick — a wait that returns a verdict once checks have registered, its
+  `no checks reported` error meaning none has yet — and read it by *Reading a gate result* (`skills/execute/references/reviewing.md`), which carries
   the green and red readings, the local fallback where CI gives no answer for the head, and its bound. **It
   covers every gate that has a PR** — a slice's, an epic close-out's, an integration branch's; a gate with no
   PR stays local.
@@ -245,9 +245,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 ### Six readings that change the flow
 
 - **A workflow running on pull requests to the PR's target, and `gatePreference` not `"local"`** → **the gate
-  runs remote** (*Gate mode*): no implementer runs `gate`, no ticket is raised for that PR, and the local
-  queue is needed only for the PR-less gates, the local fallback and the `check` slot — Actions queues the PR
-  gates itself, a self-hosted machine taking one job at a time.
+  runs remote** (*Gate mode*), and Actions queues the PR gates itself, a self-hosted machine taking one job at
+  a time.
 
 - **No `enqueue`/`drain`** → **wherever this project gates locally it gates in-line, and that is the DEFAULT
   here rather than a grant** (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here

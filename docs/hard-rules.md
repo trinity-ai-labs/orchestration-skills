@@ -226,8 +226,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   whose user asked it to merge each slice as it lands, an instruction that covers that arc and not the next.
   A PR targets the same branch its worktree came from.
 - **Implementers never enqueue a gate, never mark their own PRs ready, and never merge their own PRs — and
-  whether they run `gate` is the project's `enqueue`/`drain` to say where the gate runs locally, while under a
-  remote gate and for a declared `fullGate` it is never theirs**
+  whether they run `gate` is the project's `enqueue`/`drain` to say where the gate runs locally, and it is never
+  theirs under a remote gate or for a declared `fullGate`**
   ([Per-project config](per-project-config.md#per-project-config)). **Where the project declares both —
   queue mode —** an implementer never runs it: it pushes, opens a draft PR and hands back; the dispatcher then
   posts the verdict it formed onto the PR as a review on each round of that loop, and **enqueues only once it

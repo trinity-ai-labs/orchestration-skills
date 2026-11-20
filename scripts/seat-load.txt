@@ -56,20 +56,20 @@ bound implementer in-line 1-2-before-first-edit 6881
 bound implementer in-line 3-build               13480
 bound implementer in-line 4-docs                18980
 bound implementer in-line 7-review              19527
-bound implementer in-line 8-gate-hand-back      21825
-bound implementer in-line 9-brief-wrong         23816
-bound implementer queue   1-2-before-first-edit 7148
-bound implementer queue   3-build               13747
-bound implementer queue   4-docs                19247
-bound implementer queue   7-review              19794
-bound implementer queue   8-gate-hand-back      21328
-bound implementer queue   9-brief-wrong         23319
-bound implementer remote  1-2-before-first-edit 7148
-bound implementer remote  3-build               13747
-bound implementer remote  4-docs                19247
-bound implementer remote  7-review              19794
-bound implementer remote  8-gate-hand-back      21328
-bound implementer remote  9-brief-wrong         23319
+bound implementer in-line 8-gate-hand-back      21810
+bound implementer in-line 9-brief-wrong         23801
+bound implementer queue   1-2-before-first-edit 7147
+bound implementer queue   3-build               13746
+bound implementer queue   4-docs                19246
+bound implementer queue   7-review              19793
+bound implementer queue   8-gate-hand-back      21327
+bound implementer queue   9-brief-wrong         23318
+bound implementer remote  1-2-before-first-edit 7147
+bound implementer remote  3-build               13746
+bound implementer remote  4-docs                19246
+bound implementer remote  7-review              19793
+bound implementer remote  8-gate-hand-back      21327
+bound implementer remote  9-brief-wrong         23318
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #
@@ -84,11 +84,11 @@ open  dispatcher * 2-dispatch    skills/execute/references/dispatching.md
 open  dispatcher * 3-judge       skills/execute/references/reviewing.md skills/glossary/vocabulary/hand-back-record.md
 open  dispatcher * 4-land        skills/execute/references/landing.md skills/procedures/github-writes.md
 
-bound dispatcher all 0-read-config 16193
-bound dispatcher all 1-set-up      22139
-bound dispatcher all 2-dispatch    35467
-bound dispatcher all 3-judge       44558
-bound dispatcher all 4-land        53196
+bound dispatcher all 0-read-config 16184
+bound dispatcher all 1-set-up      22130
+bound dispatcher all 2-dispatch    35447
+bound dispatcher all 3-judge       44606
+bound dispatcher all 4-land        53244
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #

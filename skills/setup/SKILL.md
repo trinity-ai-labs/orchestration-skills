@@ -40,7 +40,7 @@ Machinery a project doesn't need is a cost. Pick the tier, and say which one and
 |---|---|---|
 | **No flow** | Nothing to isolate, no check to run | None. Say so and stop |
 | **Worktrees + a check** | The check runs in seconds — this plugin's repo | `gate` == `preflight`, no queue, often no `install`/`envFiles` |
-| **Worktrees + gate + queue** | The gate takes minutes and saturates the box — where the gate runs remote, only where the local runs that remain still do (Step 3) | The full set |
+| **Worktrees + gate + queue** | The gate takes minutes and saturates the box — where the gate runs remote, counting only the runs that stay local (Step 3) | The full set |
 
 - **`gate` and `preflight` being one command is a correct answer** — one authoritative check, no heavy tier;
   a fabricated heavier one tests nothing.
@@ -448,8 +448,8 @@ runs again so the fourth ask declares `fullGate`. **Never a restructure made by 
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
 `/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
-scaffolded a queue, where the gate runs — remote on the PR's CI or local, and why — with any runner stood up
-and its first-run parity result, and the verification results — and name the two local files beside it: the gitignored
+scaffolded a queue, and the verification results. Say where the gate runs, remote on the PR's CI or local,
+and why, with any runner stood up and its first-run parity result. Then name the two local files beside it: the gitignored
 `.agents/worktree.overrides.json` for this clone's own values, and `~/.agents/worktree.json` for where this
 machine keeps every worktree. Then:
 

@@ -7,12 +7,11 @@ mode.**
 `gatePreference` beside the CI it runs on pull requests decide it, never self-granted, never inferred — **and a
 declared `fullGate` is never yours in any mode**, its runs being your dispatcher's. **In remote mode there is no
 gate of yours at all**: the PR's CI checks at its head are the verdict, so you run no `gate` and post no gate
-comment (`skills/execute/references/implementer-queue.md`), and this file applies only if your dispatcher later
-messages you to run the local fallback in-line.
+comment (`skills/execute/references/implementer-queue.md`).
 
 - **In-line mode — the project declares neither and gates locally, or your brief or the dispatching user
-  EXPLICITLY puts this slice there (override mode), or your dispatcher sends you the local fallback of a remote
-  gate:** once your draft PR is open and any review pass your brief asked for has reported and
+  EXPLICITLY puts this slice there (override mode), or your dispatcher resumes you to run the local fallback of a
+  remote gate:** once your draft PR is open and any review pass your brief asked for has reported and
   had its findings committed, run `gate` a single time — backgrounded with your turn ended on it where your host
   re-invokes you on its exit, in the foreground otherwise (*Never end your turn on a check that cannot wake you*
   below) — and comment the result on it. That one run is the only gate run you make, and every other stays

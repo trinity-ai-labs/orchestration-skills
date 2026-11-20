@@ -3,11 +3,8 @@
 Reference for Step 3 of `/pipeline:setup`. Author it *into the project* — the project owns and evolves it from
 there.
 
-**Where the gate runs remote — the project's CI runs on pull requests and `gatePreference` is not `"local"` —
-the queue carries only what stays local**: the PR-less gates (a mid-arc integration gate, the tip audit, a
-`fullGate` run), the local fallback for a PR whose CI gives no answer, and the `check` slot bounding concurrent
-preflights, since GitHub Actions queues the PR gates itself. Scaffold one there only where those local runs
-saturate the box, say so, and keep a queue the project already has.
+**Where the gate runs remote, the queue carries only what stays local** — the PR-less gates, the local
+fallback and the `check` slot (Step 3).
 
 **No state is held in a process.** Every transition is a filesystem operation the OS makes atomic, so
 concurrent runners are safe, a killed runner loses nothing, and a reboot leaves a readable queue.

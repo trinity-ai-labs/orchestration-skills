@@ -378,7 +378,7 @@ outstanding.
   agent about its own run; Actions queues those runs, so a self-hosted runner on your own machine takes them one
   at a time at no cost, and `/pipeline:setup` offers to stand one up.
 - **A durable gate queue, where a project declares one** → implementers hand back rather than waiting and the
-  dispatcher enqueues once it has read the diff — for the gates that stay local, under a remote gate — so a wide fan-out never serializes on a gate lock, nothing
+  dispatcher enqueues, for the gates that stay local under a remote gate, once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and
   draft PR are pushed before the hand-back either way. The same queue runs a **cold tip audit** each time a
   branch's tip moves: one run of the whole tip with no cache, in a tree of its own, that gives way to every

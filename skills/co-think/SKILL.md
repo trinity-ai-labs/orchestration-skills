@@ -112,9 +112,9 @@ resolves.
 - **CI comes up only where the work touches it, and then as a conversation with the user.** A new project, or
   work that would add, widen or newly trigger a CI job, is talked through before the shape is approved:
   whether the project runs CI at all, what it runs and on what trigger, priced in runner minutes or money
-  against what the local gate already proves. Not every project can afford CI — a self-hosted runner on the
-  user's own machine costing no minutes — and *no CI* is a valid answer; where a project's CI runs on pull
-  requests it IS the gate by default, the local run then being the fallback rather than a second copy
+  against what the local gate already proves. Not every project can afford CI, though a self-hosted runner
+  on the user's own machine costs no minutes, and *no CI* is a valid answer. Where a project's CI runs on
+  pull requests it is the gate by default, the local run then being the fallback rather than a second copy
   (`skills/procedures/config-keys.md`, `gatePreference`). **Work that touches no CI asks
   nothing about it** — most stories and operations never raise it — **and CI the project already runs is
   followed as it stands, not re-litigated.**

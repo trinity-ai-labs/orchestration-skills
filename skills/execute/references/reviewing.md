@@ -80,35 +80,39 @@ status.**
 
 - **Under a remote gate — `gatePreference` not `"local"`, and a workflow running on `pull_request` to the PR's
   target — the PR's CI checks at its head SHA are the verdict; read them there, never off a comment**
-  (`skills/execute/references/dispatcher.md`, *Gate mode*). Once `gh pr checks <n> --watch` returns,
-  take the head with `gh pr view <n> --json headRefOid --jq .headRefOid` and its checks with
-  `gh api repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] | [.name, .status, .conclusion] | @tsv'`:
-  - **Green: at least one check actually ran at that head, and every check that ran passed** — a skipped
-    check did not run.
+  (`skills/execute/references/dispatcher.md`, *Gate mode*). Take the head with
+  `gh pr view <n> --json headRefOid --jq .headRefOid`, and the checks through what `merge-pr` reads,
+  `gh pr checks <n> --json name,state,bucket,workflow`, which carries check runs and commit statuses alike;
+  `gh pr checks` erroring `no checks reported` means none has registered yet. Whether a pending check ever
+  started is read off `gh api --paginate repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] |
+  [.name, .status] | @tsv'`:
+  - **Green: at least one check actually ran at that head and every check that ran passed** — a skipped
+    check did not run — **or every check there is one the draft skipped in a workflow whose `pull_request`
+    trigger names `ready_for_review`**, which `merge-pr`'s ready-flip wait gates, merging only once they
+    re-ran green.
   - **Red: any check failed, and a red CI is a red gate**, read and fixed on the branch like any other red,
     the fix's push being its re-gate. **A failing check is never a reason to fall back to the local gate** —
-    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled or timed out with
-    nothing in the code to fix is no green either, and re-running it is the user's call
-    (`skills/ground-rules/SKILL.md`, rule 14).
-  - **Checks the draft skipped, in a workflow whose `pull_request` trigger names `ready_for_review`, are gated
-    by `merge-pr`'s ready-flip wait**, which merges only once they re-ran green — that wait is their verdict.
-  - **Fall back to the local gate only where CI gives no answer for the head**: no check ran there — none
-    registered, or every one skipped, the draft-skipped case above excepted — or none was picked up, every
-    check still pending at the head reading `queued` and never `in_progress` across two consecutive
-    divergence ticks. **A check that started is waited on, never fallen back from**, and checks not yet
-    registered after a push get the same two-tick wait. The fallback gates exactly as `"local"` would — a
-    ticket you raise where the project declares `enqueue`/`drain`, else a message to the slice's implementer to
-    run its one in-line `gate` and comment it — and your report says which gate the PR got and why.
-  - ⛔ **Before `merge-pr` you have seen at least one check actually run and pass at the PR's current head
-    SHA**, or every check there is the draft-skipped case above, **and otherwise you take the fallback first**:
+    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled with nothing in the
+    code to fix holds the merge too, since `merge-pr` refuses it, so surface it to the user for a re-run, which
+    is theirs to start (`skills/ground-rules/SKILL.md`, rule 14).
+  - **Fall back to the local gate only where CI gives no answer for the head, read across two consecutive
+    divergence ticks since the push**: no check registered, every one skipped (Green's draft-skipped case
+    excepted), or every check still pending reading `queued`, never `in_progress`, **counting only ticks at
+    which no workflow run of the repository is in progress** (`gh run list --status in_progress --limit 1`), since
+    a check queued behind another PR's live job is waiting its turn on a runner that takes one at a time.
+    **A check that started is waited on, never fallen back from.** The fallback gates exactly as `"local"`
+    would — a ticket you raise where the project declares `enqueue`/`drain`, else a message resuming the
+    slice's implementer to run its one in-line `gate` and comment it — and your report says which gate the PR
+    got and why.
+  - ⛔ **Call `merge-pr` only once the head reads Green above, and otherwise take the fallback first**:
     `merge-pr` passes a PR with no checks registered, and under a remote gate nothing else shuts the window
     between a push and its checks registering.
   - **A remote red whose failing tests pass when re-run by name locally at the same SHA is read first as the
     CI machine's environment**, as *Several worktrees red at the same moment* above reads contention — and
     reported with what differs between the two: the security session, `PATH`, the login-shell environment,
-    keychain access, a toolchain version. **It stays red** — never a fallback trigger, never waved through.
-    Take its failure set off the failed run's log (`gh run view <run-id> --log-failed`) and check it at the
-    fork point as above.
+    keychain access, a toolchain version. **It stays red.** Take its failure set off the failed run's log
+    (`gh run list --commit <sha>` for the run, then `gh run view <run-id> --log-failed` once it has finished)
+    and re-run those tests by name in the slice's worktree at that head, then at the fork point as above.
 
 - **For a local gate, the gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
   a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
@@ -190,8 +194,8 @@ does not do.
 ## The PR review loop
 Each implementer opens **its own draft PR** back to the branch its worktree was cut from — the integration
 branch, or the epic branch when the epic has one; the gate's verdict is commented on it — by the runner where
-the project declares `enqueue`/`drain`, by the implementer itself in in-line mode — or, under a remote gate,
-is the PR's own CI checks at its head. That verdict
+the project declares `enqueue`/`drain`, by the implementer itself in in-line mode; under a remote gate the
+PR's own CI checks at its head are that verdict. It
 is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* run the merge, because
 marking it ready is your signature that you read the diff (`merge-pr` makes that flip inside the run, ahead of
 the CI it starts where the project's CI skips drafts, and puts it back if that run does not merge).
@@ -241,8 +245,8 @@ no queue, or a slice put in override mode — there is no ticket at any point** 
 already on the PR when the hand-back arrives (`skills/execute/references/dispatcher.md`, *Gate mode*). **Under a
 remote gate there is no ticket to order either**: the push starts CI before you have read anything and a fix
 round's push re-runs it, so read the checks at the head you will merge, never at one a later push replaced.
-For a gate comment, verify
-that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
+Where a gate comment is the verdict, verify
+that it names the head explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
 **Re-gate a fix round in proportion when the previous head gated green**: where the project declares
 `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full suite,
@@ -479,8 +483,8 @@ the last review and **merge and clean up** — and the *order* matters because o
 section): the implementer has already pushed everything, so you **remove the worktree first**, then merge with
 `gh pr merge --merge --delete-branch`.
 
-**In in-line gate mode your satisfaction is not the only precondition on this step — the implementer's
-hand-back is.** A gate comment there was posted by the agent itself, before its hand-back and through a
+**In in-line gate mode, and under a remote gate whose CI went green before the hand-back, your satisfaction
+is not the only precondition on this step — the implementer's hand-back is.** A gate comment there was posted by the agent itself, before its hand-back and through a
 channel you are already watching, so it says a gate finished and nothing about whether that agent is still
 working — and this step is the one that tears down the tree it may still be standing in. *Dispatch* →
 **Gate mode for this slice** carries the rule and both directions of the misreading; wait for the hand-back

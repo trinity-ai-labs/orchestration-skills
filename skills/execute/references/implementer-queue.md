@@ -7,8 +7,8 @@ and `drain`, or when your brief puts you in remote mode.**
 `gatePreference` beside the CI it runs on pull requests decide it, never self-granted, never inferred — **and
 a declared `fullGate` is never yours in any mode**, its runs being your dispatcher's:
 
-- **Queue mode — the project declares `enqueue` and `drain` — and remote mode — the PR's own CI is its gate:
-  you do NOT run `gate`, and the ban is on the WORK, not the command name.** Never run the full suite or any
+- **In queue mode (the project declares `enqueue` and `drain`) and in remote mode (the PR's own CI is its
+  gate) you do NOT run `gate`, and the ban is on the WORK, not the command name.** Never run the full suite or any
   whole-package test run **by any invocation** — not `gate`, not `turbo run test`, not a raw `vitest` sweep,
   not a package `test` script — and **backgrounding it is still running it**. Never wait on a gate either: in
   queue mode the ticket is your dispatcher's, raised after it reads your diff, and in remote mode the CI your

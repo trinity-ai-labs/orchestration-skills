@@ -350,9 +350,8 @@ and the tick is required rather than something you reach for once something look
 notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
 about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
 three more riders: (a) whether any slice opened a draft PR and handed back, which is when you read its diff
-and — where its gate is a local ticket — enqueue it, or where the gate runs remote read that PR's checks at its
-head, the fallback bound being counted in these ticks (`skills/execute/references/reviewing.md`, *Reading a
-gate result*), (b) where it declares `drain`,
+and enqueue its ticket where the gate is local, or read its checks at the head where it runs remote (the
+fallback bound counts these ticks — `skills/execute/references/reviewing.md`, *Reading a gate result*), (b) where it declares `drain`,
 **drain the gate queue**, so the tickets you have raised carry their verdict without waiting for you, and (c)
 **answer any question a live
 slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
@@ -694,7 +693,7 @@ never gate and never enqueue at all.
   arc, say in your report that `/pipeline:setup` should reconcile the runner, and never retry in `default` or
   `full`, which would gate a warm or partial run as one. The audit's verdict settles on its ticket in `done/` and never on a PR; a red one is read by *Reading a gate result*.
 - **A PR with NO gate comment has not been gated — never treat it as red** — in a local gate mode; under a
-  remote gate no comment ever comes, its CI checks at the head being the verdict. A pass comment is green, a failure
+  remote gate the checks at the head are the verdict. A pass comment is green, a failure
   comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an
   inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before
   posting it reconciles undelivered ones before claiming anything, so **run the drain and look again**; still

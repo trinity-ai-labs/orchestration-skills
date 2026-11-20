@@ -95,6 +95,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 
 | Setting | Value | What the brief says |
 |---|---|---|
+| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs on `pull_request` to it — **remote mode** | Preflight only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
+| | `"local"`, or no such workflow | The `enqueue` + `drain` rows below decide the case. |
 | `enqueue` + `drain` | both declared — **queue mode** | Preflight only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
 | `gate`, `preflight` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
@@ -225,8 +227,16 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
   path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
   second entry for what the change ADDED that no doc describes.
-- **Gate mode for this slice — the project's `enqueue`/`drain` decide it, and it decides who runs the gate
-  and when, nothing else.** Name the setting in the brief beside its case:
+- **Gate mode for this slice — `gatePreference` beside the project's CI on pull requests decides where the
+  gate runs, and the project's `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
+  the setting in the brief beside its case:
+  - **Remote mode — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs on
+    `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer runs only
+    the preflight, pushes, opens a draft PR and hands back, posting no gate comment; **nothing is enqueued for
+    that PR**, its CI checks at its head being the gate you read
+    (`skills/execute/references/reviewing.md`, *Reading a gate result*). A fallback to the local gate takes the
+    case below that the project's `enqueue`/`drain` name — a ticket you raise, or a message to the same
+    implementer to run its one in-line `gate`.
   - **Queue mode — the project declares `enqueue` and `drain`:** the implementer runs only the preflight,
     pushes, opens a draft PR and hands back; **you enqueue its ticket once you have read the diff**
     (*Review BEFORE you drain, never after* in `skills/execute/references/reviewing.md` states that order,
@@ -237,17 +247,18 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
     implementer to run `gate` itself, once, in the foreground, and **post the result as a comment
     on its own PR**, keyed `gate-verdict/<leaf>` — no ticket exists to enqueue.
 
-  In neither mode does the implementer enqueue anything, and both end in a draft PR carrying a gate comment:
-  whether the diff was *read* is your call.
+  In no mode does the implementer enqueue anything; the local modes end in a draft PR carrying a gate
+  comment and remote mode in one carrying its CI checks: whether the diff was *read* is your call.
 
   ⚠️ **In in-line gate mode the verdict comment is NOT the hand-back — wait for the hand-back before you merge
   or tear down.** That covers override mode and any project with no queue
-  (`skills/execute/references/dispatcher.md`, *Gate mode*). The sequence is: implementer gates → **hands back** →
+  (`skills/execute/references/dispatcher.md`, *Gate mode*), **and remote mode the same way**: a green CI can
+  land while the implementer is still in its review fix round. The sequence is: implementer gates → **hands back** →
   you review → you merge. The verdict arrives first and is the more visible artifact, yet it says only that a
   gate finished — never that the implementer has stopped working, and the merge destroys the tree it may still
   be in. A missing comment is likewise no evidence that no gate ran: it licenses a question, nothing more.
 
-  **Where the project declares `enqueue`/`drain` paste the ban**, which overrides the "verify by running the
+  **In queue and remote mode paste the ban**, which overrides the "verify by running the
   tests" instinct; **in in-line mode leave it out**, since it forbids the one `gate` run that mode asks for,
   and the brief says instead that this run is the only gate run the slice makes, carrying the ban's
   *Your only test execution* sentence as its test budget all the same:
@@ -278,8 +289,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   hook runs `preflight` over it, git's pre-commit hook or the host's commit-hook or turn-end-hook row in
   `skills/procedures/host-tools.md`, a hook of any kind only *checking* formatting rather than fixing it,
   or, where none does, by the implementer running `preflight` itself before pushing.
-- **The foreground-handoff rule — it goes in EVERY brief, in both gate modes**: in queue mode it reaches the
-  preflight and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
+- **The foreground-handoff rule — it goes in EVERY brief, in every gate mode**: in queue and remote mode it
+  reaches the preflight and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check whose exit cannot wake the slice,
   with the turn ended on it. **It states the two waits as two rules, each naming its own subject** — a command
   the slice started, whose exit re-invokes it on some hosts and on others not, and a sub-agent it spawned,
@@ -303,9 +314,13 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **Before anything clears or moves your tree, commit the work or stash it with `git stash push -u -m "pipeline-stash/<branch-leaf>/$(date +%s): <why>"`, and restore only the entry that marker names** (`skills/ground-rules/SKILL.md`, rule 7, has the restore command). Never hold work in a patch or a file outside git, and never run a bare `git stash pop`.
 - **The push-then-draft-PR handoff.** The order is what keeps a mid-flight death from losing anything. Paste
-  this into every brief — in both gate modes, **its `<gate-mode sentence>` by the `enqueue`/`drain` row** —
+  this into every brief — in every gate mode, **its `<gate-mode sentence>` by the gate-mode rows** —
   **substituting the literal branch name you cut this worktree from**, an implementer left to work it out
-  being able to send its PR at the wrong branch. The gate-mode sentence is, in queue mode, *"Gate mode: queue
+  being able to send its PR at the wrong branch. The gate-mode sentence is, in remote mode, *"Gate mode:
+  remote — this project's CI runs on pull requests to `<base-branch>` and its config sets no
+  `gatePreference: "local"`, so the PR's CI checks at its head are the gate, read by your dispatcher: do NOT
+  run the gate, post no gate comment, start no CI run by hand, and do NOT wait for one."*, in queue mode,
+  *"Gate mode: queue
   — this project declares `enqueue`/`drain`, so the gate ticket is your dispatcher's, raised once it has read
   your diff: do NOT run the gate and do NOT wait for one."*, and in in-line mode *"Gate mode: in-line —
   this project declares no `enqueue`/`drain` (or: your dispatcher put this slice in override mode), so once
@@ -335,7 +350,9 @@ and the tick is required rather than something you reach for once something look
 notification arrives on its own regardless — it says only that the agent stopped running, and settles nothing
 about whether the slice landed; **the completion instrument below is what answers that.** The tick carries
 three more riders: (a) whether any slice opened a draft PR and handed back, which is when you read its diff
-and — where the project declares `enqueue` — enqueue its ticket, (b) where it declares `drain`,
+and — where its gate is a local ticket — enqueue it, or where the gate runs remote read that PR's checks at its
+head, the fallback bound being counted in these ticks (`skills/execute/references/reviewing.md`, *Reading a
+gate result*), (b) where it declares `drain`,
 **drain the gate queue**, so the tickets you have raised carry their verdict without waiting for you, and (c)
 **answer any question a live
 slice has queued** (*A live implementer can ASK you to widen its fence* below), since an ask is cheap only
@@ -676,7 +693,8 @@ never gate and never enqueue at all.
   or an audit settled refused `replayed`, means the runner cannot audit yet**: skip audits for the rest of the
   arc, say in your report that `/pipeline:setup` should reconcile the runner, and never retry in `default` or
   `full`, which would gate a warm or partial run as one. The audit's verdict settles on its ticket in `done/` and never on a PR; a red one is read by *Reading a gate result*.
-- **A PR with NO gate comment has not been gated — never treat it as red.** A pass comment is green, a failure
+- **A PR with NO gate comment has not been gated — never treat it as red** — in a local gate mode; under a
+  remote gate no comment ever comes, its CI checks at the head being the verdict. A pass comment is green, a failure
   comment is red, and no comment means the gate never reported — so **a bare PR licenses a question, never an
   inference**, with no failure to fix and no fix agent to dispatch. A queue that records a verdict before
   posting it reconciles undelivered ones before claiming anything, so **run the drain and look again**; still

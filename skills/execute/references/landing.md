@@ -16,7 +16,8 @@ git diff --name-only <merge-commit>^2 <merge-commit>
 
 **Non-empty ⇒ the merge produced content no gate has seen**, and the merged result needs ONE `gate` run —
 **enqueued** in a project whose runner takes the ticket, and run by hand where there is no queue or the runner
-refuses it (*Enqueue it rather than running it*, below). Exactly two things cause it: a
+refuses it (*Enqueue it rather than running it*, below) — **local whatever `gatePreference` says**, since the
+merged tree has no PR for CI to attach to. Exactly two things cause it: a
 **conflict resolution**, whose resolved tree is new content by definition; and a
 **sibling branch that merged in between**, where this branch was cut before it and gated without it — the
 parallel case the reasoning above is really about.
@@ -202,7 +203,8 @@ what actually ships. **On an epic branch a green gate is the precondition for ME
 PR — not for opening it.** What finally puts the whole change set on the shared branch is the merge, and a
 **draft** PR puts nothing anywhere: GitHub refuses to merge one, and this flow already spends the draft flag
 as the interlock against merging an unread diff. So the PR opens first, as a draft, and the gate is enqueued
-against it (*The epic branch* → *Mechanics*) — read the other way round, as a precondition over the OPEN, it
+against it (*The epic branch* → *Mechanics*), or, under a remote gate, is that PR's own CI at its head, read by
+*Reading a gate result* like a slice's — read the other way round, as a precondition over the OPEN, it
 forces the one gate whose tree no per-slice gate has ever seen to run with nothing to attach a ticket to: no
 log, no ledger entry, no comment, and a verdict surviving only as an exit status in one terminal, on the
 least-witnessed gate in the flow.
@@ -329,7 +331,7 @@ Fixed in #<pr> — merged into `<base>` as `<merge commit sha>`.
 **Review pass**: ran — <the dimensions it dispatched> · or skipped — <why, naming an override of the breakdown's recommendation> · or review checkpoint — <epic PR review URL>
 **Rejected**: <each finding turned down, the reviewers that raised it, and why> — or "none"
 **Flagged**: <each out-of-scope item and where it went> — or "none"
-**On the PR**: dimension comments <urls> · reviews <urls> · gate comment <url>
+**On the PR**: dimension comments <urls> · reviews <urls> · gate comment <url> · or, under a remote gate, CI run <url>
 **Beside it**: <the arc's other PRs, each linked> — or "none"
 ```
 
@@ -388,7 +390,10 @@ SKIPPED a check whose workflow names `ready_for_review` in its PR trigger's type
 before the teardown, waits a bounded two minutes for each such check to re-run and then on
 `gh pr checks --watch --fail-fast`, and merges only on green; a red, cancelled or still-pending check, or one that
 never re-ran, puts the PR back to draft and refuses with the worktree intact. A skipped check whose workflow
-names no such trigger stays a pass and nothing waits.
+names no such trigger stays a pass and nothing waits. **Under a remote gate that pass on a PR with no checks
+is not a verdict**: call `merge-pr.sh` only once you have seen at least one check actually run and pass at the
+PR's current head SHA — or every check there is one the draft skipped in a `ready_for_review` workflow, which
+that flip wait gates — and otherwise take the local fallback first (*Reading a gate result*).
 
 If you ever run the close-out by hand (helper unavailable, or an edge it can't cover), do it in this exact
 sequence, every time — and check `gh pr view <n> --json mergeable` and `gh pr checks <n>` yourself before

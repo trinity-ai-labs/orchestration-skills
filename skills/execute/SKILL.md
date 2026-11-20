@@ -21,8 +21,9 @@ differently, and both mistakes are silent.
   not — **do NOT write the implementation yourself.** Open `skills/execute/references/dispatcher.md` first.
 - **IMPLEMENTER** — entered from a **dispatch brief** (one slice and the worktree to build it in), or from a
   user *directly telling you to implement / build / fix* a specific thing. You build the slice there and hand
-  it back; **you run `gate` only in in-line mode — once, where the project declares no `enqueue`/`drain` or
-  your brief puts you there — never a declared `fullGate`, and you never mark your own PR ready or merge it**:
+  it back; **you run `gate` only in in-line mode — once, where the project declares no `enqueue`/`drain` and
+  gates locally, or your brief puts you there — never in remote mode, where the PR's own CI is the gate, never
+  a declared `fullGate`, and you never mark your own PR ready or merge it**:
   that flag is the reviewer's signature, so in every gate mode your PR is a draft when you hand it back.
 
 ⛔ **Read `skills/ground-rules/SKILL.md` before you act on anything in this file — it binds every seat this
@@ -44,8 +45,10 @@ you get stuck, or your dispatcher writes to you, open
 
 1. **`cd` into your assigned worktree and prove you are there** → `skills/execute/references/implementer.md`.
 2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is
-   declared there, never inferred; what each key MEANS is `skills/procedures/config-keys.md`. **Where it
-   declares `enqueue` and `drain`, you are in queue mode** → `skills/execute/references/implementer-queue.md`.
+   the one your brief names from that config and the project's CI on pull requests, never self-inferred; what
+   each key MEANS is `skills/procedures/config-keys.md`. **Where it declares `enqueue` and `drain` you are in
+   queue mode, and where your brief says the PR's CI is the gate you are in remote mode** →
+   `skills/execute/references/implementer-queue.md` for both.
    ⛔ **A baseline your slice needs is taken FIRST, before your first edit** — one your brief hands down on
    your fork point is it and is never re-taken, and one you missed is read through git or asked for, and taken
    at a checked-out fork point only where no answer can reach you, once git holds your work.
@@ -57,8 +60,8 @@ you get stuck, or your dispatcher writes to you, open
    foreground or background. One targeted test run — the project's `targetedTest` where declared, else single
    test files, each run singly, never a suite — is the widest run you get, plus, on a change to a module's
    export surface, each test file that mocks or imports it, run singly; the one gate run you ever make is
-   in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` or your brief
-   puts you there, with a red's failing tests re-run by name at your fork point.
+   in-line mode's `gate`, at step 8, where the project declares no `enqueue`/`drain` and gates locally or
+   your brief puts you there, with a red's failing tests re-run by name at your fork point.
 4. **Update the docs your change made stale** → `skills/execute/references/implementer-docs.md`; on a slice
    of an epic, `skills/execute/references/implementer-epic.md`.
 5. **Fix what you HIT outside your owned files, in this PR, each repair in its own commit** →
@@ -69,8 +72,8 @@ you get stuck, or your dispatcher writes to you, open
 6. **Commit, push, open a draft PR**, its body listing the arc's other open PRs →
    `skills/execute/references/implementer-commit.md`, already open since your first commit.
    ⛔ **You enqueue nothing.** Where the project declares `enqueue`/`drain` your dispatcher enqueues your
-   ticket once it has read your diff; in in-line mode there is no ticket at all. Either way what you hand back
-   is a pushed branch and a draft PR, named in your hand-back record.
+   ticket once it has read your diff; in in-line and remote mode there is no ticket at all. Either way what
+   you hand back is a pushed branch and a draft PR, named in your hand-back record.
    ⛔ **No AI attribution, in any form.** Anything this flow writes to GitHub in the maintainer's name — a
    commit message, a PR body, a gate verdict you comment on your own PR, a posted review and its inline
    comments, an issue or a comment on one — names the configured git user alone: no trailer, line, footer or
@@ -106,7 +109,8 @@ you get stuck, or your dispatcher writes to you, open
    and pushed already, so hand back that report, saying the PR carries no review yet, for your dispatcher to
    resume you once capacity frees. **An open PR is not itself a finished hand-back.**
 8. **Gate in-line where your mode says so, comment the verdict through `gh-post` keyed `gate-verdict/<leaf>`,
-   then hand back** — the gate → `skills/execute/references/implementer-gate.md`. **Hand back the detail in
+   then hand back** — the gate → `skills/execute/references/implementer-gate.md`; in queue and remote mode
+   there is no gate of yours and no gate comment, the PR's CI checks at its head being remote mode's verdict. **Hand back the detail in
    one PR comment keyed `handback/<leaf>`, and to your dispatcher only the short hand-back record**
    (`skills/glossary/vocabulary/hand-back-record.md`), which names that comment's address —
    `skills/execute/references/implementer-hand-back.md` lists what goes where.
@@ -114,7 +118,7 @@ you get stuck, or your dispatcher writes to you, open
    you on a backgrounded command's exit, background a long gate and end your turn; elsewhere that ended turn
    is your hand-back with no verdict in it, so the gate runs in the foreground
    (`skills/execute/references/implementer-gate.md` has how in in-line mode, `skills/procedures/host-tools.md`
-   in queue mode).
+   in queue and remote mode).
    ⛔ **The attribution ban above covers the gate verdict and the hand-back comment you post here** exactly as
    it covers the commit message and the PR body.
    ⛔ **You do not mark your own PR ready and you do not merge it**, in any gate mode.

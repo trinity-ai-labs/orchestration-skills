@@ -185,8 +185,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     property on a case the slice is expected to produce** — an instrument narrower than its property fails a
     correct slice, a wider one passes an incorrect one, and only the narrow direction is ever visible.
   - **A whole-package or whole-suite check named here is the GATE's, never a run the implementer makes while
-    it builds** — a runner executes it on the ticket where the project declares `enqueue`/`drain`, and the
-    implementer runs `gate` once, after opening its draft PR, where it declares neither. So when the bar names
+    it builds** — the PR's own CI runs it where the gate runs remote (`gatePreference`,
+    `skills/procedures/config-keys.md`), a runner executes it on the ticket where the project declares
+    `enqueue`/`drain`, and the implementer runs `gate` once, after opening its draft PR, where it declares
+    neither. So when the bar names
     the gate it is fixing which gate runs — the ticket's **gate mode** in a queued project — and you write it
     that way (*gate in the default mode, not `--mode docs`*) rather than as a command line. **Never the `full`
     mode**: where the project declares `fullGate` that mode is the dispatcher's alone, and the
@@ -277,8 +279,10 @@ dimension**. **Make each slice carry enough weight that its share of the gate co
   diffs.** An epic gating as a whole barely pays the per-slice cost, so size that wave against the reading: a
   green gate cannot tell whether the agent solved the right problem — only a reader holding the slice's `Goal`
   beside its diff can, which is why that field is worth the line it costs.
-- The *preflight* implementers hold their pushed head to is NOT the sizing cost; the **per-PR gate** is — drained
-  where the project declares `enqueue`/`drain`, run by each implementer where it declares neither. Size
+- The *preflight* implementers hold their pushed head to is NOT the sizing cost; the **per-PR gate** is — on the
+  project's CI where the gate runs remote, off this box unless a self-hosted machine here takes those jobs one
+  at a time, drained where the project declares `enqueue`/`drain`, run by each implementer where it declares
+  neither. Size
   against the *actual* `gate`, cache and gate mode you read in config — where the project declares
   `fullGate`, `gate` may be partial and `fullGate` runs on the critical path at most once, at a close-out
   whose epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), whatever the width — a queued

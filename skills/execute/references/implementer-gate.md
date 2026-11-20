@@ -3,20 +3,24 @@
 Reference for `skills/execute/SKILL.md` → *Implementer*, step 8. **Read it before you run `gate` in in-line
 mode.**
 
-**Who runs `gate` is your gate mode's to say, and the project's `enqueue`/`drain` decide it** — never
-self-granted, never inferred — **and a declared `fullGate` is never yours in either mode**, its runs being
-your dispatcher's:
+**Who runs `gate`, and where, is your gate mode's to say** — the project's `enqueue`/`drain` and its
+`gatePreference` beside the CI it runs on pull requests decide it, never self-granted, never inferred — **and a
+declared `fullGate` is never yours in any mode**, its runs being your dispatcher's. **In remote mode there is no
+gate of yours at all**: the PR's CI checks at its head are the verdict, so you run no `gate` and post no gate
+comment (`skills/execute/references/implementer-queue.md`), and this file applies only if your dispatcher later
+messages you to run the local fallback in-line.
 
-- **In-line mode — the project declares neither, or your brief or the dispatching user EXPLICITLY puts this slice
-  there (override mode):** once your draft PR is open and any review pass your brief asked for has reported and
+- **In-line mode — the project declares neither and gates locally, or your brief or the dispatching user
+  EXPLICITLY puts this slice there (override mode), or your dispatcher sends you the local fallback of a remote
+  gate:** once your draft PR is open and any review pass your brief asked for has reported and
   had its findings committed, run `gate` a single time — backgrounded with your turn ended on it where your host
   re-invokes you on its exit, in the foreground otherwise (*Never end your turn on a check that cannot wake you*
   below) — and comment the result on it. That one run is the only gate run you make, and every other stays
   banned, **the ban being on the WORK, not the command name**: never the full suite or any whole-package test run
   **by any invocation** — not `gate` again, not `turbo run test`, not a raw `vitest` sweep, not a package `test`
   script — and **backgrounding it is still running it**. **Capture that gate's own exit status, never a
-  pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, this
-  flow's only evidence a gate ran. **A red is checked at your fork point before you comment it**: with your work
+  pipeline's** — `gate > gate.log 2>&1; echo "EXIT=$?"`, then read the log — and quote the `EXIT=` line, the
+  only evidence a locally run gate ran. **A red is checked at your fork point before you comment it**: with your work
   committed and pushed, check `$FP` out, re-run only the failing tests by name through the targeted run, check
   your branch back out, and split the verdict's failures into those that pass there or are absent there — yours —
   and those that fail there too.

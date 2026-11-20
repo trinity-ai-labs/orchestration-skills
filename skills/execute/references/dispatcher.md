@@ -81,7 +81,9 @@ a close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). 
 PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
 sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
 `enqueue`/`drain`** those gates of yours are run by hand in their own worktree, and each slice's is its
-implementer's.
+implementer's. **Where the gate runs remote (*Gate mode*), every gate that has a PR — a slice's, a close-out's,
+a wave branch's — is that PR's own CI and takes no ticket and no hand run**, so a queue there carries only the
+PR-less gates, the local fallback and the `check` slot.
 
 ⛔ **Fixes that land straight on a long-lived branch share one gate, never one gate each.** Outside an epic —
 a bug bash, a test pass, a run of independent fixes into a release or integration branch — each fix still
@@ -140,10 +142,12 @@ nothing. The reference carries the test.
 ### 3. Judge what comes back → `skills/execute/references/reviewing.md`
 
 Read the diff and post the verdict you form onto the PR as a review each round, recording in it whether the
-slice ran the review pass or skipped it and why. **Where the project declares `enqueue`, enqueue that slice's
-gate only once the code is final**, then read the verdict the runner comments; **where it does not**, the
-implementer's own verdict is already on the PR, and its hand-back, not that comment, is what you wait on
-before you merge. **On an epic branch, plan and run review checkpoints over the epic tip**
+slice ran the review pass or skipped it and why. **Where the gate runs remote, the PR's CI checks at its head
+are the verdict** — wait on them and read them by *Reading a gate result*, falling back to the local gate only
+where CI gives no answer; **where it runs locally and the project declares `enqueue`, enqueue that slice's
+gate only once the code is final**, then read the verdict the runner comments; **where it declares none**, the
+implementer's own verdict is already on the PR. In every mode the hand-back, not a verdict, is what you wait
+on before you merge. **On an epic branch, plan and run review checkpoints over the epic tip**
 (`skills/execute/references/worktrees-and-branches.md`, *Review checkpoints*).
 
 ⛔ **Only the merge marks a PR ready — that flag is your signature, never a gate verdict.** A green comment
@@ -157,6 +161,10 @@ clean up and sync as one step, and
 close each issue the PR settled with a comment that is its outcome record
 (`skills/glossary/vocabulary/outcome-record.md`) — one `gh-post` close per issue,
 keyed `outcome/<n>/<pr>` (`skills/procedures/github-writes.md`).
+
+⛔ **Under a remote gate, call `merge-pr` only once you have seen at least one check actually run and pass at
+the PR's head SHA** — `merge-pr` passes a PR with no checks registered, so where you have not, take the local
+fallback first (`skills/execute/references/reviewing.md`, *Reading a gate result*).
 
 ⛔ **Merge commits, never squash; never rebase.** The one exception is an epic branch collapsing back, and only
 where the project declared `epicMerge` — its call, not yours at merge time.
@@ -175,10 +183,27 @@ onboarded first.
 
 ### Gate mode
 
-Two independent readings, **never inferred from the branch name**, since a rename must not silently change how
-a PR is gated — in queue mode both are properties of the **ticket**, set at enqueue.
+Three readings, **never inferred from the branch name**, since a rename must not silently change how a PR is
+gated — in queue mode the last two are properties of the **ticket**, set at enqueue.
 
-**Who runs the gate — the project's `enqueue`/`drain` decide it:**
+**Where the gate runs — `gatePreference` and the project's CI on pull requests decide it**
+(`skills/procedures/config-keys.md`), read at dispatch, before any check exists, so from the workflow trigger
+and never from checks:
+
+- **Remote — `gatePreference` absent or `"remote"`, and a workflow under `.github/workflows/` at the PR's
+  target names `pull_request` in its `on:` with `branches`, where it lists any, matching that target** —
+  `pull_request_target` does not count. **The PR's own CI checks at its head SHA are its gate**, whatever
+  machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer runs
+  `preflight`, pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for
+  that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, a wait that returns
+  a verdict, and read it by *Reading a gate result* (`skills/execute/references/reviewing.md`), which carries
+  the green and red readings, the local fallback where CI gives no answer for the head, and its bound. **It
+  covers every gate that has a PR** — a slice's, an epic close-out's, an integration branch's; a gate with no
+  PR stays local.
+- **Local — `"local"`, or no such workflow** — gates exactly as below, with no check waited on. **Name in your
+  dispatch report which gate each PR got and why**, a fallen-back one included.
+
+**Who runs a local gate — the project's `enqueue`/`drain` decide it:**
 
 - **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
   neither.** The implementer runs `preflight`, pushes, opens a **draft** PR and hands back; **you enqueue that
@@ -217,10 +242,15 @@ merge, never carrying a SHA forward — and enqueue in the **default** mode if a
 prose set appears. It reads the merged **file set**, not the branch name. Nothing else catches it: a
 re-enqueued PR carries a gate comment whose SHA matches its head whichever gate ran.
 
-### Five readings that change the flow
+### Six readings that change the flow
 
-- **No `enqueue`/`drain`** → **this project gates in-line, and that is the DEFAULT here rather than a grant**
-  (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
+- **A workflow running on pull requests to the PR's target, and `gatePreference` not `"local"`** → **the gate
+  runs remote** (*Gate mode*): no implementer runs `gate`, no ticket is raised for that PR, and the local
+  queue is needed only for the PR-less gates, the local fallback and the `check` slot — Actions queues the PR
+  gates itself, a self-hosted machine taking one job at a time.
+
+- **No `enqueue`/`drain`** → **wherever this project gates locally it gates in-line, and that is the DEFAULT
+  here rather than a grant** (*Gate mode*). The PR is still a draft at hand-back; only who ran the gate changes. **Nothing enqueues here
   at all**, a tip audit included — the command doesn't exist, so a brief telling an implementer to enqueue, or a
   dispatcher reaching for the ticket once it has read the diff, ends with committed work and no handoff.
 - **`gate` == `preflight`** → one authoritative check, no separate heavy tier. Nothing for a runner to add,

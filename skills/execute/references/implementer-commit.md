@@ -45,9 +45,10 @@ alone, since an enumerated ban is satisfied by every member it omits — where y
 
 **The handoff — push, draft PR, the review pass where your brief asks for one, hand back.** Everything that
 outlives you is a git object before you hand back, so a death anywhere in it loses nothing — and **the gate
-ticket is not yours in either mode**: where the project declares `enqueue`/`drain` your dispatcher enqueues
-it once it has read your diff, since nothing should gate a tree it may be about to have rewritten, and in
-in-line mode there is no ticket at all, your one `gate` run landing between the review pass and the hand-back.
+ticket is not yours in any mode**: where the project declares `enqueue`/`drain` your dispatcher enqueues
+it once it has read your diff, since nothing should gate a tree it may be about to have rewritten, in
+in-line mode there is no ticket at all, your one `gate` run landing between the review pass and the hand-back,
+and in remote mode there is neither ticket nor run of yours, the PR's CI at its head being the gate.
 **You never run `enqueue`.**
 
 1. **Push** all your commits.

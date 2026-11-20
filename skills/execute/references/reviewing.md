@@ -78,11 +78,43 @@ status.**
   reconcile. An audit settled **refused** `replayed` reached a cache, through the runner's switch or a
   `fullGate` that is not cold, so say `/pipeline:setup` should reconcile it.
 
-- **The gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
+- **Under a remote gate the PR's CI checks at its head SHA are the verdict — read them there, never off a
+  comment** (`skills/execute/references/dispatcher.md`, *Gate mode*). Once `gh pr checks <n> --watch` returns,
+  take the head with `gh pr view <n> --json headRefOid --jq .headRefOid` and its checks with
+  `gh api repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] | [.name, .status, .conclusion] | @tsv'`:
+  - **Green: at least one check actually ran at that head, and every check that ran passed** — a skipped
+    check did not run.
+  - **Red: any check failed, and a red CI is a red gate**, read and fixed on the branch like any other red,
+    the fix's push being its re-gate. **A failing check is never a reason to fall back to the local gate** —
+    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled or timed out with
+    nothing in the code to fix is no green either, and re-running it is the user's call
+    (`skills/ground-rules/SKILL.md`, rule 14).
+  - **Checks the draft skipped, in a workflow whose `pull_request` trigger names `ready_for_review`, are gated
+    by `merge-pr`'s ready-flip wait**, which merges only once they re-ran green — that wait is their verdict.
+  - **Fall back to the local gate only where CI gives no answer for the head**: no check ran there — none
+    registered, or every one skipped, the draft-skipped case above excepted — or none was picked up, every
+    check still pending at the head reading `queued` and never `in_progress` across two consecutive
+    divergence ticks. **A check that started is waited on, never fallen back from**, and checks not yet
+    registered after a push get the same two-tick wait. The fallback gates exactly as `"local"` would — a
+    ticket you raise where the project declares `enqueue`/`drain`, else a message to the slice's implementer to
+    run its one in-line `gate` and comment it — and your report says which gate the PR got and why.
+  - ⛔ **Before `merge-pr` you have seen at least one check actually run and pass at the PR's current head
+    SHA**, or every check there is the draft-skipped case above, **and otherwise you take the fallback first**:
+    `merge-pr` passes a PR with no checks registered, and under a remote gate nothing else shuts the window
+    between a push and its checks registering.
+  - **A remote red whose failing tests pass when re-run by name locally at the same SHA is read first as the
+    CI machine's environment**, as *Several worktrees red at the same moment* above reads contention — and
+    reported with what differs between the two: the security session, `PATH`, the login-shell environment,
+    keychain access, a toolchain version. **It stays red** — never a fallback trigger, never waved through.
+    Take its failure set off the failed run's log (`gh run view <run-id> --log-failed`) and check it at the
+    fork point as above.
+
+- **For a local gate, the gate comment is the only evidence a gate ran — a PR's flags are not.** Trust exactly two signals that
   a gate is actually green: a runner-drained **`gate ✓ passed`** comment, or an in-line implementer's own gate
   comment on its PR reporting a full green with zero failures — and on the close-out/integration slice,
   independently re-run the previously-red files yourself before you believe it. Nothing else attests to a
-  gate, and an empty PR conversation means nothing has. Read the comment and its failure set; the draft flag
+  local gate, and an empty PR conversation means none has run; under a remote gate no comment ever comes, the
+  checks above being its evidence. Read the comment and its failure set; the draft flag
   is about review, not about the suite. **A green gate comment over a red CI is not a green gate**: a failing
   or pending CI check on the PR's head holds the verdict exactly as a red gate does, and `merge-pr` refuses it.
 
@@ -157,7 +189,8 @@ does not do.
 ## The PR review loop
 Each implementer opens **its own draft PR** back to the branch its worktree was cut from — the integration
 branch, or the epic branch when the epic has one; the gate's verdict is commented on it — by the runner where
-the project declares `enqueue`/`drain`, by the implementer itself in in-line mode. That comment
+the project declares `enqueue`/`drain`, by the implementer itself in in-line mode — or, under a remote gate,
+is the PR's own CI checks at its head. That verdict
 is the gate signal, and it is all the gate can tell you — the PR stays draft until *you* run the merge, because
 marking it ready is your signature that you read the diff (`merge-pr` makes that flip inside the run, ahead of
 the CI it starts where the project's CI skips drafts, and puts it back if that run does not merge).
@@ -204,14 +237,18 @@ still no ticket → re-review → and only once the code is final do you ENQUEUE
 verdict corresponds to the exact commit you are going to merge. A fix round after a ticket has settled
 re-pushes and is re-enqueued the same way, that raise being yours too. **In in-line mode — a project declaring
 no queue, or a slice put in override mode — there is no ticket at any point** and the verdict comment is
-already on the PR when the hand-back arrives (`skills/execute/references/dispatcher.md`, *Gate mode*). Then verify
+already on the PR when the hand-back arrives (`skills/execute/references/dispatcher.md`, *Gate mode*). **Under a
+remote gate there is no ticket to order either**: the push starts CI before you have read anything and a fix
+round's push re-runs it, so read the checks at the head you will merge, never at one a later push replaced.
+For a gate comment, verify
 that correspondence explicitly before merging: compare the SHA the gate comment names against the PR's current
 head, since a verdict that predates the last push describes a tree the PR no longer carries.
 **Re-gate a fix round in proportion when the previous head gated green**: where the project declares
 `fullGate`, run its partial `gate` over the delta since that green head, falling back to the full suite,
 loudly, where the delta moves the boundary or touches a file neither the structure nor the map places
 (`skills/procedures/code-shape.md`,
-*The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`. A project's
+*The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`; under a remote
+gate the fix round's push is its re-gate, and nothing is re-run by hand. A project's
 stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
 is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
 
@@ -493,16 +530,17 @@ job.
 **One `gate` run per PR IS the gate, and the project's `enqueue`/`drain` say whose it is**: the RUNNER's,
 drained one at a time behind the project's slim gate slot (the scaffolded `gate-slot.mjs`)
 so concurrent gates can't saturate the box, where
-both are declared; and the implementer's own, once, in the foreground,
-with no slot, where neither is or the slice was put in override mode. `gate` is the HEAVY full suite: build +
+both are declared; the implementer's own, once, in the foreground,
+with no slot, where neither is or the slice was put in override mode; and, where the gate runs remote, the PR's
+own CI, which queues its own runs. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
 diff can affect. Beyond that one run an implementer's pushed head is held only to the cheap preflight — by a
 hook where one covers it (`skills/procedures/host-tools.md`'s hook rows),
 by the implementer before pushing where none does — and
-release-branch PRs typically get no CI, so that gate run is what stands in for CI.
+where a PR gets no CI, its local gate run is what stands in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,
-the runner's or the implementer's, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
+the runner's or the implementer's, or the PR's green CI under a remote gate, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,
 which for a merged tree with no PR is a PR-less ticket (*Gate the integrated whole*), and by hand only where
 there is no queue or the runner refuses that ticket — only for a genuine reason: the runner never got to a
 ticket, or a **merge onto the integration branch integrates branches that weren't tested together** (one

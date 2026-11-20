@@ -208,7 +208,7 @@ work back in.
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
 the docs it falsifies along with it, greens the preflight, opens a draft PR and hands back. Where the
-project's CI runs on pull requests, that PR's own CI checks are its gate by default (`"gatePreference":
+project's CI runs its `gate` on pull requests, that PR's own CI checks are its gate by default (`"gatePreference":
 "local"` opts out), and nothing runs `gate` locally for it. Otherwise, where the project declares a gate queue
 (`enqueue`/`drain`) the gate ticket is the dispatcher's, raised once it has read that diff; where it declares
 none, Claude runs the gate once itself and comments the result on that draft PR before handing back.

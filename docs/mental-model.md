@@ -181,7 +181,7 @@ commit-time tooling cannot read a plan and the ref graph is the only place it ca
 is deleted with the epic branch, which is what closes the window again.
 
 **Where the review approval lives.** A PR is opened as a **draft** and stays one for its whole life. **Where
-your CI runs on pull requests, the gate is that CI by default** — the PR's own checks at its head SHA, a record
+your CI runs your `gate` on pull requests, the gate is that CI by default** — the PR's own checks at its head SHA, a record
 GitHub holds about the exact pushed commit, and nobody runs `gate` locally for that PR — with the local gate as
 the fallback when CI gives no answer and `"gatePreference": "local"` as the opt-out. **Where the gate runs
 locally**, it reports its verdict as a **comment** — a pass or the failing tail — so the reading is one
@@ -373,7 +373,7 @@ outstanding.
   intermediate output — goes to a scratchpad that arrives from the harness rather than from the project, so no
   config key names it and siblings dispatched in parallel share one namespace by default. The dispatcher gives
   each slice its own and names it in the brief, the same way it gives each slice a worktree.
-- **A PR's own CI as its gate, by default where CI runs on PRs** → the verdict is bound to the exact pushed
+- **A PR's own CI as its gate, by default where CI runs `gate` on PRs** → the verdict is bound to the exact pushed
   commit, checked out fresh rather than read off a warm worktree, and held by GitHub rather than written by the
   agent about its own run; Actions queues those runs, so a self-hosted runner on your own machine takes them one
   at a time at no cost, and `/pipeline:setup` offers to stand one up.

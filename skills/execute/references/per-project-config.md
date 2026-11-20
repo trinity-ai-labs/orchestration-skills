@@ -13,8 +13,8 @@ what an implementer reads before its first edit; what a DISPATCH does about the 
 
 - **Your gate mode is the one your brief names, beside the setting that decides it**: **queue** where the
   project declares `enqueue`/`drain`, **in-line** where it declares neither, and **remote** wherever the PR's
-  own CI is its gate — `gatePreference` absent or `"remote"`, and a workflow at your PR's target running on
-  `pull_request` to it (`skills/procedures/config-keys.md`). **In remote mode you run no `gate` and post no
+  own CI is its gate — `gatePreference` absent or `"remote"`, and a workflow at your PR's target running the
+  project's `gate` on `pull_request` to it (`skills/procedures/config-keys.md`). **In remote mode you run no `gate` and post no
   gate comment, exactly as in queue mode** (`skills/execute/references/implementer-queue.md`): the PR's CI
   checks at its head are the verdict, read by your dispatcher.
 - **`targetedTest` declared** → an implementer's one targeted test run is that template with its one of

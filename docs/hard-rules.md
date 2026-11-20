@@ -74,7 +74,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   commit to retrigger), that you did not agree to — setup's offer to stand up a self-hosted runner and a gate
   workflow included, which acts only on your yes. CI your project already has is followed as it stands: setup
   reads it as the gate, and `merge-pr` refuses a merge while any of its checks fails or is pending.
-- **Where your CI runs on pull requests, a PR's gate is that CI — unless you set `"gatePreference": "local"`.**
+- **Where your CI runs your `gate` on pull requests, a PR's gate is that CI — unless you set
+  `"gatePreference": "local"`.** PR CI that runs something else, lint or typecheck alone, gates locally.
   No seat runs `gate` locally for such a PR: the verdict is its checks at the head SHA, green only where at
   least one check actually ran and every one that ran passed. **A red CI is a red gate, fixed on the branch —
   never a reason to fall back to the local gate**; the fallback is for no answer, a head where no check ran or

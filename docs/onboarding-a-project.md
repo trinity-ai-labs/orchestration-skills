@@ -113,10 +113,12 @@ can still run on one machine at once. A queue scaffolded before the `check` slot
 simply unbounded, and a reconcile reports it as its newest delta with the exact patch — the slot script's change
 and the preflight wrapper together — for you to apply in your own PR.
 
-**Where your CI runs on pull requests, setup tells you the gate will run there by default** — a PR's own
+**Where your CI runs your `gate` on pull requests, setup tells you the gate will run there by default** — a PR's own
 checks at its head are its verdict, whether GitHub, a paid provider or your own machine runs them, and nobody
 runs `gate` locally for it, the local gate stepping in only when CI gives no answer. It writes
-`"gatePreference": "local"` only if you say you want the local gate anyway.
+`"gatePreference": "local"` only if you say you want the local gate anyway. Where your PR CI runs something
+else — lint or typecheck alone — the project gates locally, and setup offers, priced and only on your yes, to
+have that workflow run `gate`.
 
 **One ask is an offer rather than a value: a self-hosted runner for the gate, only on onboarding** — made where
 no workflow runs the gate on pull requests, or where one runs only on paid hosted runners and you want it free,

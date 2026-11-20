@@ -95,8 +95,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 
 | Setting | Value | What the brief says |
 |---|---|---|
-| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs on `pull_request` to it — **remote mode** | Preflight only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
-| | `"local"`, or no such workflow | The `enqueue` + `drain` rows below decide the case. |
+| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs the project's `gate` on `pull_request` to it — **remote mode** | Preflight only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
+| | `"local"`, or no such workflow — PR CI running lint, typecheck or another command alone included | The `enqueue` + `drain` rows below decide the case. |
 | `enqueue` + `drain` | both declared — **queue mode** | Preflight only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
 | `gate`, `preflight` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
@@ -227,11 +227,11 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
   path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
   second entry for what the change ADDED that no doc describes.
-- **Gate mode for this slice — `gatePreference` beside the project's CI on pull requests decides where the
-  gate runs, and the project's `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
+- **Gate mode for this slice — `gatePreference` beside whether the project's CI runs its `gate` on pull
+  requests decides where the gate runs, and the project's `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
   the setting in the brief beside its case:
-  - **Remote mode — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs on
-    `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer runs only
+  - **Remote mode — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs the
+    project's `gate` on `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer runs only
     the preflight, pushes, opens a draft PR and hands back, posting no gate comment; **nothing is enqueued for
     that PR**, its CI checks at its head being the gate you read
     (`skills/execute/references/reviewing.md`, *Reading a gate result*). A fallback to the local gate takes the
@@ -317,7 +317,7 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   this into every brief — in every gate mode, **its `<gate-mode sentence>` by the gate-mode rows** —
   **substituting the literal branch name you cut this worktree from**, an implementer left to work it out
   being able to send its PR at the wrong branch. The gate-mode sentence is, in remote mode, *"Gate mode:
-  remote — this project's CI runs on pull requests to `<base-branch>` and its config sets no
+  remote — this project's CI runs its `gate` on pull requests to `<base-branch>` and its config sets no
   `gatePreference: "local"`, so the PR's CI checks at its head are the gate, read by your dispatcher: do NOT
   run the gate, post no gate comment, start no CI run by hand, and do NOT wait for one."*, in queue mode,
   *"Gate mode: queue

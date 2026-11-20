@@ -186,12 +186,14 @@ onboarded first.
 Three readings, **never inferred from the branch name**, since a rename must not silently change how a PR is
 gated — in queue mode the last two are properties of the **ticket**, set at enqueue.
 
-**Where the gate runs — `gatePreference` and the project's CI on pull requests decide it**
+**Where the gate runs — `gatePreference` and whether the project's CI runs its `gate` on pull requests decide
+it**
 (`skills/procedures/config-keys.md`), read at dispatch, before any check exists, so from the workflow trigger
 and never from checks:
 
-- **Remote — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs on `pull_request`
-  to it**, as `skills/procedures/config-keys.md` reads that trigger. **The PR's own CI checks at its head SHA are its gate**, whatever
+- **Remote — `gatePreference` absent or `"remote"`, and a workflow at the PR's target triggered on
+  `pull_request` to it runs the project's `gate`**, its `run:` steps carrying the `gate` command's text or the
+  script it invokes — a string match on the file, as `skills/procedures/config-keys.md` reads it. **The PR's own CI checks at its head SHA are its gate**, whatever
   machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer runs
   `preflight`, pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for
   that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, backgrounded where your host re-invokes you on its exit and
@@ -200,7 +202,9 @@ and never from checks:
   the green and red readings, the local fallback where CI gives no answer for the head, and its bound. **It
   covers every gate that has a PR** — a slice's, an epic close-out's, an integration branch's; a gate with no
   PR stays local.
-- **Local — `"local"`, or no such workflow** — gates exactly as below, with no check waited on. **Name in your
+- **Local — `"local"`, or no such workflow, PR CI that runs lint or typecheck alone or another command
+  included** — gates exactly as below, with no check waited on, the report saying which workflow you read and
+  that it runs no `gate`. **Name in your
   dispatch report which gate each PR got and why**, a fallen-back one included.
 
 **Who runs a local gate — the project's `enqueue`/`drain` decide it:**
@@ -244,8 +248,8 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 
 ### Six readings that change the flow
 
-- **A workflow running on pull requests to the PR's target, and `gatePreference` not `"local"`** → **the gate
-  runs remote** (*Gate mode*), and Actions queues the PR gates itself, a self-hosted machine taking one job at
+- **A workflow running the project's `gate` on pull requests to the PR's target, and `gatePreference` not
+  `"local"`** → **the gate runs remote** (*Gate mode*), and Actions queues the PR gates itself, a self-hosted machine taking one job at
   a time.
 
 - **No `enqueue`/`drain`** → **wherever this project gates locally it gates in-line, and that is the DEFAULT

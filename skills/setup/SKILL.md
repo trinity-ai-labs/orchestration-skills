@@ -76,11 +76,16 @@ Every value must trace to a file you read.
   what's popular.
 - **Scripts** — `package.json`'s `scripts`, or the `Makefile`/`justfile`/`Taskfile`.
 - **The real gate** — whatever CI runs before merge (`.github/workflows/*.yml`); with no CI, the broadest
-  local command that builds and tests. **Where a workflow runs it on `pull_request` to the integration branch,
-  tell the user the gate runs remote by default** — that PR's CI checks at its head are its verdict, wherever
+  local command that builds and tests. **Where a workflow triggered on `pull_request` to the integration branch
+  runs the `gate` you write — its command's text, or the script it invokes, in a `run:` step — tell the user
+  the gate runs remote by default** — that PR's CI checks at its head are its verdict, wherever
   the runner lives, and no seat runs `gate` locally for a PR (`skills/procedures/config-keys.md`,
   `gatePreference`) — and write `"gatePreference": "local"` only on their word that they want the local gate
   anyway; the default is never written.
+  **Where the PR CI runs something other than `gate` — lint or typecheck alone, another command — tell the
+  user the project will gate locally, and offer to have its PR workflow run `gate`**: priced in runner minutes
+  or money against the local gate it replaces, acted on only on a yes, the change shown before it is committed
+  (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
   **Offer to stand up CI that runs the gate on a self-hosted runner** — for this repo, or across a
   workspace's members — **where no workflow runs the gate on PRs, or where one runs only on paid hosted
   runners and the user wants it free**: priced in conversation, a no being a complete answer that records
@@ -260,7 +265,7 @@ clone. **Never write the overrides file, or
 | `install` | The lockfile's package manager, frozen/CI form |
 | `env` | Build-cache dirs; `${VAR:-default}` so an existing value wins |
 | `gate` | What CI runs before merge |
-| `gatePreference` | **The user's word, never a file's** — `"local"`, only where the project's CI runs on PRs and they want the local gate anyway; **omit** otherwise, absence meaning remote wherever CI runs on PRs |
+| `gatePreference` | **The user's word, never a file's** — `"local"`, only where the project's CI runs `gate` on PRs and they want the local gate anyway; **omit** otherwise, absence meaning remote wherever PR CI runs `gate` |
 | `preflight` | The gate's no-compile steps, as `skills/procedures/config-keys.md` defines them |
 | `targetedTest` | The project's test runner, as a template using one of `{files}` (test paths) or `{names}` (test names), values space-separated unless the template quotes them (`vitest run {files}`). **Omit** where no runner takes either |
 | `fullGate` | **The maintainer's answer** — the fourth ask. The full-suite command, **only** where they said `gate` is partial; **omit** otherwise |

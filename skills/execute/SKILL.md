@@ -45,7 +45,7 @@ you get stuck, or your dispatcher writes to you, open
 
 1. **`cd` into your assigned worktree and prove you are there** → `skills/execute/references/implementer.md`.
 2. **Read the project's config** → `skills/execute/references/per-project-config.md`. Your gate mode is
-   the one your brief names from that config and the project's CI on pull requests, never self-inferred; what
+   the one your brief names from that config and whether the project's CI runs its `gate` on pull requests, never self-inferred; what
    each key MEANS is `skills/procedures/config-keys.md`. **Where it declares `enqueue` and `drain` you are in
    queue mode, and where your brief says the PR's CI is the gate you are in remote mode** →
    `skills/execute/references/implementer-queue.md` for both.

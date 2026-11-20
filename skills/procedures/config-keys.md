@@ -51,6 +51,19 @@ carries the precedence and the refusals.
 - **`gate`** — the heavy per-PR gate (build + test, none of it starting before the `preflight` below passes), run
   against a queued PR's worktree. **It is the full gate wherever `fullGate` is absent**, and may be partial only
   where that key is declared.
+- **`gatePreference`** — where a PR's gate runs: `"remote"` or `"local"`. **Absent means `"remote"`**, and the
+  key is written only as `"local"`. **`remote` takes effect only where the project's CI runs on pull requests
+  to the PR's target**, observed at dispatch and never declared: a workflow under `.github/workflows/` at that
+  target whose `on:` names `pull_request` and whose `branches`, where it lists any, match the target —
+  `pull_request_target`, which runs the base's code rather than the PR's, does not count. There the PR's own
+  CI checks at its head SHA are its gate, wherever that CI executes — GitHub-hosted, a paid provider's or a
+  self-hosted machine alike — and no `gate` runs locally for that PR, **the local gate being the fallback
+  where CI gives no answer for the head**. **It covers every gate that has a PR** — a slice's, an epic
+  close-out's, an integration branch's; **a gate with no PR stays local whatever the key says** — a mid-arc
+  integration gate, the tip audit, a `fullGate` run. **`"local"` is the opt-out** for a project whose CI runs
+  on PRs but that gates locally anyway, and a project whose CI runs on no PR gates locally with the key
+  absent. Local means the queue where `enqueue`/`drain` are declared and in-line where they are not; the
+  `preflight` is local in every case.
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
@@ -85,7 +98,10 @@ carries the precedence and the refusals.
   means the project has no queue**, which is a supported shape rather than a gap. **Present, they also carry
   the tip audit** as an `audit` ticket mode beside `default` and `full`, on wherever a queue exists, with no
   key of its own, its cold command as `skills/glossary/vocabulary/tip-audit.md` names it — and where no
-  `fullGate` is declared, the one setup writes into the scaffolded queue script.
+  `fullGate` is declared, the one setup writes into the scaffolded queue script. **Under a `remote`
+  `gatePreference` a PR's gate takes no ticket** — the CI on that PR queues its own runs — so a queue carries
+  only what stays local there: the PR-less gates, the local fallback, and the `check` slot bounding
+  concurrent preflights.
 - **`frameworkSkills`** — `{skill, when}` pairs naming the framework skill each area opens with, so a
   brief can name one without anyone guessing the stack.
 - **`briefConventions`** — the facts that change how THIS PIPELINE dispatches against this repo or gates

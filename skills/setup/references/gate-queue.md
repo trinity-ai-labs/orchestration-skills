@@ -3,6 +3,12 @@
 Reference for Step 3 of `/pipeline:setup`. Author it *into the project* — the project owns and evolves it from
 there.
 
+**Where the gate runs remote — the project's CI runs on pull requests and `gatePreference` is not `"local"` —
+the queue carries only what stays local**: the PR-less gates (a mid-arc integration gate, the tip audit, a
+`fullGate` run), the local fallback for a PR whose CI gives no answer, and the `check` slot bounding concurrent
+preflights, since GitHub Actions queues the PR gates itself. Scaffold one there only where those local runs
+saturate the box, say so, and keep a queue the project already has.
+
 **No state is held in a process.** Every transition is a filesystem operation the OS makes atomic, so
 concurrent runners are safe, a killed runner loses nothing, and a reboot leaves a readable queue.
 
@@ -216,7 +222,7 @@ gate ran to produce any of them.
 
 **A refusal is a verdict, so invariant 7 binds it unchanged: it is not done until it is delivered.** Comment
 it on the PR like any other and leave the PR draft. Settling it silently leaves the PR bare instead, and
-**a PR carrying no gate comment has not been gated** — which sends a dispatcher to re-enqueue a tree that is
+**a PR carrying no gate comment has not been gated** by the queue — which sends a dispatcher to re-enqueue a tree that is
 still dirty, one refusal per pass. On a PR-less ticket it is delivered the moment it settles, as any PR-less
 ticket is (invariant 8). The head SHA it recorded is also what *Reporting*'s moved-off-SHA rule reads for it,
 no SHA having been gated.
@@ -268,7 +274,7 @@ red the failing tail **and the failure set by identifier**, and a refusal the re
 the head SHA — **and each of them the per-step executed-or-replayed record**, since the seat that reads the
 comment rather than the ledger is owed the same two facts. Where the ticket has a PR
 that comment is the only channel, and the queue never touches the draft flag — which is what makes
-**a PR gated iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
+**a PR gated by the queue iff it carries a gate comment**; the ready flag is the dispatcher's, set as it merges.
 
 **Write the verdict onto the ticket before the report is attempted, and only then move it to `done/`.** The
 report is the one step depending on a machine you do not control. It also keeps apart states that must stay

@@ -95,18 +95,18 @@ value does to a brief, and every pasted block below whose right form depends on 
 
 | Setting | Value | What the brief says |
 |---|---|---|
-| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs the project's `gate` on `pull_request` to it — **remote mode** | Preflight only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
+| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs the project's `gate` on `pull_request` to it — **remote mode** | Cheap checks only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
 | | `"local"`, or no such workflow — PR CI running lint, typecheck or another command alone included | The `enqueue` + `drain` rows below decide the case. |
-| `enqueue` + `drain` | both declared — **queue mode** | Preflight only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
+| `enqueue` + `drain` | both declared — **queue mode** | Cheap checks only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
-| `gate`, `preflight` | the same command | One bar, named once — never a "cheap" and a "full" bar that are the same command. |
+| `gate`, `preflight` | the same command | One bar, named once, held by the hook row's case — never a "cheap" and a "full" bar that are the same command. |
 | | different | `preflight` is the pushed-head bar; `gate` appears only as the gate mode's one run. |
 | `fullGate` | absent | Nothing: `gate` is the full gate, and every gate row reads as above. |
 | | declared | The brief names `gate` as the slice's gate and says it may be partial; `fullGate` appears in no brief, its runs being yours. |
 | `targetedTest` | declared | The ban's `<targeted run>` is that template, its one of `{files}` or `{names}` filled with the slice's tests. |
 | | absent | The ban's `<targeted run>` is single test files, each run singly (`vitest run path/to/x.test.ts`). |
 | hook that runs the preflight — observed, not declared: git's executable `$(git rev-parse --git-path hooks)/pre-commit`, which follows `core.hooksPath`, or the host's commit-hook or turn-end-hook row in `skills/procedures/host-tools.md` | one runs `preflight` over the pushed head | The pushed head is held to the preflight by the hook. |
-| | none does, or each runs something else | "No hook runs the preflight here: run `preflight` yourself on the head you push, before pushing." |
+| | none does, or each runs something else | Where `preflight` is `gate`: *"Your gate mode's one run — in-line `gate`, my ticket or the PR's CI — holds your pushed head; build on targeted sections of it."* Else, on a remote gate's local CI (`skills/glossary/vocabulary/local-ci.md`): *"The preflight is optional here."* Otherwise: *"No hook runs the preflight here: run `preflight` yourself on the head you push, before pushing."* |
 | `format` | declared | The review-slice block and the commit step run it in WRITE mode right before committing. |
 | | absent | No formatter step, and the brief says the project has none. |
 | `docsPaths` | declared | The docs block names each path with its `when`. |
@@ -231,15 +231,13 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   requests decides where the gate runs, and the project's `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
   the setting in the brief beside its case:
   - **Remote mode — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs the
-    project's `gate` on `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer runs only
-    the preflight, pushes, opens a draft PR and hands back, posting no gate comment; **nothing is enqueued for
-    that PR**, its CI checks at its head being the gate you read
+    project's `gate` on `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer pushes, opens a draft PR
+    and hands back, posting no gate comment; **nothing is enqueued for that PR**, its CI checks at its head being the gate you read
     (`skills/execute/references/reviewing.md`, *Reading a gate result*). A fallback to the local gate takes the
     case below that the project's `enqueue`/`drain` name — a ticket you raise, or a message to the same
     implementer to run its one in-line `gate`.
-  - **Queue mode — the project declares `enqueue` and `drain`:** the implementer runs only the preflight,
-    pushes, opens a draft PR and hands back; **you enqueue its ticket once you have read the diff**
-    (*Review BEFORE you drain, never after* in `skills/execute/references/reviewing.md` states that order,
+  - **Queue mode — the project declares `enqueue` and `drain`:** the implementer pushes, opens a draft PR and hands
+    back; **you enqueue its ticket once you have read the diff** (*Review BEFORE you drain, never after* in `skills/execute/references/reviewing.md` states that order,
     and the epic close-out has taken this shape all along — draft PR first, gate enqueued against it, per
     `skills/execute/references/worktrees-and-branches.md`), and a runner gates it later.
   - **In-line mode — the project declares neither, or you override a slice that is foundational or
@@ -285,10 +283,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — preflight, commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
-  **The pushed head is held to the preflight either way, in whichever case the hook row names** — by whichever
-  hook runs `preflight` over it, git's pre-commit hook or the host's commit-hook or turn-end-hook row in
-  `skills/procedures/host-tools.md`, a hook of any kind only *checking* formatting rather than fixing it,
-  or, where none does, by the implementer running `preflight` itself before pushing.
+  **The fix round's pushed head is held exactly as the hook row's case says**, a hook of any kind only
+  *checking* formatting rather than fixing it.
 - **The foreground-handoff rule — it goes in EVERY brief, in every gate mode**: in queue and remote mode it
   reaches the preflight and the one targeted test run, and in in-line mode the one `gate` run as well. The ban above
   reaches only a banned run; this stall comes from a **permitted** check whose exit cannot wake the slice,

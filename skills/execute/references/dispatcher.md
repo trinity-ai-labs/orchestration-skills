@@ -61,11 +61,8 @@ Three things then change for the dispatcher:
 
 The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
 `fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it** — queue mode or
-in-line mode, both defined under *Gate mode* below. Either way an implementer holds itself to the cheap
-**preflight** — every no-compile check of the gate (`skills/procedures/config-keys.md`), enforced by a hook
-where one covers the head it pushes (`skills/procedures/host-tools.md`'s hook rows),
-and run by the implementer before pushing where none does — then pushes, and
-opens its **draft PR**.
+in-line mode, both defined under *Gate mode* below. Either way an implementer holds the head it pushes to the
+cheap **preflight** where `skills/procedures/config-keys.md` requires it, then pushes, and opens its **draft PR**.
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against
@@ -194,9 +191,8 @@ and never from checks:
 - **Remote — `gatePreference` absent or `"remote"`, and a workflow at the PR's target triggered on
   `pull_request` to it runs the project's `gate`**, its `run:` steps carrying the `gate` command's text or the
   script it invokes — a string match on the file, as `skills/procedures/config-keys.md` reads it. **The PR's own CI checks at its head SHA are its gate**, whatever
-  machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer runs
-  `preflight`, pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for
-  that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, backgrounded where your host re-invokes you on its exit and
+  machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer
+  pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, backgrounded where your host re-invokes you on its exit and
   otherwise read on the divergence tick — a wait that returns a verdict once checks have registered, its
   `no checks reported` error meaning none has yet — and read it by *Reading a gate result* (`skills/execute/references/reviewing.md`), which carries
   the green and red readings, the local fallback where CI gives no answer for the head, and its bound. **It
@@ -210,7 +206,7 @@ and never from checks:
 **Who runs a local gate — the project's `enqueue`/`drain` decide it:**
 
 - **Queue mode — both declared: the dispatcher enqueues and the dispatcher drains, and an implementer does
-  neither.** The implementer runs `preflight`, pushes, opens a **draft** PR and hands back; **you enqueue that
+  neither.** The implementer pushes, opens a **draft** PR and hands back; **you enqueue that
   slice's ticket (`enqueue`) once you have read its diff**, since nothing should gate a tree you are about to
   have rewritten — which is the order phase 3 already asks for, *review BEFORE you drain*. **Nothing is at
   risk in the gap**: the branch is pushed and the PR open before you are handed anything, so the work is

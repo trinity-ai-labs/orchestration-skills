@@ -262,18 +262,18 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   *Your only test execution* sentence as its test budget all the same:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is ONE targeted test run, `<targeted run>`, never a suite, and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
-- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.** **On
-  an epic branch the default is the tests lens ALONE, on a slice that adds a test**, the rest of review moving
-  to the epic tip, at the review checkpoints you plan (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the
-  close-out panel over the whole diff. A slice's full `/pipeline:review` pass over its PR before it merges is the
-  exception, for a contract seam later slices build on, for security, auth, data migration or anything
-  irreversible, and for substantial work on an arc with no epic branch, where there is no epic tip to review. Say
-  which in the brief, and record it as `skills/execute/references/reviewing.md` says, **your reason beside it
-  where you went against the recommendation**; a slice arriving with none, you decide here. ⚠️ **Name the
-  pipeline skill in the brief** — an improvised pass that FORKS its reviewers hands them the implementer's whole
-  brief, *commit, push, open a PR, hand back* included, which they then execute; **the tell is the worktree
-  rather than the hand-back**, so read `git log` on the branch for commits, a push or a PR its reviewers left
-  before you read the report.
+- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
+  **On an epic branch the default is the tests lens ALONE, on a slice that adds a test**, the rest of review
+  moving to the epic tip, at the review checkpoints you plan (*Review checkpoints*,
+  `skills/execute/references/worktrees-and-branches.md`) and the close-out panel over the whole diff. A slice's
+  full `/pipeline:review` pass over its PR before it merges is the exception, for a contract seam later slices
+  build on, for security, auth, data migration or anything irreversible, and for substantial work on an arc with
+  no epic branch, where there is no epic tip to review. Say which in the brief, and record it as
+  `skills/execute/references/reviewing.md` says, **your reason beside it where you went against the
+  recommendation**; a slice arriving with none, you decide here. ⚠️ **Name the pipeline skill in the brief** —
+  an improvised pass that FORKS its reviewers hands them the implementer's whole brief, *commit, push, open a
+  PR, hand back* included, which they then execute; **the tell is the worktree rather than the hand-back**, so
+  read `git log` on the branch for commits, a push or a PR its reviewers left before you read the report.
 - **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the work
   lands, pushes and opens a draft PR, and one running no pass then hands back. For the epic default paste *"Where
   your slice adds a test, run `/pipeline:review` on your draft PR with its tests dimension alone."* For a review

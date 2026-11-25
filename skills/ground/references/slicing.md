@@ -109,15 +109,15 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
   model however small the diff.
 - **Brief** — 2–5 sentences the dispatcher can hand almost verbatim to an implementer: what to build, the
   pattern or file to copy, the hard boundaries, any research-first step.
-  - **Say in it whether this slice warrants its own `/pipeline:review` pass before it merges and why** —
-    on an epic branch the default is the tests lens alone, on a slice that adds a test, the rest of review
-    running at review checkpoints over the epic tip and at the close-out; the exceptions are a contract seam
-    later slices build on, security, auth, data migration or anything irreversible, and substantial work on an arc with no epic branch.
-    **It is a RECOMMENDATION the dispatcher may override with a reason of its own, which is why it rides in
-    this field rather than becoming a field of its own** — that seat holds the same facts about the wave it
-    raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no* there
-    is**: a recommendation that only ever says yes is a default yes, which spends on every slice exactly what
-    pricing the fan-out was for.
+  - **Say in it whether this slice warrants its own `/pipeline:review` pass before it merges and why** — on an
+    epic branch the default is the tests lens alone, on a slice that adds a test, the rest of review running at
+    review checkpoints over the epic tip and at the close-out; the exceptions are a contract seam later slices
+    build on, security, auth, data migration or anything irreversible, and substantial work on an arc with no
+    epic branch. **It is a RECOMMENDATION the dispatcher may override with a reason of its own, which is why it
+    rides in this field rather than becoming a field of its own** — that seat holds the same facts about the
+    wave it raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no*
+    there is**: a recommendation that only ever says yes is a default yes, which spends on every slice exactly
+    what pricing the fan-out was for.
   - **Name where the slice's new code and tests land** — the layer, the domain and folder, each test in its
     subject's folder, and the seam each test sits at (`skills/ground-rules/SKILL.md`, rule 12;
     `skills/procedures/code-shape.md`, *Placing new code and a new test*) — and say so where the placement

@@ -10,8 +10,8 @@ description: >-
   tighten, simplify or clean up a change that is already up as a PR. Dispatches one briefed reviewer
   per dimension over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
   efficiency, altitude, whether each test the diff adds earns its place and a project's stated rules and
-  conventions — then weighs what they report, applies what it judges right, posts its findings onto the PR as a review with
-  one comment beside it per dimension it dispatched, and reports what it rejected.
+  conventions — then weighs what they report, applies what it judges right, posts its findings onto the PR
+  as a review with one comment beside it per dimension it dispatched, and reports what it rejected.
 ---
 
 # Review — the pass over your own open PR
@@ -346,19 +346,18 @@ reader left but whoever reviews the caller's diff — which is the caller's to r
 rather than this pass's to re-open for. This freeze holds across a park exactly as it holds across a
 wait.
 
-**The agent running this slice decides, and that agent is you** — reviewers surface and you
-disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
-consciously reject the rest. **The one exception is the tests lens, whose findings BIND: you cannot reject
-one, and it closes only when the test is deleted or the *Test policy*'s justification for it
-(`skills/procedures/code-shape.md`) is written into the hand-back comment** — every other dimension stays
-advisory, and a tests finding still open goes under your record's decisions needed, since the merge waits
-on it. **You apply nothing on anyone's behalf**: nothing lands in this tree you
-did not decide on, and a finding you are not the party to act on is reported rather than delegated.
-**A fix that would remove or degrade user-visible behaviour stays out of Applied**: name the behaviour lost and
-surface it before applying (`skills/ground-rules/SKILL.md`, rule 13).
-**Before you apply a removal or a narrowing argued from an absence, grep the tests for the symbol it
-touches** — a test pinning the wider shape is the contract, and a finding that searched only producers has
-said nothing about it.
+**The agent running this slice decides, and that agent is you** — reviewers surface and you disposition, so the
+call on every finding is yours: apply what belongs, smallest safe edits first, and consciously reject the rest.
+**The one exception is the tests lens, whose findings BIND: you cannot reject one, and it closes only when the
+test is deleted or the *Test policy*'s justification for it (`skills/procedures/code-shape.md`) is written on
+the PR, in its body or a hand-back comment** — every other dimension stays advisory, and a tests finding still
+open goes under your record's decisions needed, outside Flagged's admission test, since the merge waits on it.
+**You apply nothing on anyone's behalf**: nothing lands in this tree you did not decide on, and a finding you
+are not the party to act on is reported rather than delegated. **A fix that would remove or degrade user-visible
+behaviour stays out of Applied**: name the behaviour lost and surface it before applying
+(`skills/ground-rules/SKILL.md`, rule 13). **Before you apply a removal or a narrowing argued from an absence,
+grep the tests for the symbol it touches** — a test pinning the wider shape is the contract, and a finding that
+searched only producers has said nothing about it.
 
 **Before you weigh a single finding, read the TREE the reviewers ran against** — `git status`, which is
 clean when this pass starts because the caller pushed before it invoked you, and `git log` against the
@@ -367,8 +366,8 @@ a review of its own or filed an issue is a runaway, and it looks exactly like a 
 report alone; the hard rule at the end of this file carries what you do about it, and the last three are
 the ones `git status` cannot see.
 
-**Read the goal reviewer's report first.** Every other dimension asks whether the code is good and none
-of them asks whether it achieved anything, so a diff aimed at the wrong thing comes back with every other
+**Read the goal reviewer's report first, where one ran.** Every other dimension asks whether the code is good
+and none of them asks whether it achieved anything, so a diff aimed at the wrong thing comes back with every other
 report clean and gets steadily tidier. Then work down: a correctness fix can introduce something to
 simplify, and a simplification can expose a correctness problem, so applying a simplification before
 you have applied the correctness fix spends the edit twice.
@@ -508,11 +507,12 @@ PR, the dimension comments included** — they go out with the review at the res
 as each report arrives — since its tree is frozen and its caller's next step is a resume; the marker is
 the one thing that tells a parked slice from a stalled one, whose trees look the same.
 
-- **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice
-  carried none, say that rather than supplying one. **That verdict is also the record's verdict**, the
-  review reaching every later reader of the PR and the record reaching the caller, who is told to anchor
-  the right-problem judgement to it and otherwise has the brief and the diff — two artifacts that agree
-  with each other whether or not the work was aimed correctly.
+- **Goal** — the slice's goal, and your verdict on whether this diff achieves it. Where the slice carried none,
+  say that rather than supplying one, and where your brief scoped the pass without the goal dimension, the
+  verdict is *goal not assessed — scoped to <dimensions>*. **That verdict is also the record's verdict**, the
+  review reaching every later reader of the PR and the record reaching the caller, who is told to anchor the
+  right-problem judgement to it and otherwise has the brief and the diff — two artifacts that agree with each
+  other whether or not the work was aimed correctly.
 - **Applied** — each change you made, the one-line reason, and the reviewer that raised it. **Where
   several reviewers converged on it, name them all** — that agreement is the strongest evidence in the
   run and it exists nowhere else once this report is written.

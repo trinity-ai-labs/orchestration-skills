@@ -1,17 +1,16 @@
 # Review — the tests lens
 
-Reference for `skills/review/SKILL.md`, step 2: the brief for the tests dimension, pasted whole into that
-reviewer's brief. Its findings bind, as the spine's step 3 says, so each one names the clause it rests on.
+Reference for `skills/review/SKILL.md`, step 2: the tests dimension's brief. Its findings bind, as the
+spine's step 3 says, so each one names the clause it rests on.
 
 **Judge every test the diff adds or changes against `skills/procedures/code-shape.md`'s *Test policy*, and
-start each added test marked for deletion** — it stays only where the policy admits it, and none admitted is a
-valid outcome. Report each finding with the deletion or merge you propose:
+start each added test marked for deletion**. Report each finding with the deletion or merge you propose:
 
 - **A test the policy does not admit** — name the clause it fails.
-- **A test whose justification is missing or does not hold** — the three items the policy asks of a guard,
-  read from the PR body and the hand-back comment; a guard claiming recurrence is checked against the history
-  (`git log -S` or `-G` on the behaviour it pins), and one claiming the owner's ask names where that ask is
-  written.
+- **A test whose justification is missing or does not hold** — the three items the policy asks of a guard, read
+  from the PR body, where each added test's justification is written before this pass runs; a guard claiming
+  recurrence is checked against the history (`git log -S` or `-G` on the behaviour it pins), and one claiming
+  the owner's ask names where that ask is written.
 - **A guard the diff rewrote to match a change that tripped it**, with no answer from the owner on record.
 - **A test that duplicates one already in the suite** — name the existing test that carries the case, or
   would with one more case.

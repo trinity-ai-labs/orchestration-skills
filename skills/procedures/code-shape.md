@@ -82,9 +82,10 @@ answer.**
   never one test each.
 - **A guard is priced on both of its costs before it is written** — the pile it joins, where a thousand
   low-value tests at 7–30 s each are hours on every gate, and its own seconds per run, paid on each of the
-  roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, why that
-  failure is invisible while building and costly once shipped, and its seconds per run** — and a guard that
-  cannot state all three is not written. A test that costs more to run than its failure would cost to ship is
+  roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, with the
+  recurrence or the owner's ask that earns it where that failure is a bug; why it is invisible while building
+  and costly once shipped; and its seconds per run** — and a guard that cannot state all three is not
+  written. A test that costs more to run than its failure would cost to ship is
   deleted.
 - **Anything visible by opening the product — layout, pixels, positions, wording, theme — is never a guard**,
   recurrence below being the one exception outside an area checked by hand.
@@ -96,8 +97,8 @@ answer.**
 - **Recurrence earns a guard: a decided behaviour reverted, or the same bug fixed more than once, as the
   history shows**, even where the failure is visible on screen, since agents change what nobody is watching
   and recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most
-  a probe. **A guard is rare — it comes from that recurrence or from the owner asking for one, never on an
-  agent's own initiative after a first fix.**
+  a probe. **A bug's guard is rare — it comes from that recurrence or from the owner asking for one, never
+  on an agent's own initiative after a first fix.**
 - **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
   the owner, never a rewrite of the test to match.
 - **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a

@@ -12,7 +12,7 @@ carries the helper), which a later hand-back on the same PR edits in place — c
 implementer references send to "your hand-back comment":
 
 - **each test you added, with its *Test policy* justification** (`skills/procedures/code-shape.md`), or
-  none; **each hand check: what you ran and saw**; and any reversal you did not run;
+  none; **each hand check**; and any reversal you did not run;
 - **every assumption you adopted** where a pattern, the guidance or an obvious default settled a gap;
 - **the per-doc verdict** — each doc updated or not-affected-because, never a bare "docs reviewed" — and on
   an epic slice the ledger's entries;

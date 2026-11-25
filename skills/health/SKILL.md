@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the items no single table row carries** — four no row measures, and `Prune candidates`, drawn from
+4. **Name the items no single table row carries** — five no row measures, and `Prune candidates`, drawn from
    the *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* rows:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
@@ -69,6 +69,10 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
    - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
      item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
      beneath it. **Health lists them and never deletes one.**
+   - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off the
+     cadence `skills/procedures/config-keys.md`'s `fullGate` sets and read the way it says, from the workflow's
+     triggers and steps; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
+     costs where the CI output shows them.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -89,7 +93,8 @@ be read.
 
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
-`Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>` or `Prune candidates`, whose tests sit beneath its line as indented
+`Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>`, `Heavy suite on slice PRs: <workflow>` or
+`Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -139,6 +144,11 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   gate's no-compile steps alone, cached by content as `skills/procedures/config-keys.md` describes**; its
   alternatives are a reason stated beside the step it leaves out (one more claim to keep true), or leaving it
   (every no-compile failure waiting on a build, or every pushed head paying one).
+- **The recommendation for a `Heavy suite on slice PRs: <workflow>` item is the split by the PR's base** —
+  `gate` on slice PRs, `fullGate` on promotion PRs, `/pipeline:setup` offering the edit; where the project has
+  no promotion PR, the step moves to the rest of `fullGate`'s cadence. Its alternatives are a scheduled or
+  manual run instead (a heavy break surfaces after its merge, tied to no PR), or leaving it (every slice pays
+  that step's minutes).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).
@@ -169,6 +179,7 @@ and ticked off.
 | `Prune candidates` | `/pipeline:orchestrate` with the listed candidates as the plan in chat |
 | A restructure — splitting the gate, colocating tests, adding manifests, bootstrapping the map, tagging the suite | `/pipeline:co-think` → `/pipeline:write-issue` as the project's own change, then `/pipeline:setup` so its `fullGate` ask declares the full gate once the partial one has landed |
 | A monolith | `/pipeline:setup`, which splits it in its own PR |
+| `Heavy suite on slice PRs` | `/pipeline:setup`, which offers the split |
 
 **A calling pass gets that same report as its summary** and quotes it; it never re-measures. **Never a stop**:
 the flow runs correctly on a full gate and a monolith, only dearer.

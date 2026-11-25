@@ -56,20 +56,20 @@ bound implementer in-line 1-2-before-first-edit 6983
 bound implementer in-line 3-build               13574
 bound implementer in-line 4-docs                19215
 bound implementer in-line 7-review              19762
-bound implementer in-line 8-gate-hand-back      22046
-bound implementer in-line 9-brief-wrong         24037
+bound implementer in-line 8-gate-hand-back      22051
+bound implementer in-line 9-brief-wrong         24042
 bound implementer queue   1-2-before-first-edit 7255
 bound implementer queue   3-build               13846
 bound implementer queue   4-docs                19487
 bound implementer queue   7-review              20034
-bound implementer queue   8-gate-hand-back      21568
-bound implementer queue   9-brief-wrong         23559
+bound implementer queue   8-gate-hand-back      21573
+bound implementer queue   9-brief-wrong         23564
 bound implementer remote  1-2-before-first-edit 7255
 bound implementer remote  3-build               13846
 bound implementer remote  4-docs                19487
 bound implementer remote  7-review              20034
-bound implementer remote  8-gate-hand-back      21568
-bound implementer remote  9-brief-wrong         23559
+bound implementer remote  8-gate-hand-back      21573
+bound implementer remote  9-brief-wrong         23564
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #
@@ -87,8 +87,8 @@ open  dispatcher * 4-land        skills/execute/references/landing.md skills/pro
 bound dispatcher all 0-read-config 16452
 bound dispatcher all 1-set-up      22401
 bound dispatcher all 2-dispatch    35749
-bound dispatcher all 3-judge       44918
-bound dispatcher all 4-land        53572
+bound dispatcher all 3-judge       44923
+bound dispatcher all 4-land        53577
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #
@@ -142,6 +142,6 @@ open  orchestrate * 3-reconcile skills/orchestrate/references/reconciling.md
 open  orchestrate * 5-close-out skills/procedures/github-writes.md
 
 bound orchestrate all 0-config    18376
-bound orchestrate all 1-ground    19644
-bound orchestrate all 3-reconcile 25459
-bound orchestrate all 5-close-out 26092
+bound orchestrate all 1-ground    19649
+bound orchestrate all 3-reconcile 25464
+bound orchestrate all 5-close-out 26097

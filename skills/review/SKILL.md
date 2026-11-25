@@ -9,8 +9,8 @@ description: >-
   were dispatched with says to run a review pass for the slice, and whenever you are asked to review,
   tighten, simplify or clean up a change that is already up as a PR. Dispatches one briefed reviewer
   per dimension over that diff — whether the slice's GOAL is met, plus correctness, reuse, simplification,
-  efficiency, altitude, redundant or over-swept tests and a project's stated rules and conventions — then
-  weighs what they report, applies what it judges right, posts its findings onto the PR as a review with
+  efficiency, altitude, whether each test the diff adds earns its place and a project's stated rules and
+  conventions — then weighs what they report, applies what it judges right, posts its findings onto the PR as a review with
   one comment beside it per dimension it dispatched, and reports what it rejected.
 ---
 
@@ -120,7 +120,8 @@ step — read it before you write the first brief.
 **How many fire is your call, decided per slice the way the model tier already is.** Each row's condition
 in the table below decides whether it is offered, and selection among those is the cost control: a
 mechanical rename or a one-line fix does not earn every reader. Say in your report which dimensions
-you ran and which you judged the slice did not need.
+you ran and which you judged the slice did not need. **A brief that scopes this pass to named dimensions
+dispatches exactly those** — an epic slice's run of the tests lens alone is the common case.
 
 **Their TIER is the other half of that same selection, so name it in each spawn rather than leave it to
 default** — a host handed no model gives a reviewer the model YOU are running, which fans your own tier
@@ -152,7 +153,7 @@ be deleted, and agreement between separate readers is the evidence this pass exi
 | Efficiency | the diff's loops, lookups and I/O | the only lens with a quantity behind its verdict rather than a judgement |
 | Altitude | the diff against the layer each piece belongs in | reads placement and naming, not behaviour — a correct line in the wrong layer passes every other lens |
 | Rules & Conventions *(where a project states rules worth a pass)* | the diff against the project's stated conventions and its gate | reads a rulebook rather than code |
-| Redundant or over-swept tests *(where the diff adds or changes tests)* | the tests the diff adds or changes, against the suite already there and the project's test policy | the only lens asking whether a test should exist at all, and the one that proposes deletions |
+| Tests lens *(where the diff adds or changes tests)* | the tests the diff adds or changes, against the suite already there and `skills/procedures/code-shape.md`'s *Test policy* | the only lens asking whether a test should exist at all, and the only one whose findings bind (step 3) |
 
 **Reuse, simplification, efficiency and altitude look mergeable and are not, and merging them spends
 the one thing N readers buy.** When three of them land on the same site by three different routes, that
@@ -282,19 +283,9 @@ reads. Nor
 - **A rule stated in two places that disagree is a finding**, and the report says which copies you read
   and which one you took as authoritative.
 
-#### Redundant or over-swept tests
+#### Tests lens
 
-Judged against `skills/procedures/code-shape.md`'s *Test policy*. Report each of these with the deletion or
-merge you propose:
-
-- **A test the diff adds or changes that the policy would not admit** — name the clause it fails.
-- **A test the diff adds that duplicates one already in the suite** — name the existing test that carries
-  the case, or would with one more case.
-
-**A deletion you propose names the domain-map entries and test tags the same change updates**, so the map's
-own check stays green.
-
-**Not a test that cannot fail** — that is the Correctness reviewer's finding.
+Paste `skills/review/references/tests-lens.md` whole — it is this dimension's brief.
 
 ### The ceiling on every dimension
 
@@ -357,7 +348,11 @@ wait.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you
 disposition, so the call on every finding is yours: apply what belongs, smallest safe edits first, and
-consciously reject the rest. **You apply nothing on anyone's behalf**: nothing lands in this tree you
+consciously reject the rest. **The one exception is the tests lens, whose findings BIND: you cannot reject
+one, and it closes only when the test is deleted or the *Test policy*'s justification for it
+(`skills/procedures/code-shape.md`) is written into the hand-back comment** — every other dimension stays
+advisory, and a tests finding still open goes under your record's decisions needed, since the merge waits
+on it. **You apply nothing on anyone's behalf**: nothing lands in this tree you
 did not decide on, and a finding you are not the party to act on is reported rather than delegated.
 **A fix that would remove or degrade user-visible behaviour stays out of Applied**: name the behaviour lost and
 surface it before applying (`skills/ground-rules/SKILL.md`, rule 13).

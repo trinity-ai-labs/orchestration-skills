@@ -204,15 +204,14 @@ tool.
    its own base, and item 8's re-gate over a fix round's delta is the one exception — **and an empty plan on
    a branch with commits beyond that base fails loudly**, never a green over zero tests. **It runs one
    representative per sweep; a sweep runs only under `fullGate`.**
-5. **The full gate moved to on-demand runs, a release, an epic's close-out where the epic moved the
-   boundary, and a queued project's tip audit, never dropped** — the project's `fullGate`
-   (`skills/procedures/config-keys.md`), with the partial gate as its `gate`, and **run cold: it reads no cache
-   and no green store**.
+5. **The full gate moved to promotion PRs and the rest of the cadence `skills/procedures/config-keys.md`'s
+   `fullGate` sets, never dropped** — the project's `fullGate`, with the partial gate as its `gate`, and **run
+   cold: it reads no cache and no green store**.
 6. **Optionally, a green cache** keyed on a hash of a release unit's or a domain's inputs — its files, the core
    or the shared spine and the toolchain — skipping one whose key last passed.
 7. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
-   caught by the full gate on demand, before a release and at a boundary-moving close-out, and between those
-   by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a queue, every other
-   change resting on the split gate alone.
+   caught by the full gate on a promotion PR, on demand, before a release and at a boundary-moving close-out,
+   and between those by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a
+   queue, every other change resting on the split gate alone.
 8. **A re-gate after a fix round on a head that gated green runs the split gate over the delta since that
    head**, with the same loud fallback, and its verdict names both heads.

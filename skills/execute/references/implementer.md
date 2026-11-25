@@ -34,11 +34,11 @@ worktree before acting on it, `diff` the two where one looks wrong, and say whic
 **The flow is: take any baseline your slice needs → write all the code → update the docs it changed → fix what
 you HIT outside your owned files, in this PR → commit → push → draft PR →
 (`/pipeline:review` if this slice warrants it, now against that pushed PR) → (if it finds something: apply
-what you accept, preflight, one more commit, push again onto the same PR) →
+what you accept, one more commit, push again onto the same PR) →
 (in in-line mode, your one `gate` run) → hand back.** The gate ticket is **not in that flow** —
 where the project declares `enqueue`/`drain` your dispatcher enqueues it after it has read your diff, and in
 in-line mode there is none; **in remote mode neither is there a gate run of yours**, the PR's own CI at its
-head being the gate your dispatcher reads. While you build, run only *cheap* checks: format, the preflight
+head being the gate your dispatcher reads. While you build, run only *cheap* checks: format, the preflight your brief names
 (`preflight`, or `turbo run <task> --filter=<pkg>`, never raw `tsc`/`eslint`), and the one targeted test run
 the spine's step 3 bounds, **a change to a module's export surface** — adding, removing or renaming an export,
 or moving code between modules — widening it to every test file that mocks or imports that module, found by

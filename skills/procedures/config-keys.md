@@ -89,7 +89,7 @@ carries the precedence and the refusals.
   format-check + lint + typecheck, and whatever else the gate runs without building, configuring and code
   generation allowed — **no compile or test step of the gate starts before every one of these has passed, the
   gate holding no copy of it**, so a no-compile failure fails in seconds. **A slice is held to it green at the
-  head it pushes in in-line and queue mode, and under a remote gate whose job is not on local CI
+  head it pushes in in-line and queue mode, and under a remote gate whose `gate` job is not on local CI
   (`skills/glossary/vocabulary/local-ci.md`); under a remote gate on local CI it is optional**, that CI running
   the gate on this machine anyway. **Where it is the same command as `gate`, the gate mode's one run holds that
   head instead** — the in-line `gate` run, the queued ticket, or the PR's CI — and building runs only targeted

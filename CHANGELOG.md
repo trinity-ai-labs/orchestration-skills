@@ -10,7 +10,8 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   runner's `.runner` file. A runner that cannot be placed reads as not local, and a GitHub-hosted or paid one
   never is.
 - **Under a remote gate on local CI the implementer's preflight is optional.** In-line and queue mode, and a
-  remote gate on a hosted or paid runner, keep the pushed-head preflight as before.
+  remote gate on a hosted or paid runner, keep the pushed-head preflight as before, except where `preflight`
+  is the same command as `gate` (below).
 - **Ground rule 14 gains one exception.** A job on local CI that failed for infrastructure reasons with nothing
   in the code to fix is re-run once without asking, with `gh run rerun --failed`. That covers a session that
   never connected, a runner that dropped, or a cancellation or timeout before any test ran. It never applies

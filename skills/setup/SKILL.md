@@ -88,8 +88,9 @@ Every value must trace to a file you read.
   (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
   **Offer to stand up CI that runs the gate on a self-hosted runner on the user's machine, as the recommended
   answer** — for this repo, or across a workspace's members — **where no workflow runs the gate on PRs, or
-  where one runs only on paid hosted runners**: on local CI (`skills/glossary/vocabulary/local-ci.md`) its
-  minutes cost nothing, a slice pushes with no required local preflight, and a job failed for infrastructure
+  where one runs only on paid hosted runners** — on a public repository only with outside contributors'
+  workflow runs approval-gated: on local CI (`skills/glossary/vocabulary/local-ci.md`) its
+  minutes cost nothing, a slice pushes with no required local preflight, and a job that failed for infrastructure
   reasons is re-run once without asking, never after a test failure (`skills/ground-rules/SKILL.md`, rule 14). Priced in conversation and acted on
   only on a yes, a no being a complete answer that records
   nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes opens

@@ -92,7 +92,7 @@ you get stuck, or your dispatcher writes to you, open
    under the reviewers still reading it, **and an edit landing after that pass has reported, a late grant
    answer being the ordinary case, is unreviewed and says so in the hand-back comment**, since nothing re-presents it
    to a reader but the dispatcher's read of your diff.
-   ⛔ **What you accept becomes ONE more commit onto the SAME PR** — preflight, commit, push, never a
+   ⛔ **What you accept becomes ONE more commit onto the SAME PR** — commit, push, never a
    second PR and never a reopen — and a pass that raises nothing you accept leaves the slice where it
    stands, on the one commit round you already have. **The pass does not re-trigger itself on that fix
    round**; a dispatcher explicitly asking for another is not that loop and you run it like any instruction

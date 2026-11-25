@@ -87,14 +87,14 @@ status.**
   started is read off `gh api --paginate repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] |
   [.name, .status] | @tsv'`:
   - **Green: at least one check actually ran at that head and every check that ran passed** — a skipped
-    check did not run, save one whose skip names the run that already passed that tree — **or every check there is one the draft skipped in a workflow whose `pull_request`
+    check did not run, save one whose check-run output names a passed run of that same tree — **or every check there is one the draft skipped in a workflow whose `pull_request`
     trigger names `ready_for_review`**, which `merge-pr`'s ready-flip wait gates, merging only once they
     re-ran green.
   - **Red: any check failed, and a red CI is a red gate**, read and fixed on the branch like any other red,
     the fix's push being its re-gate. **A failing check is never a reason to fall back to the local gate** —
-    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled or timed out with
-    nothing in the code to fix holds the merge too, since `merge-pr` refuses it: on local CI re-run it
-    once, for an infrastructure failure and never after a test failure, else surface it to the user
+    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled, timed out or failed before
+    any test ran, nothing in the code to fix, holds the merge too, since `merge-pr` refuses it: on local CI
+    re-run it once, an infrastructure failure, never after a test failure, else surface it to the user
     (`skills/ground-rules/SKILL.md`, rule 14).
   - **Fall back to the local gate only where CI gives no answer for the head, read across two consecutive
     divergence ticks since the push**: no check registered, every one skipped (Green's skip cases

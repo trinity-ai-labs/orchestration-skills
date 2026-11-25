@@ -7,8 +7,8 @@ format-*checks*; where it declares none there is no formatter step, and formatti
 preflight and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
 your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
-**The cheap preflight is green at the head you push in the gate modes `skills/procedures/config-keys.md`
-requires it in, your brief naming the case, whatever runs per commit** — held by a hook only where one ran
+**The cheap preflight, where your brief says it is required (`skills/procedures/config-keys.md`), is green at
+the head you push, whatever runs per commit** — held by a hook only where one ran
 `preflight` on that head's commit (git's executable `pre-commit`, which follows `core.hooksPath`, or the host's
 commit-hook or turn-end-hook row in `skills/procedures/host-tools.md`), otherwise by you, running it in the
 foreground on that head before you push — a merge or a `--no-verify` commit at the head included.

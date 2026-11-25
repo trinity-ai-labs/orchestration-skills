@@ -6,9 +6,7 @@ the project, never in this plugin's helpers.
 
 **The gate rule never asks where a runner lives**: a GitHub-hosted runner or a paid provider's satisfies a
 remote gate exactly as a self-hosted one does (`skills/procedures/config-keys.md`, `gatePreference`).
-Self-hosting is only what this offer brings, so that a remote gate costs the user nothing: a job on local CI
-(`skills/glossary/vocabulary/local-ci.md`) also lifts the required local preflight
-(`skills/procedures/config-keys.md`, `preflight`).
+Self-hosting is only what this offer brings, so that a remote gate costs the user nothing.
 
 **Nothing is registered, committed or started without the user's yes to that artifact** — the install script,
 the workflow and the registration are each shown first (`skills/ground-rules/SKILL.md`, rule 14).
@@ -120,10 +118,9 @@ environment `gate` needs in the workflow or the runner's `.env`, never by assumi
 ## Reading the first remote gate
 
 The setup PR that adds the workflow is the runner's first gate, so register the runner before that PR opens.
-**Green settles it.** **Where it is red, re-run the failing tests by name locally at the same SHA**, in a
+**Green settles it.** **Where it is red on a test, re-run the failing tests by name locally at the same SHA**, in a
 worktree cut at that head and never the main checkout: **a red only on the runner points at the runner's
 environment, not the code** — name what differs, read it against *Traps to check the project against*, fix it
 in the project's install script, and re-run, a CI re-run after a test failure being the user's call
-(`skills/ground-rules/SKILL.md`, rule 14, whose one exception is a re-run once, on local CI, for an
-infrastructure failure, never after a test failure). Red on both is the gate's own
+(`skills/ground-rules/SKILL.md`, rule 14). Red on both is the gate's own
 answer. Report the result in setup's handoff.

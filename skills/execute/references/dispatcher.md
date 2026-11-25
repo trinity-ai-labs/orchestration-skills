@@ -61,8 +61,8 @@ Three things then change for the dispatcher:
 
 The heavy gate (`gate` = build + full test suite, which may be partial only where the project declares
 `fullGate`) is CPU-saturating, and **the project's `enqueue`/`drain` decide who runs it** — queue mode or
-in-line mode, both defined under *Gate mode* below. Either way an implementer holds the head it pushes to the
-cheap **preflight** where `skills/procedures/config-keys.md` requires it, then pushes, and opens its **draft PR**.
+in-line mode, both defined under *Gate mode* below. Either way an implementer pushes a head held to the cheap
+**preflight** where `skills/procedures/config-keys.md` requires it, and opens its **draft PR**.
 
 **In queue mode EVERY gate in this flow is one of yours, and while the runner will take them none is run by
 hand**: a slice's, against its draft PR once you have read the diff; the epic's **close-out gate** against

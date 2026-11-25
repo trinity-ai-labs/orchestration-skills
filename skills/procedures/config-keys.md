@@ -65,7 +65,7 @@ carries the precedence and the refusals.
   self-hosted machine alike — and no `gate` runs locally for that PR, **the local gate being the fallback
   where CI gives no answer for the head**. **It covers every gate that has a PR** — a slice's, an epic
   close-out's, an integration branch's, a promotion PR's; **a gate with no PR stays local whatever the key
-  says** — a mid-arc integration gate, the tip audit, a PR-less `fullGate` run. **`"local"` is the opt-out**
+  says** — a mid-arc integration gate, the tip audit, a `fullGate` run other than a promotion PR's. **`"local"` is the opt-out**
   for a project whose CI runs its gate on PRs but that gates locally anyway, and a project whose PR CI runs no
   `gate` gates locally with the key absent. Local means the queue where `enqueue`/`drain` are declared and in-line where they are not; the
   `preflight` is local wherever it is required (`preflight` below).
@@ -83,10 +83,10 @@ carries the precedence and the refusals.
   gate's own fallback, and a queued project gates `fullGate` runs in a
   `full` ticket mode. **Where the integration branch is the default branch there is no promotion PR**, and the
   rest of that list is the whole cadence. **A promotion PR whose CI runs only `gate` owes its `fullGate` as a
-  PR-less run.** **A PR workflow running `fullGate`'s command, or a sweep `skills/procedures/code-shape.md`
-  places under it, on PRs into the integration branch or an epic branch runs it off this cadence** — read off
-  its `pull_request` trigger and `run:` steps as a string match, where no `github.base_ref` condition keeps that
-  step to promotion PRs. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
+  PR-less run.** **Where `fullGate` is declared, a PR workflow running its command, or a sweep
+  `skills/procedures/code-shape.md` places under it, on PRs into the integration branch or an epic branch runs
+  it off this cadence** — read off its `pull_request` trigger and `run:` steps as a string match, where neither
+  a `branches` filter nor a `github.base_ref` condition keeps that step to promotion PRs. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
   `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from the integration tip —
   never the main checkout.
 - **`targetedTest`** — optional: a template using one of `{files}` (test file paths) or `{names}` (test

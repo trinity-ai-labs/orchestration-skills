@@ -69,9 +69,8 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
    - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
      item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
      beneath it. **Health lists them and never deletes one.**
-   - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off the
-     cadence `skills/procedures/config-keys.md`'s `fullGate` sets and read the way it says, from the workflow's
-     triggers and steps; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
+   - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off
+     `skills/procedures/config-keys.md`'s `fullGate` cadence as it reads one; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
      costs where the CI output shows them.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 

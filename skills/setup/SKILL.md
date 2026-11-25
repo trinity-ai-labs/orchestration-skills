@@ -86,12 +86,10 @@ Every value must trace to a file you read.
   user the project will gate locally, and offer to have its PR workflow run `gate`**: priced in runner minutes
   or money against the local gate it replaces, acted on only on a yes, the change shown before it is committed
   (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
-  **Where a workflow runs the heavy suites on slice PRs — off `fullGate`'s cadence, read as
-  `skills/procedures/config-keys.md`'s `fullGate` reads it — tell the user every slice pays them, and offer the
-  split by the PR's base**: `gate` on PRs into the integration branch and epic branches, `fullGate` on promotion
-  PRs, drafted as `skills/setup/references/ci-runner.md`'s *The gate workflow* chooses its step. **CI the project
-  already runs is offered the change and never rewritten unasked** — priced, the edit shown before it is
-  committed and acted on only on a yes, a no recording nothing.
+  **Where a workflow runs the heavy suites on slice PRs, off `skills/procedures/config-keys.md`'s `fullGate`
+  cadence, tell the user every slice pays them and offer the split by the PR's base that
+  `skills/setup/references/ci-runner.md`'s *The gate workflow* drafts** — existing CI is never rewritten
+  unasked: priced, shown and acted on only on a yes, as above.
   **Offer to stand up CI that runs the gate on a self-hosted runner on the user's machine, as the recommended
   answer** — for this repo, or across a workspace's members — **where no workflow runs the gate on PRs, or
   where one runs only on paid hosted runners** — on a public repository only with outside contributors'
@@ -99,8 +97,8 @@ Every value must trace to a file you read.
   minutes cost nothing, a slice pushes with no required local preflight, and a job that failed for infrastructure
   reasons is re-run once without asking, never after a test failure (`skills/ground-rules/SKILL.md`, rule 14). Priced in conversation and acted on
   only on a yes, a no being a complete answer that records
-  nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes opens
-  `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
+  nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes to this offer, or
+  to the split offer above, opens `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
   registered without the user's yes to that artifact. **It offers on onboarding only, never on a reconcile**
   unless the user asks, since a tree with no PR CI is the answer already given. **No config key holds that
   answer.**

@@ -73,11 +73,41 @@ from `gate`.
 ## Test policy
 
 Whether a permanent test should exist at all — a guard or a probe, both defined in
-`skills/glossary/vocabulary/code-shape.md`.
+`skills/glossary/vocabulary/code-shape.md`. **No new guard is the default, and none is always a valid
+answer.**
 
-- **A permanent test names the failure it exists to catch** — the bug, the broken contract, the regression a
-  user would see. *This behaviour exists* is not a reason: small behaviours are covered by the one seam test
-  that exercises them, never one test each.
+- **The keep rule: a guard exists only where the failure it catches is invisible while building and costly
+  once shipped** — the bug, the broken contract, the regression nobody sees by running the change. *This
+  behaviour exists* is not a reason: small behaviours are covered by the one seam test that exercises them,
+  never one test each.
+- **A guard is priced on both of its costs before it is written** — the pile it joins, where a thousand
+  low-value tests at 7–30 s each are hours on every gate, and its own seconds per run, paid on each of the
+  roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, with the
+  recurrence or the owner's ask that earns it where that failure is a bug; why it is invisible while building
+  and costly once shipped; and its seconds per run** — and a guard that cannot state all three is not
+  written. A test that costs more to run than its failure would cost to ship is
+  deleted.
+- **Anything visible by opening the product — layout, pixels, positions, wording, theme — is never a guard**
+  on a first occurrence or on speculation; recurrence or the owner's ask, below, earns one, in an area checked
+  by hand as anywhere else.
+- **A hand check made while building is the verification for visible behaviour** — running the product and
+  looking at it, by the owner or during the slice — run once, reported with what was run and what was seen,
+  and never committed. **An area the project's guidance names as checked by hand gets no first-occurrence or
+  speculative guard of visible behaviour.**
+- **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.**
+- **Recurrence earns a guard: a decided behaviour reverted, or the same bug fixed more than once, as the
+  history shows**, even where the failure is visible on screen, since agents change what nobody is watching
+  and recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most
+  a probe. **A bug's guard is rare — it comes from that recurrence or from the owner asking for one, never
+  on an agent's own initiative after a first fix.**
+- **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
+  the owner, never a rewrite of the test to match.
+- **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
+  repeated element — pinning the decision, never sweeping it.** Other engines run on demand or at release; a
+  sweep across every combination needs a written reason beside it, and runs only in `fullGate` where the
+  project declares one; without `fullGate` it runs on every gate, which that reason must justify.
+- **Extend an existing test that fails on the bug before adding a new one** — new only where no existing test
+  can carry the case.
 - **A test waits on a condition, not on elapsed time, by default**, since a fixed sleep, or nudging an input
   and pausing to see what moved, makes the verdict depend on how fast the machine is, which is where most
   flaky tests come from. Drive the subject to the state through its own interface, use a fake clock or a
@@ -90,17 +120,8 @@ Whether a permanent test should exist at all — a guard or a probe, both define
   component's folder — so the folders a change touches select it, and a tag carries only what the folder cannot
   say. **A sweep that samples across every unit is a sign the tests live away from their subject**, and the
   move is to colocate them.
-- **Extend an existing test that fails on the bug before adding a new one** — the fix's test, extended or new,
-  is new only where no existing test can carry the case.
-- **A bug earns a guard only when all three hold: it is easy to reintroduce, it would slip by unnoticed, and
-  it is costly if shipped** — otherwise the fix plus a probe is the proof.
-- **One representative unit, theme, size or browser engine by default** — the engine a case runs in is a
-  sweep axis like the others, so the other engines run on demand or at release; a sweep across every
-  combination needs a written reason beside it, and runs only in `fullGate` where the project declares one;
-  without `fullGate` it runs on every gate, which that reason must justify.
 - **A test that cannot fail is deleted** — an assertion against the value that configured its own mock, a
   constant asserted against itself, a check the implementation could never violate.
-- **A test that costs more to run than its bug would cost to ship is deleted.**
 
 ## Placing new code and a new test — in order
 
@@ -124,7 +145,7 @@ Stop at the first answer that places it.
 7. **Add an interface only where two adapters vary across it** — a production implementation and a test
    fake, say. One adapter is no variation point yet, so no interface goes in for it.
 
-**Then its test:**
+**Then its test, only where the *Test policy* admits one:**
 
 1. **Put it in its subject's folder.**
 2. **Find the seam** — the narrowest boundary a caller or a user crosses that exercises the behaviour: a

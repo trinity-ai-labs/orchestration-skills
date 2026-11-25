@@ -176,9 +176,8 @@ the seats here, and a seat that learns to spawn something is one of them the day
   end-to-end test is only for what a user actually crosses, a computed invariant over the data (contrast,
   sizes, radii, a table of units) replaces a browser case per combination, and a unit test is for real logic
   inside one module, never for wiring.
-- **Extend a test before adding one; a new guard only for a bug easy to reintroduce, that would slip by
-  unnoticed and is costly to ship; one representative by default** — `skills/procedures/code-shape.md`,
-  *Test policy*.
+- **No new test by default: whether one should exist at all is `skills/procedures/code-shape.md`'s *Test
+  policy*.**
 - **Every test lives in its subject's folder and names any domain that folder cannot say in the project's own
   tag form, and a tag nothing checks is a guess** — derive it from what the test imports or calls, or have it
   checked.

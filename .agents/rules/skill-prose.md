@@ -62,11 +62,17 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   it**, since slack left in a bound is room the next change grows into unseen. **A change that re-routes a
   seat updates the manifest in the same PR** — the check fails a listed file that neither the seat's root nor
   a file it opened earlier names by its repo path, so the manifest follows the prose rather than the reverse.
-- **A `SKILL.md` is an ordered list of ACTIONS.** Each action names the reference that says how and carries
-  the rules that fire at that action. A rule goes in the reference where the reader cannot perform the action
-  without opening it, and stays on the step where they can — nobody opens a file to write a commit message. A
-  rule firing at no single action goes in one short closing block. `skills/execute/SKILL.md` is the worked
-  example.
+- **The routing layout: inside a skill, a rule is stated ONCE, in the reference that owns it; the spine routes
+  to that reference in one line, opened only when its step is reached; every other seat of that skill cites
+  it and restates none of it.** **A `SKILL.md` is an ordered list of ACTIONS**, that spine: each action names
+  the reference that says how and carries only the rules that fire at it. A rule goes in the reference where
+  the reader cannot perform the action without opening it, and stays on the step where they can — nobody
+  opens a file to write a commit message — and one firing at no single action goes in one short closing block.
+  **New detail goes behind a pointer, never into a spine.** Across skills the opening paragraph governs: a
+  rule is restated at each skill's seat, except one a shared home owns, which those seats cite while writing
+  only their own duty beside the citation. `skills/execute/SKILL.md` is the worked example of a spine, and
+  `skills/procedures/code-shape.md`'s *Test policy* the worked example of a shared-home rule that every seat
+  adding, approving or merging a test cites.
 - **A skill cites its own references and three shared homes, and nothing else.** Unbounded cross-skill
   citation grew a web of references, a checker to validate it and a convention for writing it; state what your
   reader needs where they act instead. The three homes are the three edges above — `skills/glossary/`,

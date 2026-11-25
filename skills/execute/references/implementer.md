@@ -86,9 +86,10 @@ hand-back comment names it in one line.
 ## Craft, and the guardrail
 
 **Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
-`skills/procedures/code-shape.md`'s *Test policy* and *Placing new code and a new test*, under the project's
-own layout rules where it states them. **Code-shape debt you hit folds by rule 13 where it is cheap and in
-reach; a restructure is surfaced, never done unasked.**
+`skills/procedures/code-shape.md`'s *Placing new code and a new test*, under the project's own layout rules
+where it states them. **Add no test its *Test policy* does not admit**, write each one's justification into your
+PR body, and take a guard your change trips to your dispatcher, never rewrite it. **Code-shape debt you hit
+folds by rule 13 where it is cheap and in reach; a restructure is surfaced, never done unasked.**
 
 **Leave the tree cleaner than you found it — a check that exits green but still prints warnings is NOT
 done**: fix every warning and error your change hits or surfaces, by rule 13's fold, and where the answer to
@@ -101,11 +102,6 @@ comments, compact readable code, or nudge one line under. Never silence a rule t
 `eslint-disable`, no `@ts-ignore`-to-hush, no widening to `any`, no deleting the flagged assertion.
 **Zero warnings AND zero errors on every file you touch is the bar**; where the honest fix is too big, STOP
 and hand back, surfaced as rule 13 asks.
-
-**A test proves nothing if it cannot fail.** An assertion checked against the value that configured its own
-mock, a constant asserted against itself, a check the implementation could never violate — that is gaming the
-suite exactly as a suppressed lint rule games the linter, and it counts as coverage nowhere but the report.
-Write the assertion against the behavior the change is for, not against whatever the code already returns.
 
 **One rule of the reversal your bar names (`skills/execute/references/implementer-reversal.md`) binds every
 edit:** ⛔ **Never stash the whole tree for a reversal**: it carries that test's case away with the

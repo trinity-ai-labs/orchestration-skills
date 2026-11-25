@@ -86,9 +86,12 @@ Every value must trace to a file you read.
   user the project will gate locally, and offer to have its PR workflow run `gate`**: priced in runner minutes
   or money against the local gate it replaces, acted on only on a yes, the change shown before it is committed
   (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
-  **Offer to stand up CI that runs the gate on a self-hosted runner** — for this repo, or across a
-  workspace's members — **where no workflow runs the gate on PRs, or where one runs only on paid hosted
-  runners and the user wants it free**: priced in conversation, a no being a complete answer that records
+  **Offer to stand up CI that runs the gate on a self-hosted runner on the user's machine, as the recommended
+  answer** — for this repo, or across a workspace's members — **where no workflow runs the gate on PRs, or
+  where one runs only on paid hosted runners**: on local CI (`skills/glossary/vocabulary/local-ci.md`) its
+  minutes cost nothing, a slice pushes with no required local preflight, and a job failed for infrastructure
+  reasons is re-run once without asking, never after a test failure (`skills/ground-rules/SKILL.md`, rule 14). Priced in conversation and acted on
+  only on a yes, a no being a complete answer that records
   nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes opens
   `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
   registered without the user's yes to that artifact. **It offers on onboarding only, never on a reconcile**

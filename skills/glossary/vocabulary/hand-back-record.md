@@ -10,7 +10,7 @@ nothing else:
 - **PR** — the pull request's number and URL, or that none could be opened.
 - **Head SHA** — the PR's head commit at the moment of hand-back.
 - **Gate result** — the gate's exit and the SHA it ran against, with the URL of the comment carrying its
-  verdict, where the seat ran one; otherwise the preflight's result and why no gate ran there.
+  verdict, where the seat ran one; otherwise the preflight's result, or that none was required, and why no gate ran there.
 - **Decisions needed** — each question or finding the receiving seat has to settle, with the recommendation,
   the alternatives and what each costs; or `none`.
 - **Carried elsewhere** — every other item the hand-back reaches, each with its address: a comment's URL, a

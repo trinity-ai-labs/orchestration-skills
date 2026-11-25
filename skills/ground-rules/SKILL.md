@@ -213,6 +213,13 @@ money not every project can afford. **CI a project already has is followed as it
 the gate, `merge-pr` refuses a merge while any of its checks fails or is pending and passes a PR with none, and
 the checks a push or `merge-pr`'s ready flip triggers are the project's own CI, not a run anyone started.
 
+**The one exception: re-run once, with `gh run rerun <run-id> --failed`, a job on local CI
+(`skills/glossary/vocabulary/local-ci.md`) that failed for infrastructure reasons with nothing in
+the code to fix** — a session that never connected, a runner that dropped, a cancellation or timeout before any
+test ran — since that runner costs nothing. **Never after a test failure, and never twice on one head**: a
+second infrastructure failure goes to the user, and a fresh run, `gh workflow run`, an empty commit to
+retrigger, and a new or widened workflow all still need their word.
+
 ---
 
 **A pass that restates one of these at your seat is stating the same rule, and a pass that states

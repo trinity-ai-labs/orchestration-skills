@@ -313,7 +313,9 @@ actually changed. That is exactly how a stale README ships — not because the i
 because it was told not to look.
 
 **The review pass's rejected findings are addressed to YOU and reach you on the PR — read them, and read a
-hand-back record that names no review against your own brief before you read it as a clean pass.**
+hand-back record that names no review against your own brief before you read it as a clean pass.** ⛔ **An
+open tests-lens finding holds the merge** until the test is deleted or the hand-back comment carries its *Test
+policy* justification (`skills/procedures/code-shape.md`); every other finding stays advisory.
 `/pipeline:review` runs inside the implementer and its reviewers report to it, so its `Rejected` list — each
 finding that implementer considered and deliberately did not act on, carrying the reviewer or reviewers that
 raised it — is written for the reviewer of this PR. The **review the pass posted onto this PR** carries
@@ -338,8 +340,8 @@ nothing, which is the exact indistinguishability that list exists to remove. So 
 made in the brief, then read the silence: correct where you skipped it, a round trip where you did not — and
 a slice you told to run the pass whose PR carries neither its review nor its dimension comments is a missing
 write, whatever its hand-back says. **Write that decision onto the PR in each review you post, and into the
-issue's closing comment** — `Review pass: ran`, `Review pass: skipped — <reason>`, or
-`Review pass: review checkpoint — <epic PR review URL>`, naming it where you overrode the breakdown's
+issue's closing comment** — `Review pass: ran`, `Review pass: tests lens`, `Review pass: skipped —
+<reason>`, or `Review pass: review checkpoint — <epic PR review URL>`, naming it where you overrode the breakdown's
 recommendation — since the brief dies with the run, and that line is what tells this blank apart once it has.
 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —

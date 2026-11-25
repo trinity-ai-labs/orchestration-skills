@@ -262,24 +262,25 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   *Your only test execution* sentence as its test budget all the same:
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is ONE targeted test run, `<targeted run>`, never a suite, and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
-- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
-  **On an epic branch the default is NONE**: review moves to the epic tip, at the review checkpoints you plan
-  (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the close-out panel over
-  the whole diff. A slice's own `/pipeline:review` pass over its PR before it merges is the exception, for a
-  contract seam later slices build on, for security, auth, data migration or anything irreversible, and for
-  substantial work on an arc with no epic branch, where there is no epic tip to review. Say which in the
-  brief, and again in the review you post on that PR and in the issue's closing comment, since a PR carrying
-  no panel review otherwise reads the same whether it was left to a review checkpoint or its write went
-  missing. **Going against the recommendation puts your reason in that same record**; a slice arriving with
-  none, you decide here. ⚠️ **Name the pipeline skill in the brief** — an improvised pass that FORKS its
-  reviewers hands them the implementer's whole brief, *commit, push, open a PR, hand back* included, which
-  they then execute; **the tell is the worktree rather than the hand-back**, so read `git log` on the branch
-  for commits, a push or a PR its reviewers left before you read the report.
-- **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the
-  work lands, pushes and opens a draft PR, and one running no pass then hands back. For a review slice paste
-  this, its `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each commit."*
-  where the project declares one, and *"This project declares no `format`, so there is no formatter step."*
-  where it declares none:
+- **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.** **On
+  an epic branch the default is the tests lens ALONE, on a slice that adds a test**, so no test the *Test policy*
+  (`skills/procedures/code-shape.md`) refuses reaches the epic tip; the rest of review moves there, at the review
+  checkpoints you plan (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the
+  close-out panel over the whole diff. A slice's full `/pipeline:review` pass over its PR before it merges is the
+  exception, for a contract seam later slices build on, for security, auth, data migration or anything
+  irreversible, and for substantial work on an arc with no epic branch, where there is no epic tip to review. Say
+  which in the brief, and record it as `skills/execute/references/reviewing.md` says, **your reason beside it
+  where you went against the recommendation**; a slice arriving with none, you decide here. ⚠️ **Name the
+  pipeline skill in the brief** — an improvised pass that FORKS its reviewers hands them the implementer's whole
+  brief, *commit, push, open a PR, hand back* included, which they then execute; **the tell is the worktree
+  rather than the hand-back**, so read `git log` on the branch for commits, a push or a PR its reviewers left
+  before you read the report.
+- **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the work
+  lands, pushes and opens a draft PR, and one running no pass then hands back. For the epic default paste *"Where
+  your slice adds a test, run `/pipeline:review` on your draft PR with its tests dimension alone."* For a review
+  slice paste this, its `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each
+  commit."* where the project declares one, and *"This project declares no `format`, so there is no formatter
+  step."* where it declares none:
 
   > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 

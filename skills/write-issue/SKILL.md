@@ -251,8 +251,8 @@ Write the body in this order. Small issues collapse to goal + surface + verify.
   whose read feeds an action is the seam. The **cross-tree** ones matter most — code ↔ docs, code ↔ prompt,
   code ↔ config — where nothing mechanical links the halves. The arc's running seam map is **seeded** from
   this field and re-derived nowhere, so a seam left out is one nothing downstream ever looks for.
-- **Verify** — what "done" looks like: the behavior, the tests added or extended with the case count and each
-  new guard's reason (`skills/procedures/code-shape.md`, *Test policy*), the gate, the greps that must come
+- **Verify** — what "done" looks like: the behavior, the guards the *Test policy*
+  (`skills/procedures/code-shape.md`) admits, none being a valid answer, the gate, the greps that must come
   back empty — a checkable bar, not a vibe. **A negative names its baseline** (*unchanged*, *no new X* — the
   fork point unless you name another) and **a grep names the domain it sweeps**; a bar naming neither is
   satisfied by whichever end whoever runs it picks. **A filed bar outlives the arc, so read it against the

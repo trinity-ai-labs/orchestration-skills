@@ -110,9 +110,9 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
 - **Brief** — 2–5 sentences the dispatcher can hand almost verbatim to an implementer: what to build, the
   pattern or file to copy, the hard boundaries, any research-first step.
   - **Say in it whether this slice warrants its own `/pipeline:review` pass before it merges and why** —
-    on an epic branch the default is no, review running at review checkpoints over the epic tip and at the
-    close-out; the exceptions are a contract seam later slices build on, security, auth, data migration or
-    anything irreversible, and substantial work on an arc with no epic branch.
+    on an epic branch the default is the tests lens alone, on a slice that adds a test, the rest of review
+    running at review checkpoints over the epic tip and at the close-out; the exceptions are a contract seam
+    later slices build on, security, auth, data migration or anything irreversible, and substantial work on an arc with no epic branch.
     **It is a RECOMMENDATION the dispatcher may override with a reason of its own, which is why it rides in
     this field rather than becoming a field of its own** — that seat holds the same facts about the wave it
     raises a tier on. **Write the *no* as explicitly as the *yes*, a one-liner being the clearest *no* there
@@ -157,10 +157,10 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
   - **The arc's goal and the phase's deliverable came with the issue; this is that altitude one step down.**
     Carrying it here is what makes the chain end to end rather than stopping at the phase boundary — arc goal,
     phase deliverable, slice goal, and a reader at each of the two ends of the slice.
-- **Verify** — what "done" looks like: the behavior, the tests added or extended with the case count, each
-  new guard's reason (`skills/procedures/code-shape.md`, *Test policy*), and the acceptance check.
-  - **For a slice that adds a check or fixes a bug, the bar includes proving that the fix's test fails against
-    the PRE-change code — and names the specific reversal that proves it**: restore the old matcher and
+- **Verify** — what "done" looks like: the behavior, the guards the *Test policy*
+  (`skills/procedures/code-shape.md`) admits, none being a valid answer, and the acceptance check.
+  - **For a slice that adds a check or fixes a bug, the bar includes proving that the fix's test or probe fails
+    against the PRE-change code — and names the specific reversal that proves it**: restore the old matcher and
     confirm the new fixture goes red, point the test's mock back at the old symbol, reverse the rename and
     confirm the formatter reproduces the original byte for byte. A bare "confirm it fails first" is a step an
     implementer can report with nothing behind it.

@@ -376,7 +376,8 @@ outstanding.
 - **A PR's own CI as its gate, by default where CI runs `gate` on PRs** → the verdict is bound to the exact pushed
   commit, checked out fresh rather than read off a warm worktree, and held by GitHub rather than written by the
   agent about its own run; Actions queues those runs, so a self-hosted runner on your own machine takes them one
-  at a time at no cost, and `/pipeline:setup` offers to stand one up.
+  at a time at no cost, and `/pipeline:setup` recommends standing one up; there the local preflight is optional
+  and a job lost to an infrastructure failure is re-run once, never after a test failure.
 - **A durable gate queue, where a project declares one** → implementers hand back rather than waiting and the
   dispatcher enqueues, for the gates that stay local under a remote gate, once it has read the diff, so a wide fan-out never serializes on a gate lock, nothing
   gates a tree that is about to be rewritten, and a dying agent can't strand committed work — its branch and

@@ -207,7 +207,7 @@ has fallen short of your goal is not one of those: that direction the loop fixes
 work back in.
 
 **As an implementer, directly:** `build the toast-position fix` → Claude codes it in a fresh worktree, brings
-the docs it falsifies along with it, greens the preflight, opens a draft PR and hands back. Where the
+the docs it falsifies along with it, greens the preflight where it is required, opens a draft PR and hands back. Where the
 project's CI runs its `gate` on pull requests, that PR's own CI checks are its gate by default (`"gatePreference":
 "local"` opts out), and nothing runs `gate` locally for it. Otherwise, where the project declares a gate queue
 (`enqueue`/`drain`) the gate ticket is the dispatcher's, raised once it has read that diff; where it declares

@@ -73,7 +73,14 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   seat creates or widens a workflow, or starts a run by hand (`gh workflow run`, a manual re-run, an empty
   commit to retrigger), that you did not agree to — setup's offer to stand up a self-hosted runner and a gate
   workflow included, which acts only on your yes. CI your project already has is followed as it stands: setup
-  reads it as the gate, and `merge-pr` refuses a merge while any of its checks fails or is pending.
+  reads it as the gate, and `merge-pr` refuses a merge while any of its checks fails or is pending. **One
+  exception: a job on local CI** — a runner registered on your own machine
+  ([`skills/glossary/vocabulary/local-ci.md`](../skills/glossary/vocabulary/local-ci.md)) — **that failed for
+  infrastructure reasons with nothing in the code to fix** (a session that never connected, a runner that
+  dropped, a cancellation or timeout before any test ran) **is re-run once without asking**, with
+  `gh run rerun --failed`, since that runner costs nothing. Never after a test failure and never twice on one
+  head: a second infrastructure failure comes to you, and a fresh run, `gh workflow run`, an empty commit or a
+  new or widened workflow still needs your word.
 - **Where your CI runs your `gate` on pull requests, a PR's gate is that CI — unless you set
   `"gatePreference": "local"`.** PR CI that runs something else, lint or typecheck alone, gates locally.
   No seat runs `gate` locally for such a PR: the verdict is its checks at the head SHA, green only where at
@@ -82,7 +89,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   none was picked up within the dispatcher's bound, and the dispatch report says which gate each PR got and
   why. Because `merge-pr` passes a PR with no checks, the dispatcher calls it only after it has seen a check
   run and pass at that head. A gate with no PR — the mid-arc integration gate, the tip audit, `fullGate` —
-  stays local, and so does the preflight.
+  stays local, and so does the preflight wherever it is required.
 - **A finding is settled where that is cheap and within reach, and surfaced — with a recommendation — where it
   is not.** Nothing is dropped silently, and nothing reaches you, a dispatcher or a caller as a bare list or a
   bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
@@ -238,7 +245,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   had — draft PR first, gate enqueued against it. **Where it declares neither — in-line mode, which a
   dispatcher can also put a single slice in — the implementer runs the gate once itself and comments the
   result on its draft PR, and no ticket exists at any point.** **Where the gate runs remote, the implementer
-  runs only the preflight and posts no gate comment**, the PR's CI being its verdict, and nothing is enqueued
+  runs no gate and posts no gate comment**, the PR's CI being its verdict, and nothing is enqueued
   for that PR. The implementer's half reads the same in every mode:
   still a draft, still never its own merge. The dispatcher's does not — in-line, the verdict comment arrives
   *before* the hand-back rather than after it, so it is not the signal that the implementer is done, and
@@ -260,11 +267,15 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   renames an export or moves code between modules, every test file that mocks or imports that module breaks
   too, so its budget also covers each of those, found by grepping the module's specifier and run one at a
   time. A fix round's brief and a review pass's verification carry the same widening.
-- **The head an implementer pushes is held green to the project's preflight, and whether a hook does that is
-  observed rather than declared** — git's pre-commit hook, or the host's commit-hook or turn-end-hook row in
+- **The head an implementer pushes is held green to the project's preflight in in-line and queue mode, and
+  under a remote gate whose CI is not on your machine; under a remote gate on local CI it is optional**, that CI
+  running it on your machine anyway. **Where `preflight` and `gate` are one command, the gate mode's one run —
+  the in-line `gate`, the queued ticket or the PR's CI — holds that head**, and while building the implementer
+  runs only targeted sections of it, so a brief names one check budget. Whether a hook does the holding is
+  observed rather than declared — git's pre-commit hook, or the host's commit-hook or turn-end-hook row in
   `skills/procedures/host-tools.md` — where one runs the preflight over that head it holds it, and where none
   does the implementer runs the preflight itself before pushing. There is no config key for it, since a hook's
-  presence is something any pass can observe.
+  presence and where a CI job runs are things any pass can observe.
 - **An agent reads the project's guidance by its routers and writes to it by the same layout.** It loads the
   `AGENTS.md` router of every directory its work touches, up to the root, and only the `.agents/rules/`
   chapters those routers send its work to — a monolith it reads whole. A convention it adds goes where a

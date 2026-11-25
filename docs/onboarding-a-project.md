@@ -120,16 +120,19 @@ runs `gate` locally for it, the local gate stepping in only when CI gives no ans
 else — lint or typecheck alone — the project gates locally, and setup offers, priced and only on your yes, to
 have that workflow run `gate`.
 
-**One ask is an offer rather than a value: a self-hosted runner for the gate, only on onboarding** — made where
-no workflow runs the gate on pull requests, or where one runs only on paid hosted runners and you want it free,
-for this repo or across a workspace's members, priced in conversation. *No* is a complete answer and records
+**One ask is an offer rather than a value: a self-hosted runner for the gate on your own machine, only on
+onboarding, and the recommended answer** — made where no workflow runs the gate on pull requests, or where one
+runs only on paid hosted runners, for this repo or across a workspace's members, priced in conversation. On
+that runner the gate costs no minutes, a slice pushes without a required local preflight, and a job that failed
+for infrastructure reasons is re-run once without asking, never after a test failure. *No* is a complete answer and records
 nothing; the project then gates locally. On a yes setup writes a committed install script of the project's
 own, `.github/scripts/install-<os>-runner.sh`, that registers the runner (a token from `gh api`, the runner's
 own config and service install, a label) and then does only what this project's gate needs on the machine —
 setup reads the gate, the project's CI and its guidance for that, checking it against known runner traps such
 as macOS's `SessionCreate`, which matters only to a project whose jobs reach the login Keychain; it drafts a
-gate workflow on that label; and it shows you each before anything is committed or registered. Your machine's
-facts and secrets never go into the config. Where the first remote gate is red, its failing tests are re-run
+gate workflow on that label, running the preflight as its own step before the gate so a type or lint error fails
+in seconds; and it shows you each before anything is committed or registered. Your machine's
+facts and secrets never go into the config. Where the first remote gate is red on a test, its failing tests are re-run
 locally at the same SHA, so a red seen only on the runner is read as the runner's environment rather than your
 code. Under a remote gate a gate queue is needed only for the runs that stay local, so setup scaffolds one
 there only where those saturate the box.

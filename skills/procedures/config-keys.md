@@ -55,7 +55,8 @@ carries the precedence and the refusals.
   key is written only as `"local"`. **`remote` takes effect only where the project's CI runs its `gate` on pull
   requests to the PR's target**, observed at dispatch and never declared: a workflow under `.github/workflows/`
   at that target whose `on:` names `pull_request`, whose `branches`, where it lists any, match the target, and
-  **whose `run:` steps contain the `gate` command's text** — directly, or as the script that command invokes —
+  **whose `run:` steps contain the text of that PR's gate command** — `gate`, or `fullGate` on a promotion PR
+  (`fullGate` below) — directly, or as the script that command invokes —
   read as a string match on the file and never as a claim about what a job's output proved.
   `pull_request_target`, which runs the base's code rather than the PR's, does not count, and **PR CI running
   something else — lint or typecheck alone, a different command — gates locally**, a miss costing only a local
@@ -63,22 +64,29 @@ carries the precedence and the refusals.
   CI checks at its head SHA are its gate, wherever that CI executes — GitHub-hosted, a paid provider's or a
   self-hosted machine alike — and no `gate` runs locally for that PR, **the local gate being the fallback
   where CI gives no answer for the head**. **It covers every gate that has a PR** — a slice's, an epic
-  close-out's, an integration branch's; **a gate with no PR stays local whatever the key says** — a mid-arc
-  integration gate, the tip audit, a `fullGate` run. **`"local"` is the opt-out** for a project whose CI runs
-  its gate on PRs but that gates locally anyway, and a project whose PR CI runs no `gate` gates locally with the
-  key absent. Local means the queue where `enqueue`/`drain` are declared and in-line where they are not; the
+  close-out's, an integration branch's, a promotion PR's; **a gate with no PR stays local whatever the key
+  says** — a mid-arc integration gate, the tip audit, a `fullGate` run other than a promotion PR's. **`"local"` is the opt-out**
+  for a project whose CI runs its gate on PRs but that gates locally anyway, and a project whose PR CI runs no
+  `gate` gates locally with the key absent. Local means the queue where `enqueue`/`drain` are declared and in-line where they are not; the
   `preflight` is local wherever it is required (`preflight` below).
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
   and no key switches a cache off. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
-  than a gap. **Present, it runs on demand, before a release or install, and in place of `gate` at an
+  than a gap. **Present, it is a promotion PR's gate — a PR whose base is a branch beyond the integration
+  branch, such as `release/x` into `dev` or `dev` into `main` — run by the project's CI, which chooses by the
+  PR's base (`github.base_ref`); and it runs on demand, before a release or install, in place of `gate` at an
   epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as the
   cold command of a queued project's tip audit, and nowhere else**: every slice and integration gate and every
   other close-out gate stays `gate`, a slice that moves the boundary reaching the whole suite through its split
   gate's own fallback, and a queued project gates `fullGate` runs in a
-  `full` ticket mode. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
+  `full` ticket mode. **Where the integration branch is the default branch there is no promotion PR**, and the
+  rest of that list is the whole cadence. **A promotion PR whose CI runs only `gate` owes its `fullGate` as a
+  PR-less run.** **Where `fullGate` is declared, a PR workflow running its command, or a sweep
+  `skills/procedures/code-shape.md` places under it, on PRs into the integration branch or an epic branch runs
+  it off this cadence** — read off its `pull_request` trigger and `run:` steps as a string match, where neither
+  a `branches` filter nor a `github.base_ref` condition keeps that step to promotion PRs. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
   `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from the integration tip —
   never the main checkout.
 - **`targetedTest`** — optional: a template using one of `{files}` (test file paths) or `{names}` (test

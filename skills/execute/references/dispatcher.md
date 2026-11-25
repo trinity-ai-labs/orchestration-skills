@@ -73,7 +73,7 @@ gate** after a merge onto the integration branch, as a **PR-less ticket** whose 
 ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
 run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
 dispatch and no integration gate in front of a merge into an epic branch** — the audit after one holds no merge.
-Only a `full` ticket and the audit run a declared `fullGate`, the `full` ticket on demand, before a release, and at
+Only a `full` ticket and the audit run a declared `fullGate` in this flow, the `full` ticket on demand, before a release, and at
 a close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
 PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
 sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no

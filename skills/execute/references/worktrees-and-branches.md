@@ -320,10 +320,10 @@ every edit this fires on is one a checker compelled, so undoing it hands the che
   re-gate rule — since a ticket raised first both burns a serialized gate on
   code you are about to replace and freezes the very worktree that fix agent has to write in, with nothing
   able to take a ticket back. Where the project declares **no queue**, run that close-out gate in the epic's
-  own worktree yourself and read its exit status. **Under a remote gate (`gatePreference` not `"local"`, and CI
-  running the project's `gate` on PRs to the integration branch) the close-out gate is that PR's own CI at its head** — nothing enqueued and nothing hand-run, the fix round's push re-running it — read, and fallen
+  own worktree yourself and read its exit status. **Under a remote gate (`skills/procedures/config-keys.md`,
+  `gatePreference`) the close-out gate is that PR's own CI at its head** — nothing enqueued and nothing hand-run, the fix round's push re-running it — read, and fallen
   back from only where CI gives no answer, by `skills/execute/references/reviewing.md`, *Reading a gate
-  result*; a `fullGate` the boundary calls for still runs locally, as every `fullGate` run does.
+  result*; a `fullGate` the boundary calls for still runs locally, as every `fullGate` this flow runs does.
 
   **Then one check stands between that green gate and the merge — `autoMergeEpicCloseOut`
   (`skills/procedures/config-keys.md`), read here, after the gate and before the helper.**

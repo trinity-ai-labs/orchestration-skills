@@ -86,6 +86,10 @@ Every value must trace to a file you read.
   user the project will gate locally, and offer to have its PR workflow run `gate`**: priced in runner minutes
   or money against the local gate it replaces, acted on only on a yes, the change shown before it is committed
   (`skills/ground-rules/SKILL.md`, rule 14), a no recording nothing.
+  **Where a workflow runs the heavy suites on slice PRs, off `skills/procedures/config-keys.md`'s `fullGate`
+  cadence, tell the user every slice pays them and offer the split by the PR's base that
+  `skills/setup/references/ci-runner.md`'s *The gate workflow* drafts** — existing CI is never rewritten
+  unasked: priced, shown and acted on only on a yes, as above.
   **Offer to stand up CI that runs the gate on a self-hosted runner on the user's machine, as the recommended
   answer** — for this repo, or across a workspace's members — **where no workflow runs the gate on PRs, or
   where one runs only on paid hosted runners** — on a public repository only with outside contributors'
@@ -93,8 +97,8 @@ Every value must trace to a file you read.
   minutes cost nothing, a slice pushes with no required local preflight, and a job that failed for infrastructure
   reasons is re-run once without asking, never after a test failure (`skills/ground-rules/SKILL.md`, rule 14). Priced in conversation and acted on
   only on a yes, a no being a complete answer that records
-  nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes opens
-  `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
+  nothing, the project then gating locally and the missing workflow visible in the tree. **Only a yes to this offer, or
+  to the split offer above, opens `skills/setup/references/ci-runner.md`**, and even then nothing it drafts is committed and no runner is
   registered without the user's yes to that artifact. **It offers on onboarding only, never on a reconcile**
   unless the user asks, since a tree with no PR CI is the answer already given. **No config key holds that
   answer.**
@@ -254,9 +258,8 @@ clone. **Never write the overrides file, or
 4. **Is the project's `gate` partial** — does it run only what a diff can affect, rather than the whole
    suite? **Only a yes declares `fullGate`**, its value the project's full-suite command **in a cold form that
    reads no cache and no stored green**, grounded like `gate` and confirmed; a no, a maybe or nobody to ask
-   omits it, which keeps `gate` the full gate at every seat. Declared, it runs only on demand, before a release,
-   at a close-out whose epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as a queued
-   project's tip audit (`skills/glossary/vocabulary/tip-audit.md`).
+   omits it, which keeps `gate` the full gate at every seat. Declared, it runs only where
+   `skills/procedures/config-keys.md`'s `fullGate` places it, a promotion PR's CI among them.
    ⛔ **Never infer partiality** from a script's name, a flag or a CI matrix — a partial gate's green reads
    exactly like a full one's, and while a wrong yes only spends a redundant full run before a release, a wrong no lets
    a cross-domain break past it.

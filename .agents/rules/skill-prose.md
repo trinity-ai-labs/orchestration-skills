@@ -3,10 +3,11 @@
 Chapter of the root [AGENTS.md](../../AGENTS.md): the rules for writing or changing the prose under `skills/`, and
 any prose in this repo that states a rule.
 
-**State a rule where its reader acts, in as many places as there are readers — but a DEFINITION has one
-home.** A skill that has to reach into another skill to explain a rule is not finished: restate what its
-reader needs and stop. Two copies of a rule that drift is a smaller problem than a rule nobody reaches, and
-every citation across skills is one more thing to keep true. **A definition is the opposite case and the line
+**State a rule where its reader acts, in as many places as there are readers — each seat's duty at that
+seat, by the routing layout below — but a DEFINITION has one home.** A skill that has to reach into another
+skill to explain a rule is not finished: restate what its reader needs and stop. Two copies of a rule that
+drift is a smaller problem than a rule nobody reaches, and every citation across skills is one more thing to
+keep true. **A definition is the opposite case and the line
 is what the sentence CLAIMS**: what a thing *is* is identical for every pass and owned by none of them, so
 copies drift with nothing able to make them agree; what a stance *does* about it differs per stance and is
 restated. So a shared term is defined once in `skills/glossary/` and cited directly from wherever it is used,
@@ -62,11 +63,18 @@ it compares the cited target as a whole path segment by equality, so a fourth ca
   it**, since slack left in a bound is room the next change grows into unseen. **A change that re-routes a
   seat updates the manifest in the same PR** — the check fails a listed file that neither the seat's root nor
   a file it opened earlier names by its repo path, so the manifest follows the prose rather than the reverse.
-- **A `SKILL.md` is an ordered list of ACTIONS.** Each action names the reference that says how and carries
-  the rules that fire at that action. A rule goes in the reference where the reader cannot perform the action
-  without opening it, and stays on the step where they can — nobody opens a file to write a commit message. A
-  rule firing at no single action goes in one short closing block. `skills/execute/SKILL.md` is the worked
-  example.
+- **The routing layout: a rule is stated ONCE, in the reference that owns it; a spine routes to that
+  reference in one line, opened only when its step is reached; every other seat cites the rule and restates
+  none of it.** **A `SKILL.md` is an ordered list of ACTIONS**, that spine: each action names the reference
+  that says how and carries only the rules that fire at it. A rule stays on the step where the reader can act
+  without opening anything, since nobody opens a file to write a commit message, and one firing at no single
+  action goes in one short closing block. **New detail goes behind a pointer, never into a spine.** The owning
+  reference is the skill's own, or one of the three shared homes above where the statement is identical at
+  every seat; **what a seat DOES about a shared rule is that seat's duty, written there with the citation
+  beside it**, and the rule itself is restated at a seat only where the citation boundary below forbids citing
+  its owner. `skills/execute/SKILL.md` is the worked example of a spine, and
+  `skills/procedures/code-shape.md`'s *Test policy*, cited from every seat that adds, approves or merges a
+  test, of a rule stated once.
 - **A skill cites its own references and three shared homes, and nothing else.** Unbounded cross-skill
   citation grew a web of references, a checker to validate it and a convention for writing it; state what your
   reader needs where they act instead. The three homes are the three edges above — `skills/glossary/`,

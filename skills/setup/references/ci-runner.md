@@ -104,10 +104,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: <install>
+      - run: <preflight>
       - run: <gate>
 ```
 
-**Leave drafts in** — an implementer's PR is a draft when its gate runs, so a `draft == false` filter would
+**Run the `preflight` as its own step before the `gate` step**, so a type or lint error fails the job in
+seconds and is named on its own line; where `preflight` is the same command as `gate`, the one `gate` step
+is it. **Leave drafts in** — an implementer's PR is a draft when its gate runs, so a `draft == false` filter would
 leave every slice with no answer and send it to the local fallback. The concurrency group cancels a superseded
 head's run, so a fix-round push does not queue a stale gate on a runner that takes one job at a time. Set the
 environment `gate` needs in the workflow or the runner's `.env`, never by assuming the user's shell.
@@ -115,8 +118,9 @@ environment `gate` needs in the workflow or the runner's `.env`, never by assumi
 ## Reading the first remote gate
 
 The setup PR that adds the workflow is the runner's first gate, so register the runner before that PR opens.
-**Green settles it.** **Where it is red, re-run the failing tests by name locally at the same SHA**, in a
+**Green settles it.** **Where it is red on a test, re-run the failing tests by name locally at the same SHA**, in a
 worktree cut at that head and never the main checkout: **a red only on the runner points at the runner's
 environment, not the code** — name what differs, read it against *Traps to check the project against*, fix it
-in the project's install script, and re-run, a CI re-run being the user's call. Red on both is the gate's own
+in the project's install script, and re-run, a CI re-run after a test failure being the user's call
+(`skills/ground-rules/SKILL.md`, rule 14). Red on both is the gate's own
 answer. Report the result in setup's handoff.

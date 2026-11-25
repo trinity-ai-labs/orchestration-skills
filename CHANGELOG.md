@@ -2,6 +2,31 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.30.0
+
+- **A runner on your own machine is now free in every sense the flow can see.** A new glossary entry, *local
+  CI* (`skills/glossary/vocabulary/local-ci.md`), says when a CI job runs on a runner this machine's
+  registration holds: the job's `runs-on` labels, the repository's runners from the Actions API, and the
+  runner's `.runner` file. A runner that cannot be placed reads as not local, and a GitHub-hosted or paid one
+  never is.
+- **Under a remote gate on local CI the implementer's preflight is optional.** In-line and queue mode, and a
+  remote gate on a hosted or paid runner, keep the pushed-head preflight as before, except where `preflight`
+  is the same command as `gate` (below).
+- **Ground rule 14 gains one exception.** A job on local CI that failed for infrastructure reasons with nothing
+  in the code to fix is re-run once without asking, with `gh run rerun --failed`. That covers a session that
+  never connected, a runner that dropped, or a cancellation or timeout before any test ran. It never applies
+  after a test failure and never twice on one head. A fresh run, `gh workflow run`, an empty commit and a new or
+  widened workflow still need the user's word.
+- **Setup recommends the runner, and its drafted workflow fails fast.** Setup's CI-runner offer and co-think's
+  CI bullet now put a self-hosted runner on the user's machine as the recommended answer. The offer is still
+  priced and yes-gated, and a no is still complete. The drafted gate workflow runs the `preflight` as its own
+  step before the `gate` step.
+- **The brief composes where `preflight` is `gate`.** The gate mode's one run holds the pushed head: the in-line
+  `gate`, the dispatcher's ticket, or the PR's CI. While building, the implementer runs only targeted sections,
+  so a brief no longer says both "run it before pushing" and "run the gate once".
+- **A check skipped because its skip names the run that already passed that tree reads as a pass** under a
+  remote gate, rather than as no answer.
+
 ## 5.29.1
 
 - **A project's runner install script is built from what that project needs, not from a fixed recipe.** Every

@@ -67,6 +67,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | hand-back record — hand-back comment | `skills/glossary/vocabulary/hand-back-record.md` |
 | horizon | `skills/glossary/vocabulary/grounding-depth.md` |
 | integration branch | `skills/glossary/vocabulary/integration-branch.md` |
+| local CI | `skills/glossary/vocabulary/local-ci.md` |
 | monolith (agent guidance) | `skills/glossary/vocabulary/agent-guidance.md` |
 | outcome record | `skills/glossary/vocabulary/outcome-record.md` |
 | release unit | `skills/glossary/vocabulary/code-shape.md` |

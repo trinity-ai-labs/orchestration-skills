@@ -7,12 +7,11 @@ format-*checks*; where it declares none there is no formatter step, and formatti
 preflight and the project's conventions hold it to. **Formatter output is always committed, never reverted**:
 your files' formatting folds into the change, unrelated files' into a `chore(format)` commit.
 
-**The cheap preflight (`skills/procedures/config-keys.md` defines it) is green at the head you push, whatever
-runs per commit** — held by a hook only where one runs `preflight` and covers that head: an executable
-`pre-commit` in `$(git rev-parse --git-path hooks)`, a path that follows `core.hooksPath`, having run on the
-commit at that head, or the host's commit-hook or turn-end-hook row in `skills/procedures/host-tools.md`; and by
-you, running `preflight` in the foreground on that head before you push, where none does — a merge or a
-`--no-verify` commit at the head included.
+**The cheap preflight, where your brief says it is required (`skills/procedures/config-keys.md`), is green at
+the head you push, whatever runs per commit** — held by a hook only where one ran
+`preflight` on that head's commit (git's executable `pre-commit`, which follows `core.hooksPath`, or the host's
+commit-hook or turn-end-hook row in `skills/procedures/host-tools.md`), otherwise by you, running it in the
+foreground on that head before you push — a merge or a `--no-verify` commit at the head included.
 
 **Before you commit, sweep for untracked files and account for each one.** The command is the one this
 corpus already uses: `git ls-files --others --exclude-standard`. For every name it prints, **add it or say

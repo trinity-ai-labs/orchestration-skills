@@ -385,7 +385,8 @@ before it), a skipped one and a PR with no checks pass, and the merge is pinned 
 read (`--match-head-commit`). **A pending check is not waited on**: read `gh pr checks <n>` and re-run
 `merge-pr.sh` once it settles. **A green gate comment over a red CI is not a green gate** — fix the check on the
 branch, push, re-gate, then re-run; a check cancelled, timed out or stale with nothing in the code to fix needs a
-CI re-run, which is the user's call. **The one wait is on CI the ready flip itself starts**: where the draft
+CI re-run, the user's call but for `skills/ground-rules/SKILL.md` rule 14's: once, on local CI, after an
+infrastructure failure, never after a test failure. **The one wait is on CI the ready flip itself starts**: where the draft
 SKIPPED a check whose workflow names `ready_for_review` in its PR trigger's types, the helper marks the PR ready
 before the teardown, waits a bounded two minutes for each such check to re-run and then on
 `gh pr checks --watch --fail-fast`, and merges only on green; a red, cancelled or still-pending check, or one that

@@ -13,7 +13,8 @@ a declared `fullGate` is never yours in any mode**, its runs being your dispatch
   not a package `test` script — and **backgrounding it is still running it**. Never wait on a gate either: in
   queue mode the ticket is your dispatcher's, raised after it reads your diff, and in remote mode the CI your
   push triggers is your dispatcher's to read.
-- **Your half is the same in both:** run `preflight` on the head you push, where no hook covering that head
-  does, push, open a **draft** PR and hand back. **You post no gate comment** — the runner comments a queued
-  verdict, and in remote mode the PR's CI checks at its head ARE the verdict — and you start no CI run by
-  hand: no re-run, no `gh workflow run`, no empty commit to retrigger one.
+- **Your half is the same in both:** hold your pushed head as your brief's preflight case says, push, open a
+  **draft** PR and hand back. **You post no gate comment** — the runner comments a queued verdict, and in
+  remote mode the PR's CI checks at its head ARE the verdict — and you start no CI run by hand
+  (`skills/ground-rules/SKILL.md`, rule 14): its one exception — once, for an infrastructure failure, never
+  after a test failure — is your dispatcher's.

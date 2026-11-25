@@ -87,16 +87,17 @@ status.**
   started is read off `gh api --paginate repos/<o>/<r>/commits/<sha>/check-runs --jq '.check_runs[] |
   [.name, .status] | @tsv'`:
   - **Green: at least one check actually ran at that head and every check that ran passed** — a skipped
-    check did not run — **or every check there is one the draft skipped in a workflow whose `pull_request`
+    check did not run, save one whose check-run output names a passed run of that same tree — **or every check there is one the draft skipped in a workflow whose `pull_request`
     trigger names `ready_for_review`**, which `merge-pr`'s ready-flip wait gates, merging only once they
     re-ran green.
   - **Red: any check failed, and a red CI is a red gate**, read and fixed on the branch like any other red,
     the fix's push being its re-gate. **A failing check is never a reason to fall back to the local gate** —
-    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled with nothing in the
-    code to fix holds the merge too, since `merge-pr` refuses it, so surface it to the user for a re-run, which
-    is theirs to start (`skills/ground-rules/SKILL.md`, rule 14).
+    the fallback is for *no answer*, never for an answer nobody liked. A check cancelled, timed out or failed before
+    any test ran, nothing in the code to fix, holds the merge too, since `merge-pr` refuses it: on local CI
+    re-run it once, an infrastructure failure, never after a test failure, else surface it to the user
+    (`skills/ground-rules/SKILL.md`, rule 14).
   - **Fall back to the local gate only where CI gives no answer for the head, read across two consecutive
-    divergence ticks since the push**: no check registered, every one skipped (Green's draft-skipped case
+    divergence ticks since the push**: no check registered, every one skipped (Green's skip cases
     excepted), or every check still pending reading `queued`, never `in_progress`, **counting only ticks at
     which no workflow run of the repository is in progress** (`gh run list --status in_progress --limit 1`), since
     a check queued behind another PR's live job is waiting its turn on a runner that takes one at a time.
@@ -253,7 +254,7 @@ head, since a verdict that predates the last push describes a tree the PR no lon
 loudly, where the delta moves the boundary or touches a file neither the structure nor the map places
 (`skills/procedures/code-shape.md`,
 *The shape of a split gate*), the verdict naming both SHAs; with no `fullGate`, re-run `gate`; under a remote
-gate the fix round's push is its re-gate, and nothing is re-run by hand. A project's
+gate the fix round's push re-gates it, nothing re-run by hand (`skills/ground-rules/SKILL.md`, rule 14). A project's
 stricter rule still wins, stated with its cost as `skills/ground-rules/SKILL.md` rule 13 asks; where the scope
 is genuinely unclear, ask, by the decide-don't-ask bar's one re-gate exception.
 
@@ -539,10 +540,8 @@ both are declared; the implementer's own, once, in the foreground,
 with no slot, where neither is or the slice was put in override mode; and, where the gate runs remote, the PR's
 own CI, which queues its own runs. `gate` is the HEAVY full suite: build +
 the entire test run — **unless the project declares `fullGate`**, where `gate` may run only what the slice's
-diff can affect. Beyond that one run an implementer's pushed head is held only to the cheap preflight — by a
-hook where one covers it (`skills/procedures/host-tools.md`'s hook rows),
-by the implementer before pushing where none does — and
-where a PR gets no CI, its local gate run is what stands in for CI.
+diff can affect. Beyond that one run an implementer's pushed head is held only to the cheap preflight, where
+`skills/procedures/config-keys.md` requires it, and where a PR gets no CI, its local gate run is what stands in for CI.
 
 **Per-PR, the dispatcher reads the diff — it does NOT hand-re-run the heavy gate.** The gate's green comment,
 the runner's or the implementer's, or the PR's green CI under a remote gate, is the per-PR signal; don't duplicate it. Re-gate — **by enqueuing it**,

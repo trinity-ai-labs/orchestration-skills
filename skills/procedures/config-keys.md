@@ -67,7 +67,7 @@ carries the precedence and the refusals.
   integration gate, the tip audit, a `fullGate` run. **`"local"` is the opt-out** for a project whose CI runs
   its gate on PRs but that gates locally anyway, and a project whose PR CI runs no `gate` gates locally with the
   key absent. Local means the queue where `enqueue`/`drain` are declared and in-line where they are not; the
-  `preflight` is local in every case.
+  `preflight` is local wherever it is required (`preflight` below).
 - **`fullGate`** — the project's full gate, declared only where `gate` is partial: the project's own `gate`
   decides what a diff can affect and prints that reach, and nothing in this flow maps paths to tests.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
@@ -89,7 +89,11 @@ carries the precedence and the refusals.
   format-check + lint + typecheck, and whatever else the gate runs without building, configuring and code
   generation allowed — **no compile or test step of the gate starts before every one of these has passed, the
   gate holding no copy of it**, so a no-compile failure fails in seconds. **A slice is held to it green at the
-  head it pushes**, and it runs inside the project's `check` slot where a gate queue scaffolds one. **Equal to
+  head it pushes in in-line and queue mode, and under a remote gate whose `gate` job is not on local CI
+  (`skills/glossary/vocabulary/local-ci.md`); under a remote gate on local CI it is optional**, that CI running
+  the gate on this machine anyway. **Where it is the same command as `gate`, the gate mode's one run holds that
+  head instead** — the in-line `gate` run, the queued ticket, or the PR's CI — and building runs only targeted
+  sections of it. It runs inside the project's `check` slot where a gate queue scaffolds one. **Equal to
   `gate` where the gate itself runs in seconds**, a correct answer rather than a missing tier. **Absent, a declared
   retired `scopedCheck` is read as the preflight** (the retired-name paragraph under the `autoMerge*` keys below).
   **A preflight stays fast by construction**: an unchanged tree skips it; an expensive step caches its verdict

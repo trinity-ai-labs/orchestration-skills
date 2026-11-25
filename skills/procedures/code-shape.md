@@ -87,7 +87,11 @@ answer.**
   cannot state all three is not written. A test that costs more to run than its failure would cost to ship is
   deleted.
 - **Anything visible by opening the product — layout, pixels, positions, wording, theme — is never a guard**,
-  recurrence below being the one exception.
+  recurrence below being the one exception outside an area checked by hand.
+- **A hand check made while building is the verification for visible behaviour** — running the product and
+  looking at it, by the owner or during the slice — run once, reported with what was run and what was seen,
+  and never committed. **An area the project's guidance names as checked by hand gets no guard of visible
+  behaviour.**
 - **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.**
 - **Recurrence earns a guard: a decided behaviour reverted, or the same bug fixed more than once, as the
   history shows**, even where the failure is visible on screen, since agents change what nobody is watching

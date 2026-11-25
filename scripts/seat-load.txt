@@ -53,23 +53,23 @@ open  implementer *      8-gate-hand-back      skills/procedures/github-writes.m
 open  implementer *      9-brief-wrong         skills/execute/references/implementer-brief-wrong.md
 
 bound implementer in-line 1-2-before-first-edit 6914
-bound implementer in-line 3-build               13736
-bound implementer in-line 4-docs                19378
-bound implementer in-line 7-review              19925
-bound implementer in-line 8-gate-hand-back      22224
-bound implementer in-line 9-brief-wrong         24215
+bound implementer in-line 3-build               13801
+bound implementer in-line 4-docs                19443
+bound implementer in-line 7-review              19990
+bound implementer in-line 8-gate-hand-back      22297
+bound implementer in-line 9-brief-wrong         24288
 bound implementer queue   1-2-before-first-edit 7186
-bound implementer queue   3-build               14008
-bound implementer queue   4-docs                19650
-bound implementer queue   7-review              20197
-bound implementer queue   8-gate-hand-back      21746
-bound implementer queue   9-brief-wrong         23737
+bound implementer queue   3-build               14073
+bound implementer queue   4-docs                19715
+bound implementer queue   7-review              20262
+bound implementer queue   8-gate-hand-back      21819
+bound implementer queue   9-brief-wrong         23810
 bound implementer remote  1-2-before-first-edit 7186
-bound implementer remote  3-build               14008
-bound implementer remote  4-docs                19650
-bound implementer remote  7-review              20197
-bound implementer remote  8-gate-hand-back      21746
-bound implementer remote  9-brief-wrong         23737
+bound implementer remote  3-build               14073
+bound implementer remote  4-docs                19715
+bound implementer remote  7-review              20262
+bound implementer remote  8-gate-hand-back      21819
+bound implementer remote  9-brief-wrong         23810
 
 # --- dispatcher — skills/execute/references/dispatcher.md's four phases --------
 #
@@ -86,9 +86,9 @@ open  dispatcher * 4-land        skills/execute/references/landing.md skills/pro
 
 bound dispatcher all 0-read-config 16430
 bound dispatcher all 1-set-up      22380
-bound dispatcher all 2-dispatch    35727
-bound dispatcher all 3-judge       44936
-bound dispatcher all 4-land        53590
+bound dispatcher all 2-dispatch    35718
+bound dispatcher all 3-judge       44927
+bound dispatcher all 4-land        53581
 
 # --- review-pass reader — one dimension, briefed by skills/review/SKILL.md -----
 #
@@ -104,13 +104,13 @@ open  review-reader correctness,altitude,tests read skills/procedures/code-shape
 open  review-reader rules read skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md
 
 bound review-reader goal           read 2802
-bound review-reader correctness    read 6613
+bound review-reader correctness    read 6678
 bound review-reader reuse          read 2802
 bound review-reader simplification read 2802
 bound review-reader efficiency     read 2802
-bound review-reader altitude       read 6613
+bound review-reader altitude       read 6678
 bound review-reader rules          read 7904
-bound review-reader tests          read 6856
+bound review-reader tests          read 6921
 
 # --- grounder — skills/ground/SKILL.md's actions --------------------------------
 #
@@ -123,8 +123,8 @@ open  grounder * 3-slice  skills/ground/references/slicing.md skills/procedures/
 open  grounder * 4-emit   skills/ground/references/emitting.md skills/procedures/github-writes.md
 
 bound grounder all 1-ground 14292
-bound grounder all 3-slice  24878
-bound grounder all 4-emit   27643
+bound grounder all 3-slice  24943
+bound grounder all 4-emit   27708
 
 # --- orchestrator — skills/orchestrate/SKILL.md's numbered sections ----------
 #

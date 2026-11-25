@@ -263,9 +263,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is ONE targeted test run, `<targeted run>`, never a suite, and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.** **On
-  an epic branch the default is the tests lens ALONE, on a slice that adds a test**, so no test the *Test policy*
-  (`skills/procedures/code-shape.md`) refuses reaches the epic tip; the rest of review moves there, at the review
-  checkpoints you plan (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the
+  an epic branch the default is the tests lens ALONE, on a slice that adds a test**, the rest of review moving
+  to the epic tip, at the review checkpoints you plan (*Review checkpoints*, `skills/execute/references/worktrees-and-branches.md`) and the
   close-out panel over the whole diff. A slice's full `/pipeline:review` pass over its PR before it merges is the
   exception, for a contract seam later slices build on, for security, auth, data migration or anything
   irreversible, and for substantial work on an arc with no epic branch, where there is no epic tip to review. Say

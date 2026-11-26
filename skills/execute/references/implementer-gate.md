@@ -4,7 +4,7 @@ Reference for `skills/execute/SKILL.md` → *Implementer*, step 8. **Read it bef
 mode.**
 
 **Who runs `gate`, and where, is your gate mode's to say** — the project's `enqueue`/`drain` and its
-`gatePreference` beside whether its CI runs `gate` on pull requests decide it, never self-granted, never inferred — **and a
+`gatePreference` decide it, never self-granted, never inferred — **and a
 declared `fullGate` is never yours in any mode**, its runs being your dispatcher's. **In remote mode there is no
 gate of yours at all**: the PR's CI checks at its head are the verdict, so you run no `gate` and post no gate
 comment (`skills/execute/references/implementer-queue.md`).

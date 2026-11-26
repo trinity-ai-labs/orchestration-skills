@@ -58,7 +58,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | Adjacent | `skills/glossary/vocabulary/adjacent.md` |
 | agent guidance — router, rule chapter, pointer | `skills/glossary/vocabulary/agent-guidance.md` |
 | central list | `skills/glossary/vocabulary/code-shape.md` |
-| code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, seam test, split gate, structure-selected, map-selected, selection machinery, moves the boundary, guard, probe | `skills/glossary/vocabulary/code-shape.md` |
+| code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, seam test, split gate, structure-selected, map-selected, selection machinery, moves the boundary, guard, probe, measurement cache | `skills/glossary/vocabulary/code-shape.md` |
 | component, core | `skills/glossary/vocabulary/code-shape.md` |
 | divergence | `skills/glossary/vocabulary/divergence.md` |
 | epic branch | `skills/glossary/vocabulary/epic-branch.md` |
@@ -70,9 +70,11 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | local CI | `skills/glossary/vocabulary/local-ci.md` |
 | monolith (agent guidance) | `skills/glossary/vocabulary/agent-guidance.md` |
 | outcome record | `skills/glossary/vocabulary/outcome-record.md` |
+| promotion PR | `skills/glossary/vocabulary/promotion-pr.md` |
 | release unit | `skills/glossary/vocabulary/code-shape.md` |
 | review checkpoint | `skills/glossary/vocabulary/review-checkpoint.md` |
 | setup debt | `skills/glossary/vocabulary/code-shape.md` |
+| test-type table | `skills/glossary/vocabulary/test-types.md` |
 | tip audit — cold, gives way, charged, environmental | `skills/glossary/vocabulary/tip-audit.md` |
 | umbrella | `skills/glossary/vocabulary/umbrella.md` |
 

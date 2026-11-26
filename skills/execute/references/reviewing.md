@@ -78,8 +78,8 @@ status.**
   reconcile. An audit settled **refused** `replayed` reached a cache, through the runner's switch or a
   `fullGate` that is not cold, so say `/pipeline:setup` should reconcile it.
 
-- **Under a remote gate — `gatePreference` not `"local"`, and a workflow running the project's `gate` on
-  `pull_request` to the PR's target — the PR's CI checks at its head SHA are the verdict; read them there, never off a comment**
+- **Under a remote gate (`skills/procedures/config-keys.md`, `gatePreference`) the PR's CI checks at its head SHA
+  are the verdict — a promotion PR's being its CI running `fullGate` — read there, never off a comment**
   (`skills/execute/references/dispatcher.md`, *Gate mode*). Take the head with
   `gh pr view <n> --json headRefOid --jq .headRefOid`, and the checks through what `merge-pr` reads,
   `gh pr checks <n> --json name,state,bucket,workflow`, which carries check runs and commit statuses alike;
@@ -313,34 +313,34 @@ actually changed. That is exactly how a stale README ships — not because the i
 because it was told not to look.
 
 **The review pass's rejected findings are addressed to YOU and reach you on the PR — read them, and read a
-hand-back record that names no review against your own brief before you read it as a clean pass.**
-`/pipeline:review` runs inside the implementer and its reviewers report to it, so its `Rejected` list — each
-finding that implementer considered and deliberately did not act on, carrying the reviewer or reviewers that
-raised it — is written for the reviewer of this PR. The **review the pass posted onto this PR** carries
-those findings as a live artifact attached to the diff, and the **dimension comments** beside it carry each
-reviewer's own report with the pass's disposition of every finding in it; the implementer's **hand-back
-record** (`skills/glossary/vocabulary/hand-back-record.md`) names both by URL and restates neither. **Where
-anything the hand-back says disagrees with the PR, take the PR** — its writes are bound to the diff and name a
-head you can compare, and a hand-back that differs from them is prose nothing checked; **where the review's
-summary disagrees with a dimension comment, the comment is the reviewer's report and the summary is the
+hand-back record that names no review against your own brief before you read it as a clean pass.** ⛔ **An open
+tests-lens finding holds the merge until it is closed by its class** (`skills/procedures/code-shape.md`, *Test
+policy*), never by PR text alone. `/pipeline:review` runs inside the implementer and its reviewers report to
+it, so its `Rejected` list — each finding that implementer considered and deliberately did not act on, carrying
+the reviewer or reviewers that raised it — is written for the reviewer of this PR. The **review the pass posted
+onto this PR** carries those findings as a live artifact attached to the diff, and the **dimension comments**
+beside it carry each reviewer's own report with the pass's disposition of every finding in it; the implementer's
+**hand-back record** (`skills/glossary/vocabulary/hand-back-record.md`) names both by URL and restates neither.
+**Where anything the hand-back says disagrees with the PR, take the PR** — its writes are bound to the diff and
+name a head you can compare, and a hand-back that differs from them is prose nothing checked; **where the
+review's summary disagrees with a dimension comment, the comment is the reviewer's report and the summary is the
 implementer's gloss on it**. Either disagreement should not happen, and one that does is itself worth a round
-trip.
-**Read a rejection naming SEVERAL reviewers harder than one naming a single reviewer**: several lenses landing
-on one site by different routes is the strongest evidence the run produces, so a rejection has to answer all
-of them, and one entry naming three reviewers is a converged finding turned down once rather than three
+trip. **Read a rejection naming SEVERAL reviewers harder than one naming a single reviewer**: several lenses
+landing on one site by different routes is the strongest evidence the run produces, so a rejection has to answer
+all of them, and one entry naming three reviewers is a converged finding turned down once rather than three
 findings. That list is written for the reviewer of this PR — you, holding this diff. A rejection you disagree
 with is a fix-agent round trip; one you agree with is the cheapest evidence in the run that the diff was
-reasoned about rather than typed, and it is evidence no gate and no diff can produce.
-**When the list is absent, the blank is two different facts wearing one face, and you are the only party who
-can tell them apart** — a slice you told to skip the pass has no findings by construction and the blank is
-correct, while a slice that ran it and forwarded nothing is indistinguishable from one whose pass raised
-nothing, which is the exact indistinguishability that list exists to remove. So check the review decision you
-made in the brief, then read the silence: correct where you skipped it, a round trip where you did not — and
-a slice you told to run the pass whose PR carries neither its review nor its dimension comments is a missing
-write, whatever its hand-back says. **Write that decision onto the PR in each review you post, and into the
-issue's closing comment** — `Review pass: ran`, `Review pass: skipped — <reason>`, or
-`Review pass: review checkpoint — <epic PR review URL>`, naming it where you overrode the breakdown's
-recommendation — since the brief dies with the run, and that line is what tells this blank apart once it has.
+reasoned about rather than typed, and it is evidence no gate and no diff can produce. **When the list is absent,
+the blank is two different facts wearing one face, and you are the only party who can tell them apart** — a
+slice you told to skip the pass has no findings by construction and the blank is correct, while a slice that ran
+it and forwarded nothing is indistinguishable from one whose pass raised nothing, which is the exact
+indistinguishability that list exists to remove. So check the review decision you made in the brief, then read
+the silence: correct where you skipped it, a round trip where you did not — and a slice you told to run the pass
+whose PR carries neither its review nor its dimension comments is a missing write, whatever its hand-back says.
+**Write that decision onto the PR in each review you post, and into the issue's closing comment** — `Review
+pass: ran`, `Review pass: skipped — <reason>`, or `Review pass: review checkpoint — <epic PR review URL>`,
+naming it where you overrode the breakdown's recommendation — since the brief dies with the run, and that line
+is what tells this blank apart once it has.
 
 **A report that names unfinished work hands YOU the next move, not the user.** A hand-back is allowed —
 required, even — to say what it did not land. The item stops with you: your moves are a fix agent into that

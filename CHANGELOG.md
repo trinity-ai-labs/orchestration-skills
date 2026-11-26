@@ -2,6 +2,43 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.31.0
+
+- **No new test is the default, and a test earns its place against both of its costs.** The *Test policy*
+  (`skills/procedures/code-shape.md`) now keeps a guard only where the failure it catches is invisible while
+  building and costly once shipped, priced on the pile it joins and on its own seconds over every gate it lives
+  through. Each guard's justification is three items written on the PR — the failure, why it is invisible and
+  costly, and its seconds per run — or it is not written. Visible behaviour is verified by a hand check while
+  building, run once, reported and never committed; a guard is earned by recurrence in the history or by the
+  owner's ask, and it pins a decision, so a change that trips it is a question to the owner. Verify bars accept
+  none as an answer, and no template asks for a test count.
+- **The tests lens replaces *Redundant or over-swept tests*, and its findings bind.** `/pipeline:review`'s tests
+  lens (`skills/review/references/tests-lens.md`) starts each added test marked for deletion; the caller
+  cannot reject its finding, and the merge waits until it closes by its class, as the *Test policy* says: a
+  missing justification closes when one that holds is written on the PR, and a test the policy does not admit,
+  of the wrong type for its row, or that re-measures closes only on deletion or an owner answer on record.
+  A brief can scope the pass to named dimensions, and every slice that adds a test, on every branch type, runs
+  the tests lens alone by default, on an epic branch the rest of review staying at the checkpoints and the
+  close-out.
+- **A per-area test-type table.** `/pipeline:setup` drafts it with the owner
+  (`skills/setup/references/test-types.md`): per area, what must be right — with a default set from the money
+  layer to parsers — the test type that brings value, whether it is checked by hand, and what is never
+  committed. It is agent guidance in the project's tests chapter, never config; a reconcile drafts only missing
+  rows. The tests lens judges a test's type against its row, and `/pipeline:health` names `Test types: <area>`
+  or `Test types: no table` for a project with a test suite.
+- **Heavy suites run on promotion only.** `fullGate` is now a promotion PR's gate — a PR whose base is a branch
+  beyond the integration branch, a new glossary entry (`skills/glossary/vocabulary/promotion-pr.md`) — chosen by the project's CI from `github.base_ref`; setup's drafted runner
+  workflow runs `gate` or `fullGate` by the PR's base, and remote-gate detection reads that PR's gate command.
+  Setup flags a workflow running heavy suites on slice PRs and offers the split, and health names it as
+  `Heavy suite on slice PRs: <workflow>`. No config key was added.
+- **The measurement cache.** A measurement worth keeping is stored as its answer rather than re-asked by a test
+  on every gate: a measuring tool run on demand, the stored rows stamped over the subject and the measuring
+  code, and a milliseconds staleness check the gate runs on every change (`skills/procedures/code-shape.md`,
+  *The measurement cache*). A probe you will want again becomes a validation tool, never a committed test; the
+  tests lens raises a committed re-measurement as a finding, and health's `Prune candidates` marks one.
+- **A reviewer reads another commit without moving the tree.** The reviewer brief now says the tree already is
+  the PR's head, and any other commit is read with `git show <sha>:<path>` or `git diff <a> <b>`.
+
 ## 5.30.0
 
 - **A runner on your own machine is now free in every sense the flow can see.** A new glossary entry, *local

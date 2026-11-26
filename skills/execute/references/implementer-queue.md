@@ -4,7 +4,7 @@ Reference for `skills/execute/SKILL.md` → *Implementer*, step 2. **Read it whe
 and `drain`, or when your brief puts you in remote mode.**
 
 **Who runs `gate`, and where, is your gate mode's to say** — the project's `enqueue`/`drain` and its
-`gatePreference` beside whether its CI runs `gate` on pull requests decide it, never self-granted, never inferred — **and
+`gatePreference` decide it, never self-granted, never inferred — **and
 a declared `fullGate` is never yours in any mode**, its runs being your dispatcher's:
 
 - **In queue mode (the project declares `enqueue` and `drain`) and in remote mode (the PR's own CI is its

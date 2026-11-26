@@ -1,7 +1,8 @@
 # Standing up a self-hosted runner for the gate
 
 Reference for Step 1 of `/pipeline:setup`, *The real gate*. **Read it only once the user has said yes to the
-CI-runner offer** — a no is a complete answer, and the project then gates locally. Everything here lands in
+CI-runner offer, or *The gate workflow* alone once they have said yes to Step 1's split offer** — a no to the
+runner offer is a complete answer, and the project then gates locally. Everything here lands in
 the project, never in this plugin's helpers.
 
 **The gate rule never asks where a runner lives**: a GitHub-hosted runner or a paid provider's satisfies a
@@ -105,12 +106,30 @@ jobs:
       - uses: actions/checkout@v4
       - run: <install>
       - run: <preflight>
-      - run: <gate>
+      - if: ${{ !contains(fromJSON('[<promotion bases>]'), github.base_ref) }}
+        run: <gate>
+      - if: ${{ contains(fromJSON('[<promotion bases>]'), github.base_ref) }}
+        run: <fullGate>
 ```
 
-**Run the `preflight` as its own step before the `gate` step**, so a type or lint error fails the job in
-seconds and is named on its own line; where `preflight` is the same command as `gate`, the one `gate` step
-is it. **Leave drafts in** — an implementer's PR is a draft when its gate runs, so a `draft == false` filter would
+**Choose the gate step by the PR's base, `github.base_ref`**: `fullGate` on a promotion PR, `gate` on every
+other — a promotion PR being `skills/glossary/vocabulary/promotion-pr.md`'s, and where `fullGate` runs
+`skills/procedures/config-keys.md`'s `fullGate`. `<promotion bases>` lists, quoted, the branches beyond the integration branch that the project's
+branch flow promotes into — `"dev", "main"` above a `release/x` — named literally, since the integration branch
+itself rolls. **Where the project declares no `fullGate`, or its integration branch is the default branch, there
+is no promotion step**: drop both conditions and the `fullGate` step, leaving the one `gate` step.
+
+**Run the `preflight` as its own step before the gate step, on every PR**, so a type or lint error fails the
+job in seconds and is named on its own line; where `preflight` is the same command as `gate`, the one `gate`
+step is it on a slice PR, and the `preflight` step takes the promotion condition, so it runs only before a
+`fullGate` step:
+
+```yaml
+      - if: ${{ contains(fromJSON('[<promotion bases>]'), github.base_ref) }}
+        run: <preflight>
+```
+
+**Leave drafts in** — an implementer's PR is a draft when its gate runs, so a `draft == false` filter would
 leave every slice with no answer and send it to the local fallback. The concurrency group cancels a superseded
 head's run, so a fix-round push does not queue a stale gate on a runner that takes one job at a time. Set the
 environment `gate` needs in the workflow or the runner's `.env`, never by assuming the user's shell.

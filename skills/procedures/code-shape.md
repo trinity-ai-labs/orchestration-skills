@@ -1,8 +1,8 @@
-# Code shape — reading it, its signals, the test policy, placing a file, pruning, a missing tool, a split gate
+# Code shape — reading it, its signals, the test policy, placing a file, pruning, a missing tool, the measurement cache, a split gate
 
 Entry in `skills/procedures/SKILL.md`. **Procedures over one shape, the folder as the unit** — domain, core,
 component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate,
-moves the boundary, seam test, guard, probe and setup debt are defined in
+moves the boundary, seam test, guard, probe, measurement cache and setup debt are defined in
 `skills/glossary/vocabulary/code-shape.md`, and every
 step below uses those words in exactly that sense. `skills/ground-rules/SKILL.md` rule 12 is the rule they
 serve. The steps are the same whoever runs them.
@@ -73,11 +73,27 @@ from `gate`.
 ## Test policy
 
 Whether a permanent test should exist at all — a guard or a probe, both defined in
-`skills/glossary/vocabulary/code-shape.md`.
+`skills/glossary/vocabulary/code-shape.md`. **No new guard is the default, and none is always a valid
+answer.**
 
-- **A permanent test names the failure it exists to catch** — the bug, the broken contract, the regression a
-  user would see. *This behaviour exists* is not a reason: small behaviours are covered by the one seam test
-  that exercises them, never one test each.
+- **The keep rule: a guard exists only where the failure it catches is invisible while building and costly
+  once shipped** — the bug, the broken contract, the regression nobody sees by running the change. *This
+  behaviour exists* is not a reason: small behaviours are covered by the one seam test that exercises them,
+  never one test each.
+- **Per area, the project's test-type table (`skills/glossary/vocabulary/test-types.md`) narrows this
+  policy**: a test is of its area's type and of no kind its area never commits, and an item its row lists
+  under *must be right* is the owner's ask written down, so its guard needs no recurrence.
+- **A guard is priced on both of its costs before it is written** — the pile it joins, where a thousand
+  low-value tests at 7–30 s each are hours on every gate, and its own seconds per run, paid on each of the
+  roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, with the
+  recurrence or the owner's ask that earns it where that failure is a bug; why it is invisible while building
+  and costly once shipped; and its seconds per run** — and a guard that cannot state all three is not
+  written. A test that costs more to run than its failure would cost to ship is
+  deleted.
+- **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.** An answer
+  worth keeping goes to *The measurement cache* below.
+- **Extend an existing test that fails on the bug before adding a new one** — new only where no existing test
+  can carry the case.
 - **A test waits on a condition, not on elapsed time, by default**, since a fixed sleep, or nudging an input
   and pausing to see what moved, makes the verdict depend on how fast the machine is, which is where most
   flaky tests come from. Drive the subject to the state through its own interface, use a fake clock or a
@@ -90,17 +106,33 @@ Whether a permanent test should exist at all — a guard or a probe, both define
   component's folder — so the folders a change touches select it, and a tag carries only what the folder cannot
   say. **A sweep that samples across every unit is a sign the tests live away from their subject**, and the
   move is to colocate them.
-- **Extend an existing test that fails on the bug before adding a new one** — the fix's test, extended or new,
-  is new only where no existing test can carry the case.
-- **A bug earns a guard only when all three hold: it is easy to reintroduce, it would slip by unnoticed, and
-  it is costly if shipped** — otherwise the fix plus a probe is the proof.
-- **One representative unit, theme, size or browser engine by default** — the engine a case runs in is a
-  sweep axis like the others, so the other engines run on demand or at release; a sweep across every
-  combination needs a written reason beside it, and runs only in `fullGate` where the project declares one;
-  without `fullGate` it runs on every gate, which that reason must justify.
 - **A test that cannot fail is deleted** — an assertion against the value that configured its own mock, a
   constant asserted against itself, a check the implementation could never violate.
-- **A test that costs more to run than its bug would cost to ship is deleted.**
+
+**A tests-lens finding — review's reading of a test against this policy — binds: it is never rejected, and it
+closes by its class.** A finding that a justification is missing closes when a justification that holds is
+written on the PR, in its body or a hand-back comment. **A test the policy does not admit, a test of another
+type than its area's row names, or a test that re-measures closes only when the test is deleted, or on an
+owner answer on record** — rewording its justification closes none of them.
+
+### Earning a guard
+
+- **Visible behaviour — anything seen by opening the product: layout, pixels, positions, wording, theme — is
+  verified by a hand check made while building**: running the product and looking at it, by the owner or
+  during the slice, run once, reported with what was run and what was seen, and never committed. **It gets no
+  guard on a first occurrence or on speculation**, in an area checked by hand or anywhere else.
+- **A guard is earned by recurrence or by the owner's ask, never on an agent's own initiative after a first
+  fix** — recurrence being a decided behaviour reverted, or the same bug fixed more than once, as the history
+  shows, even where the failure is visible on screen, since agents change what nobody is watching and
+  recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most a
+  probe. **A guard so earned stands over its area's `never committed` cell for that one test**, and the row
+  edit that records it is proposed for the owner to confirm.
+- **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
+  the owner, never a rewrite of the test to match.
+- **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
+  repeated element — pinning the decision, never sweeping it.** Other engines run on demand, on a promotion
+  PR or at release; a sweep across every combination needs a written reason beside it, and runs only in
+  `fullGate` where the project declares one; without `fullGate` it runs on every gate, which that reason must justify.
 
 ## Placing new code and a new test — in order
 
@@ -124,7 +156,7 @@ Stop at the first answer that places it.
 7. **Add an interface only where two adapters vary across it** — a production implementation and a test
    fake, say. One adapter is no variation point yet, so no interface goes in for it.
 
-**Then its test:**
+**Then its test, only where the *Test policy* admits one:**
 
 1. **Put it in its subject's folder.**
 2. **Find the seam** — the narrowest boundary a caller or a user crosses that exercises the behaviour: a
@@ -143,7 +175,8 @@ qualifies under the *Test policy*:
 - **The loops with the highest sweep multiplicity** — cases run per case written.
 - **Same-shaped files repeated per unit, theme or product** — merge candidates for one table-driven test,
   counted in files.
-- **Probes committed as permanent cases** — test files.
+- **Probes committed as permanent cases** — test files; a committed measurement's remedy is *The measurement
+  cache*.
 - **Tests that cannot fail** — test files.
 - **Misplaced tests** — move candidates into their subject's folder, in test files; a move deletes nothing.
 
@@ -159,6 +192,38 @@ qualifies under the *Test policy*:
    rather than green.
 4. **The project's gate runs it when the change touches that tool** — its script, fixtures or map — never a
    brief.
+5. **A probe you will want again is a tool, never a committed test** — a validation tool held to items 2 and
+   3: a driver that runs the product and prints what it saw, a script that calls a route with a dependency made
+   to fail, a measuring tool, per *The measurement cache*.
+
+## The measurement cache
+
+A measurement whose answer is worth keeping — a sweep, a long render, a level or loudness read, a timing, a
+loop over themes or browsers — is stored as its answer, never committed as a test that asks it again on every
+gate; such a test is deleted, or turned to read its row. **Three parts, all required:**
+
+1. **A measuring tool** — a script in the project's repository, slow, run on demand on the owner's own
+   machines, re-measuring the rows the staleness check reports stale or unmeasured, or the rows named to it,
+   and writing each one's answer with its stamp.
+2. **The stored result, committed as data** — one row per measured case, its answer beside its **stamp**: a
+   hash over everything that changes the number. **The stamp covers the measuring code as well as the
+   subject** — the subject's sources and inputs with what they import, the measuring tool and the code it
+   measures with (those analysis sources hashed, or, weaker, a version in the tool bumped by hand on every
+   change to them), the toolchain, and the settings the case ran at — since a stamp over the subject alone
+   leaves every row reading current after the measuring code changes. It hashes file contents in a fixed
+   order, never a modification time or an absolute path, so every machine computes the same stamp; a number
+   the machine moves, such as a timing, records that machine beside the answer, never in the stamp, and is
+   compared only on that machine.
+3. **A staleness check** — milliseconds, with no build and no run — that enumerates the cases, recomputes
+   each one's stamp from the files, reports each current, stale or unmeasured and a row with no case as
+   orphaned, and exits non-zero on anything not current. It carries its own fixture, a row it must report
+   stale, by *Recognising a missing tool*, item 3.
+
+**Of the three, the gate runs only the staleness check, and on every change**, outside any split gate's
+selection, since the files a stamp covers sit outside the folders the cache lives in. A test may read a stored
+answer and assert on it; none re-measures. A stale row is cleared by the measuring tool, never by re-stamping
+a row it did not measure; where the change's own machine cannot run the measuring tool, the stale rows are a
+decision for the owner, and the merge waits on their measurement.
 
 ## The shape of a split gate
 
@@ -183,15 +248,14 @@ tool.
    its own base, and item 8's re-gate over a fix round's delta is the one exception — **and an empty plan on
    a branch with commits beyond that base fails loudly**, never a green over zero tests. **It runs one
    representative per sweep; a sweep runs only under `fullGate`.**
-5. **The full gate moved to on-demand runs, a release, an epic's close-out where the epic moved the
-   boundary, and a queued project's tip audit, never dropped** — the project's `fullGate`
-   (`skills/procedures/config-keys.md`), with the partial gate as its `gate`, and **run cold: it reads no cache
-   and no green store**.
+5. **The full gate runs on promotion PRs and the rest of the cadence `skills/procedures/config-keys.md`'s
+   `fullGate` sets, never dropped** — the project's `fullGate`, with the partial gate as its `gate`, and **run
+   cold: it reads no cache and no green store**.
 6. **Optionally, a green cache** keyed on a hash of a release unit's or a domain's inputs — its files, the core
    or the shared spine and the toolchain — skipping one whose key last passed.
 7. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
-   caught by the full gate on demand, before a release and at a boundary-moving close-out, and between those
-   by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a queue, every other
-   change resting on the split gate alone.
+   caught by the full gate on a promotion PR, on demand, before a release and at a boundary-moving close-out,
+   and between those by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a
+   queue, every other change resting on the split gate alone.
 8. **A re-gate after a fix round on a head that gated green runs the split gate over the delta since that
    head**, with the same loud fallback, and its verdict names both heads.

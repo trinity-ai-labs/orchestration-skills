@@ -4,7 +4,8 @@ A project's **test-type table** is its record, one row per area, of which kind o
 **It is agent guidance (`skills/glossary/vocabulary/agent-guidance.md`), not
 config** — it lives in the project's tests chapter, routed from its `AGENTS.md`, and no key in
 `.agents/worktree.json` holds it. Its
-columns and how it is drafted with the owner are `/pipeline:setup`'s.
+columns and how it is drafted with the owner are `/pipeline:setup`'s; the sixth, **probe tool**, names the
+tool that probes the area on demand (`skills/glossary/vocabulary/on-demand.md`), or `none — <reason>`.
 
 **It narrows a project's *Test policy* per area and never widens it**: a test the policy would not admit is
 not admitted by a row, and an area with no row is held to the policy alone.

@@ -121,8 +121,8 @@ Every value must trace to a file you read.
   key holding it. It lands in a reviewable PR beside the config, never in a commit straight to the
   integration branch. **A single-product repo gets no question**, and guidance already declaring the layering
   is re-grounded against the manifests rather than asked again.
-- **The test types per area** — which kind of test brings value in which area, drafted with the owner on
-  onboarding and wherever the guidance holds no table or an area has no row →
+- **The test types per area** — which kind of test brings value in which area and which tool probes it, drafted with the
+  owner on onboarding and wherever the guidance holds no table, an area has no row or a row no `probe tool` →
   `skills/setup/references/test-types.md`.
 - **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health`, handing it the
   guidance verdict above, and keep its summary; this pass takes no code-shape signal itself (*Setup debt is

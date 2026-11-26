@@ -107,7 +107,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   Codex, whose shell-backgrounded command does not survive the turn — every check runs in the foreground with
   the call's timeout at its limit, since a turn ended on a running command there IS the agent's hand-back,
   with no verdict in it ([`skills/procedures/host-tools.md`](../skills/procedures/host-tools.md) has each
-  host's row). This rule is about commands, not the sub-agents the agent spawned — waiting on those is the
+  host's row). An agent a workflow script started with `agent()` is never re-invoked by a backgrounded
+  command's exit, so it too runs every check in the foreground, whatever its brief says. This rule is about commands, not the sub-agents the agent spawned — waiting on those is the
   next rule — and a dispatcher's detached drain is neither, since its turn ends on a tick and hands nothing
   back.
 - **An agent waiting on sub-agents it dispatched ends its turn with no tool call wherever its host re-invokes
@@ -170,7 +171,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no integration gate: the epic pays
   one `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on a
-  promotion PR — its CI choosing `fullGate` by the PR's base — on demand, before a release, and in place of
+  promotion PR — its CI choosing `fullGate` by the PR's base — on a maintainer's ask, before a release, and in place of
   that `gate` at a close-out whose epic moved the boundary** — for
   a gate that selects from the project's structure, only a change to its selection machinery (the gate itself,
   how manifests are discovered, the exception list and its checks, the toolchain or a lockfile), never shared

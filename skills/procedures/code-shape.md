@@ -58,7 +58,7 @@ from `gate`.
 | Upward imports | imports pointing up a layer — the core into a component or a release unit, a component into a release unit — or against the project's declared layering | map each import line's source and target to its layer | import lines, listed | a change to the higher layer reaches everything built on the lower, and the core stops being thin |
 | Misplaced tests | tests whose subject lives in another folder | map each test file's import or call targets to their folder — its subject's folder being the one most of them sit in — and list the tests outside it | test files, and their share of all test files; listed | a change to the subject selects the test only through a map entry or a tag, never by its folder |
 | Hotspots | files touched by a large share of recent merged PRs | count, per file, the merged PRs touching it among the last 50 merged into the integration branch, from git's history, leaving out the project's declared `bumpFiles` and `changelog`, which every release touches by design | PRs out of the last 50, per file, with that share; files at 10 or more listed | every slice touching one conflicts with its siblings at merge, and one there is often a central list or a core file changing too often |
-| Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output, a completed tip audit's minutes, from its ticket's `startedAt` and `settledAt`, included | minutes per run, and test count | spent by every change where nothing narrows the gate, and where `fullGate` narrows it by each release, on-demand run and boundary move; past 10 minutes a run it is debt either way |
+| Full-gate cost | what one full run of the suite costs | read the last few runs from the project's own gate or CI output, a completed tip audit's minutes, from its ticket's `startedAt` and `settledAt`, included | minutes per run, and test count | spent by every change where nothing narrows the gate, and where `fullGate` narrows it by each release, run on a maintainer's ask and boundary move; past 10 minutes a run it is debt either way |
 | Preflight cost | what one preflight run costs on a one-file edit | read the preflight's own timing from the latest gate or CI output, the gate running it before any compile or test step, or take the one-file-edit time a calling pass measured and handed in; never run it | seconds per run, on a one-file edit | paid on every pushed head, on every commit a hook runs it on, and in every gate run; past 60 seconds on a one-file edit it is debt |
 | Gate-minute slope | how fast the full-gate cost is growing | fit the full-gate minutes of the dated runs *Full-gate cost* reads, over at least four weeks of them, reading CI or gate-log history where the ledger is shorter; not taken with less | minutes per run per week, and days left before the 10-minute threshold at that rate — none on a flat or falling slope, which projects no breach | how soon every change, or every `fullGate` run, pays a run past the threshold |
 | Whole-suite fallbacks | scoped plans a split gate widened to the whole suite | count the runs whose printed plan names a fallback, over the gate runs in CI output or gate logs | runs, and their share of split-gate runs | each paid a whole-suite run for a change a scoped run would have covered, and a rising share says selection is losing ground |
@@ -92,6 +92,9 @@ answer.**
   deleted.
 - **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.** An answer
   worth keeping goes to *The measurement cache* below.
+- **A probe runs on demand (`skills/glossary/vocabulary/on-demand.md`)**, through its area's probe tool where the
+  test-type table names one, and what it settles about a method is kept as an intent comment, by *Recognising a
+  missing tool*, items 6 and 7 — never as a committed test.
 - **Extend an existing test that fails on the bug before adding a new one** — new only where no existing test
   can carry the case.
 - **A test waits on a condition, not on elapsed time, by default**, since a fixed sleep, or nudging an input
@@ -130,9 +133,9 @@ owner answer on record** — rewording its justification closes none of them.
 - **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
   the owner, never a rewrite of the test to match.
 - **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
-  repeated element — pinning the decision, never sweeping it.** Other engines run on demand, on a promotion
-  PR or at release; a sweep across every combination needs a written reason beside it, and runs only in
-  `fullGate` where the project declares one; without `fullGate` it runs on every gate, which that reason must justify.
+  repeated element — pinning the decision, never sweeping it.** Other engines run on demand
+  (`skills/glossary/vocabulary/on-demand.md`), on a promotion PR or at release; a sweep across every
+  combination needs a written reason beside it, and runs only in `fullGate` where the project declares one; without `fullGate` it runs on every gate, which that reason must justify.
 
 ## Placing new code and a new test — in order
 
@@ -179,6 +182,12 @@ qualifies under the *Test policy*:
   cache*.
 - **Tests that cannot fail** — test files.
 - **Misplaced tests** — move candidates into their subject's folder, in test files; a move deletes nothing.
+- **Tests worth running but not on every change** — candidates to move on demand
+  (`skills/glossary/vocabulary/on-demand.md`), in test files: each leaves `gate` and `preflight` for its area's
+  probe tool, and nothing is deleted.
+
+**A sweep is a map, not a verdict: open every file before deleting it.** **A kept test takes its area's type**
+— the one its test-type table row names — or is a candidate itself.
 
 **A deletion or a move updates the domain map or exception list and the test tags in the same change**, so the map's own check stays green.
 
@@ -195,6 +204,13 @@ qualifies under the *Test policy*:
 5. **A probe you will want again is a tool, never a committed test** — a validation tool held to items 2 and
    3: a driver that runs the product and prints what it saw, a script that calls a route with a dependency made
    to fail, a measuring tool, per *The measurement cache*.
+6. **An on-demand tool (`skills/glossary/vocabulary/on-demand.md`) lives in the project's repository and runs
+   when asked, never in `gate` or `preflight`** — item 4 reaches only its own fixture check — since a probe a
+   gate runs on every change is a guard that skipped the *Test policy*'s keep rule.
+7. **A probe that settles what a method does, or why, records it as an intent comment at that method in the
+   same change, and one whose result contradicts an existing comment fixes that comment in the same change**
+   — the knowledge stays in the code, no test is committed for it, and a probe contradicting a comment is how a
+   stale one is caught.
 
 ## The measurement cache
 
@@ -202,8 +218,9 @@ A measurement whose answer is worth keeping — a sweep, a long render, a level 
 loop over themes or browsers — is stored as its answer, never committed as a test that asks it again on every
 gate; such a test is deleted, or turned to read its row. **Three parts, all required:**
 
-1. **A measuring tool** — a script in the project's repository, slow, run on demand on the owner's own
-   machines, re-measuring the rows the staleness check reports stale or unmeasured, or the rows named to it,
+1. **A measuring tool** — a script in the project's repository, slow, run on demand
+   (`skills/glossary/vocabulary/on-demand.md`) on the owner's own machines, re-measuring the rows the staleness
+   check reports stale or unmeasured, or the rows named to it,
    and writing each one's answer with its stamp.
 2. **The stored result, committed as data** — one row per measured case, its answer beside its **stamp**: a
    hash over everything that changes the number. **The stamp covers the measuring code as well as the
@@ -254,7 +271,7 @@ tool.
 6. **Optionally, a green cache** keyed on a hash of a release unit's or a domain's inputs — its files, the core
    or the shared spine and the toolchain — skipping one whose key last passed.
 7. **A map derived from evidence under-approximates** (the glossary entry says why), so what it misses is
-   caught by the full gate on a promotion PR, on demand, before a release and at a boundary-moving close-out,
+   caught by the full gate on a promotion PR, on a maintainer's ask, before a release and at a boundary-moving close-out,
    and between those by the tip audit (`skills/glossary/vocabulary/tip-audit.md`) where the project has a
    queue, every other change resting on the split gate alone.
 8. **A re-gate after a fix round on a head that gated green runs the split gate over the delta since that

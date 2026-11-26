@@ -16,7 +16,7 @@ your `drop` by hand once before adopting this** — the first removal otherwise 
 foreground, during a merge. **Whether your gate is partial** — whether it runs only what a change can affect
 rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, written to run cold —
 reading no cache and no stored green — which your CI then runs on a promotion PR, one whose base is a branch
-beyond the integration branch, and the flow runs on demand, before a release, and in place of
+beyond the integration branch, and the flow runs on a maintainer's ask, before a release, and in place of
 the close-out gate where an epic moved the boundary: for a gate that selects from your folders and manifests,
 only a change to that selection machinery — the gate itself, manifest discovery, the exception list and its
 checks, the toolchain or a lockfile — and for one that selects from a domain map, the map or its checks, a
@@ -29,11 +29,12 @@ guidance rather than in `.agents/worktree.json`, in the same reviewable PR; a si
 such question. **It drafts your test-type table with you** — one row per area, naming what must be right from
 day one (by default the money layer, auth, sessions and authorization, security, redaction and secrets, data integrity and migrations, sync
 and concurrency, and parsers, wherever the area has them), the test type that brings value there, whether you
-check the area by hand, and what is never committed there — after asking you flat which areas you check by
+check the area by hand, what is never committed there, and its probe tool — the script that probes it on demand,
+never in your gate, or `none — <reason>` — after asking you flat which areas you check by
 hand and what else must be right. The table lands in your tests chapter, in the same reviewable PR, and every
 test the flow writes or reviews is held to its area's row
 ([`skills/setup/references/test-types.md`](../skills/setup/references/test-types.md)); a reconcile drafts only
-the rows that are missing and leaves yours as you wrote them. **Setup also
+the rows and probe-tool cells that are missing and leaves yours as you wrote them. **Setup also
 derives your test runner's targeted form** — `targetedTest`, a template taking one of test files or names —
 and confirms it with you; where no runner takes either it is left out. **And one that is not a fact about your
 repo at all — consent:** may a run that finds a defect in *the pipeline itself* write it into this plugin's
@@ -73,7 +74,8 @@ the full suite loudly on anything neither the structure nor the map places, and 
 own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
 setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its cost:
 the structure alone, a map alone, or a gate queue so full runs at least stop contending. Health also names a
-workflow that runs the heavy suites on every slice PR, and an area your test-type table has no row for. Setup
+workflow that runs the heavy suites on every slice PR, an area your test-type table has no row or no probe tool
+for, and an on-demand check wired into your gate or preflight. Setup
 never restructures your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
 issue in your tracker, appending what it measures, ticking off what is gone and marking settled what you chose to leave, with its reason. The issue closes once nothing is left unticked and reopens only when something new needs a decision, so run again — by setup on a
 reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each

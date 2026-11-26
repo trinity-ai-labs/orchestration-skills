@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the items no single table row carries** — six no row measures, and `Prune candidates`, drawn from
+4. **Name the items no single table row carries** — eight no row measures, and `Prune candidates`, drawn from
    the *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* rows:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
@@ -77,6 +77,13 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
      the does-not-apply line — an area the code shape names with no row in the project's test-type table
      (`skills/glossary/vocabulary/test-types.md`); the item `Test types: <area>`, its value `no row`, or with
      no table at all the one item `Test types: no table`, its value the count of areas the code shape names.
+   - **An area with no probe tool** — a test-type table row whose `probe tool` cell names neither a tool nor
+     `none — <reason>` (`skills/glossary/vocabulary/on-demand.md`); the item `Missing tool: <area>`, its value
+     `no probe tool`.
+   - **An on-demand check in the gate** (`skills/glossary/vocabulary/on-demand.md`) — a row's probe tool, or a
+     tool `skills/procedures/code-shape.md`'s *Recognising a missing tool* places on demand, that `gate` or
+     `preflight` runs, read from the config and the gate's script, never by running either; the item
+     `On demand in gate: <check>`, its value the seconds per run it costs where the output shows them.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -98,7 +105,8 @@ be read.
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
 `Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>`, `Heavy suite on slice PRs: <workflow>`,
-`Test types: <area>`, `Test types: no table` or `Prune candidates`, whose tests sit beneath its line as indented
+`Test types: <area>`, `Test types: no table`, `Missing tool: <area>`, `On demand in gate: <check>` or
+`Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -156,6 +164,11 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
 - **The recommendation for a `Test types` item is the missing rows drafted off the code shape and corrected
   by the owner**; its alternatives are the owner writing them by hand (the same rows with no drafted
   candidates), or leaving it (every test there is judged on the policy alone).
+- **The recommendation for a `Missing tool: <area>` item is that cell drafted the same way**; its alternatives are
+  the owner writing `none — <reason>` (the area keeps no probe), or leaving it (every probe there is hand-built).
+- **The recommendation for an `On demand in gate: <check>` item is moving it out of `gate` and `preflight`**,
+  by `skills/procedures/code-shape.md`'s *Recognising a missing tool*; its alternatives are a guard's
+  justification by its *Test policy* (its seconds on every gate), or leaving it (every change pays them).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).

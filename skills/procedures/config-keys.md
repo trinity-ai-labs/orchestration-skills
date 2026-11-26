@@ -76,7 +76,7 @@ carries the precedence and the refusals.
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
   than a gap. **Present, it is a promotion PR's gate (`skills/glossary/vocabulary/promotion-pr.md`), run by
   the project's CI, which chooses by the
-  PR's base (`github.base_ref`); and it runs on demand, before a release or install, in place of `gate` at an
+  PR's base (`github.base_ref`); and it runs on a maintainer's ask, before a release or install, in place of `gate` at an
   epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as the
   cold command of a queued project's tip audit, and nowhere else**: every slice and integration gate and every
   other close-out gate stays `gate`, a slice that moves the boundary reaching the whole suite through its split
@@ -86,7 +86,7 @@ carries the precedence and the refusals.
   `/pipeline:cut-release`'s hand-back names as owed before the release ships. **Where `fullGate` is declared, a PR workflow running its command, or a sweep
   `skills/procedures/code-shape.md` places under it, on PRs into the integration branch or an epic branch runs
   it off this cadence** — read off its `pull_request` trigger and `run:` steps as a string match, where neither
-  a `branches` filter nor a `github.base_ref` condition keeps that step to promotion PRs. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less
+  a `branches` filter nor a `github.base_ref` condition keeps that step to promotion PRs. **A `fullGate` run on a maintainer's ask, or before a release, is one the maintainer starts**, run as a PR-less
   `full`-mode ticket, or by hand, in the epic worktree or a throwaway tree cut from the integration tip —
   never the main checkout.
 - **`targetedTest`** — optional: a template using one of `{files}` (test file paths) or `{names}` (test

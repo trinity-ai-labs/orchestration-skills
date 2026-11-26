@@ -393,7 +393,7 @@ outstanding.
   epic paying one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
   only what its change affects, because the full suite runs on a promotion PR — CI choosing it by the PR's
-  base — on demand, before a release, on the tip audit, and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the
+  base — on a maintainer's ask, before a release, on the tip audit, and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the
   project's structure only a change to its selection machinery, since it already selects every release unit
   a shared change reaches; for one selecting from a domain map, the map, a shared-spine file or the
   toolchain. A project that declares nothing keeps one full gate everywhere.

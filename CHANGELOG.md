@@ -2,6 +2,34 @@
 
 Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, which must agree — the repo's gate fails when they do not. Because that field is set, an installed plugin only picks up changes when it **changes** — pushing to `main` alone ships nothing. CI enforces the bump.
 
+## 5.32.0
+
+- **On demand is a defined term.** A new glossary entry (`skills/glossary/vocabulary/on-demand.md`) defines a
+  check, probe, tool or test as on demand when it runs because work, an agent or the owner asks for it — work
+  demand, agent demand, owner demand — and never on every gate, decided by its value rather than its speed and
+  never wired into `gate` or `preflight`. Co-think's premise audit, ground's verify bar, the implementer, review's
+  correctness, altitude and tests lenses, setup and health cite it; none restates it.
+- **Probes keep what they learn as intent comments.** `skills/procedures/code-shape.md`'s *Recognising a missing
+  tool* now says a probe that settles what a method does, or why, records it as an intent comment at that method
+  in the same change, and one that contradicts an existing comment fixes it there; no test is committed for it.
+  It also states the never-gated pattern once: an on-demand tool lives in the repository and runs when asked,
+  its own fixture check being the only part a gate reaches.
+- **Every area names its probe tool.** The test-type table gains a sixth column, **probe tool** — a command or a
+  path, or `none — <reason>`, never blank — drafted by `/pipeline:setup`, a reconcile filling missing cells.
+  `/pipeline:health` names `Missing tool: <area>` for a blank cell and `On demand in gate: <check>` for an
+  on-demand check found in `gate` or `preflight`.
+- **Pruning can move a test on demand.** *Pruning* gains that outcome beside deletion and merge, and two rules:
+  a sweep is a map, not a verdict — open every file before deleting it — and a kept test takes its area's type.
+  The tests lens proposes the move as a remedy.
+- **`fullGate` runs on a maintainer's ask, no longer "on demand".** Every seat and doc that described when
+  `fullGate` runs as on demand now says on a maintainer's ask, so the defined term never names a gate run. The
+  config key list is unchanged.
+- **Agents a workflow script starts check in the foreground.** `skills/procedures/host-tools.md`'s detached-command
+  row gains the branch: an agent started by a workflow script's `agent()` call is never re-invoked by a
+  backgrounded command's exit, so it runs every check in the foreground, every time, whatever a brief says. The
+  dispatcher reads a hand-back saying it is waiting on a background run as stalled, and finishes the push and PR
+  from the worktree or re-dispatches.
+
 ## 5.31.0
 
 - **No new test is the default, and a test earns its place against both of its costs.** The *Test policy*

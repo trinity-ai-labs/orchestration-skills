@@ -212,7 +212,8 @@ asks a reviewer to change anything.
   what other code does is prose against behavior — no checker compares the two, so this pass is one of
   the few places it can be caught. Report a claim that proves false as a defect; accurate prose written
   over a real bug documents the bug as the design and removes the last thing that would have led anyone
-  to look.
+  to look. **A probe the diff ran that settled or contradicted a method's comment is held to
+  `skills/procedures/code-shape.md`'s *Recognising a missing tool*, item 7.**
 
 #### Reuse
 
@@ -243,7 +244,9 @@ changes what the code does is a behavior change wearing a cleanup's clothes.
 - A low-level detail leaking into a high-level flow, or a one-liner buried under ceremony — name the
   layer the logic belongs in.
 - Vague names (`data`, `result`, `tmp`) — propose names that say what the value holds.
-- Comments restating the code, which go; comments explaining a non-obvious *why* or *how*, which stay.
+- Comments restating the code, which go; comments explaining a non-obvious *why* or *how*, which stay — an
+  intent comment a probe settled among them, by `skills/procedures/code-shape.md`'s *Recognising a missing tool*,
+  item 7.
 - Where the diff departs from the conventions of the files it is already in.
 - **Placement, tags and test level, against `skills/ground-rules/SKILL.md` rule 12 and the project's own
   layout rules** — a new file outside its layer's or its domain's folder, a test outside its subject's

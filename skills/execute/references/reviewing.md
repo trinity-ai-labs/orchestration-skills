@@ -220,6 +220,9 @@ is granted only after you grep the tests for that symbol yourself**, since a sea
 about the contract a test pins, and a grant made on one is refused by the gate instead, on a PR nothing
 connects back to your grant.
 
+**A hand-back saying it is waiting on a background run has stalled**, by `skills/procedures/host-tools.md`'s
+detached-command row: read its worktree and branch, then finish the push and PR from that tree, or re-dispatch.
+
 **A hand-back report is evidence about its own half and hearsay about the other.** An implementer can tell you
 what it built; it cannot tell you what its counterpart now expects, because it never saw the counterpart. So
 for any pair the breakdown flagged as a **contract seam** — one slice produces a shape another consumes —

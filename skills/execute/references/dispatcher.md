@@ -73,7 +73,7 @@ gate** after a merge onto the integration branch, as a **PR-less ticket** whose 
 ticket (*Gate the integrated whole*); and the **tip audit** each time a tip moves, a PR-less `audit` ticket
 run cold that gives way to every other (`skills/glossary/vocabulary/tip-audit.md`). **No gate runs before
 dispatch and no integration gate in front of a merge into an epic branch** — the audit after one holds no merge.
-Only a `full` ticket and the audit run a declared `fullGate` in this flow, the `full` ticket on demand, before a release, and at
+Only a `full` ticket and the audit run a declared `fullGate` in this flow, the `full` ticket on a maintainer's ask, before a release, and at
 a close-out whose epic moved the boundary (`skills/procedures/config-keys.md`). A runner scaffolded before the
 PR-less ticket refuses it, as one not verified to take the `full` mode may, and only there is a hand-run gate
 sanctioned; an audit a runner refuses is skipped, never hand-run. **In a project declaring no
@@ -224,7 +224,7 @@ hand-back, never marked ready by the implementer, never its own merge.
 → `pnpm docs:gate`, not the full `pnpm gate`). A **speed choice, not a workaround**: every worktree gets a
 real install, so a light-mode slice that turns out to touch code just enqueues in the default mode and faces
 `gate`. **A project declaring `fullGate` adds a `full` mode that runs it, cold, reading no cache**, and that
-mode is never a slice's: it gates an on-demand run, a release run and a close-out whose epic moved the
+mode is never a slice's: it gates a run on a maintainer's ask, a release run and a close-out whose epic moved the
 boundary (`skills/glossary/vocabulary/code-shape.md`) alone — for a structure-selected gate a change to its
 selection machinery, never shared code alone, whose reach that gate already prints. **Every queued project
 also has an `audit` mode**, never a slice's either: the tip audit (`skills/glossary/vocabulary/tip-audit.md`),

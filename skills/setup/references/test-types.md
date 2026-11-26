@@ -1,7 +1,8 @@
 # The test types per area
 
 Reference for Step 1 of `/pipeline:setup`, *The test types per area*. **Open it on onboarding, and on a
-reconcile where the project's guidance holds no test-type table or an area has no row in it.**
+reconcile where the project's guidance holds no test-type table, an area has no row in it, or a row has no
+`probe tool` cell.**
 
 **The test-type table (`skills/glossary/vocabulary/test-types.md`) narrows the project's *Test policy*
 (`skills/procedures/code-shape.md`) per area.** It lives in the project's tests chapter: the testing chapter it already has, or `.agents/rules/tests.md` routed from its
@@ -10,7 +11,7 @@ root `AGENTS.md` where it has none, placed by `skills/procedures/agent-guidance-
 judging a test**, so every seat that does one opens it. **It is a coding convention, never config: no key in
 `.agents/worktree.json` holds it.**
 
-## Its shape — one row per area, five columns
+## Its shape — one row per area, six columns
 
 | Column | Holds |
 |---|---|
@@ -19,6 +20,7 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
 | **test type** | the kind that brings value there, at its seam and with its bounds: unit at a DSP seam, at one rate and block size with no long render; end-to-end in one browser for auth and checkout; end-to-end on the real artifact for an installer; in an area checked by hand, at most a few high-value checks such as *does it render*, or none |
 | **checked by hand** | `yes` or `no` — by the owner, and by whoever runs the product while building it; `unasked`, read as `no`, until the owner answers |
 | **never committed** | what no test in that area may be: on-screen checks (*is each button here, does it light up*), sweeps, long renders, measurements — a kept answer being data instead, by `skills/procedures/code-shape.md`'s *The measurement cache* |
+| **probe tool** | the tool that probes the area on demand (`skills/glossary/vocabulary/on-demand.md`): a command or a path in the repository, or `none — <reason>`; never blank |
 
 ## Drafting it — in order
 
@@ -34,8 +36,11 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
    the area already has.
 5. **Draft `never committed`**: measurements, and a sweep with no written reason, in every area; on-screen checks
    too in a hand-checked one.
-6. **Show the owner the drafted table and land their corrections** in the reviewable PR beside the config,
+6. **Draft each `probe tool`** from the scripts and drivers the area already has, by
+   `skills/procedures/code-shape.md`'s *Recognising a missing tool*; where it has none, `none — <reason>`
+   naming why, never a blank cell.
+7. **Show the owner the drafted table and land their corrections** in the reviewable PR beside the config,
    never a commit straight to the integration branch.
 
-**On a reconcile, draft only the missing rows** and leave every existing row as the owner wrote it, since a
-row's wording is their decision.
+**On a reconcile, draft only the missing rows and missing `probe tool` cells** and leave every existing cell
+as the owner wrote it, since a row's wording is their decision.

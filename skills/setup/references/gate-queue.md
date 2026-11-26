@@ -46,7 +46,7 @@ selects the gate — `default` runs `gate`, the full suite wherever the project 
 lighter one (e.g. `docs`) for a prose-only slice.
 
 **`full` runs `fullGate`, and the runner learns it only where the project declares that key** — the mode a
-dispatcher's on-demand, release and boundary-moving close-out tickets carry there, since that project's `gate`
+dispatcher's tickets carry there on a maintainer's ask, before a release and at a boundary-moving close-out, since that project's `gate`
 may be partial. **A runner must REJECT a mode it does not know, at enqueue, exiting non-zero and naming the mode —
 never fall back to `default`**: on a project with a partial `gate` that fallback settles a green no full gate
 produced, on exactly the tickets whose purpose was the full gate.
@@ -77,8 +77,8 @@ audit.
 silently changes how a PR is gated.
 
 **`prNumber`/`prUrl` are OPTIONAL, because a tree worth gating does not always have a PR.** The case is the
-dispatcher's integration gate after a merge onto the integration branch, or an on-demand or release
-`fullGate` run, on a tree that has no PR of its own. Such a ticket settles
+dispatcher's integration gate after a merge onto the integration branch, or a `fullGate` run on a
+maintainer's ask or before a release, on a tree that has no PR of its own. Such a ticket settles
 like any other and skips only the report, so its ledger entry is the verdict's only copy. Required fields
 leave that gate hand-run and unrecorded.
 

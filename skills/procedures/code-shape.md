@@ -1,8 +1,8 @@
-# Code shape — reading it, its signals, the test policy, placing a file, pruning, a missing tool, a split gate
+# Code shape — reading it, its signals, the test policy, placing a file, pruning, a missing tool, the measurement cache, a split gate
 
 Entry in `skills/procedures/SKILL.md`. **Procedures over one shape, the folder as the unit** — domain, core,
 component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate,
-moves the boundary, seam test, guard, probe and setup debt are defined in
+moves the boundary, seam test, guard, probe, measurement cache and setup debt are defined in
 `skills/glossary/vocabulary/code-shape.md`, and every
 step below uses those words in exactly that sense. `skills/ground-rules/SKILL.md` rule 12 is the rule they
 serve. The steps are the same whoever runs them.
@@ -98,7 +98,8 @@ answer.**
   looking at it, by the owner or during the slice — run once, reported with what was run and what was seen,
   and never committed. **An area the project's guidance names as checked by hand gets no first-occurrence or
   speculative guard of visible behaviour.**
-- **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.**
+- **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.** An answer
+  worth keeping goes to *The measurement cache* below.
 - **Recurrence earns a guard: a decided behaviour reverted, or the same bug fixed more than once, as the
   history shows**, even where the failure is visible on screen, since agents change what nobody is watching
   and recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most
@@ -168,7 +169,8 @@ qualifies under the *Test policy*:
 - **The loops with the highest sweep multiplicity** — cases run per case written.
 - **Same-shaped files repeated per unit, theme or product** — merge candidates for one table-driven test,
   counted in files.
-- **Probes committed as permanent cases** — test files.
+- **Probes committed as permanent cases** — test files; a committed measurement's remedy is *The measurement
+  cache*.
 - **Tests that cannot fail** — test files.
 - **Misplaced tests** — move candidates into their subject's folder, in test files; a move deletes nothing.
 
@@ -184,6 +186,38 @@ qualifies under the *Test policy*:
    rather than green.
 4. **The project's gate runs it when the change touches that tool** — its script, fixtures or map — never a
    brief.
+5. **A probe you will want again is a tool, never a committed test** — a validation tool held to items 2 and
+   3: a driver that runs the product and prints what it saw, a script that calls a route with a dependency made
+   to fail, a measuring tool and its staleness check, which *The measurement cache* says how the gate runs.
+
+## The measurement cache
+
+A measurement whose answer is worth keeping — a sweep, a long render, a level or loudness read, a timing, a
+loop over themes or browsers — is stored as its answer, never committed as a test that asks it again on every
+gate; such a test is deleted, or turned to read its row. **Three parts, all required:**
+
+1. **A measuring tool** — a script in the project's repository, slow, run on demand on the owner's own
+   machines, re-measuring the rows the staleness check reports stale or unmeasured, or the rows named to it,
+   and writing each one's answer with its stamp.
+2. **The stored result, committed as data** — one row per measured case, its answer beside its **stamp**: a
+   hash over everything that changes the number. **The stamp covers the measuring code as well as the
+   subject** — the subject's sources and inputs with what they import, the measuring tool and the code it
+   measures with (those analysis sources hashed, or, weaker, a version in the tool bumped by hand on every
+   change to them), the toolchain, and the settings the case ran at — since a stamp over the subject alone
+   leaves every row reading current after the measuring code changes. It hashes file contents in a fixed
+   order, never a modification time or an absolute path, so every machine computes the same stamp; a number
+   the machine moves, such as a timing, records that machine beside the answer, never in the stamp, and is
+   compared only on that machine.
+3. **A staleness check** — milliseconds, with no build and no run — that enumerates the cases, recomputes
+   each one's stamp from the files, reports each current, stale or unmeasured and a row with no case as
+   orphaned, and exits non-zero on anything not current. It carries its own fixture, a row it must report
+   stale, by *Recognising a missing tool*, item 3.
+
+**Of the three, the gate runs only the staleness check, and on every change**, outside any split gate's
+selection, since the files a stamp covers sit outside the folders the cache lives in. A test may read a stored
+answer and assert on it; none re-measures. A stale row is cleared by the measuring tool, never by re-stamping
+a row it did not measure; where the change's own machine cannot run the tool, the change reports the rows it
+left stale for the owner to measure.
 
 ## The shape of a split gate
 

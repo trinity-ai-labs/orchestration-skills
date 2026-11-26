@@ -170,7 +170,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no integration gate: the epic pays
   one `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on a
-  promotion PR — its CI choosing `fullGate` by the PR's base — on demand, before a release, and in place of
+  promotion PR — its CI choosing `fullGate` by the PR's base — on a maintainer's ask, before a release, and in place of
   that `gate` at a close-out whose epic moved the boundary** — for
   a gate that selects from the project's structure, only a change to its selection machinery (the gate itself,
   how manifests are discovered, the exception list and its checks, the toolchain or a lockfile), never shared

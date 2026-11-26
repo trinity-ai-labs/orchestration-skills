@@ -65,6 +65,8 @@ grounds, plans and builds a route to somewhere nobody needed to go, with nothing
   a running system, the claim is about somebody's intent. ⚠️ **That verdict is legitimate, and it is what
   keeps this from being a ritual** — an audit obliged to come back verified or false invents the third case,
   and an invented verdict is indistinguishable from a checked one afterwards.
+  **One an on-demand probe (`skills/glossary/vocabulary/on-demand.md`) can settle in this tree is probed
+  instead**, and takes the verdict the probe returns.
 
 **Then name which premises the shape PROCEEDS ON as assumptions** — the unverifiable ones it cannot wait for,
 and any you deliberately did not check — stated with the shape rather than held back, the way you already name

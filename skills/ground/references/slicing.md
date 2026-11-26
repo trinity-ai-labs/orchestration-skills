@@ -158,7 +158,8 @@ For **each horizon** slice — one ready issue, ground as the one slice it alrea
     Carrying it here is what makes the chain end to end rather than stopping at the phase boundary — arc goal,
     phase deliverable, slice goal, and a reader at each of the two ends of the slice.
 - **Verify** — what "done" looks like: the behavior, the guards the *Test policy*
-  (`skills/procedures/code-shape.md`) admits, none being a valid answer, and the acceptance check.
+  (`skills/procedures/code-shape.md`) admits, none being a valid answer, and the acceptance check — a probe in it
+  running on demand (`skills/glossary/vocabulary/on-demand.md`).
   - **For a slice that adds a check or fixes a bug, the bar includes proving that the guard the *Test policy*
     admitted, or the probe, fails against the PRE-change code — and names the specific reversal that proves it**: restore the old matcher and
     confirm the new fixture goes red, point the test's mock back at the old symbol, reverse the rename and

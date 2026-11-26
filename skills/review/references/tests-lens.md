@@ -4,7 +4,8 @@ Reference for `skills/review/SKILL.md`, step 2: the tests lens's brief. Its find
 as `skills/procedures/code-shape.md`'s *Test policy* says, so each one names the clause it rests on.
 
 **Judge every test the diff adds or changes against `skills/procedures/code-shape.md`'s *Test policy*, and
-start each added test marked for deletion**. Report each finding with the deletion or merge you propose:
+start each added test marked for deletion**. Report each finding with the deletion, merge or move on demand
+(`skills/glossary/vocabulary/on-demand.md`, by `skills/procedures/code-shape.md`'s *Pruning*) you propose:
 
 - **A test the policy does not admit** — name the clause it fails.
 - **A test whose justification is missing or does not hold** — the three items the policy asks of a guard, read

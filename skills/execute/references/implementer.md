@@ -88,7 +88,9 @@ hand-back comment names it in one line.
 **Write to `skills/ground-rules/SKILL.md` rule 12** — each new file and test placed and tagged by
 `skills/procedures/code-shape.md`'s *Placing new code and a new test*, under the project's own layout rules
 where it states them. **Add no test its *Test policy* does not admit**, write each one's justification into your
-PR body, and take a guard your change trips to your dispatcher, never rewrite it. **Code-shape debt you hit
+PR body, and take a guard your change trips to your dispatcher, never rewrite it. **What an on-demand probe
+(`skills/glossary/vocabulary/on-demand.md`) settles about a method goes in an intent comment there**, by its
+*Recognising a missing tool*, item 7. **Code-shape debt you hit
 folds by rule 13 where it is cheap and in reach; a restructure is surfaced, never done unasked.**
 
 **Leave the tree cleaner than you found it — a check that exits green but still prints warnings is NOT

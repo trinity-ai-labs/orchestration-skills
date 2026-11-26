@@ -3,9 +3,8 @@
 Reference for Step 1 of `/pipeline:setup`, *The test types per area*. **Open it on onboarding, and on a
 reconcile where the project's guidance holds no test-type table or an area has no row in it.**
 
-**The test-type table is the project's record of which kind of test brings value in which area** — what every
-test written there is held to by the project's *Test policy* (`skills/procedures/code-shape.md`). It lives in
-the project's tests chapter: the testing chapter it already has, or `.agents/rules/tests.md` routed from its
+**The test-type table (`skills/glossary/vocabulary/test-types.md`) narrows the project's *Test policy*
+(`skills/procedures/code-shape.md`) per area.** It lives in the project's tests chapter: the testing chapter it already has, or `.agents/rules/tests.md` routed from its
 root `AGENTS.md` where it has none, placed by `skills/procedures/agent-guidance-layout.md`'s *Placing a line*
 — never a second chapter beside an existing one — **its router row naming the topic as adding, changing or
 judging a test**, so every seat that does one opens it. **It is a coding convention, never config: no key in
@@ -33,7 +32,7 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
 4. **Draft each `test type` from the area's seam** — the cheapest level that exercises the boundary a caller or
    a user crosses, end-to-end only where a user crosses auth, money or an installer — read beside the tests
    the area already has.
-5. **Draft `never committed`**: measurements, and sweeps outside `fullGate`, in every area; on-screen checks
+5. **Draft `never committed`**: measurements, and a sweep with no written reason, in every area; on-screen checks
    too in a hand-checked one.
 6. **Show the owner the drafted table and land their corrections** in the reviewable PR beside the config,
    never a commit straight to the integration branch.

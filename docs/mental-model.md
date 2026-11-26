@@ -264,7 +264,9 @@ slice's own diff shows. **Review checkpoints are how the epic is read before the
 dispatcher runs a `/pipeline:review` panel over the epic tip after a contract seam lands or about every three
 to four merged slices — none mid-epic on an arc of four slices or fewer — rather than a full panel per
 slice, and its dispatch report states that plan. **The one reader that stays on the slice is the tests lens**:
-a slice that adds a test runs it alone over its own PR, and its findings bind — the merge waits until the test is deleted or its justification is written on the PR. A review checkpoint reads the change since the previous one's reviewed
+a slice that adds a test runs it alone over its own PR, on every branch type, and its findings bind, each
+closing by its class as [`skills/procedures/code-shape.md`](../skills/procedures/code-shape.md)'s *Test
+policy* says. A review checkpoint reads the change since the previous one's reviewed
 head (the fork point the first time), posts onto the epic's own PR into the integration branch, which opens as
 a draft at the first one and stays one until the close-out merge, and sends accepted findings to one fix agent
 in the epic worktree, which runs the preflight and the tests by name for what it touched, the close-out

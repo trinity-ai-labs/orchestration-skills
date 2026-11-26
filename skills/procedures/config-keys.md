@@ -74,16 +74,16 @@ carries the precedence and the refusals.
   **It is cold by meaning — the command reads no cache and no green store**, so a project writes it that way
   and no key switches a cache off. **Absent means `gate` IS the
   full gate, everywhere it runs, and nothing reads differently** — the default, and a settled answer rather
-  than a gap. **Present, it is a promotion PR's gate — a PR whose base is a branch beyond the integration
-  branch, such as `release/x` into `dev` or `dev` into `main` — run by the project's CI, which chooses by the
+  than a gap. **Present, it is a promotion PR's gate (`skills/glossary/vocabulary/promotion-pr.md`), run by
+  the project's CI, which chooses by the
   PR's base (`github.base_ref`); and it runs on demand, before a release or install, in place of `gate` at an
   epic's close-out where the epic moved the boundary (`skills/glossary/vocabulary/code-shape.md`), and as the
   cold command of a queued project's tip audit, and nowhere else**: every slice and integration gate and every
   other close-out gate stays `gate`, a slice that moves the boundary reaching the whole suite through its split
   gate's own fallback, and a queued project gates `fullGate` runs in a
-  `full` ticket mode. **Where the integration branch is the default branch there is no promotion PR**, and the
-  rest of that list is the whole cadence. **A promotion PR whose CI runs only `gate` owes its `fullGate` as a
-  PR-less run.** **Where `fullGate` is declared, a PR workflow running its command, or a sweep
+  `full` ticket mode. **Where there is no promotion PR** the rest of that list is the whole cadence. **A promotion
+  PR whose CI runs only `gate` owes its `fullGate` as a PR-less run the maintainer starts**, the one
+  `/pipeline:cut-release`'s hand-back names as owed before the release ships. **Where `fullGate` is declared, a PR workflow running its command, or a sweep
   `skills/procedures/code-shape.md` places under it, on PRs into the integration branch or an epic branch runs
   it off this cadence** — read off its `pull_request` trigger and `run:` steps as a string match, where neither
   a `branches` filter nor a `github.base_ref` condition keeps that step to promotion PRs. **An on-demand or release `fullGate` is a maintainer's ask**, run as a PR-less

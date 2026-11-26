@@ -80,10 +80,9 @@ answer.**
   once shipped** — the bug, the broken contract, the regression nobody sees by running the change. *This
   behaviour exists* is not a reason: small behaviours are covered by the one seam test that exercises them,
   never one test each.
-- **Per area, the project's test-type table, in its guidance, names the test type that brings value there,
-  whether it is checked by hand, what must be right and what is never committed**: a test is of its area's
-  type and of no kind its area never commits, and an item its row lists under *must be right* is the owner's
-  ask written down, so its guard needs no recurrence.
+- **Per area, the project's test-type table (`skills/glossary/vocabulary/test-types.md`) narrows this
+  policy**: a test is of its area's type and of no kind its area never commits, and an item its row lists
+  under *must be right* is the owner's ask written down, so its guard needs no recurrence.
 - **A guard is priced on both of its costs before it is written** — the pile it joins, where a thousand
   low-value tests at 7–30 s each are hours on every gate, and its own seconds per run, paid on each of the
   roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, with the
@@ -91,26 +90,8 @@ answer.**
   and costly once shipped; and its seconds per run** — and a guard that cannot state all three is not
   written. A test that costs more to run than its failure would cost to ship is
   deleted.
-- **Anything visible by opening the product — layout, pixels, positions, wording, theme — is never a guard**
-  on a first occurrence or on speculation; recurrence or the owner's ask, below, earns one, in an area checked
-  by hand as anywhere else.
-- **A hand check made while building is the verification for visible behaviour** — running the product and
-  looking at it, by the owner or during the slice — run once, reported with what was run and what was seen,
-  and never committed. **An area the project's guidance names as checked by hand gets no first-occurrence or
-  speculative guard of visible behaviour.**
 - **A measurement — a sweep, a long render, a timing — is a probe: run once and never committed.** An answer
   worth keeping goes to *The measurement cache* below.
-- **Recurrence earns a guard: a decided behaviour reverted, or the same bug fixed more than once, as the
-  history shows**, even where the failure is visible on screen, since agents change what nobody is watching
-  and recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most
-  a probe. **A bug's guard is rare — it comes from that recurrence or from the owner asking for one, never
-  on an agent's own initiative after a first fix.**
-- **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
-  the owner, never a rewrite of the test to match.
-- **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
-  repeated element — pinning the decision, never sweeping it.** Other engines run on demand, on a promotion
-  PR or at release; a sweep across every combination needs a written reason beside it, and runs only in
-  `fullGate` where the project declares one; without `fullGate` it runs on every gate, which that reason must justify.
 - **Extend an existing test that fails on the bug before adding a new one** — new only where no existing test
   can carry the case.
 - **A test waits on a condition, not on elapsed time, by default**, since a fixed sleep, or nudging an input
@@ -127,6 +108,31 @@ answer.**
   move is to colocate them.
 - **A test that cannot fail is deleted** — an assertion against the value that configured its own mock, a
   constant asserted against itself, a check the implementation could never violate.
+
+**A tests-lens finding — review's reading of a test against this policy — binds: it is never rejected, and it
+closes by its class.** A finding that a justification is missing closes when a justification that holds is
+written on the PR, in its body or a hand-back comment. **A test the policy does not admit, a test of another
+type than its area's row names, or a test that re-measures closes only when the test is deleted, or on an
+owner answer on record** — rewording its justification closes none of them.
+
+### Earning a guard
+
+- **Visible behaviour — anything seen by opening the product: layout, pixels, positions, wording, theme — is
+  verified by a hand check made while building**: running the product and looking at it, by the owner or
+  during the slice, run once, reported with what was run and what was seen, and never committed. **It gets no
+  guard on a first occurrence or on speculation**, in an area checked by hand or anywhere else.
+- **A guard is earned by recurrence or by the owner's ask, never on an agent's own initiative after a first
+  fix** — recurrence being a decided behaviour reverted, or the same bug fixed more than once, as the history
+  shows, even where the failure is visible on screen, since agents change what nobody is watching and
+  recurrence is the evidence a failure is easy to reintroduce. A first occurrence gets the fix and at most a
+  probe. **A guard so earned stands over its area's `never committed` cell for that one test**, and the row
+  edit that records it is proposed for the owner to confirm.
+- **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
+  the owner, never a rewrite of the test to match.
+- **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
+  repeated element — pinning the decision, never sweeping it.** Other engines run on demand, on a promotion
+  PR or at release; a sweep across every combination needs a written reason beside it, and runs only in
+  `fullGate` where the project declares one; without `fullGate` it runs on every gate, which that reason must justify.
 
 ## Placing new code and a new test — in order
 
@@ -188,7 +194,7 @@ qualifies under the *Test policy*:
    brief.
 5. **A probe you will want again is a tool, never a committed test** — a validation tool held to items 2 and
    3: a driver that runs the product and prints what it saw, a script that calls a route with a dependency made
-   to fail, a measuring tool and its staleness check, which *The measurement cache* says how the gate runs.
+   to fail, a measuring tool, per *The measurement cache*.
 
 ## The measurement cache
 
@@ -216,8 +222,8 @@ gate; such a test is deleted, or turned to read its row. **Three parts, all requ
 **Of the three, the gate runs only the staleness check, and on every change**, outside any split gate's
 selection, since the files a stamp covers sit outside the folders the cache lives in. A test may read a stored
 answer and assert on it; none re-measures. A stale row is cleared by the measuring tool, never by re-stamping
-a row it did not measure; where the change's own machine cannot run the tool, the change reports the rows it
-left stale for the owner to measure.
+a row it did not measure; where the change's own machine cannot run the measuring tool, the stale rows are a
+decision for the owner, and the merge waits on their measurement.
 
 ## The shape of a split gate
 
@@ -242,7 +248,7 @@ tool.
    its own base, and item 8's re-gate over a fix round's delta is the one exception — **and an empty plan on
    a branch with commits beyond that base fails loudly**, never a green over zero tests. **It runs one
    representative per sweep; a sweep runs only under `fullGate`.**
-5. **The full gate moved to promotion PRs and the rest of the cadence `skills/procedures/config-keys.md`'s
+5. **The full gate runs on promotion PRs and the rest of the cadence `skills/procedures/config-keys.md`'s
    `fullGate` sets, never dropped** — the project's `fullGate`, with the partial gate as its `gate`, and **run
    cold: it reads no cache and no green store**.
 6. **Optionally, a green cache** keyed on a hash of a release unit's or a domain's inputs — its files, the core

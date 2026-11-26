@@ -289,8 +289,8 @@ the panel is not yet green, since a gate says the suite passed over the combined
 the slices COMPOSE, and that combined diff is the first and only place they sit together. **Apply nothing it
 raises yourself** — you write no code at any step of this loop — so green also means anything you accepted
 from that panel was applied and pushed by a fix agent BEFORE that gate ran, never after it and never by you,
-and that each tests-lens finding, which binds, is closed — the test deleted by that fix agent or its
-justification written on the PR.
+and that each tests-lens finding, which binds, is closed by its class (`skills/procedures/code-shape.md`,
+*Test policy*).
 **A finding the umbrella body still carries that no checklist line, linked issue, recorded settle or
 setup-debt item carried for `/pipeline:health` owns is a remaining plan that is NOT empty**, since closing
 that umbrella is the loop's last act and nothing reads a closed issue again. **And the arc's issues are closed

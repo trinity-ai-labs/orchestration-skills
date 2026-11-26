@@ -95,8 +95,8 @@ value does to a brief, and every pasted block below whose right form depends on 
 
 | Setting | Value | What the brief says |
 |---|---|---|
-| `gatePreference` + the PR's CI | absent or `"remote"`, and a workflow at the target runs the project's `gate` on `pull_request` to it — **remote mode** | Cheap checks only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
-| | `"local"`, or no such workflow — PR CI running lint, typecheck or another command alone included | The `enqueue` + `drain` rows below decide the case. |
+| `gatePreference` + the PR's CI | remote, as `skills/procedures/config-keys.md` reads it — **remote mode** | Cheap checks only while building; push, draft PR, hand back; no `gate` run, no gate comment, nothing enqueued — the PR's CI at its head is the gate. Paste the no-full-suite ban. |
+| | local, as it reads it | The `enqueue` + `drain` rows below decide the case. |
 | `enqueue` + `drain` | both declared — **queue mode** | Cheap checks only while building; push, draft PR, hand back; you enqueue once you have read the diff. Paste the no-full-suite ban. |
 | | neither declared — **in-line mode**, which a slice also reaches when you override it (*Gate mode for this slice*) | Run `gate` once, in the foreground, after opening the draft PR, and comment its result there under the `gate-verdict/<leaf>` key; nobody enqueues anything. No ban block. |
 | `gate`, `preflight` | the same command | One bar, named once, held by the hook row's case — never a "cheap" and a "full" bar that are the same command. |
@@ -227,12 +227,11 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   riders in `skills/execute/references/worktrees-and-branches.md` → *Docs land at the end* verbatim: a moved
   path, or a route literal beside one, is repointed in THIS PR rather than logged, and the ledger takes a
   second entry for what the change ADDED that no doc describes.
-- **Gate mode for this slice — `gatePreference` beside whether the project's CI runs its `gate` on pull
-  requests decides where the gate runs, and the project's `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
+- **Gate mode for this slice — `gatePreference` decides where the gate runs, and the project's
+  `enqueue`/`drain` who runs a local one; it decides that, nothing else.** Name
   the setting in the brief beside its case:
-  - **Remote mode — `gatePreference` absent or `"remote"`, and a workflow at the PR's target runs the
-    project's `gate` on `pull_request` to it** (`skills/execute/references/dispatcher.md`, *Gate mode*): the implementer pushes, opens a draft PR
-    and hands back, posting no gate comment; **nothing is enqueued for that PR**, its CI checks at its head being the gate you read
+  - **Remote mode — `gatePreference` reading remote for the PR** (`skills/execute/references/dispatcher.md`,
+    *Gate mode*): the implementer pushes, opens a draft PR and hands back, posting no gate comment; **nothing is enqueued for that PR**, its CI checks at its head being the gate you read
     (`skills/execute/references/reviewing.md`, *Reading a gate result*). A fallback to the local gate takes the
     case below that the project's `enqueue`/`drain` name — a ticket you raise, or a message to the same
     implementer to run its one in-line `gate`.
@@ -263,8 +262,8 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
 
   > **No full-suite or whole-package test runs — by ANY invocation.** Your only test execution is ONE targeted test run, `<targeted run>`, never a suite, and where your change adds, removes or renames an export or moves code between modules, also each test file that mocks or imports that module, found by grepping its specifier — still one file at a time. Not `gate`, not `turbo run test`, not a raw `vitest`/`tsc` sweep, not a package `test` script. Backgrounding it is still running it, and is the classic stall: the suite churns, your turn ends, the handoff never happens.
 - **Review pass for this slice — your call, made against the recommendation the breakdown's brief carries.**
-  **On an epic branch the default is the tests lens ALONE, on a slice that adds a test**, the rest of review
-  moving to the epic tip, at the review checkpoints you plan (*Review checkpoints*,
+  **A slice that adds a test runs the tests lens, ALONE by default, on every branch type**; on an epic branch
+  the rest of review moves to the epic tip, at the review checkpoints you plan (*Review checkpoints*,
   `skills/execute/references/worktrees-and-branches.md`) and the close-out panel over the whole diff. A slice's
   full `/pipeline:review` pass over its PR before it merges is the exception, for a contract seam later slices
   build on, for security, auth, data migration or anything irreversible, and for substantial work on an arc with
@@ -275,13 +274,13 @@ Your brief carries the **task-specific context the skill can't know**, plus the 
   PR, hand back* included, which they then execute; **the tell is the worktree rather than the hand-back**, so
   read `git log` on the branch for commits, a push or a PR its reviewers left before you read the report.
 - **The handoff ordering — set by the review decision above.** Every slice commits in logical blocks as the work
-  lands, pushes and opens a draft PR, and one running no pass then hands back. For the epic default paste *"Where
-  your slice adds a test, run `/pipeline:review` on your draft PR with its tests dimension alone."* For a review
+  lands, pushes and opens a draft PR, and one running no pass then hands back. For the default paste *"Where
+  your slice adds a test, run `/pipeline:review` on your draft PR with its tests lens alone."* For a review
   slice paste this, its `<formatter sentence>` by the `format` row — *"Run `<format>` in WRITE mode before each
   commit."* where the project declares one, and *"This project declares no `format`, so there is no formatter
   step."* where it declares none:
 
-  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
+  > **Review slice:** Commit in logical self-contained blocks as the work lands, push, and open your draft PR exactly as a slice running no pass would. `<formatter sentence>` THEN run `/pipeline:review` against that PR, by the number you just captured: it dispatches a fresh reviewer per dimension over the PR's real diff and each one reports; YOU hold the tree, change nothing in it until the last report has landed, and decide which findings to apply, except tests-lens findings, which bind. The pass posts its own findings onto that PR as a review, with one comment per dimension it dispatched beside it. What you accept becomes ONE more commit onto that SAME PR — commit, push, never a second PR and never a reopen — and a pass that raises nothing you accept leaves the slice on the commit round it already has. The pass does not re-trigger itself on that fix round.
 
   **A fix round's pushed head is held as the hook row's case says.**
 - **The foreground-handoff rule — it goes in EVERY brief, in every gate mode**: in queue and remote mode it

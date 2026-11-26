@@ -70,6 +70,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | local CI | `skills/glossary/vocabulary/local-ci.md` |
 | monolith (agent guidance) | `skills/glossary/vocabulary/agent-guidance.md` |
 | outcome record | `skills/glossary/vocabulary/outcome-record.md` |
+| promotion PR | `skills/glossary/vocabulary/promotion-pr.md` |
 | release unit | `skills/glossary/vocabulary/code-shape.md` |
 | review checkpoint | `skills/glossary/vocabulary/review-checkpoint.md` |
 | setup debt | `skills/glossary/vocabulary/code-shape.md` |

@@ -13,10 +13,13 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   owner's ask, and it pins a decision, so a change that trips it is a question to the owner. Verify bars accept
   none as an answer, and no template asks for a test count.
 - **The tests lens replaces *Redundant or over-swept tests*, and its findings bind.** `/pipeline:review`'s tests
-  dimension (`skills/review/references/tests-lens.md`) starts each added test marked for deletion; the caller
-  cannot reject its finding, and the merge waits until the test is deleted or its justification is on the PR.
-  A brief can scope the pass to named dimensions, and on an epic branch a slice that adds a test runs the tests
-  lens alone, the rest of review staying at the checkpoints and the close-out.
+  lens (`skills/review/references/tests-lens.md`) starts each added test marked for deletion; the caller
+  cannot reject its finding, and the merge waits until it closes by its class, as the *Test policy* says: a
+  missing justification closes when one that holds is written on the PR, and a test the policy does not admit,
+  of the wrong type for its row, or that re-measures closes only on deletion or an owner answer on record.
+  A brief can scope the pass to named dimensions, and every slice that adds a test, on every branch type, runs
+  the tests lens alone by default, on an epic branch the rest of review staying at the checkpoints and the
+  close-out.
 - **A per-area test-type table.** `/pipeline:setup` drafts it with the owner
   (`skills/setup/references/test-types.md`): per area, what must be right — with a default set from the money
   layer to parsers — the test type that brings value, whether it is checked by hand, and what is never
@@ -24,7 +27,7 @@ Versions are the `version` field in `.claude-plugin/plugin.json` and `.codex-plu
   rows. The tests lens judges a test's type against its row, and `/pipeline:health` names `Test types: <area>`
   or `Test types: no table` for a project with a test suite.
 - **Heavy suites run on promotion only.** `fullGate` is now a promotion PR's gate — a PR whose base is a branch
-  beyond the integration branch — chosen by the project's CI from `github.base_ref`; setup's drafted runner
+  beyond the integration branch, a new glossary entry (`skills/glossary/vocabulary/promotion-pr.md`) — chosen by the project's CI from `github.base_ref`; setup's drafted runner
   workflow runs `gate` or `fullGate` by the PR's base, and remote-gate detection reads that PR's gate command.
   Setup flags a workflow running heavy suites on slice PRs and offers the split, and health names it as
   `Heavy suite on slice PRs: <workflow>`. No config key was added.

@@ -64,9 +64,8 @@ a check run once to learn something or to prove a fix — run, its result read a
 committed as a permanent case. The same assertion can be either; what separates them is whether it stays in
 the suite.
 
-The **measurement cache** is a measurement's answer kept as committed data in place of a test that measures
-again, each row stamped with a hash over everything that changes the number, a staleness check reporting it
-current, stale or unmeasured; its three parts are `skills/procedures/code-shape.md`'s *The measurement cache*.
+The **measurement cache** is a measurement's answer kept as committed data, stamped so a milliseconds check
+fails when it is stale or missing; its parts are `skills/procedures/code-shape.md`'s *The measurement cache*.
 
 **Setup debt** is a property of a project's setup that makes every future change dearer to scope, gate or
 review — nothing a gate can narrow its selection by, untagged tests, tests living away from their subject, a central list, a full-suite

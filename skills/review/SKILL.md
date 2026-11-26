@@ -121,7 +121,7 @@ step — read it before you write the first brief.
 in the table below decides whether it is offered, and selection among those is the cost control: a
 mechanical rename or a one-line fix does not earn every reader. Say in your report which dimensions
 you ran and which you judged the slice did not need. **A brief that scopes this pass to named dimensions
-dispatches exactly those** — an epic slice's run of the tests lens alone is the common case.
+dispatches exactly those** — a slice's run of the tests lens alone is the common case.
 
 **Their TIER is the other half of that same selection, so name it in each spawn rather than leave it to
 default** — a host handed no model gives a reviewer the model YOU are running, which fans your own tier
@@ -348,9 +348,8 @@ wait.
 
 **The agent running this slice decides, and that agent is you** — reviewers surface and you disposition, so the
 call on every finding is yours: apply what belongs, smallest safe edits first, and consciously reject the rest.
-**The one exception is the tests lens, whose findings BIND: you cannot reject one, and it closes only when the
-test is deleted or the *Test policy*'s justification for it (`skills/procedures/code-shape.md`) is written on
-the PR, in its body or a hand-back comment** — every other dimension stays advisory, and a tests finding still
+**The one exception is the tests lens, whose findings BIND: you cannot reject one, and each closes by its
+class, as `skills/procedures/code-shape.md`'s *Test policy* says** — every other dimension stays advisory, and a tests finding still
 open goes under your record's decisions needed, outside Flagged's admission test, since the merge waits on it.
 **You apply nothing on anyone's behalf**: nothing lands in this tree you did not decide on, and a finding you
 are not the party to act on is reported rather than delegated. **A fix that would remove or degrade user-visible

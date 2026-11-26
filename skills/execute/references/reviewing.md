@@ -314,8 +314,8 @@ because it was told not to look.
 
 **The review pass's rejected findings are addressed to YOU and reach you on the PR — read them, and read a
 hand-back record that names no review against your own brief before you read it as a clean pass.** ⛔ **An open
-tests-lens finding holds the merge** until the test is deleted or the PR carries its *Test policy* justification
-(`skills/procedures/code-shape.md`). `/pipeline:review` runs inside the implementer and its reviewers report to
+tests-lens finding holds the merge until it is closed by its class** (`skills/procedures/code-shape.md`, *Test
+policy*), never by PR text alone. `/pipeline:review` runs inside the implementer and its reviewers report to
 it, so its `Rejected` list — each finding that implementer considered and deliberately did not act on, carrying
 the reviewer or reviewers that raised it — is written for the reviewer of this PR. The **review the pass posted
 onto this PR** carries those findings as a live artifact attached to the diff, and the **dimension comments**

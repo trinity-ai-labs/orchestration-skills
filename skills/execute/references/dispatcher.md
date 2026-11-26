@@ -183,14 +183,10 @@ onboarded first.
 Three readings, **never inferred from the branch name**, since a rename must not silently change how a PR is
 gated — in queue mode the last two are properties of the **ticket**, set at enqueue.
 
-**Where the gate runs — `gatePreference` and whether the project's CI runs its `gate` on pull requests decide
-it**
-(`skills/procedures/config-keys.md`), read at dispatch, before any check exists, so from the workflow trigger
-and never from checks:
+**Where the gate runs — `gatePreference` decides it** (`skills/procedures/config-keys.md`), read at dispatch,
+before any check exists, so from the workflow file and never from checks:
 
-- **Remote — `gatePreference` absent or `"remote"`, and a workflow at the PR's target triggered on
-  `pull_request` to it runs the project's `gate`**, its `run:` steps carrying the `gate` command's text or the
-  script it invokes — a string match on the file, as `skills/procedures/config-keys.md` reads it. **The PR's own CI checks at its head SHA are its gate**, whatever
+- **Remote — where `gatePreference` reads remote for the PR.** **The PR's own CI checks at its head SHA are its gate**, whatever
   machine executes them — GitHub-hosted, a paid provider's or self-hosted alike: the implementer
   pushes, opens a draft PR and hands back, posting no gate comment; **no ticket is enqueued for that PR, even in a project with a queue**; and you wait on `gh pr checks <n> --watch`, backgrounded where your host re-invokes you on its exit and
   otherwise read on the divergence tick — a wait that returns a verdict once checks have registered, its
@@ -244,8 +240,7 @@ re-enqueued PR carries a gate comment whose SHA matches its head whichever gate 
 
 ### Six readings that change the flow
 
-- **A workflow running the project's `gate` on pull requests to the PR's target, and `gatePreference` not
-  `"local"`** → **the gate runs remote** (*Gate mode*), and Actions queues the PR gates itself, a self-hosted machine taking one job at
+- **`gatePreference` reading remote for the PR** → **the gate runs remote** (*Gate mode*), and Actions queues the PR gates itself, a self-hosted machine taking one job at
   a time.
 
 - **No `enqueue`/`drain`** → **wherever this project gates locally it gates in-line, and that is the DEFAULT

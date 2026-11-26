@@ -235,8 +235,8 @@ merge commit and the branch it landed on, the verdict, what was rejected or flag
 ran, was skipped and why, or was left to a review checkpoint, linked, links back to the PR's reviews,
 dimension comments and gate comment — or its CI run, under a remote gate — and the arc's other PRs that landed beside it — so a closed issue says
 what happened to it without anyone opening the PR. The dispatcher writes that run-or-skip decision into its
-own review on the PR as well, so a PR with no panel review on it reads as a recorded skip or as a write that
-went missing, never as a blank that could be either.
+own review on the PR as well, so a PR with no panel review on it — or with the tests lens alone — reads as a
+recorded decision or as a write that went missing, never as a blank that could be either.
 
 A posted review is a different artifact from the gate's plain comment, which is what keeps the two readable
 side by side. `merge-pr.sh` is the only thing that sets it, inside the run that merges — one line above
@@ -262,8 +262,9 @@ anywhere. What stands in for the hand-back there is the epic's panels: **the clo
 gate over the PR's whole diff — every dimension review offers on it, asked of how the slices compose, which no
 slice's own diff shows. **Review checkpoints are how the epic is read before then.** On an epic branch the
 dispatcher runs a `/pipeline:review` panel over the epic tip after a contract seam lands or about every three
-to four merged slices — none mid-epic on an arc of four slices or fewer — rather than a panel per slice, and
-its dispatch report states that plan. A review checkpoint reads the change since the previous one's reviewed
+to four merged slices — none mid-epic on an arc of four slices or fewer — rather than a full panel per
+slice, and its dispatch report states that plan. **The one reader that stays on the slice is the tests lens**:
+a slice that adds a test runs it alone over its own PR, and its findings bind — the merge waits until the test is deleted or its justification is written on the PR. A review checkpoint reads the change since the previous one's reviewed
 head (the fork point the first time), posts onto the epic's own PR into the integration branch, which opens as
 a draft at the first one and stays one until the close-out merge, and sends accepted findings to one fix agent
 in the epic worktree, which runs the preflight and the tests by name for what it touched, the close-out
@@ -389,8 +390,8 @@ outstanding.
   on its PR, with no suite baseline before dispatch; a merge into an epic branch takes no integration gate, the
   epic paying one `gate` over its combined diff at close-out.
 - **A partial per-change gate, where a project declares `fullGate`** → every slice and close-out gate can run
-  only what its change affects, because the full suite runs on demand, before a release, on the tip audit,
-  and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the
+  only what its change affects, because the full suite runs on a promotion PR — CI choosing it by the PR's
+  base — on demand, before a release, on the tip audit, and in place of the close-out `gate` where an epic moved the boundary — for a gate selecting from the
   project's structure only a change to its selection machinery, since it already selects every release unit
   a shared change reaches; for one selecting from a domain map, the map, a shared-spine file or the
   toolchain. A project that declares nothing keeps one full gate everywhere.

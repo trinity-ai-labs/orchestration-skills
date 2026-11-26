@@ -15,7 +15,8 @@ do not, setup hands the gap back rather than writing one for you. **If resources
 your `drop` by hand once before adopting this** — the first removal otherwise pays the whole backlog in the
 foreground, during a merge. **Whether your gate is partial** — whether it runs only what a change can affect
 rather than the whole suite. Only a yes declares `fullGate`, your full-suite command, written to run cold —
-reading no cache and no stored green — which the flow then runs on demand, before a release, and in place of
+reading no cache and no stored green — which your CI then runs on a promotion PR, one whose base is a branch
+beyond the integration branch, and the flow runs on demand, before a release, and in place of
 the close-out gate where an epic moved the boundary: for a gate that selects from your folders and manifests,
 only a change to that selection machinery — the gate itself, manifest discovery, the exception list and its
 checks, the toolchain or a lockfile — and for one that selects from a domain map, the map or its checks, a
@@ -25,7 +26,14 @@ your repo shows more than one product** — several package, app or plugin manif
 product — **it asks which parts ship on their own**, naming each candidate and the sign it came from, and
 records your answer as the project's layering (its release units, components and core) in your agent
 guidance rather than in `.agents/worktree.json`, in the same reviewable PR; a single-product repo gets no
-such question. **Setup also
+such question. **It drafts your test-type table with you** — one row per area, naming what must be right from
+day one (by default the money layer, auth, sessions and authorization, security, redaction and secrets, data integrity and migrations, sync
+and concurrency, and parsers, wherever the area has them), the test type that brings value there, whether you
+check the area by hand, and what is never committed there — after asking you flat which areas you check by
+hand and what else must be right. The table lands in your tests chapter, in the same reviewable PR, and every
+test the flow writes or reviews is held to its area's row
+([`skills/setup/references/test-types.md`](../skills/setup/references/test-types.md)); a reconcile drafts only
+the rows that are missing and leaves yours as you wrote them. **Setup also
 derives your test runner's targeted form** — `targetedTest`, a template taking one of test files or names —
 and confirms it with you; where no runner takes either it is left out. **And one that is not a fact about your
 repo at all — consent:** may a run that finds a defect in *the pipeline itself* write it into this plugin's
@@ -55,16 +63,18 @@ run costs on a one-file edit, and at how long one full run of your suite takes, 
 how much of it a gate could select — each figure with its unit. Where the gate is your full suite with nothing to narrow it by, that is the first item of *setup debt*
 setup reports from it, right after any monolith: measured, with a first recommendation to **prune or merge
 tests**, from health's `Prune candidates` (the slowest tests, the loops with the most sweep multiplicity,
-same-shaped files that merge into one table-driven test, probes committed as cases, tests that cannot fail;
-health lists them and never deletes one), and **split the gate** as the alternative — starting from
+same-shaped files that merge into one table-driven test, probes committed as cases — a committed measurement
+marked as one, its remedy a stored answer the gate checks for staleness instead of re-measuring — and tests
+that cannot fail; health lists them and never deletes one), and **split the gate** as the alternative — starting from
 structure: move each test into its subject's folder and add a manifest per release unit and component, so a
 changed-files gate selects from the folders a change touches and the units built from them, then keep a
 domain map only as an exception list for what the folders cannot express, add the gate that falls back to
 the full suite loudly on anything neither the structure nor the map places, and declare `fullGate` — as your
 own change, taken through `/pipeline:co-think` and `/pipeline:write-issue` with
 setup run again afterwards to ask for `fullGate`, and the cheaper alternatives beside it, each with its cost:
-the structure alone, a map alone, or a gate queue so full runs at least stop contending. Setup never restructures
-your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
+the structure alone, a map alone, or a gate queue so full runs at least stop contending. Health also names a
+workflow that runs the heavy suites on every slice PR, and an area your test-type table has no row for. Setup
+never restructures your code or your gate itself, and never stops over this. `/pipeline:health` keeps one rolling `Setup debt`
 issue in your tracker, appending what it measures, ticking off what is gone and marking settled what you chose to leave, with its reason. The issue closes once nothing is left unticked and reopens only when something new needs a decision, so run again — by setup on a
 reconcile, by `/pipeline:orchestrate` once per arc as the arc leaves, or by you at any time — it reports each
 item beside its last value.
@@ -118,7 +128,9 @@ checks at its head are its verdict, whether GitHub, a paid provider or your own 
 runs `gate` locally for it, the local gate stepping in only when CI gives no answer. It writes
 `"gatePreference": "local"` only if you say you want the local gate anyway. Where your PR CI runs something
 else — lint or typecheck alone — the project gates locally, and setup offers, priced and only on your yes, to
-have that workflow run `gate`.
+have that workflow run `gate`. **Where a workflow makes every slice PR pay the heavy suites** — your `fullGate`
+or a sweep, on PRs into the integration branch or an epic branch — setup tells you so and offers the split by
+the PR's base: `gate` on slice PRs, `fullGate` on promotion PRs, existing CI rewritten only on your yes.
 
 **One ask is an offer rather than a value: a self-hosted runner for the gate on your own machine, only on
 onboarding, and the recommended answer** — made where no workflow runs the gate on pull requests, or where one
@@ -130,8 +142,8 @@ own, `.github/scripts/install-<os>-runner.sh`, that registers the runner (a toke
 own config and service install, a label) and then does only what this project's gate needs on the machine —
 setup reads the gate, the project's CI and its guidance for that, checking it against known runner traps such
 as macOS's `SessionCreate`, which matters only to a project whose jobs reach the login Keychain; it drafts a
-gate workflow on that label, running the preflight as its own step before the gate so a type or lint error fails
-in seconds; and it shows you each before anything is committed or registered. Your machine's
+gate workflow on that label, running the preflight as its own step first so a type or lint error fails in
+seconds, then `gate` on slice PRs and `fullGate` on a promotion PR where you declare one, chosen by the PR's base; and it shows you each before anything is committed or registered. Your machine's
 facts and secrets never go into the config. Where the first remote gate is red on a test, its failing tests are re-run
 locally at the same SHA, so a red seen only on the runner is read as the runner's environment rather than your
 code. Under a remote gate a gate queue is needed only for the runs that stay local, so setup scaffolds one

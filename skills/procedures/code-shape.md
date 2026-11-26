@@ -80,6 +80,10 @@ answer.**
   once shipped** — the bug, the broken contract, the regression nobody sees by running the change. *This
   behaviour exists* is not a reason: small behaviours are covered by the one seam test that exercises them,
   never one test each.
+- **The project's guidance names its areas, and per area the test type that brings value there, whether it is
+  checked by hand, what must be right and what is never committed**: a test is of its area's type and never
+  of a kind its area never commits, and a must-be-right item is the owner's ask written down, so its guard
+  needs no recurrence.
 - **A guard is priced on both of its costs before it is written** — the pile it joins, where a thousand
   low-value tests at 7–30 s each are hours on every gate, and its own seconds per run, paid on each of the
   roughly 1,000 gates it lives through. **Its justification is three items — the failure it guards, with the
@@ -103,7 +107,7 @@ answer.**
 - **A guard pins a decision**: it names the decided behaviour, and a change that trips it is a question to
   the owner, never a rewrite of the test to match.
 - **A guard is one representative case — one unit, width, theme, size, browser engine, one instance of a
-  repeated element — pinning the decision, never sweeping it.** Other engines run on demand or at release; a
+  repeated element — pinning the decision, never sweeping it.** Other engines run on demand, on a promotion PR or at release; a
   sweep across every combination needs a written reason beside it, and runs only in `fullGate` where the
   project declares one; without `fullGate` it runs on every gate, which that reason must justify.
 - **Extend an existing test that fails on the bug before adding a new one** — new only where no existing test

@@ -15,10 +15,9 @@ start each added test marked for deletion**. Report each finding with the deleti
 - **A test of another type than its area's row names, or of a kind that row never commits** — name the row,
   read from the project's test-type table (`skills/glossary/vocabulary/test-types.md`).
 - **A guard the diff rewrote to match a change that tripped it**, with no answer from the owner on record.
-- **A committed re-measurement** — a sweep, a long render, a level or loudness read, a timing, a loop over
-  themes or browsers that every gate re-runs to ask what it measured last time — its remedy *The measurement
-  cache* in `skills/procedures/code-shape.md`: the answer kept as a row, the test deleted or turned to read
-  that row. **A test that reads a stored answer and re-measures nothing is not this finding.**
+- **A committed re-measurement** — a measurement every gate re-runs to ask what it measured last time — its
+  remedy `skills/procedures/code-shape.md`'s *The measurement cache*. **A test that reads a stored answer and
+  re-measures nothing is not this finding.**
 - **A test that duplicates one already in the suite** — name the existing test that carries the case, or
   would with one more case.
 

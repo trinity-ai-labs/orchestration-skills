@@ -68,7 +68,7 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
      equals a seconds-long `gate`, the sanctioned answer.
    - **Prune candidates** — the specific tests to clear, by `skills/procedures/code-shape.md`'s *Pruning*. The
      item `Prune candidates`, its value the count of tests listed and the minutes per run they cost, the list
-     beneath it, each committed measurement among them marked as one, its remedy
+     beneath it, a committed measurement among them marked as one, its remedy
      `skills/procedures/code-shape.md`'s *The measurement cache*. **Health lists them and never deletes one.**
    - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off
      `skills/procedures/config-keys.md`'s `fullGate` cadence as it reads one; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step

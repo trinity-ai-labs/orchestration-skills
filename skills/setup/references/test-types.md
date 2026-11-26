@@ -19,7 +19,7 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
 | **must be right** | what is guarded from day one with no recurrence needed: by default, wherever the area has them, the money layer (payments, purchases, licence claiming), auth, sessions and authorization, security and signing, redaction and secrets, data integrity and migrations, sync and concurrency, and parsers — then what the owner names, such as saved state or the audio thread; `none` where nothing is |
 | **test type** | the kind that brings value there, at its seam and with its bounds: unit at a DSP seam, at one rate and block size with no long render; end-to-end in one browser for auth and checkout; end-to-end on the real artifact for an installer; in an area checked by hand, at most a few high-value checks such as *does it render*, or none |
 | **checked by hand** | `yes` or `no` — by the owner, and by whoever runs the product while building it; `unasked`, read as `no`, until the owner answers |
-| **never committed** | what no test in that area may be: on-screen checks (*is each button here, does it light up*), sweeps, long renders, measurements |
+| **never committed** | what no test in that area may be: on-screen checks (*is each button here, does it light up*), sweeps, long renders, measurements — a kept answer being data instead, by `skills/procedures/code-shape.md`'s *The measurement cache* |
 
 ## Drafting it — in order
 
@@ -33,9 +33,8 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
 4. **Draft each `test type` from the area's seam** — the cheapest level that exercises the boundary a caller or
    a user crosses, end-to-end only where a user crosses auth, money or an installer — read beside the tests
    the area already has.
-5. **Draft `never committed`**: measurements, and sweeps outside `fullGate`, in every area — a measured answer
-   worth keeping is committed as data instead, by `skills/procedures/code-shape.md`'s *The measurement cache*;
-   on-screen checks too in a hand-checked one.
+5. **Draft `never committed`**: measurements, and sweeps outside `fullGate`, in every area; on-screen checks
+   too in a hand-checked one.
 6. **Show the owner the drafted table and land their corrections** in the reviewable PR beside the config,
    never a commit straight to the integration branch.
 

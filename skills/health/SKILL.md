@@ -51,7 +51,7 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
 3. **Check the agent guidance's shape** by `skills/procedures/agent-guidance-layout.md`'s *Checking the
    shape*, or take the verdict a calling pass handed you rather than checking again. A monolith is the
    `Guidance: monolith` item, its value the count of marks, each mark with its file.
-4. **Name the items no single table row carries** — five no row measures, and `Prune candidates`, drawn from
+4. **Name the items no single table row carries** — six no row measures, and `Prune candidates`, drawn from
    the *Tests per domain*, *Minutes per domain* and *Sweep multiplicity* rows:
    - **A missing tool** — a signal this run took by hand that the issue already carries a value for has now
      been worked out by hand twice (`skills/procedures/code-shape.md`, *Recognising a missing tool*), so it is
@@ -72,6 +72,10 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
    - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off
      `skills/procedures/config-keys.md`'s `fullGate` cadence as it reads one; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
      costs where the CI output shows them.
+   - **A test-type gap**, only in a project with a test suite beyond the gate's own checks, and otherwise on
+     the does-not-apply line — an area the code shape names with no row in the project's test-type table
+     (`skills/glossary/vocabulary/test-types.md`); the item `Test types: <area>`, its value `no row`, or with
+     no table at all the one item `Test types: no table`, its value the count of areas the code shape names.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -92,8 +96,8 @@ be read.
 
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
-`Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>`, `Heavy suite on slice PRs: <workflow>` or
-`Prune candidates`, whose tests sit beneath its line as indented
+`Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>`, `Heavy suite on slice PRs: <workflow>`,
+`Test types: <area>`, `Test types: no table` or `Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -148,6 +152,9 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   no promotion PR, the step moves to the rest of `fullGate`'s cadence. Its alternatives are a scheduled or
   manual run instead (a heavy break surfaces after its merge, tied to no PR), or leaving it (every slice pays
   that step's minutes).
+- **The recommendation for a `Test types` item is the missing rows drafted off the code shape and corrected
+  by the owner**; its alternatives are the owner writing them by hand (the same rows with no drafted
+  candidates), or leaving it (every test there is judged on the policy alone).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).
@@ -179,6 +186,7 @@ and ticked off.
 | A restructure — splitting the gate, colocating tests, adding manifests, bootstrapping the map, tagging the suite | `/pipeline:co-think` → `/pipeline:write-issue` as the project's own change, then `/pipeline:setup` so its `fullGate` ask declares the full gate once the partial one has landed |
 | A monolith | `/pipeline:setup`, which splits it in its own PR |
 | `Heavy suite on slice PRs` | `/pipeline:setup`, which offers the split |
+| `Test types` | `/pipeline:setup`, which drafts the missing rows with the owner |
 
 **A calling pass gets that same report as its summary** and quotes it; it never re-measures. **Never a stop**:
 the flow runs correctly on a full gate and a monolith, only dearer.

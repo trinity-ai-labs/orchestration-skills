@@ -73,6 +73,7 @@ ours to decide, so they go wrong by **drifting**: two copies worded differently,
 | release unit | `skills/glossary/vocabulary/code-shape.md` |
 | review checkpoint | `skills/glossary/vocabulary/review-checkpoint.md` |
 | setup debt | `skills/glossary/vocabulary/code-shape.md` |
+| test-type table | `skills/glossary/vocabulary/test-types.md` |
 | tip audit — cold, gives way, charged, environmental | `skills/glossary/vocabulary/tip-audit.md` |
 | umbrella | `skills/glossary/vocabulary/umbrella.md` |
 

@@ -30,7 +30,7 @@ are guesses; a guessed gate passes while testing nothing. **Treat "no config" as
 ---
 
 **Six steps, in order.** Each carries the rules that fire at it; Step 3 has a reference behind it, and so
-does Step 1's CI-runner offer, opened only on the user's yes.
+do Step 1's test types per area and, opened only on the user's yes, its CI-runner offer.
 
 ## Step 0 — Decide how much of this the repo needs
 
@@ -121,6 +121,9 @@ Every value must trace to a file you read.
   key holding it. It lands in a reviewable PR beside the config, never in a commit straight to the
   integration branch. **A single-product repo gets no question**, and guidance already declaring the layering
   is re-grounded against the manifests rather than asked again.
+- **The test types per area** — which kind of test brings value in which area, drafted with the owner on
+  onboarding and wherever the guidance holds no table or an area has no row →
+  `skills/setup/references/test-types.md`.
 - **The setup debt** (`skills/glossary/vocabulary/code-shape.md`) — run `/pipeline:health`, handing it the
   guidance verdict above, and keep its summary; this pass takes no code-shape signal itself (*Setup debt is
   told second — measured by `/pipeline:health`, never restructured here*).
@@ -459,8 +462,8 @@ component, before any domain map is scaffolded.** **A split gate it recommends i
 runs again so the fourth ask declares `fullGate`. **Never a restructure made by this pass**, and never a stop.
 
 **Handoff:** lead with the monolith verdict where there is one, and the split PR beside it, then
-`/pipeline:health`'s summary. Then report the config, what each value was derived from, whether you
-scaffolded a queue, and the verification results. Say where the gate runs, remote on the PR's CI or local,
+`/pipeline:health`'s summary. Then report the config, what each value was derived from, the test-type table
+drafted with its `unasked` cells, whether you scaffolded a queue, and the verification results. Say where the gate runs, remote on the PR's CI or local,
 and why, with any runner stood up and how its first remote gate read. Then name the two local files beside it: the gitignored
 `.agents/worktree.overrides.json` for this clone's own values, and `~/.agents/worktree.json` for where this
 machine keeps every worktree. Then:

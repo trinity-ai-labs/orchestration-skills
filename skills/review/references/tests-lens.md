@@ -10,10 +10,11 @@ start each added test marked for deletion**. Report each finding with the deleti
 - **A test whose justification is missing or does not hold** — the three items the policy asks of a guard, read
   from the PR body, where each added test's justification is written before this pass runs; a guard claiming
   recurrence is checked against the history (`git log -S` or `-G` on the behaviour it pins), and one claiming
-  the owner's ask names where that ask is written.
-- **A test of another type than its area's row names, or of a kind that row never commits** — the row is in
-  the test-type table of the project's tests chapter, so name it; the policy's clause on the project's areas is what it rests on. A guard of an
-  item that row marks must be right needs no recurrence, and an area with no row is judged on the policy alone.
+  the owner's ask names where that ask is written — an item its area's row lists under *must be right* being
+  that ask, unless this diff added or changed that row.
+- **A test of another type than its area's row names, or of a kind that row never commits** — name the row,
+  read from the test-type table in the project's tests chapter, routed from its `AGENTS.md`; an area with no
+  row is judged on the policy alone.
 - **A guard the diff rewrote to match a change that tripped it**, with no answer from the owner on record.
 - **A test that duplicates one already in the suite** — name the existing test that carries the case, or
   would with one more case.

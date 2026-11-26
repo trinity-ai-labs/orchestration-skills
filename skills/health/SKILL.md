@@ -72,10 +72,10 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
    - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off
      `skills/procedures/config-keys.md`'s `fullGate` cadence as it reads one; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
      costs where the CI output shows them.
-   - **A test-type gap** — an area the code shape names that the project's guidance gives no row in its
-     test-type table, the record of which kind of test brings value in which area, or guidance with no such
-     table at all; the item `Test types: <area>`, or `Test types: no table`, its value the count of areas with
-     no row.
+   - **A test-type gap** — an area the code shape names with no row in the project's test-type table (which
+     kind of test brings value in which area), read from its tests chapter; the item `Test types: <area>`, its
+     value `no row`, or with no table at all the one item `Test types: no table`, its value the count of areas
+     the code shape names.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.
@@ -97,7 +97,7 @@ be read.
 **The item lines are STATE, rewritten whole each run**, one line per item, keyed on the item's name — the
 signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `Central list: <path>`,
 `Hotspot: <path>`, `Baseline: <path>`, `Preflight: <what>`, `Heavy suite on slice PRs: <workflow>`,
-`Test types: <area>` or `Prune candidates`, whose tests sit beneath its line as indented
+`Test types: <area>`, `Test types: no table` or `Prune candidates`, whose tests sit beneath its line as indented
 `- <file> — <cost> <unit> — <reason>` entries, rewritten with it
 — **and anything else on the body is carried across unchanged**:
 
@@ -152,10 +152,9 @@ signal as the table names it, `Guidance: monolith`, `Missing tool: <signal>`, `C
   no promotion PR, the step moves to the rest of `fullGate`'s cadence. Its alternatives are a scheduled or
   manual run instead (a heavy break surfaces after its merge, tied to no PR), or leaving it (every slice pays
   that step's minutes).
-- **The recommendation for a `Test types: <area>` item is that area's row drafted off the code shape and
-  corrected by the owner, `/pipeline:setup` drafting it**; its alternatives are the owner writing the row by
-  hand (the same row with no drafted candidates), or leaving it (every test there is written and judged
-  against the policy alone, with no type to hold it to).
+- **The recommendation for a `Test types` item is the missing rows drafted off the code shape and corrected
+  by the owner**; its alternatives are the owner writing them by hand (the same rows with no drafted
+  candidates), or leaving it (every test there is judged on the policy alone).
 - **The recommendation for a `Baseline: <path>` item is a burn-down, one leaf per entry, each split along that
   file's own seams**; its alternatives are raising the limit (the debt is redefined, not paid), or leaving it
   (what each entry already costs, with no end).
@@ -187,7 +186,7 @@ and ticked off.
 | A restructure — splitting the gate, colocating tests, adding manifests, bootstrapping the map, tagging the suite | `/pipeline:co-think` → `/pipeline:write-issue` as the project's own change, then `/pipeline:setup` so its `fullGate` ask declares the full gate once the partial one has landed |
 | A monolith | `/pipeline:setup`, which splits it in its own PR |
 | `Heavy suite on slice PRs` | `/pipeline:setup`, which offers the split |
-| `Test types: <area>` | `/pipeline:setup`, which drafts the missing rows with the owner |
+| `Test types` | `/pipeline:setup`, which drafts the missing rows with the owner |
 
 **A calling pass gets that same report as its summary** and quotes it; it never re-measures. **Never a stop**:
 the flow runs correctly on a full gate and a monolith, only dearer.

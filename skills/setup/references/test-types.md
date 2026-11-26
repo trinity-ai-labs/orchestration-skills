@@ -33,8 +33,9 @@ judging a test**, so every seat that does one opens it. **It is a coding convent
 4. **Draft each `test type` from the area's seam** — the cheapest level that exercises the boundary a caller or
    a user crosses, end-to-end only where a user crosses auth, money or an installer — read beside the tests
    the area already has.
-5. **Draft `never committed`**: measurements, and sweeps outside `fullGate`, in every area; on-screen checks
-   too in a hand-checked one.
+5. **Draft `never committed`**: measurements, and sweeps outside `fullGate`, in every area — a measured answer
+   worth keeping is committed as data instead, by `skills/procedures/code-shape.md`'s *The measurement cache*;
+   on-screen checks too in a hand-checked one.
 6. **Show the owner the drafted table and land their corrections** in the reviewable PR beside the config,
    never a commit straight to the integration branch.
 

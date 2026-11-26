@@ -1,4 +1,4 @@
-# code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate, structure-selected, map-selected, selection machinery, moves the boundary, seam test, guard, probe, setup debt
+# code shape — domain, layer, core, component, release unit, central list, domain map, exception list, domain tag, shared spine, split gate, structure-selected, map-selected, selection machinery, moves the boundary, seam test, guard, probe, measurement cache, setup debt
 
 **Code shape** is how a project's files divide by what they are about, and how cheaply that division lets a
 change be scoped, gated and reviewed. **The folder is the unit**: what ships, what is shared and where a test
@@ -60,8 +60,12 @@ public interface — rather than against a module's internals. It survives a ref
 and fails when the behaviour across it breaks, which a test of wiring does not.
 
 A **guard** is a permanent test — committed, and run by every gate whose selection reaches it. A **probe** is
-a check run once to learn something or to prove a fix, and never committed as a permanent case. The same
-assertion can be either; what separates them is whether it stays in the suite.
+a check run once to learn something or to prove a fix, and never committed as a permanent case: it is run, its
+result read and acted on, what was run and what it showed recorded in the hand-back, and then it is gone. The
+same assertion can be either; what separates them is whether it stays in the suite.
+
+The **measurement cache** is a measurement's answer kept as committed data, stamped and checked for staleness,
+in place of a test that measures again; its three parts are `/pipeline:procedures`'s code-shape entry's.
 
 **Setup debt** is a property of a project's setup that makes every future change dearer to scope, gate or
 review — nothing a gate can narrow its selection by, untagged tests, tests living away from their subject, a central list, a full-suite

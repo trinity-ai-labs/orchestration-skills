@@ -590,8 +590,9 @@ defect that is not in the diff at all. No
 **no *post a review or a comment on the PR* — the review and the dimension comments this pass posts are
 YOURS and a reviewer posts nothing at all**, no *run the
 formatter*, no *hand back to the
-dispatcher*, no gate command, and no command that moves or clears the tree — no checkout of another
-commit, no `stash`, `reset` or `clean` — since the worktree is the caller's and a tree moved under this
+dispatcher*, no gate command, and no command that moves or clears the tree — the tree already IS the PR's
+head, so any other commit is read with `git show <sha>:<path>` or `git diff <a> <b>`, never by checking it out,
+and no `stash`, `reset` or `clean` — since the worktree is the caller's and a tree moved under this
 pass leaves every other reader describing a change none of them was briefed on. **Frame
 the deliverable positively rather than as a list of
 prohibitions**: you investigate, your deliverable is a report, and nothing else you do counts.

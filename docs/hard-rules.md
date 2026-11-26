@@ -24,12 +24,14 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   permission, and may **lower** it only with a written reason in the brief, since the cheaper reading is
   always the defensible one and a silent downgrade leaves no artifact at all — the hand-back names no tier and
   the diff carries none. The same pass's brief also **recommends** how a slice is reviewed, on
-  the same reading: on an epic branch, review checkpoints over the epic tip by default, and a per-slice panel
-  for seams, security, auth, data or irreversible changes, or substantial work with no epic branch; the
-  dispatcher may override it with a reason of its own; whichever way it decides, the
+  the same reading: on an epic branch, the tests lens alone on a slice that adds a test and review checkpoints
+  over the epic tip for the rest by default, and a per-slice panel for seams, security, auth, data or
+  irreversible changes, or substantial work with no epic branch; the dispatcher may override it with a reason
+  of its own; whichever way it decides, the
   decision and its reason are written into the review it posts on that slice's PR and into the issue's closing
   comment, so a PR with no panel review reads as a recorded skip rather than a blank. It is a recommendation
-  rather than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no panel*.
+  rather than a tenth slice field, and a one-liner or a mechanical rename still comes out as *no panel* — the
+  tests lens alone where it adds a test.
   **The wave's WIDTH is the third of that shape**: the grounding pass recommends how many ready issues go out
   together and states the evidence only it holds — which are the same mechanical change, which have an
   ordering between them, which share a contract seam or a fence, which owned paths overlap — and the
@@ -46,13 +48,29 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   sideways into a sibling domain; modules are deep, and tests sit at the seam a caller or a user crosses — the
   interface is the test surface, so a test that must reach past it means the module is the wrong shape — so
   a test sits at the cheapest level that exercises the seam, a browser test is only for what a user crosses,
-  a computed invariant replaces a case per combination, and a unit test is kept for real logic. **A permanent
-  test is a guard, never a probe**: a bug earns one only when it is easy to reintroduce, would slip by
-  unnoticed and is costly if shipped, an existing test is extended before a new one is added, one
-  representative unit, theme, size or browser engine is the default — a sweep needs a written reason, and runs
-  only under `fullGate` where you declare one and on every gate otherwise — and a test that cannot fail or
-  costs more than its bug is deleted, the domain map and test tags updated in the same change (`skills/procedures/code-shape.md`, *Test policy*;
-  review's *Redundant or over-swept tests* dimension and health's `Prune candidates` apply it). **The folder
+  a computed invariant replaces a case per combination, and a unit test is kept for real logic. **No new
+  test is the default, and a permanent test is a guard, never a probe**: it exists only where the failure it
+  catches is invisible while building and costly once shipped, and it is priced on both of its costs — the
+  pile it joins on every gate, and its own seconds on each of the gates it lives through. Its justification —
+  the failure it guards, why that failure is invisible while building and costly once shipped, and its
+  seconds per run — is written on the PR, or the test is not written. Anything you can see by opening the
+  product is verified by a hand check while building — run once, reported, never committed — and gets no guard
+  on a first occurrence; a guard is earned by recurrence — a decided behaviour reverted, or the same bug fixed
+  twice — or by your asking for one, and
+  a guard pins a decision, so a change that trips it is a question to you, never a rewrite of the test. An
+  existing test is extended before a new one is added, one representative unit, theme, size or browser engine
+  is the default — a sweep needs a written reason, and runs only under `fullGate` where you declare one and on
+  every gate otherwise — and a test that cannot fail or costs more than its bug is deleted, the domain map and
+  test tags updated in the same change. **Per area, your project's test-type table** — in its agent guidance,
+  drafted with you by `/pipeline:setup` — names the test type that brings value there, what must be right
+  (a must-be-right item being your ask written down, so its guard needs no recurrence), whether you check it
+  by hand and what is never committed. **A measurement worth keeping is stored as its answer, never committed
+  as a test that asks it again on every gate**: a measuring tool run on demand writes each answer with a stamp
+  hashed over the subject and the measuring code, and the gate runs only a staleness check of milliseconds
+  ([`skills/procedures/code-shape.md`](../skills/procedures/code-shape.md), *Test policy* and *The measurement
+  cache*). **Review's tests lens applies all of this, and its findings bind** — the merge waits until the
+  test is deleted or its justification is on the PR — and health's `Prune candidates` lists what is already
+  committed against it. **The folder
   is the unit**: where your project declares or shows a layering, code sits in three layers — the core, components and release units, the parts that ship on
   their own — with dependencies pointing down, so a release unit never imports another, a component never
   imports another, and code moves into the core only when a second component needs it; a release unit or a
@@ -61,7 +79,8 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   and a tag nothing checks counts as a guess. **Your project's own layout
   and testing rules win wherever it states them.** And a signal the agent has to work out by hand more than
   once is a missing tool — the fix it recommends is a script with its own check in your repository, never a
-  longer brief. **A permanent test names the failure it exists to catch** — *this behaviour exists* is not a
+  longer brief, and a probe you will want again becomes such a validation tool, never a committed test.
+  **A permanent test names the failure it exists to catch** — *this behaviour exists* is not a
   reason — **and waits on a condition, never on elapsed time, by default**: the subject is driven to the state
   through its own interface, time and randomness go through a fake clock or a fixed seed, and a timed wait
   that is genuinely needed carries a written reason beside it. Passing serial re-runs prove nothing about a
@@ -88,8 +107,10 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   never a reason to fall back to the local gate**; the fallback is for no answer, a head where no check ran or
   none was picked up within the dispatcher's bound, and the dispatch report says which gate each PR got and
   why. Because `merge-pr` passes a PR with no checks, the dispatcher calls it only after it has seen a check
-  run and pass at that head. A gate with no PR — the mid-arc integration gate, the tip audit, `fullGate` —
-  stays local, and so does the preflight wherever it is required.
+  run and pass at that head. On a promotion PR — one whose base is a branch beyond the integration branch —
+  the gate command CI must run is `fullGate` where you declare one. A gate with no PR — the mid-arc
+  integration gate, the tip audit, a `fullGate` run other than a promotion PR's — stays local, and so does the
+  preflight wherever it is required.
 - **A finding is settled where that is cheap and within reach, and surfaced — with a recommendation — where it
   is not.** Nothing is dropped silently, and nothing reaches you, a dispatcher or a caller as a bare list or a
   bare question: whatever an agent surfaces carries its recommendation and why, two or three alternatives each
@@ -167,8 +188,9 @@ this page is the per-stance half, which is restated in whichever pass acts on it
 - **Test runs are a minority of an arc's time.** A slice pays its preflight, its own tests by name and one
   `gate` run on its PR; no suite baseline is taken before dispatch, and a red is checked by re-running only
   the failing tests at the slice's fork point. A merge into an epic branch takes no integration gate: the epic pays
-  one `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on
-  demand, before a release, and in place of that `gate` at a close-out whose epic moved the boundary** — for
+  one `gate` over its combined diff at close-out. **Where a project declares `fullGate`, the full suite runs on a
+  promotion PR — its CI choosing `fullGate` by the PR's base — on demand, before a release, and in place of
+  that `gate` at a close-out whose epic moved the boundary** — for
   a gate that selects from the project's structure, only a change to its selection machinery (the gate itself,
   how manifests are discovered, the exception list and its checks, the toolchain or a lockfile), never shared
   code alone, since that gate already selects every release unit a shared change reaches; for one that selects
@@ -337,7 +359,7 @@ this page is the per-stance half, which is restated in whichever pass acts on it
   matches or several is a stop; never an argument-less `git stash pop`, `apply` or `drop`; `git stash clear`
   is banned outright.
 - **A reversal is RUN rather than read off the diff, and a reader never runs one.** A verify bar that proves
-  the fix's test fails against the pre-change code has some seat move a tree to do it, so the bar states how
+  the fix's test or probe fails against the pre-change code has some seat move a tree to do it, so the bar states how
   rather than leaving the means to whatever is quickest. The shape is decided by the reversal needing that
   test standing while the code under it is pre-change: commit the work, make the breaking edit, run the
   one targeted test, then restore it — or stash the production file alone under the agent's own marker,

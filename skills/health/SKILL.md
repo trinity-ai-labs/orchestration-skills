@@ -72,10 +72,10 @@ mid-change. Read the project's config where it has one for `gate`, `fullGate` an
    - **A heavy suite on slice PRs** — a workflow running `fullGate`'s command or a sweep on slice PRs, off
      `skills/procedures/config-keys.md`'s `fullGate` cadence as it reads one; the item `Heavy suite on slice PRs: <workflow>`, its value the minutes per PR that step
      costs where the CI output shows them.
-   - **A test-type gap** — an area the code shape names with no row in the project's test-type table (which
-     kind of test brings value in which area), read from its tests chapter; the item `Test types: <area>`, its
-     value `no row`, or with no table at all the one item `Test types: no table`, its value the count of areas
-     the code shape names.
+   - **A test-type gap**, only in a project with a test suite beyond the gate's own checks, and otherwise on
+     the does-not-apply line — an area the code shape names with no row in the project's test-type table
+     (`skills/glossary/vocabulary/test-types.md`); the item `Test types: <area>`, its value `no row`, or with
+     no table at all the one item `Test types: no table`, its value the count of areas the code shape names.
 5. **Add every item a calling pass handed you**, named as it named it, carried into *3. Record* like your own.
 
 In a workspace, run every step per member, from that member's directory, against its own tracker.

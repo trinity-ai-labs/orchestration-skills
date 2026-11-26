@@ -99,7 +99,7 @@ bound dispatcher all 4-land        53715
 root  review-reader skills/review/SKILL.md
 modes review-reader goal correctness reuse simplification efficiency altitude rules tests
 open  review-reader * read skills/ground-rules/SKILL.md
-open  review-reader tests read skills/review/references/tests-lens.md
+open  review-reader tests read skills/review/references/tests-lens.md skills/glossary/vocabulary/test-types.md
 open  review-reader correctness,altitude,tests read skills/procedures/code-shape.md
 open  review-reader rules read skills/procedures/config-keys.md skills/procedures/agent-guidance-layout.md
 
@@ -110,7 +110,7 @@ bound review-reader simplification read 2802
 bound review-reader efficiency     read 2802
 bound review-reader altitude       read 6778
 bound review-reader rules          read 8063
-bound review-reader tests          read 7074
+bound review-reader tests          read 7185
 
 # --- grounder — skills/ground/SKILL.md's actions --------------------------------
 #

@@ -13,8 +13,7 @@ start each added test marked for deletion**. Report each finding with the deleti
   the owner's ask names where that ask is written — an item its area's row lists under *must be right* being
   that ask, unless this diff added or changed that row.
 - **A test of another type than its area's row names, or of a kind that row never commits** — name the row,
-  read from the test-type table in the project's tests chapter, routed from its `AGENTS.md`; an area with no
-  row is judged on the policy alone.
+  read from the project's test-type table (`skills/glossary/vocabulary/test-types.md`).
 - **A guard the diff rewrote to match a change that tripped it**, with no answer from the owner on record.
 - **A test that duplicates one already in the suite** — name the existing test that carries the case, or
   would with one more case.
